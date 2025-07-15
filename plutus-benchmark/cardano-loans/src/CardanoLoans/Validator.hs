@@ -12,6 +12,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
+{-# OPTIONS_GHC -Wno-unused-local-binds #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -45,14 +46,13 @@ module CardanoLoans.Validator
   loanValidatorCode,
 ) where
 
-import PlutusLedgerApi.V1.Value (flattenValue, valueOf)
+import PlutusLedgerApi.V1.Value (valueOf)
 import PlutusLedgerApi.V3
 import PlutusLedgerApi.V3.Contexts (valueSpent)
 import PlutusTx
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude
-import PlutusTx.Ratio (recip)
 
 -------------------------------------------------
 -- Data Types
