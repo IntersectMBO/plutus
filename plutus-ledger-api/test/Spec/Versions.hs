@@ -62,7 +62,7 @@ testLanguageVersions :: TestTree
 testLanguageVersions = testGroup "Plutus Core language versions"
   [ testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
       -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
-      assertBool "in PlutusV3/,Vasil" $
+      assertBool "in PlutusV3/Vasil" $
         isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
       -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
       assertBool "in PlutusV2/Chang" $ isLeft $
@@ -142,11 +142,13 @@ builtins5 = fmap mkScript batch5
 builtins6 :: [(String, SerialisedScript)]
 builtins6 = fmap mkScript batch6
 
-allBuiltins :: [(String, SerialisedScript)]
+allBuiltins :: [(String, SerialisedScript)]  -- Not quite: there may be some in futurePV as well
 allBuiltins = builtins1 ++ builtins2
              ++ builtins3 ++ builtins4a
              ++ builtins4b ++ builtins5
              ++ builtins6
+
+-- When does plutus-ledger-api get deployed with the node?
 
 -- | Test that the builtins that we expect to be allowed in each LL/PV
 -- combination can be successfully deserialised and that the rest cannot.  This
@@ -187,10 +189,10 @@ testPermittedBuiltins =
          , mkTest allegraPV   []
          , mkTest maryPV      []
          , mkTest alonzoPV    []
-         , mkTest vasilPV     (builtins1 ++ builtins2)
-         , mkTest valentinePV (builtins1 ++ builtins2 ++ builtins3)
-         , mkTest changPV     (builtins1 ++ builtins2 ++ builtins3)
-         , mkTest plominPV    (builtins1 ++ builtins2 ++ builtins3 ++ builtins4b)
+         , mkTest vasilPV     $ builtins1 ++ builtins2
+         , mkTest valentinePV $ builtins1 ++ builtins2 ++ builtins3
+         , mkTest changPV     $ builtins1 ++ builtins2 ++ builtins3
+         , mkTest plominPV    $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4b
          , mkTest anonPV      allBuiltins
       ]
     , let mkTest = testBuiltins PlutusV3 V3.deserialiseScript
@@ -201,8 +203,8 @@ testPermittedBuiltins =
          , mkTest alonzoPV    []
          , mkTest vasilPV     []
          , mkTest valentinePV []
-         , mkTest changPV     (builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b)
-         , mkTest plominPV    (builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b ++ builtins5)
+         , mkTest changPV     $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b
+         , mkTest plominPV    $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b ++ builtins5
          , mkTest anonPV      allBuiltins
       ]
     ]

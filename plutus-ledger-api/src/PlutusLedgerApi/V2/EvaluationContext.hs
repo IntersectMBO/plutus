@@ -10,7 +10,6 @@ module PlutusLedgerApi.V2.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.ProtocolVersions (anonPV)
 import PlutusLedgerApi.V2.ParamName as V2
 
 import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)

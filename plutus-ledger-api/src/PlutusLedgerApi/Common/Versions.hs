@@ -105,10 +105,10 @@ ledgerLanguageIntroducedIn = \case
     PlutusV3 -> changPV
 
 {-| Which Plutus language versions are available in the given
-'MajorProtocolVersion'?
-See Note [New builtins/language versions and protocol versions].
-Assumes that once a LL is available it remains available in all later
-PVs and that if m <= n, PlutusVm is introduced before PlutusVn.
+'MajorProtocolVersion'?  See Note [New builtins/language versions and protocol
+versions].  This function (and others in this module) assumes that once a LL is
+available it remains available in all later PVs and that if m <= n, PlutusVm is
+introduced no later than PlutusVn.
 -}
 ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLanguage
 ledgerLanguagesAvailableIn searchPv =
@@ -128,6 +128,17 @@ collectUpTo m thisPv =
 -- Batches of builtins which were introduced in the same hard fork (but perhaps
 -- not for all LLs): see the Plutus Core specification and
 -- `builtinsIntroducedIn` below.
+
+-- If any new builtins are introduced after a batch has been deployed on the
+-- chain then a new `batch` object MUST be added to contain them and the
+-- `builtinsIntroducedIn` function must be updated.
+
+{- It's tempting to try something like `fmap toEnum [0..50]` here, but that's
+   dangerous because the order of the constructors in DefaultFun doesn't
+   precisely match the order that the builtins were introduced in.  A safer
+   alternative would be to use the flat tags, but they're not driectly
+   accessible at the moment.
+-}
 batch1 :: [DefaultFun]
 batch1 =
   [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger
@@ -140,7 +151,6 @@ batch1 =
   , IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData
   , MkPairData, MkNilData, MkNilPairData
   ]
--- or fmap toEnum [0..50] etc.
 
 batch2 :: [DefaultFun]
 batch2 =
@@ -197,7 +207,7 @@ batch5 =
 batch6 :: [DefaultFun]
 batch6 =
   [ ExpModInteger, DropList
-  , ListToArray, IndexArray, LengthOfArray
+  , LengthOfArray, ListToArray, IndexArray
   ]
 
 {-| Given a ledger language, return a map indicating which builtin functions were
