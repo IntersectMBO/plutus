@@ -330,15 +330,6 @@ mkLoan loanDatum r ctx =
     repaidAmount :: Rational
     repaidAmount = fromInteger $ uncurry (valueOf addrDiff) $ loanAsset loanDatum
 
-    -- | Checks that no collateral is taken during RepayLoan (unless loan fully paid off).
-    noCollateralTaken1 :: Bool
-    noCollateralTaken1 = False
-      -- FIXME uncommenting this code causes an evaluation error when running
-      -- cabal run plutus-benchmark:cardano-loans
-      -- let foo _ acc [] = acc
-      --     foo val !acc ((collatAsset,_):xs) =
-      --       foo val (acc && uncurry (valueOf val) collatAsset == 0) xs
-      -- in foo addrDiff True (collateralRates loanDatum)
 
 loanValidatorCode :: CompiledCode (BuiltinData -> BuiltinUnit)
 loanValidatorCode = $$(compile [||untypedValidator||])
