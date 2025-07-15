@@ -156,7 +156,9 @@ allBuiltins = builtins1 ++ builtins2
 -- allowed in all ledger languages.
 --
 -- FIXME: Ideally we'd test that for PV11 scripts, all of the newer builtins
--- have the same cost in each Plutus ledger language.
+-- have the same cost in each Plutus ledger language.  That would involve having
+-- appropriate sets of cost model parameters to feed into the parameter update
+-- process though.
 testPermittedBuiltins :: TestTree
 testPermittedBuiltins =
   let testBuiltins ll deserialise pv expectedGood =
