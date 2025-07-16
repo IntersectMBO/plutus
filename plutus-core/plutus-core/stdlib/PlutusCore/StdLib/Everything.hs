@@ -10,6 +10,8 @@ module PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
+import PlutusPrelude
+
 import PlutusCore.Default
 import PlutusCore.FsTree
 
@@ -63,18 +65,18 @@ stdLib =
                   , plcTermFile "Uncurry" Builtin.uncurry
                   ]
               , treeFolderContents "List"
-                  [ plcTypeFile "List"      list
-                  , plcTermFile "MatchList" $ Builtin.matchList UseCase
-                  , plcTermFile "FoldrList" $ Builtin.foldrList UseCase
-                  , plcTermFile "FoldList"  $ Builtin.foldList  UseCase
-                  , plcTermFile "MatchListViaChoose" $ Builtin.matchList UseChoose
-                  , plcTermFile "FoldrListViaChoose" $ Builtin.foldrList UseChoose
-                  , plcTermFile "FoldListViaChoose"  $ Builtin.foldList  UseChoose
-                  ]
+                  $ plcTypeFile "List" list
+                  : [ plcTermFile (name ++ show optMatch) $ f optMatch
+                    | optMatch <- enumerate
+                    , (name, f) <-
+                        [ ("MatchList", Builtin.matchList)
+                        , ("FoldrList", Builtin.foldrList)
+                        , ("FoldList",  Builtin.foldList)
+                        ]
+                    ]
               , treeFolderContents "Data"
-                  [ plcTypeFile "Data"     dataTy
-                  , plcTermFile "matchData" $ matchData UseCase
-                  , plcTermFile "matchDataViaChoose" $ matchData UseChoose
+                  [ plcTypeFile "Data" dataTy
+                  , plcTermFile "matchDataUseChoose" matchData
                   ]
               , treeFolderContents "ScottList"
                   [ plcTypeFile "List"       listTy

@@ -43,6 +43,10 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r +with-cert
 
+if arch(wasm32)
+  package plutus-core
+    flags: +do-not-build-plutus-exec
+
 -- Various dependencies of coq don't work when cross building for windows
 if os(windows)
   -- Note: we enable this and then disable it conditionally, rather than enabling
@@ -81,14 +85,3 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
--- Uncomment the following lines to make cardano-constitution:create-json-envelope buildable:True
---
--- package cardano-constitution
---   flags: +force-build
--- allow-newer: *:plutus-ledger-api
--- allow-older: *:nothunks
-
-if impl (ghc >= 9.12)
-  allow-newer:
-    -- https://github.com/typeclasses/hex-text/issues/9
-    , hex-text:base

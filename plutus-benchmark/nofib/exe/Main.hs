@@ -37,7 +37,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicSimple)
 import PlutusTx (getPlcNoAnn)
-import PlutusTx.Code (CompiledCode, sizePlc)
+import PlutusTx.Code (CompiledCode, countAstNodes)
 import PlutusTx.List
 import PlutusTx.Prelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
 import UntypedPlutusCore qualified as UPLC
@@ -262,7 +262,7 @@ measureBudget compiledCode =
 
 getInfo :: (Hs.String, CompiledCode a) -> (Hs.String, Integer, Integer, Integer)
 getInfo (name, code) =
-    let size = sizePlc code
+    let size = countAstNodes code
         (cpu, mem) = measureBudget code
     in (name, size, cpu, mem)
 

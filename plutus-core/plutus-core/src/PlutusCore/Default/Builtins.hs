@@ -56,7 +56,6 @@ import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
--- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
 -- | Default built-in functions.
 --
@@ -111,7 +110,7 @@ data DefaultFun
     | TailList
     | NullList
     -- Data
-    -- See Note [Pattern matching on built-in types].
+    -- See Note [Legacy pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
@@ -184,9 +183,6 @@ data DefaultFun
     | LengthOfArray
     | ListToArray
     | IndexArray
-    -- Case
-    | CaseList
-    | CaseData
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -944,82 +940,10 @@ goes without saying that this is not supposed to be done.
 
 So overall one needs to be very careful when defining built-in functions that have explicit
 'Opaque' and 'SomeConstant' arguments. Expressiveness doesn't come for free.
-
-Read Note [Pattern matching on built-in types] next.
--}
-
-{- Note [Pattern matching on built-in types]
-Pattern matching over an enumeration built-in type ('Void', 'Unit', 'Bool' etc) is trivially
-implementable, see the 'IfThenElse' example in Note [How to add a built-in function: simple cases].
-Not so much for algebraic data types with at least one constructor carrying some kind of content.
-For example the @(:)@ constructor of @[a]@ has two arguments (an @a@ and a @[a]@) and all
-constructors of 'Data' carry something (e.g. 'I' carries an 'Integer' and 'Constr' carries an
-@Integer@ and a @[Data]@).
-
-In Haskell we'd represent the pattern matching function for lists as follows:
-
-    caseList f z xs0 = case xs0 of
-       []   -> z
-       x:xs -> f x xs
-
-but in the denotation of a built-in function all those @f@, @z@ and @xs0@ are of type @val@, i.e.
-the type of values that the given evaluator uses (e.g. 'CkValue' for the CK machine or 'CekValue'
-for the CEK machine) and we don't know to apply one @val@ to another. We could try to constrain
-@val@ to implement some kind of "apply" function or try to somehow "parse" it into Haskell so that
-it becomes @val -> val@, but even if there was a way of doing either thing, it would be very
-complex and, more importantly, it's just not the job of the builtins machinery to evaluate such
-applications, it's what the actual evaluator is supposed to do.
-
-Hence we employ a very simple strategy: whenever we want to return an iterated application of a
-@val@ to a bunch of @val@s from a built-in function, we just construct it as is without trying to
-evaluate it and let the evaluator perform all the necessary reductions.
-
-So if you want to return an application from a built-in function, you need to use 'HeadSpine' at the
-type level and 'headSpine' at the term level, where the latter has the following signature:
-
-    headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
-
-'headSpine' takes the head of the application, i.e. a function from @a0@, @a1@ ... @an@ to @b@, and
-applies it to a list of values of respective types, returning a `b`. Whether types match or not is
-not checked, since that would be hard and largely pointless, so don't make mistakes.
-
-Back to the pattern matcher for lists:
-
-    caseList f z xs0 = case xs0 of
-       []   -> z
-       x:xs -> f x xs
-
-Here's how we can define it as a built-in function using 'headSpine':
-
-    toBuiltinMeaning _ver CaseList =
-        let caseListDenotation
-                :: Opaque val b
-                -> Opaque val (a -> [a] -> b)
-                -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
-                case uniListA of
-                    DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []                                             -- [1]
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]  -- [2]
-                    _ ->
-                        throwError $ structuralUnliftingError "Expected a list but got something else"
-            {-# INLINE caseListDenotation #-}
-        in makeBuiltinMeaning
-            caseListDenotation
-            <costingFunction>
-
-All the unlifting logic is the same as with, say, 'NullList' from
-Note [How to add a built-in function: complicated cases], the only things that are different are [1]
-and [2]. In [2] we have an iterated application of the given function @f@ to the head of the list
-@x@ (lifted from a constant value to @val@ via 'fromValueOf') and the tail of the list @xs@ (lifted
-to @val@ the same way). In [1] we return the given @z@, but since we need to return a 'HeadSpine'
-(required by [2]), we have to use 'headSpine' just like in [2] except with an empty spine, since @z@
-isn't applied to anything.
 -}
 
 {- Note [Representable built-in functions over polymorphic built-in types]
-In Note [Pattern matching on built-in types] we discussed how general higher-order polymorphic
+Note [Legacy pattern matching on built-in types] discusses how general higher-order polymorphic
 built-in functions are troubling, but polymorphic built-in functions can be troubling even in
 the first-order case. In a Plutus program we always pair constants of built-in types with their
 tags from the universe, which means that in order to produce a constant embedded into a program
@@ -1105,17 +1029,6 @@ _StructuralUnliftingError@ (to throw a "structural" evaluation error) and someti
 throw an "operational" evaluation error). Please respect the distinction when adding new built-in
 functions.
 -}
-
--- | Take a function and a list of arguments and apply the former to the latter.
-headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
-headSpine (Opaque f) = Opaque . \case
-    []      -> HeadOnly f
-    x0 : xs ->
-        -- It's critical to use 'foldr' here, so that deforestation kicks in.
-        -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
-        -- of the trick.
-        HeadSpine f $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x0
-{-# INLINE headSpine #-}
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
@@ -2102,45 +2015,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
-    toBuiltinMeaning _ver CaseList =
-        let caseListDenotation
-                :: Opaque val (LastArg a b)
-                -> Opaque val (a -> [a] -> b)
-                -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
-                case uniListA of
-                    DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-                    _ ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwError $ structuralUnliftingError "Expected a list but got something else"
-            {-# INLINE caseListDenotation #-}
-        in makeBuiltinMeaning
-            caseListDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
-
-    toBuiltinMeaning _ver CaseData =
-        let caseDataDenotation
-                :: Opaque val (Integer -> [Data] -> b)
-                -> Opaque val ([(Data, Data)] -> b)
-                -> Opaque val ([Data] -> b)
-                -> Opaque val (Integer -> b)
-                -> Opaque val (BS.ByteString -> b)
-                -> Data
-                -> Opaque (HeadSpine val) b
-            caseDataDenotation fConstr fMap fList fI fB = \case
-                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
-                Map es      -> headSpine fMap [fromValue es]
-                List ds     -> headSpine fList [fromValue ds]
-                I i         -> headSpine fI [fromValue i]
-                B b         -> headSpine fB [fromValue b]
-            {-# INLINE caseDataDenotation #-}
-        in makeBuiltinMeaning
-            caseDataDenotation
-            (runCostingFunSixArguments . unimplementedCostingFun)
-
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -2289,111 +2163,106 @@ instance Flat DefaultFun where
               ListToArray                     -> 90
               IndexArray                      -> 91
 
-              CaseList                        -> 126
-              CaseData                        -> 127
-
     decode = go =<< decodeBuiltin
-        where go 0   = pure AddInteger
-              go 1   = pure SubtractInteger
-              go 2   = pure MultiplyInteger
-              go 3   = pure DivideInteger
-              go 4   = pure QuotientInteger
-              go 5   = pure RemainderInteger
-              go 6   = pure ModInteger
-              go 7   = pure EqualsInteger
-              go 8   = pure LessThanInteger
-              go 9   = pure LessThanEqualsInteger
-              go 10  = pure AppendByteString
-              go 11  = pure ConsByteString
-              go 12  = pure SliceByteString
-              go 13  = pure LengthOfByteString
-              go 14  = pure IndexByteString
-              go 15  = pure EqualsByteString
-              go 16  = pure LessThanByteString
-              go 17  = pure LessThanEqualsByteString
-              go 18  = pure Sha2_256
-              go 19  = pure Sha3_256
-              go 20  = pure Blake2b_256
-              go 21  = pure VerifyEd25519Signature
-              go 22  = pure AppendString
-              go 23  = pure EqualsString
-              go 24  = pure EncodeUtf8
-              go 25  = pure DecodeUtf8
-              go 26  = pure IfThenElse
-              go 27  = pure ChooseUnit
-              go 28  = pure Trace
-              go 29  = pure FstPair
-              go 30  = pure SndPair
-              go 31  = pure ChooseList
-              go 32  = pure MkCons
-              go 33  = pure HeadList
-              go 34  = pure TailList
-              go 35  = pure NullList
-              go 36  = pure ChooseData
-              go 37  = pure ConstrData
-              go 38  = pure MapData
-              go 39  = pure ListData
-              go 40  = pure IData
-              go 41  = pure BData
-              go 42  = pure UnConstrData
-              go 43  = pure UnMapData
-              go 44  = pure UnListData
-              go 45  = pure UnIData
-              go 46  = pure UnBData
-              go 47  = pure EqualsData
-              go 48  = pure MkPairData
-              go 49  = pure MkNilData
-              go 50  = pure MkNilPairData
-              go 51  = pure SerialiseData
-              go 52  = pure VerifyEcdsaSecp256k1Signature
-              go 53  = pure VerifySchnorrSecp256k1Signature
-              go 54  = pure Bls12_381_G1_add
-              go 55  = pure Bls12_381_G1_neg
-              go 56  = pure Bls12_381_G1_scalarMul
-              go 57  = pure Bls12_381_G1_equal
-              go 58  = pure Bls12_381_G1_compress
-              go 59  = pure Bls12_381_G1_uncompress
-              go 60  = pure Bls12_381_G1_hashToGroup
-              go 61  = pure Bls12_381_G2_add
-              go 62  = pure Bls12_381_G2_neg
-              go 63  = pure Bls12_381_G2_scalarMul
-              go 64  = pure Bls12_381_G2_equal
-              go 65  = pure Bls12_381_G2_compress
-              go 66  = pure Bls12_381_G2_uncompress
-              go 67  = pure Bls12_381_G2_hashToGroup
-              go 68  = pure Bls12_381_millerLoop
-              go 69  = pure Bls12_381_mulMlResult
-              go 70  = pure Bls12_381_finalVerify
-              go 71  = pure Keccak_256
-              go 72  = pure Blake2b_224
-              go 73  = pure IntegerToByteString
-              go 74  = pure ByteStringToInteger
-              go 75  = pure AndByteString
-              go 76  = pure OrByteString
-              go 77  = pure XorByteString
-              go 78  = pure ComplementByteString
-              go 79  = pure ReadBit
-              go 80  = pure WriteBits
-              go 81  = pure ReplicateByte
-              go 82  = pure ShiftByteString
-              go 83  = pure RotateByteString
-              go 84  = pure CountSetBits
-              go 85  = pure FindFirstSetBit
-              go 86  = pure Ripemd_160
-              go 87  = pure ExpModInteger
-              go 88  = pure DropList
-              go 89  = pure LengthOfArray
-              go 90  = pure ListToArray
-              go 91  = pure IndexArray
-              go 126 = pure CaseList
-              go 127 = pure CaseData
-              go t   = fail $ "Failed to decode builtin tag, got: " ++ show t
+        where go 0  = pure AddInteger
+              go 1  = pure SubtractInteger
+              go 2  = pure MultiplyInteger
+              go 3  = pure DivideInteger
+              go 4  = pure QuotientInteger
+              go 5  = pure RemainderInteger
+              go 6  = pure ModInteger
+              go 7  = pure EqualsInteger
+              go 8  = pure LessThanInteger
+              go 9  = pure LessThanEqualsInteger
+              go 10 = pure AppendByteString
+              go 11 = pure ConsByteString
+              go 12 = pure SliceByteString
+              go 13 = pure LengthOfByteString
+              go 14 = pure IndexByteString
+              go 15 = pure EqualsByteString
+              go 16 = pure LessThanByteString
+              go 17 = pure LessThanEqualsByteString
+              go 18 = pure Sha2_256
+              go 19 = pure Sha3_256
+              go 20 = pure Blake2b_256
+              go 21 = pure VerifyEd25519Signature
+              go 22 = pure AppendString
+              go 23 = pure EqualsString
+              go 24 = pure EncodeUtf8
+              go 25 = pure DecodeUtf8
+              go 26 = pure IfThenElse
+              go 27 = pure ChooseUnit
+              go 28 = pure Trace
+              go 29 = pure FstPair
+              go 30 = pure SndPair
+              go 31 = pure ChooseList
+              go 32 = pure MkCons
+              go 33 = pure HeadList
+              go 34 = pure TailList
+              go 35 = pure NullList
+              go 36 = pure ChooseData
+              go 37 = pure ConstrData
+              go 38 = pure MapData
+              go 39 = pure ListData
+              go 40 = pure IData
+              go 41 = pure BData
+              go 42 = pure UnConstrData
+              go 43 = pure UnMapData
+              go 44 = pure UnListData
+              go 45 = pure UnIData
+              go 46 = pure UnBData
+              go 47 = pure EqualsData
+              go 48 = pure MkPairData
+              go 49 = pure MkNilData
+              go 50 = pure MkNilPairData
+              go 51 = pure SerialiseData
+              go 52 = pure VerifyEcdsaSecp256k1Signature
+              go 53 = pure VerifySchnorrSecp256k1Signature
+              go 54 = pure Bls12_381_G1_add
+              go 55 = pure Bls12_381_G1_neg
+              go 56 = pure Bls12_381_G1_scalarMul
+              go 57 = pure Bls12_381_G1_equal
+              go 58 = pure Bls12_381_G1_compress
+              go 59 = pure Bls12_381_G1_uncompress
+              go 60 = pure Bls12_381_G1_hashToGroup
+              go 61 = pure Bls12_381_G2_add
+              go 62 = pure Bls12_381_G2_neg
+              go 63 = pure Bls12_381_G2_scalarMul
+              go 64 = pure Bls12_381_G2_equal
+              go 65 = pure Bls12_381_G2_compress
+              go 66 = pure Bls12_381_G2_uncompress
+              go 67 = pure Bls12_381_G2_hashToGroup
+              go 68 = pure Bls12_381_millerLoop
+              go 69 = pure Bls12_381_mulMlResult
+              go 70 = pure Bls12_381_finalVerify
+              go 71 = pure Keccak_256
+              go 72 = pure Blake2b_224
+              go 73 = pure IntegerToByteString
+              go 74 = pure ByteStringToInteger
+              go 75 = pure AndByteString
+              go 76 = pure OrByteString
+              go 77 = pure XorByteString
+              go 78 = pure ComplementByteString
+              go 79 = pure ReadBit
+              go 80 = pure WriteBits
+              go 81 = pure ReplicateByte
+              go 82 = pure ShiftByteString
+              go 83 = pure RotateByteString
+              go 84 = pure CountSetBits
+              go 85 = pure FindFirstSetBit
+              go 86 = pure Ripemd_160
+              go 87 = pure ExpModInteger
+              go 88 = pure DropList
+              go 89 = pure LengthOfArray
+              go 90 = pure ListToArray
+              go 91 = pure IndexArray
+              go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
 
 {- Note [Legacy pattern matching on built-in types]
 We used to only support direct pattern matching on enumeration types: 'Void', 'Unit', 'Bool'
-etc. This is because it was impossible to return an iterated application from a built-in function.
+etc. This is because it was impossible to 'Case' on a value of a built-in type.
 
 So e.g. if we wanted to add the following data type:
 
@@ -2460,5 +2329,5 @@ concerns are omitted for clarity):
 which, for example, evaluates to @fMap es@ when @d@ is @Map es@
 
 We decided to handle lists the same way by using @chooseList@ rather than @null@ for consistency,
-before introduction of pattern matching builtins.
+before introduction of casing on values of built-in types.
 -}

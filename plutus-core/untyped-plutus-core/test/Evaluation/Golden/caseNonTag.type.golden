@@ -1,7 +1,2 @@
-(Left Type mismatch at ()
-Expected a term of type
-  '(sop)'
-But found one of type
-  '(fun (con integer) (fun (con integer) (con integer)))'
-Namely,
-  '(builtin addInteger)')
+(Left Unsupported 'case' of a value of a built-in type at (): 
+ (fun (con integer) (fun (con integer) (con integer))) isn't supported in 'case')

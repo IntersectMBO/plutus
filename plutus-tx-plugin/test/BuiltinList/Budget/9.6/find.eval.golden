@@ -1,6 +1,6 @@
-CPU:                21_108_840
-Memory:                 94_378
-Term Size:                 115
-Flat Size:                 341
+CPU:                10_303_320
+Memory:                 59_418
+Term Size:                  97
+Flat Size:                 110
 
 (constr 0 (constr 0 (con integer 8)) (constr 1))

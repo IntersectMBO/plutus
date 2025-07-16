@@ -8,23 +8,19 @@
            (\go arg ->
               delay
                 (\xs ys ->
-                   (\cse ->
-                      cse
-                        (\x xs' ->
-                           cse
-                             (\y ys' ->
-                                force mkCons
-                                  (addInteger x y)
-                                  (force (go (delay (\x -> x))) xs' ys'))
-                             ys)
-                        xs)
-                     (\f xs ->
-                        force
-                          (force (force chooseList)
-                             xs
-                             (delay [])
-                             (delay
-                                (f (force headList xs) (force tailList xs)))))))
+                   case
+                     xs
+                     [ []
+                     , (\x xs' ->
+                          case
+                            ys
+                            [ []
+                            , (\y ys' ->
+                                 force mkCons
+                                   (addInteger x y)
+                                   (force (go (delay (\x -> x)))
+                                      xs'
+                                      ys')) ]) ]))
            (delay (\x -> x)))
         xs
         xs))

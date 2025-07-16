@@ -59,7 +59,7 @@ testMachine machine eval =
             let resExp = makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case splitStructuralOperational . eval $ eraseTerm term of
                 Left err     -> fail $ show err
-                Right resAct -> fmap HeadOnly resAct === fmap (fmap eraseTerm) resExp
+                Right resAct -> resAct === fmap eraseTerm resExp
 
 test_machines :: TestTree
 test_machines =

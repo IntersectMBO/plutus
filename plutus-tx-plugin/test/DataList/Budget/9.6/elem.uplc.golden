@@ -3,13 +3,8 @@
    ((\go eta -> go eta)
       ((\s -> s s)
          (\s xs ->
-            force
-              (force (force chooseList)
-                 xs
-                 (delay (constr 1 []))
-                 (delay
-                    ((\h ->
-                        (\t ->
-                           case (equalsData (I 8) h) [(s s t), (constr 0 [])])
-                          (force tailList xs))
-                       (force headList xs))))))))
+            case
+              xs
+              [ (constr 1 [])
+              , (\h t ->
+                   case (equalsData (I 8) h) [(s s t), (constr 0 [])]) ]))))
