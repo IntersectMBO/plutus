@@ -28,6 +28,7 @@ import Test.Tasty.QuickCheck
 tests :: TestTree
 tests = testGroup "versions"
     [ testLedgerLanguages
+    , testHorn
     , testLanguageVersions
     , testPermittedBuiltins
     , testRmdr
@@ -55,6 +56,77 @@ testLedgerLanguages = testGroup "ledger languages"
                    _                                      -> False
            -- generated an eq or gt the expected protocol version
            else isRight resPhase1
+
+testHorn :: TestTree
+testHorn =
+  testGroup "Horn: new ledger language tests" $
+    let expectGood ll deserialise pv =
+          testCase (showPV pv) $
+          assertBool  ("v110" ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
+           isRight $ mkTermToEvaluate ll pv
+          (either (Prelude.error . show)
+           id
+          (deserialise changPV $ serialiseUPLC v110script)
+          ) []
+        expectBad :: PlutusLedgerLanguage -> MajorProtocolVersion -> TestTree
+        expectBad ll pv =
+          testCase (showPV pv) $
+          assertBool  ("v110" ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
+          isLeft $ uplcToScriptForEvaluation ll pv v110script
+  in [ expectBad  PlutusV1 shelleyPV
+     , expectBad  PlutusV1 allegraPV
+     , expectBad  PlutusV1 maryPV
+     , expectBad  PlutusV1 alonzoPV
+     , expectBad  PlutusV1 vasilPV
+     , expectBad  PlutusV1 valentinePV
+     , expectGood PlutusV1 changPV
+     , expectGood PlutusV1 anonPV
+     , expectBad  PlutusV2 shelleyPV
+     , expectBad  PlutusV2 allegraPV
+     , expectBad  PlutusV2 allegraPV
+     , expectBad  PlutusV2 maryPV
+     , expectBad  PlutusV2 alonzoPV
+     , expectBad  PlutusV2 vasilPV
+     , expectBad  PlutusV2 valentinePV
+     , expectBad  PlutusV2 changPV
+     , expectGood PlutusV2 anonPV
+     , expectBad  PlutusV3 shelleyPV
+     , expectBad  PlutusV3 allegraPV
+     , expectBad  PlutusV3 allegraPV
+     , expectBad  PlutusV3 maryPV
+     , expectBad  PlutusV3 alonzoPV
+     , expectBad  PlutusV3 vasilPV
+     , expectBad  PlutusV3 valentinePV
+     , expectBad  PlutusV3 changPV
+     , expectGood PlutusV3 V3.deserialiseScript anonPV
+
+
+     , testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
+      -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
+         assertBool "in PlutusV3/Vasil" $
+           isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
+       -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
+         assertBool "in PlutusV2/Chang" $ isLeft $
+           mkTermToEvaluate PlutusV2 changPV
+           (either (Prelude.error . show)
+            id
+            (V2.deserialiseScript changPV $ serialiseUPLC v110script)
+           ) []
+       -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
+         assertBool "not in PlutusV3/Chang" $ isRight $ mkTermToEvaluate PlutusV3 changPV
+           (either (Prelude.error . show)
+            id
+            (V3.deserialiseScript changPV $ serialiseUPLC v110script)
+           ) []
+
+     -- The availability of `case` and `constr` is checked in `deserialise`
+     , testCase "constr is not available with v1.0.0 ever" $
+       assertBool "in PlutusV3/future" $
+       isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
+     , testCase "case is not available with v1.0.0 ever" $
+       assertBool "in PlutusV3/future" $
+       isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
+     ]
 
 -- ** FIX THESE TOO
 -- See Note [Checking the Plutus Core language version] for why these have to use mkTermToEvaluate
