@@ -1,51 +1,37 @@
 let
+  data Unit | Unit_match where
+    Unit : Unit
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  data Unit | Unit_match where
-    Unit : Unit
 in
 \(r_stake_cred : data) ->
   letrec
-    !lookForCred : pair data data -> list (pair data data) -> Unit
-      = \(p : pair data data) (tl : list (pair data data)) ->
-          Bool_match
-            (case
-               Bool
-               (equalsData r_stake_cred (fstPair {data} {data} p))
-               [False, True])
-            {all dead. Unit}
-            (/\dead -> Unit)
-            (/\dead -> lookForCred tl)
-            {all dead. dead}
-    ~lookForCred : list (pair data data) -> Unit
-      = (let
-            a = pair data data
-          in
-          /\r ->
-            \(nilCase : Unit -> r) (consCase : a -> list a -> r) (l : list a) ->
-              (let
-                  r = Unit -> r
-                in
-                \(z : r) (f : a -> list a -> r) (xs : list a) ->
-                  chooseList
-                    {a}
-                    {all dead. r}
-                    xs
-                    (/\dead -> z)
-                    (/\dead -> f (headList {a} xs) (tailList {a} xs))
-                    {r})
-                nilCase
-                (\(x : a) (xs : list a) (ds : Unit) -> consCase x xs)
-                l
-                Unit)
-          {Unit}
-          (\(ds : Unit) ->
-             let
-               !x : Unit = trace {Unit} "not found" Unit
-             in
-             error {Unit})
-          lookForCred
+    !lookForCred : list (pair data data) -> Unit
+      = \(l : list (pair data data)) ->
+          (let
+              a = pair data data
+            in
+            /\r ->
+              \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f])
+            {Unit -> Unit}
+            (\(ds : Unit) ->
+               let
+                 !x : Unit = trace {Unit} "not found" Unit
+               in
+               error {Unit})
+            (\(x : pair data data) (xs : list (pair data data)) (ds : Unit) ->
+               Bool_match
+                 (case
+                    Bool
+                    (equalsData r_stake_cred (fstPair {data} {data} x))
+                    [False, True])
+                 {all dead. Unit}
+                 (/\dead -> Unit)
+                 (/\dead -> lookForCred xs)
+                 {all dead. dead})
+            l
+            Unit
   in
   \(r_ctx : data) ->
     let

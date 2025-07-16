@@ -55,19 +55,17 @@ in
                    letrec
                      !go : list a -> Bool
                        = \(xs : list a) ->
-                           chooseList
-                             {a}
-                             {all dead. Bool}
+                           case
+                             Bool
                              xs
-                             (/\dead -> False)
-                             (/\dead ->
-                                Bool_match
-                                  (p (headList {a} xs))
-                                  {all dead. Bool}
-                                  (/\dead -> True)
-                                  (/\dead -> go (tailList {a} xs))
-                                  {all dead. dead})
-                             {Bool}
+                             [ False
+                             , (\(x : a) (xs : list a) ->
+                                  Bool_match
+                                    (p x)
+                                    {all dead. Bool}
+                                    (/\dead -> True)
+                                    (/\dead -> go xs)
+                                    {all dead. dead}) ]
                    in
                    go)
                  (\(x : pair data data) ->

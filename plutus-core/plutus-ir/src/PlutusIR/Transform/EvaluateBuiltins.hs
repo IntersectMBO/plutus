@@ -11,7 +11,6 @@ module PlutusIR.Transform.EvaluateBuiltins
     ) where
 
 import PlutusCore.Builtin
-import PlutusCore.MkPlc (headSpineToTerm)
 import PlutusIR.Contexts
 import PlutusIR.Core
 
@@ -56,19 +55,18 @@ evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms proc
       -> Maybe (Term tyname name uni fun ())
     eval (BuiltinCostedResult _ getFXs) AppContextEnd =
         case getFXs of
-            BuiltinSuccess fXs -> Just $ headSpineToTerm fXs
+            BuiltinSuccess y           -> Just y
             -- Evaluates successfully, but does logging. If we're being conservative
             -- then we should leave these in, so we don't remove people's logging!
             -- Otherwise `trace "hello" x` is a prime candidate for evaluation!
-            BuiltinSuccessWithLogs _ fXs ->
-                if preserveLogging then Nothing else Just $ headSpineToTerm fXs
+            BuiltinSuccessWithLogs _ y -> if preserveLogging then Nothing else Just y
             -- Evaluation failure. This can mean that the evaluation legitimately
             -- failed (e.g. `divideInteger 1 0`), or that it failed because the
             -- argument terms are not currently in the right form (because they're
             -- not evaluated, we're in the middle of a term here!). Since we can't
             -- distinguish these, we have to assume it's the latter case and just leave
             -- things alone.
-            BuiltinFailure{} -> Nothing
+            BuiltinFailure{}           -> Nothing
     eval (BuiltinExpectArgument toRuntime) (TermAppContext arg _ ctx) =
         -- Builtin evaluation does not work with annotations, so we have to throw
         -- the argument annotation away here

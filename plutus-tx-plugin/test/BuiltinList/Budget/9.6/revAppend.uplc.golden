@@ -8,15 +8,11 @@
             delay
               (delay
                  (\l r ->
-                    force
-                      (force (force chooseList)
-                         l
-                         (delay r)
-                         (delay
-                            ((\x xs ->
-                                force (force (revAppend (delay (\x -> x))))
-                                  xs
-                                  (force mkCons x r))
-                               (force headList l)
-                               (force tailList l)))))))
+                    case
+                      l
+                      [ r
+                      , (\x xs ->
+                           force (force (revAppend (delay (\x -> x))))
+                             xs
+                             (force mkCons x r)) ])))
          (delay (\x -> x)))))

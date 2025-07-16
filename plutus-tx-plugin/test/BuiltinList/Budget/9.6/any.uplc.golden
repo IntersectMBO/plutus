@@ -19,15 +19,12 @@
                 (\go arg ->
                    delay
                      (\xs ->
-                        force
-                          (force (force chooseList)
-                             xs
-                             (delay (constr 1 []))
-                             (delay
-                                ((\xs ->
-                                    case
-                                      (p (force headList xs))
-                                      [ (constr 0 [])
-                                      , (force (go (delay (\x -> x))) xs) ])
-                                   (force tailList xs))))))
+                        case
+                          xs
+                          [ (constr 1 [])
+                          , (\x xs ->
+                               case
+                                 (p x)
+                                 [ (constr 0 [])
+                                 , (force (go (delay (\x -> x))) xs) ]) ]))
                 (delay (\x -> x))))))

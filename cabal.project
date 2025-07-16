@@ -85,9 +85,3 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
--- Uncomment the following lines to make cardano-constitution:create-json-envelope buildable:True
---
--- package cardano-constitution
---   flags: +force-build
--- allow-newer: *:plutus-ledger-api
--- allow-older: *:nothunks

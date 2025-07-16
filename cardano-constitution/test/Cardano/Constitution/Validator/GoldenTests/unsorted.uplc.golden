@@ -8,7 +8,7 @@ program
                   (\cse ->
                      (\validateParamValue ->
                         (\validateParamValues ->
-                           (\caseData_go ->
+                           (\matchData_go ->
                               (\cse ->
                                  (\cse ->
                                     (\cse ->
@@ -59,7 +59,7 @@ program
                                                                                                                                          , (constr 0
                                                                                                                                               [ ((\d ->
                                                                                                                                                     force
-                                                                                                                                                      caseData_go
+                                                                                                                                                      matchData_go
                                                                                                                                                       (unMapData
                                                                                                                                                          d))
                                                                                                                                                    (force
@@ -780,10 +780,7 @@ program
                                                                                                                                            [  ])
                                                                                                                                       , (constr 1
                                                                                                                                            [ cse
-                                                                                                                                           , (constr 1
-                                                                                                                                                [ cse
-                                                                                                                                                , (constr 0
-                                                                                                                                                     [  ]) ]) ]) ])
+                                                                                                                                           , cse ]) ])
                                                                                                                                  , (constr 0
                                                                                                                                       [  ]) ]) ]) ]))
                                                                                                                  (constr 3
@@ -795,7 +792,10 @@ program
                                                                                                                                         [  ])
                                                                                                                                    , (constr 1
                                                                                                                                         [ cse
-                                                                                                                                        , cse ]) ])
+                                                                                                                                        , (constr 1
+                                                                                                                                             [ cse
+                                                                                                                                             , (constr 0
+                                                                                                                                                  [  ]) ]) ]) ])
                                                                                                                               , (constr 0
                                                                                                                                    [  ]) ]) ]) ]))
                                                                                                               (constr 1
@@ -836,8 +836,7 @@ program
                                                                                                         [ (constr 1
                                                                                                              [  ])
                                                                                                         , (constr 1
-                                                                                                             [ (cse
-                                                                                                                  10)
+                                                                                                             [ cse
                                                                                                              , cse ]) ]))
                                                                                                   (constr 1
                                                                                                      [ (constr 0
@@ -881,20 +880,21 @@ program
                                                                                       , (constr 0
                                                                                            [  ]) ]))
                                                                                 (constr 1
-                                                                                   [ cse
+                                                                                   [ (cse
+                                                                                        1)
                                                                                    , (constr 0
                                                                                         [  ]) ]))
                                                                              (cse
-                                                                                2))
+                                                                                4))
                                                                           (cse
-                                                                             1))
-                                                                       (cse 4))
-                                                                    (constr 0
-                                                                       [ (constr 1
-                                                                            [])
-                                                                       , cse ]))
-                                                                 (cse 100))
-                                                              (cse 10))
+                                                                             10))
+                                                                       (cse 5))
+                                                                    (cse 2))
+                                                                 (constr 0
+                                                                    [ (constr 1
+                                                                         [])
+                                                                    , cse ]))
+                                                              (cse 100))
                                                            (cse 1))
                                                         (constr 0
                                                            [ (constr 1 [])
@@ -902,39 +902,31 @@ program
                                                                 [ 1
                                                                 , (constr 0
                                                                      []) ]) ]))
-                                                     (cse 5))
-                                                  (unsafeRatio 0))
-                                               (unsafeRatio 4))
-                                            (unsafeRatio 51))
-                                         (constr 1 [0, (constr 0 [])]))
-                                      (unsafeRatio 9))
-                                   (unsafeRatio 3))
-                                (unsafeRatio 1))
+                                                     (cse 10))
+                                                  (unsafeRatio 4))
+                                               (unsafeRatio 9))
+                                            (unsafeRatio 3))
+                                         (unsafeRatio 0))
+                                      (unsafeRatio 1))
+                                   (unsafeRatio 51))
+                                (constr 1 [0, (constr 0 [])]))
                              ((\s -> s s)
                                 (\s arg ->
                                    delay
                                      (\xs ->
-                                        force
-                                          (force (force chooseList)
-                                             xs
-                                             (delay (constr 0 []))
-                                             (delay
-                                                ((\x xs ->
-                                                    constr 1
-                                                      [ (constr 0
-                                                           [ (force
-                                                                (force fstPair)
-                                                                x)
-                                                           , (force
-                                                                (force sndPair)
-                                                                x) ])
-                                                      , (force
-                                                           (s
-                                                              s
-                                                              (delay (\x -> x)))
-                                                           xs) ])
-                                                   (force headList xs)
-                                                   (force tailList xs))))))
+                                        case
+                                          xs
+                                          [ (constr 0 [])
+                                          , (\x xs ->
+                                               constr 1
+                                                 [ (constr 0
+                                                      [ (force (force fstPair)
+                                                           x)
+                                                      , (force (force sndPair)
+                                                           x) ])
+                                                 , (force
+                                                      (s s (delay (\x -> x)))
+                                                      xs) ]) ]))
                                 (delay (\x -> x))))
                           (cse (\arg_0 arg_1 -> arg_1)))
                        (cse (\arg_0 arg_1 -> arg_0)))
