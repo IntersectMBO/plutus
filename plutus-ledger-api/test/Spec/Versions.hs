@@ -79,8 +79,8 @@ testHorn =
      , expectBad  PlutusV1 alonzoPV
      , expectBad  PlutusV1 vasilPV
      , expectBad  PlutusV1 valentinePV
-     , expectGood PlutusV1 changPV
-     , expectGood PlutusV1 anonPV
+     , expectGood PlutusV1 V1.deserialiseScript changPV
+     , expectGood PlutusV1 V1.deserialiseScript anonPV
      , expectBad  PlutusV2 shelleyPV
      , expectBad  PlutusV2 allegraPV
      , expectBad  PlutusV2 allegraPV
@@ -89,7 +89,7 @@ testHorn =
      , expectBad  PlutusV2 vasilPV
      , expectBad  PlutusV2 valentinePV
      , expectBad  PlutusV2 changPV
-     , expectGood PlutusV2 anonPV
+     , expectGood PlutusV2 V2.deserialiseScript anonPV
      , expectBad  PlutusV3 shelleyPV
      , expectBad  PlutusV3 allegraPV
      , expectBad  PlutusV3 allegraPV
@@ -113,7 +113,7 @@ testHorn =
             (V2.deserialiseScript changPV $ serialiseUPLC v110script)
            ) []
        -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-         assertBool "not in PlutusV3/Chang" $ isRight $ mkTermToEvaluate PlutusV3 changPV
+         assertBool "not in PlutusV3/Chang" $ isRight $ mkTermToEvaluate PlutusV2 alonzoPV  -- <---- Oops!
            (either (Prelude.error . show)
             id
             (V3.deserialiseScript changPV $ serialiseUPLC v110script)
