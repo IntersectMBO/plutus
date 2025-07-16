@@ -116,7 +116,7 @@ testHorn =
          assertBool "not in PlutusV3/Chang" $ isRight $ mkTermToEvaluate PlutusV2 alonzoPV  -- <---- Oops!
            (either (Prelude.error . show)
             id
-            (V3.deserialiseScript changPV $ serialiseUPLC v110script)
+            (V2.deserialiseScript changPV $ serialiseUPLC v110script)
            ) []
 
      -- The availability of `case` and `constr` is checked in `deserialise`
