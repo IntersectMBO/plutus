@@ -12,9 +12,6 @@ let
 
       src = ../.;
 
-      index-state = "2025-07-11T12:32:55Z";
-      index-sha256 = "sha256-ce11PIYQAF1TQ68Ejl8PB2HQ3X2V3jKXfGgZFKMRIfo=";
-
       flake.variants = {
         ghc96 = { }; # Alias for the default project
         ghc96-profiled.modules = [{
