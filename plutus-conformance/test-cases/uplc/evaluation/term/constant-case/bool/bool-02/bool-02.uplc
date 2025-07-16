@@ -1,4 +1,4 @@
 -- case on true
 (program 1.1.0
-    (case (con bool False) (con integer 0) (con integer 1))
+    (case (con bool True) (con integer 0) (con integer 1))
 )

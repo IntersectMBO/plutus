@@ -1,4 +1,4 @@
--- case on integer second branch
+-- case on negative integer fails
 (program 1.1.0
-    (case [[(builtin subtractInteger) (con integer 1)] (con integer 1)] (con integer 42) (con integer 43) (con integer 443))
+    (case (con integer -1) (con integer 42) (con integer 43) (con integer 44))
 )
