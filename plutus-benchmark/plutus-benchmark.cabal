@@ -703,6 +703,7 @@ library coop
   exposed-modules:
     PlutusBenchmark.Coop.Gen
     PlutusBenchmark.Coop.Scripts
+    PlutusBenchmark.Coop.TestContext
     PlutusBenchmark.Coop.Types
     PlutusBenchmark.Coop.Utils
 
@@ -717,6 +718,20 @@ library coop
     , plutus-tx          ^>=1.48
     , plutus-tx-plugin   ^>=1.48
     , QuickCheck
+
+test-suite coop-test
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: coop/test
+  build-depends:
+    , base                             >=4.9   && <5
+    , coop
+    , plutus-core:plutus-core-testlib  ^>=1.48
+    , plutus-ledger-api
+    , plutus-tx                        ^>=1.48
+    , plutus-tx:plutus-tx-testlib
+    , tasty
 
 executable gen-coop-flat
   import:         lang, ghc-version-support, os-support
