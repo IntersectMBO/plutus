@@ -67,6 +67,21 @@ jobs:
     environment:
       name: github-pages
     steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Delete Oldest Build
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          ls -la 
+          rm -rf haddock/
+          git rm -r --cached haddock/ || true
+          git commit -am "Delete oldest haddock build"
+          git push origin gh-pages
+
       - name: Checkout
         uses: actions/checkout@main
         with:
