@@ -187,7 +187,7 @@ decTagCon' (pair t₁ t₂) (x₁ , x₂) (pair u₁ u₂) (y₁ , y₂) = decTa
 decTagCon' (list t) [] (list t') []                      = true -- FIXME: Should compare tags
 decTagCon' (list t) (x ∷ xs) (list t') (y ∷ ys)          = decTagCon' t x t' y
                                                          ∧ decTagCon' (list t) xs (list t') ys
-decTagCon' (array t) x (array t') y = false -- FIXME: eqArray
+decTagCon' (array t) x (array t') y = false -- FIXME: eqArray, but this needs reorganisation https://github.com/IntersectMBO/plutus-private/issues/1686
 decTagCon' _ _ _ _                                       = false
 
 -- Comparison of TagCon. Written with an auxiliary function to pass the termination checker.

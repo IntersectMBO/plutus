@@ -157,7 +157,7 @@ srcTests =
   , "MinBS"
   , "AA2-CSE"
   , "forceDelayIfThenElse"
-  , "array"
+  , "types"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]

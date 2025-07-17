@@ -4,6 +4,7 @@ module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
 import Data.Functor.Identity
+import Data.String (String)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Vector.Strict qualified as Vector
@@ -77,8 +78,13 @@ instance AgdaUnparse ByteString where
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"
 
+unparseFunctor :: AgdaUnparse a => Foldable f => f a -> String
+unparseFunctor l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
+
 instance AgdaUnparse a => AgdaUnparse [a] where
-  agdaUnparse l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
+  agdaUnparse = unparseFunctor
+instance AgdaUnparse a => AgdaUnparse (Vector.Vector a) where
+  agdaUnparse = unparseFunctor
 
 instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
   agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
@@ -153,20 +159,28 @@ agdaUnparseValue dSum =
       PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
         "bls12-381-mlresult " ++ agdaUnparse val
       PLC.ValueOf (PLC.DefaultUniArray elemType) _ :=> Identity val ->
-        "(array " ++ agdaUnparse elemType ++ ")"
-          ++ agdaUnparseDList elemType (Vector.toList val)
+        "(array " ++ agdaUnparse elemType ++ ") "
+          ++ agdaUnparseDArray elemType val
       PLC.ValueOf (PLC.DefaultUniApply _ _) _ :=> Identity _ ->
         error "Application of an unknown type is not supported."
   ++ ")"
   where
     agdaUnparseDList elemType xs =
-      let xs' :: [DSum (PLC.ValueOf PLC.DefaultUni) Identity]
+      let xs' :: [ DSum (PLC.ValueOf PLC.DefaultUni) Identity ]
           xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
-        in agdaUnparse $ agdaUnparseValue <$> xs'
+        in unparseFunctor xs'
+    agdaUnparseDArray elemType xs =
+      let xs' :: Vector.Vector (DSum (PLC.ValueOf PLC.DefaultUni) Identity)
+          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
+        in unparseFunctor xs'
     agdaUnparseDPair type1 type2 (x, y) =
       let x' = mkValueDSum $ PLC.Some $ PLC.ValueOf type1 x
           y' = mkValueDSum $ PLC.Some $ PLC.ValueOf type2 y
         in agdaUnparse (agdaUnparseValue x', agdaUnparseValue y')
+
+instance
+  AgdaUnparse (DSum (PLC.ValueOf UPLC.DefaultUni) Identity) where
+    agdaUnparse = agdaUnparseValue
 
 mkValueDSum :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> DSum (PLC.ValueOf UPLC.DefaultUni) Identity
 mkValueDSum (PLC.Some valueOf@(PLC.ValueOf _ a)) = valueOf :=> Identity a
