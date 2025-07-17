@@ -263,6 +263,10 @@ postulate
 {-# COMPILE GHC HSlistToArray = \() -> Strict.fromList #-}
 {-# COMPILE GHC HSindexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
 
+-- This only exists for literal arrays in certificates,
+-- much like mkBytestring above.
+postulate
+  mkArray : {A : Set} → List A → Array A
 
 ```
 ## DATA

@@ -159,8 +159,8 @@ agdaUnparseValue dSum =
       PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
         "bls12-381-mlresult " ++ agdaUnparse val
       PLC.ValueOf (PLC.DefaultUniArray elemType) _ :=> Identity val ->
-        "(array " ++ agdaUnparse elemType ++ ") "
-          ++ agdaUnparseDArray elemType val
+        "(array " ++ agdaUnparse elemType ++ ") (mkArray "
+          ++ agdaUnparseDArray elemType val ++ ")"
       PLC.ValueOf (PLC.DefaultUniApply _ _) _ :=> Identity _ ->
         error "Application of an unknown type is not supported."
   ++ ")"
