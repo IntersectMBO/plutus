@@ -19,7 +19,11 @@ import Data.Functor
 benchmarks :: EvaluationContext -> [Benchmark]
 benchmarks ctx =
     [ bgroup "casing"
-      [mkBMs "bool" Casing.casingBool
+      [ mkBMs "pairFstSnd" Casing.pairFstSnd
+      , mkBMs "pairCasing" Casing.pairCasing
+      , mkBMs "chooseUnit" Casing.chooseUnit
+      , mkBMs "unitCasing" Casing.unitCasing
+      , mkBMs "bool" Casing.casingBool
       , mkBMs "bool one branch" Casing.casingBoolOneBranch
       , mkBMs "integer" Casing.casingInteger
       , mkBMs "list" Casing.casingList
