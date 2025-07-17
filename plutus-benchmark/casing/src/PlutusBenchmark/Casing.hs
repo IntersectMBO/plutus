@@ -77,7 +77,8 @@ casingList i = debruijnTermUnsafe $ go i arg
   where
     arg =
       constant () $
-        someValueOf (DefaultUniApply DefaultUniProtoList DefaultUniInteger) $ replicate (fromIntegral i) 42
+        someValueOf (DefaultUniApply DefaultUniProtoList DefaultUniInteger) $
+          replicate (fromIntegral i) 42
 
     go 0 t = t
     go n t =
@@ -168,3 +169,38 @@ unitCasing i =
     unitVal = constant () $ someValueOf PLC.DefaultUniUnit ()
     comp t =
       kase () intTy unitVal [t]
+
+headList :: Integer -> Term
+headList i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    listVal =
+      constant () $
+        someValueOf (PLC.DefaultUniList DefaultUniInteger) [1, 2, 3]
+    comp t = runQuote $ do
+      x <- freshName "x"
+      pure $
+        apply ()
+          (lamAbs () x intTy t)
+        (apply () (tyInst () (builtin () PLC.HeadList) intTy) listVal)
+
+headListCasing :: Integer -> Term
+headListCasing i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    intListTy = PLC.mkTyBuiltin @_ @[Integer] ()
+    listVal =
+      constant () $
+        someValueOf (PLC.DefaultUniList DefaultUniInteger) [1, 2, 3]
+    comp t = runQuote $ do
+      x <- freshName "x"
+      y <- freshName "y"
+      ys <- freshName "ys"
+      pure $
+        apply ()
+          (lamAbs () x intTy t)
+        (kase () intTy listVal [lamAbs () y intTy $ lamAbs () ys intListTy $ var () y])

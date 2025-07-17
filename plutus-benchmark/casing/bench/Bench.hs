@@ -23,6 +23,8 @@ benchmarks ctx =
       , mkBMs "pairCasing" Casing.pairCasing
       , mkBMs "chooseUnit" Casing.chooseUnit
       , mkBMs "unitCasing" Casing.unitCasing
+      , mkBMs "headList" Casing.headList
+      , mkBMs "headListCasing" Casing.headListCasing
       , mkBMs "bool" Casing.casingBool
       , mkBMs "bool one branch" Casing.casingBoolOneBranch
       , mkBMs "integer" Casing.casingInteger
