@@ -24,7 +24,9 @@ in
                Bool_match
                  (case
                     Bool
-                    (equalsData r_stake_cred (fstPair {data} {data} x))
+                    (equalsData
+                       r_stake_cred
+                       (case data x [(\(l : data) (r : data) -> l)]))
                     [False, True])
                  {all dead. Unit}
                  (/\dead -> Unit)
@@ -51,20 +53,30 @@ in
                               {data}
                               (tailList
                                  {data}
-                                 (sndPair
-                                    {integer}
-                                    {list data}
+                                 (case
+                                    (list data)
                                     (unConstrData
                                        (headList
                                           {data}
-                                          (sndPair
-                                             {integer}
-                                             {list data}
-                                             (unConstrData r_ctx))))))))))))
+                                          (case
+                                             (list data)
+                                             (unConstrData r_ctx)
+                                             [ (\(l : integer)
+                                                 (r : list data) ->
+                                                  r) ])))
+                                    [ (\(l : integer) (r : list data) ->
+                                         r) ]))))))))
       !wdrlAtZero : data
-        = fstPair {data} {data} (headList {pair data data} wdrl)
+        = case
+            data
+            (headList {pair data data} wdrl)
+            [(\(l : data) (r : data) -> l)]
       !rest : list (pair data data) = tailList {pair data data} wdrl
-      !wdrlAtOne : data = fstPair {data} {data} (headList {pair data data} rest)
+      !wdrlAtOne : data
+        = case
+            data
+            (headList {pair data data} rest)
+            [(\(l : data) (r : data) -> l)]
     in
     Bool_match
       (case Bool (equalsData r_stake_cred wdrlAtZero) [False, True])

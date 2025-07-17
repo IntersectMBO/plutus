@@ -23,19 +23,26 @@ in
                             {data}
                             (tailList
                                {data}
-                               (sndPair
-                                  {integer}
-                                  {list data}
+                               (case
+                                  (list data)
                                   (unConstrData
                                      (headList
                                         {data}
-                                        (sndPair
-                                           {integer}
-                                           {list data}
-                                           (unConstrData ctx))))))))))))
-    !wdrlAtZero : data = fstPair {data} {data} (headList {pair data data} ds)
+                                        (case
+                                           (list data)
+                                           (unConstrData ctx)
+                                           [ (\(l : integer) (r : list data) ->
+                                                r) ])))
+                                  [ (\(l : integer) (r : list data) ->
+                                       r) ]))))))))
+    !wdrlAtZero : data
+      = case data (headList {pair data data} ds) [(\(l : data) (r : data) -> l)]
     !rest : list (pair data data) = tailList {pair data data} ds
-    !wdrlAtOne : data = fstPair {data} {data} (headList {pair data data} rest)
+    !wdrlAtOne : data
+      = case
+          data
+          (headList {pair data data} rest)
+          [(\(l : data) (r : data) -> l)]
   in
   Bool_match
     (case Bool (equalsData obsScriptCred wdrlAtZero) [False, True])
@@ -71,7 +78,9 @@ in
                  (\(x : pair data data) ->
                     case
                       Bool
-                      (equalsData obsScriptCred (fstPair {data} {data} x))
+                      (equalsData
+                         obsScriptCred
+                         (case data x [(\(l : data) (r : data) -> l)]))
                       [False, True])
                  rest)
               {all dead. Unit}

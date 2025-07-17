@@ -59,8 +59,10 @@ let
   !head : all a. list a -> a = headList
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  !fst : all a b. pair a b -> a = fstPair
-  !snd : all a b. pair a b -> b = sndPair
+  !fst : all a b. pair a b -> a
+    = /\a b -> \(x : pair a b) -> case a x [(\(l : a) (r : b) -> l)]
+  !snd : all a b. pair a b -> b
+    = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
   ~pairToPair : all a b. pair a b -> Tuple2 a b
     = /\a b ->
         \(tup : pair a b) ->

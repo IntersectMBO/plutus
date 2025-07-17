@@ -22,25 +22,33 @@ in
                   {data}
                   (tailList
                      {data}
-                     (sndPair {integer} {list data} (unConstrData d)))))
+                     (case
+                        (list data)
+                        (unConstrData d)
+                        [(\(l : integer) (r : list data) -> r)]))))
     in
     Bool_match
       (case
          Bool
-         (equalsInteger 1 (fstPair {integer} {list data} tup))
+         (equalsInteger
+            1
+            (case integer tup [(\(l : integer) (r : list data) -> l)]))
          [False, True])
       {all dead. Bool}
       (/\dead ->
          let
-           !l : list data = sndPair {integer} {list data} tup
+           !l : list data
+             = case (list data) tup [(\(l : integer) (r : list data) -> r)]
          in
          Maybe_match
            {data}
            (let
              !tup : pair integer (list data)
                = unConstrData (headList {data} (tailList {data} l))
-             !index : integer = fstPair {integer} {list data} tup
-             !args : list data = sndPair {integer} {list data} tup
+             !index : integer
+               = case integer tup [(\(l : integer) (r : list data) -> l)]
+             !args : list data
+               = case (list data) tup [(\(l : integer) (r : list data) -> r)]
            in
            Bool_match
              (case Bool (equalsInteger 1 index) [False, True])

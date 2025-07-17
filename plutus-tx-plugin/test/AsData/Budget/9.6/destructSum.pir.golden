@@ -18,7 +18,11 @@ let
          (cont : integer -> integer -> integer -> integer -> r)
          (fail : unit -> r) ->
           let
-            !l : list data = sndPair {integer} {list data} (unConstrData scrut)
+            !l : list data
+              = case
+                  (list data)
+                  (unConstrData scrut)
+                  [(\(l : integer) (r : list data) -> r)]
             !l : list data = tailList {data} l
             !l : list data = tailList {data} l
           in
@@ -38,10 +42,15 @@ in
   Bool_match
     (case
        Bool
-       (equalsInteger 0 (fstPair {integer} {list data} tup))
+       (equalsInteger
+          0
+          (case integer tup [(\(l : integer) (r : list data) -> l)]))
        [False, True])
     {all dead. data}
-    (/\dead -> headList {data} (sndPair {integer} {list data} tup))
+    (/\dead ->
+       headList
+         {data}
+         (case (list data) tup [(\(l : integer) (r : list data) -> r)]))
     (/\dead ->
        let
          !tup : pair integer (list data) = unConstrData d
@@ -49,10 +58,15 @@ in
        Bool_match
          (case
             Bool
-            (equalsInteger 1 (fstPair {integer} {list data} tup))
+            (equalsInteger
+               1
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
             [False, True])
          {all dead. data}
-         (/\dead -> headList {data} (sndPair {integer} {list data} tup))
+         (/\dead ->
+            headList
+              {data}
+              (case (list data) tup [(\(l : integer) (r : list data) -> r)]))
          (/\dead ->
             let
               !tup : pair integer (list data) = unConstrData d
@@ -60,12 +74,18 @@ in
             Bool_match
               (case
                  Bool
-                 (equalsInteger 2 (fstPair {integer} {list data} tup))
+                 (equalsInteger
+                    2
+                    (case integer tup [(\(l : integer) (r : list data) -> l)]))
                  [False, True])
               {all dead. data}
               (/\dead ->
                  let
-                   !l : list data = sndPair {integer} {list data} tup
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  `$mInts`
                    {data}

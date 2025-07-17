@@ -14,7 +14,9 @@ letrec
                Bool_match
                  (case
                     Bool
-                    (equalsInteger 0 (unIData (sndPair {data} {data} hd)))
+                    (equalsInteger
+                       0
+                       (unIData (case data hd [(\(l : data) (r : data) -> r)])))
                     [False, True])
                  {all dead. list (pair data data) -> Bool}
                  (/\dead -> go)
@@ -64,8 +66,10 @@ let
          (d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -115,7 +119,7 @@ letrec
                          {integer}
                          unIData
                          unIData
-                         (sndPair {data} {data} hd)
+                         (case data hd [(\(l : data) (r : data) -> r)])
                  in
                  These_match
                    {integer}
@@ -142,7 +146,7 @@ letrec
           [ True
           , (\(hd : pair data data) ->
                Bool_match
-                 (go (unMapData (sndPair {data} {data} hd)))
+                 (go (unMapData (case data hd [(\(l : data) (r : data) -> r)])))
                  {all dead. list (pair data data) -> Bool}
                  (/\dead -> go)
                  (/\dead -> \(ds : list (pair data data)) -> False)
@@ -174,11 +178,14 @@ let
                          mkCons
                            {pair data data}
                            (mkPairData
-                              (fstPair {data} {data} hd)
+                              (case data hd [(\(l : data) (r : data) -> l)])
                               (`$dToData`
                                  (f
                                     (`$dUnsafeFromData`
-                                       (sndPair {data} {data} hd)))))
+                                       (case
+                                          data
+                                          hd
+                                          [(\(l : data) (r : data) -> r)])))))
                            (go eta)) ]
           in
           go
@@ -193,8 +200,8 @@ letrec
           [ xs
           , (\(hd : pair data data) (tl : list (pair data data)) ->
                let
-                 !v : data = sndPair {data} {data} hd
-                 !k : data = fstPair {data} {data} hd
+                 !v : data = case data hd [(\(l : data) (r : data) -> r)]
+                 !k : data = case data hd [(\(l : data) (r : data) -> l)]
                  !eta : list (pair data data) = safeAppend tl xs
                  !nilCase : list (pair data data)
                    = mkCons {pair data data} (mkPairData k v) []
@@ -210,7 +217,12 @@ letrec
                               Bool_match
                                 (case
                                    Bool
-                                   (equalsData k (fstPair {data} {data} hd))
+                                   (equalsData
+                                      k
+                                      (case
+                                         data
+                                         hd
+                                         [(\(l : data) (r : data) -> l)]))
                                    [False, True])
                                 {all dead.
                                    list (pair data data) ->
@@ -241,12 +253,16 @@ let
                        Bool_match
                          (case
                             Bool
-                            (equalsData k (fstPair {data} {data} hd))
+                            (equalsData
+                               k
+                               (case data hd [(\(l : data) (r : data) -> l)]))
                             [False, True])
                          {all dead. list (pair data data) -> Maybe data}
                          (/\dead ->
                             \(ds : list (pair data data)) ->
-                              Just {data} (sndPair {data} {data} hd))
+                              Just
+                                {data}
+                                (case data hd [(\(l : data) (r : data) -> r)]))
                          (/\dead -> go)
                          {all dead. dead}) ]
         in
@@ -275,8 +291,10 @@ let
                     [ []
                     , (\(hd : pair data data) (tl : list (pair data data)) ->
                          let
-                           !v : data = sndPair {data} {data} hd
-                           !k : data = fstPair {data} {data} hd
+                           !v : data
+                             = case data hd [(\(l : data) (r : data) -> r)]
+                           !k : data
+                             = case data hd [(\(l : data) (r : data) -> l)]
                          in
                          Maybe_match
                            {data}
@@ -323,8 +341,10 @@ let
                       [ []
                       , (\(hd : pair data data) (tl : list (pair data data)) ->
                            let
-                             !v : data = sndPair {data} {data} hd
-                             !k : data = fstPair {data} {data} hd
+                             !v : data
+                               = case data hd [(\(l : data) (r : data) -> r)]
+                             !k : data
+                               = case data hd [(\(l : data) (r : data) -> l)]
                            in
                            Maybe_match
                              {data}
@@ -392,7 +412,7 @@ let
                   [ True
                   , (\(hd : pair data data) ->
                        Bool_match
-                         (is (sndPair {data} {data} hd))
+                         (is (case data hd [(\(l : data) (r : data) -> r)]))
                          {all dead. list (pair data data) -> Bool}
                          (/\dead -> go)
                          (/\dead -> \(ds : list (pair data data)) -> False)
@@ -407,7 +427,7 @@ let
                   [ True
                   , (\(hd : pair data data) ->
                        Bool_match
-                         (is (sndPair {data} {data} hd))
+                         (is (case data hd [(\(l : data) (r : data) -> r)]))
                          {all dead. list (pair data data) -> Bool}
                          (/\dead -> go)
                          (/\dead -> \(ds : list (pair data data)) -> False)
@@ -432,7 +452,8 @@ let
                            Unit)
                     , (\(x : pair data data) ->
                          let
-                           ~v : data = sndPair {data} {data} x
+                           ~v : data
+                             = case data x [(\(l : data) (r : data) -> r)]
                          in
                          \(xs : list (pair data data)) (ds : Unit) ->
                            case
@@ -443,7 +464,11 @@ let
                                  (xs : list (pair data data))
                                  (ds : Unit) ->
                                   let
-                                    !d : data = fstPair {data} {data} x
+                                    !d : data
+                                      = case
+                                          data
+                                          x
+                                          [(\(l : data) (r : data) -> l)]
                                   in
                                   letrec
                                     !goRight :
@@ -461,7 +486,12 @@ let
                                                 (ds : Unit) ->
                                                  let
                                                    !v : data
-                                                     = sndPair {data} {data} x
+                                                     = case
+                                                         data
+                                                         x
+                                                         [ (\(l : data)
+                                                             (r : data) ->
+                                                              r) ]
                                                  in
                                                  Bool_match
                                                    (is v)
@@ -472,10 +502,13 @@ let
                                                         (case
                                                            Bool
                                                            (equalsData
-                                                              (fstPair
-                                                                 {data}
-                                                                 {data}
-                                                                 x)
+                                                              (case
+                                                                 data
+                                                                 x
+                                                                 [ (\(l : data)
+                                                                     (r :
+                                                                        data) ->
+                                                                      l) ])
                                                               d)
                                                            [False, True])
                                                         {all dead. Bool}
@@ -508,12 +541,22 @@ let
                                   Bool_match
                                     (case
                                        Bool
-                                       (equalsData d (fstPair {data} {data} x))
+                                       (equalsData
+                                          d
+                                          (case
+                                             data
+                                             x
+                                             [(\(l : data) (r : data) -> l)]))
                                        [False, True])
                                     {all dead. Bool}
                                     (/\dead ->
                                        Bool_match
-                                         (eqV v (sndPair {data} {data} x))
+                                         (eqV
+                                            v
+                                            (case
+                                               data
+                                               x
+                                               [(\(l : data) (r : data) -> r)]))
                                          {all dead. Bool}
                                          (/\dead -> goBoth xs xs)
                                          (/\dead -> False)
@@ -526,7 +569,13 @@ let
                                          (/\dead ->
                                             goRight
                                               (Bool_match
-                                                 (is (sndPair {data} {data} x))
+                                                 (is
+                                                    (case
+                                                       data
+                                                       x
+                                                       [ (\(l : data)
+                                                           (r : data) ->
+                                                            r) ]))
                                                  {all dead.
                                                     list (pair data data)}
                                                  (/\dead -> [])

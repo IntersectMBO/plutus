@@ -18,8 +18,8 @@
            Tuple2
              {integer}
              {b}
-             (fstPair {integer} {b} tup)
-             (sndPair {integer} {b} tup))
+             (case integer tup [(\(l : integer) (r : b) -> l)])
+             (case b tup [(\(l : integer) (r : b) -> r)]))
          (unConstrData ds))
       {integer}
       (\(ds : integer) (ds : list data) ->
@@ -38,8 +38,8 @@
                      Tuple2
                        {integer}
                        {b}
-                       (fstPair {integer} {b} tup)
-                       (sndPair {integer} {b} tup))
+                       (case integer tup [(\(l : integer) (r : b) -> l)])
+                       (case b tup [(\(l : integer) (r : b) -> r)]))
                    (unConstrData ds))
                 {integer}
                 (\(ds : integer) (ds : list data) ->

@@ -52,7 +52,8 @@ let
        (all a b. (a -> b) -> f a -> f b)
     = /\(f :: * -> *) ->
         \(v : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f) -> v
-  !fst : all a b. pair a b -> a = fstPair
+  !fst : all a b. pair a b -> a
+    = /\a b -> \(x : pair a b) -> case a x [(\(l : a) (r : b) -> l)]
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
 in
@@ -73,7 +74,8 @@ letrec
              Cons {data} x (matchData_go xs))
 in
 let
-  !snd : all a b. pair a b -> b = sndPair
+  !snd : all a b. pair a b -> b
+    = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~unsafeDataAsConstr : data -> Tuple2 integer (List data)
     = \(d : data) ->

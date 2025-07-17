@@ -13,7 +13,12 @@ let
                 Bool_match
                   (case
                      Bool
-                     (equalsInteger 1 (fstPair {integer} {list data} tup))
+                     (equalsInteger
+                        1
+                        (case
+                           integer
+                           tup
+                           [(\(l : integer) (r : list data) -> l)]))
                      [False, True])
                   {all dead. Bool}
                   (/\dead ->
@@ -23,7 +28,12 @@ let
                      Bool_match
                        (case
                           Bool
-                          (equalsInteger 1 (fstPair {integer} {list data} tup))
+                          (equalsInteger
+                             1
+                             (case
+                                integer
+                                tup
+                                [(\(l : integer) (r : list data) -> l)]))
                           [False, True])
                        {all dead. Bool}
                        (/\dead ->
@@ -33,11 +43,19 @@ let
                                (unBData
                                   (headList
                                      {data}
-                                     (sndPair {integer} {list data} tup)))
+                                     (case
+                                        (list data)
+                                        tup
+                                        [ (\(l : integer) (r : list data) ->
+                                             r) ])))
                                (unBData
                                   (headList
                                      {data}
-                                     (sndPair {integer} {list data} tup))))
+                                     (case
+                                        (list data)
+                                        tup
+                                        [ (\(l : integer) (r : list data) ->
+                                             r) ]))))
                             [False, True])
                        (/\dead -> False)
                        {all dead. dead})
@@ -48,7 +66,9 @@ let
         Bool_match
           (case
              Bool
-             (equalsInteger 0 (fstPair {integer} {list data} tup))
+             (equalsInteger
+                0
+                (case integer tup [(\(l : integer) (r : list data) -> l)]))
              [False, True])
           {all dead. Bool}
           (/\dead ->
@@ -58,7 +78,9 @@ let
              Bool_match
                (case
                   Bool
-                  (equalsInteger 0 (fstPair {integer} {list data} tup))
+                  (equalsInteger
+                     0
+                     (case integer tup [(\(l : integer) (r : list data) -> l)]))
                   [False, True])
                {all dead. Bool}
                (/\dead ->
@@ -66,11 +88,19 @@ let
                     Bool
                     (equalsByteString
                        (unBData
-                          (headList {data} (sndPair {integer} {list data} tup)))
+                          (headList
+                             {data}
+                             (case
+                                (list data)
+                                tup
+                                [(\(l : integer) (r : list data) -> r)])))
                        (unBData
                           (headList
                              {data}
-                             (sndPair {integer} {list data} tup))))
+                             (case
+                                (list data)
+                                tup
+                                [(\(l : integer) (r : list data) -> r)]))))
                     [False, True])
                (/\dead -> fail ())
                {all dead. dead})
@@ -86,7 +116,10 @@ let
                      Bool
                      (equalsInteger
                         2
-                        (fstPair {integer} {list data} (unConstrData ds)))
+                        (case
+                           integer
+                           (unConstrData ds)
+                           [(\(l : integer) (r : list data) -> l)]))
                      [False, True])
                   {all dead. Bool}
                   (/\dead ->
@@ -94,7 +127,10 @@ let
                        Bool
                        (equalsInteger
                           2
-                          (fstPair {integer} {list data} (unConstrData ds)))
+                          (case
+                             integer
+                             (unConstrData ds)
+                             [(\(l : integer) (r : list data) -> l)]))
                        [False, True])
                   (/\dead -> False)
                   {all dead. dead}
@@ -105,7 +141,10 @@ let
                      Bool
                      (equalsInteger
                         1
-                        (fstPair {integer} {list data} (unConstrData ds)))
+                        (case
+                           integer
+                           (unConstrData ds)
+                           [(\(l : integer) (r : list data) -> l)]))
                      [False, True])
                   {all dead. Bool}
                   (/\dead ->
@@ -114,7 +153,10 @@ let
                           Bool
                           (equalsInteger
                              1
-                             (fstPair {integer} {list data} (unConstrData ds)))
+                             (case
+                                integer
+                                (unConstrData ds)
+                                [(\(l : integer) (r : list data) -> l)]))
                           [False, True])
                        {all dead. Bool}
                        (/\dead -> True)
@@ -127,7 +169,9 @@ let
         Bool_match
           (case
              Bool
-             (equalsInteger 0 (fstPair {integer} {list data} tup))
+             (equalsInteger
+                0
+                (case integer tup [(\(l : integer) (r : list data) -> l)]))
              [False, True])
           {all dead. Bool}
           (/\dead ->
@@ -137,13 +181,25 @@ let
              Bool_match
                (case
                   Bool
-                  (equalsInteger 0 (fstPair {integer} {list data} tup))
+                  (equalsInteger
+                     0
+                     (case integer tup [(\(l : integer) (r : list data) -> l)]))
                   [False, True])
                {all dead. Bool}
                (/\dead ->
                   `$fEqCredential_$c==`
-                    (headList {data} (sndPair {integer} {list data} tup))
-                    (headList {data} (sndPair {integer} {list data} tup)))
+                    (headList
+                       {data}
+                       (case
+                          (list data)
+                          tup
+                          [(\(l : integer) (r : list data) -> r)]))
+                    (headList
+                       {data}
+                       (case
+                          (list data)
+                          tup
+                          [(\(l : integer) (r : list data) -> r)])))
                (/\dead -> fail ())
                {all dead. dead})
           (/\dead -> fail ())
@@ -158,12 +214,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 2 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  2
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                cont
                  (unBData (headList {data} l))
@@ -199,7 +261,12 @@ let
                 Bool_match
                   (case
                      Bool
-                     (equalsInteger 1 (fstPair {integer} {list data} tup))
+                     (equalsInteger
+                        1
+                        (case
+                           integer
+                           tup
+                           [(\(l : integer) (r : list data) -> l)]))
                      [False, True])
                   {all dead. Bool}
                   (/\dead ->
@@ -209,17 +276,28 @@ let
                      Bool_match
                        (case
                           Bool
-                          (equalsInteger 1 (fstPair {integer} {list data} tup))
+                          (equalsInteger
+                             1
+                             (case
+                                integer
+                                tup
+                                [(\(l : integer) (r : list data) -> l)]))
                           [False, True])
                        {all dead. Bool}
                        (/\dead ->
                           `$fEqDRep0_$c==`
                             (headList
                                {data}
-                               (sndPair {integer} {list data} tup))
+                               (case
+                                  (list data)
+                                  tup
+                                  [(\(l : integer) (r : list data) -> r)]))
                             (headList
                                {data}
-                               (sndPair {integer} {list data} tup)))
+                               (case
+                                  (list data)
+                                  tup
+                                  [(\(l : integer) (r : list data) -> r)])))
                        (/\dead -> fail ())
                        {all dead. dead})
                   (/\dead -> fail ())
@@ -229,7 +307,9 @@ let
         Bool_match
           (case
              Bool
-             (equalsInteger 0 (fstPair {integer} {list data} tup))
+             (equalsInteger
+                0
+                (case integer tup [(\(l : integer) (r : list data) -> l)]))
              [False, True])
           {all dead. Bool}
           (/\dead ->
@@ -239,7 +319,9 @@ let
              Bool_match
                (case
                   Bool
-                  (equalsInteger 0 (fstPair {integer} {list data} tup))
+                  (equalsInteger
+                     0
+                     (case integer tup [(\(l : integer) (r : list data) -> l)]))
                   [False, True])
                {all dead. Bool}
                (/\dead ->
@@ -247,11 +329,19 @@ let
                     Bool
                     (equalsByteString
                        (unBData
-                          (headList {data} (sndPair {integer} {list data} tup)))
+                          (headList
+                             {data}
+                             (case
+                                (list data)
+                                tup
+                                [(\(l : integer) (r : list data) -> r)])))
                        (unBData
                           (headList
                              {data}
-                             (sndPair {integer} {list data} tup))))
+                             (case
+                                (list data)
+                                tup
+                                [(\(l : integer) (r : list data) -> r)]))))
                     [False, True])
                (/\dead -> fail ())
                {all dead. dead})
@@ -267,12 +357,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 9 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  9
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                cont (headList {data} l) (headList {data} (tailList {data} l)))
             (/\dead -> fail ())
@@ -287,12 +383,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 2 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  2
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                cont (headList {data} l) (headList {data} (tailList {data} l)))
             (/\dead -> fail ())
@@ -306,12 +408,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 4 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  4
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                cont
                  (headList {data} l)
@@ -330,12 +438,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 3 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  3
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                  !l : list data = tailList {data} l
                in
                cont
@@ -358,8 +472,10 @@ let
         \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 1 index) [False, True])
@@ -386,12 +502,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 0 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  0
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                cont
                  (headList {data} l)
@@ -411,12 +533,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 6 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  6
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                cont
                  (headList {data} l)
@@ -435,12 +563,18 @@ let
           Bool_match
             (case
                Bool
-               (equalsInteger 1 (fstPair {integer} {list data} tup))
+               (equalsInteger
+                  1
+                  (case integer tup [(\(l : integer) (r : list data) -> l)]))
                [False, True])
             {all dead. r}
             (/\dead ->
                let
-                 !l : list data = sndPair {integer} {list data} tup
+                 !l : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                cont
                  (headList {data} l)
@@ -504,7 +638,7 @@ let
                               Bool
                               (equalsData
                                  (`$dToData` ds)
-                                 (fstPair {data} {data} hd))
+                                 (case data hd [(\(l : data) (r : data) -> l)]))
                               [False, True])
                            {all dead. list (pair data data) -> Bool}
                            (/\dead -> \(ds : list (pair data data)) -> True)
@@ -533,7 +667,12 @@ let
                     , (\(hd : pair data data) ->
                          Maybe_match
                            {b}
-                           (f (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                           (f
+                              (`$dUnsafeFromData`
+                                 (case
+                                    data
+                                    hd
+                                    [(\(l : data) (r : data) -> r)])))
                            {all dead.
                               list (pair data data) -> list (pair data data)}
                            (\(v' : b) ->
@@ -542,7 +681,10 @@ let
                                   mkCons
                                     {pair data data}
                                     (mkPairData
-                                       (fstPair {data} {data} hd)
+                                       (case
+                                          data
+                                          hd
+                                          [(\(l : data) (r : data) -> l)])
                                        (`$dToData` v'))
                                     (go eta))
                            (/\dead -> go)
@@ -556,7 +698,12 @@ let
   !txOutRefId : data -> bytestring
     = \(ds : data) ->
         unBData
-          (headList {data} (sndPair {integer} {list data} (unConstrData ds)))
+          (headList
+             {data}
+             (case
+                (list data)
+                (unConstrData ds)
+                [(\(l : integer) (r : list data) -> r)]))
   !txOutRefIdx : data -> integer
     = \(ds : data) ->
         unIData
@@ -564,14 +711,24 @@ let
              {data}
              (tailList
                 {data}
-                (sndPair {integer} {list data} (unConstrData ds))))
+                (case
+                   (list data)
+                   (unConstrData ds)
+                   [(\(l : integer) (r : list data) -> r)])))
 in
 \(ds : data) ->
   let
-    !l : list data = sndPair {integer} {list data} (unConstrData ds)
+    !l : list data
+      = case
+          (list data)
+          (unConstrData ds)
+          [(\(l : integer) (r : list data) -> r)]
     !scriptInfo : data = headList {data} (tailList {data} (tailList {data} l))
     !l : list data
-      = sndPair {integer} {list data} (unConstrData (headList {data} l))
+      = case
+          (list data)
+          (unConstrData (headList {data} l))
+          [(\(l : integer) (r : list data) -> r)]
     !l : list data
       = tailList {data} (tailList {data} (tailList {data} (tailList {data} l)))
     !l : list data = tailList {data} l
@@ -584,7 +741,9 @@ in
     Bool_match
       (case
          Bool
-         (equalsInteger 0 (fstPair {integer} {list data} tup))
+         (equalsInteger
+            0
+            (case integer tup [(\(l : integer) (r : list data) -> l)]))
          [False, True])
       {all dead. Bool}
       (/\dead ->
@@ -612,7 +771,12 @@ in
                  {(\k a -> list (pair data data)) bytestring integer}
                  bData
                  (unBData
-                    (headList {data} (sndPair {integer} {list data} tup))))
+                    (headList
+                       {data}
+                       (case
+                          (list data)
+                          tup
+                          [(\(l : integer) (r : list data) -> r)]))))
               (\(ds :
                    (\k a -> list (pair data data))
                      bytestring
@@ -667,12 +831,15 @@ in
          Bool_match
            (case
               Bool
-              (equalsInteger 1 (fstPair {integer} {list data} tup))
+              (equalsInteger
+                 1
+                 (case integer tup [(\(l : integer) (r : list data) -> l)]))
               [False, True])
            {all dead. Bool}
            (/\dead ->
               let
-                !l : list data = sndPair {integer} {list data} tup
+                !l : list data
+                  = case (list data) tup [(\(l : integer) (r : list data) -> r)]
               in
               Maybe_match
                 {data}
@@ -698,10 +865,10 @@ in
                              !v : data
                                = headList
                                    {data}
-                                   (sndPair
-                                      {integer}
-                                      {list data}
-                                      (unConstrData x))
+                                   (case
+                                      (list data)
+                                      (unConstrData x)
+                                      [(\(l : integer) (r : list data) -> r)])
                              !l : data = headList {data} l
                            in
                            Bool_match
@@ -728,7 +895,12 @@ in
               Bool_match
                 (case
                    Bool
-                   (equalsInteger 2 (fstPair {integer} {list data} tup))
+                   (equalsInteger
+                      2
+                      (case
+                         integer
+                         tup
+                         [(\(l : integer) (r : list data) -> l)]))
                    [False, True])
                 {all dead. Bool}
                 (/\dead ->
@@ -736,7 +908,12 @@ in
                      {data}
                      {integer}
                      (\(x : data) -> x)
-                     (headList {data} (sndPair {integer} {list data} tup))
+                     (headList
+                        {data}
+                        (case
+                           (list data)
+                           tup
+                           [(\(l : integer) (r : list data) -> r)]))
                      (unMapData (headList {data} l)))
                 (/\dead ->
                    let
@@ -745,12 +922,21 @@ in
                    Bool_match
                      (case
                         Bool
-                        (equalsInteger 3 (fstPair {integer} {list data} tup))
+                        (equalsInteger
+                           3
+                           (case
+                              integer
+                              tup
+                              [(\(l : integer) (r : list data) -> l)]))
                         [False, True])
                      {all dead. Bool}
                      (/\dead ->
                         let
-                          !l : list data = sndPair {integer} {list data} tup
+                          !l : list data
+                            = case
+                                (list data)
+                                tup
+                                [(\(l : integer) (r : list data) -> r)]
                         in
                         (let
                             a = (\a -> list data) data
@@ -777,10 +963,12 @@ in
                                              Bool
                                              (equalsInteger
                                                 10
-                                                (fstPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup))
+                                                (case
+                                                   integer
+                                                   tup
+                                                   [ (\(l : integer)
+                                                       (r : list data) ->
+                                                        l) ]))
                                              [False, True])
                                           {all dead. Bool}
                                           (/\dead ->
@@ -793,26 +981,32 @@ in
                                                   Bool
                                                   (equalsInteger
                                                      10
-                                                     (fstPair
-                                                        {integer}
-                                                        {list data}
-                                                        tup))
+                                                     (case
+                                                        integer
+                                                        tup
+                                                        [ (\(l : integer)
+                                                            (r : list data) ->
+                                                             l) ]))
                                                   [False, True])
                                                {all dead. Bool}
                                                (/\dead ->
                                                   `$fEqCredential_$c==`
                                                     (headList
                                                        {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup))
+                                                       (case
+                                                          (list data)
+                                                          tup
+                                                          [ (\(l : integer)
+                                                              (r : list data) ->
+                                                               r) ]))
                                                     (headList
                                                        {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup)))
+                                                       (case
+                                                          (list data)
+                                                          tup
+                                                          [ (\(l : integer)
+                                                              (r : list data) ->
+                                                               r) ])))
                                                (/\dead -> False)
                                                {all dead. dead})
                                           (/\dead -> False)
@@ -871,10 +1065,12 @@ in
                                              Bool
                                              (equalsInteger
                                                 5
-                                                (fstPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup))
+                                                (case
+                                                   integer
+                                                   tup
+                                                   [ (\(l : integer)
+                                                       (r : list data) ->
+                                                        l) ]))
                                              [False, True])
                                           {all dead. Bool}
                                           (/\dead ->
@@ -887,26 +1083,32 @@ in
                                                   Bool
                                                   (equalsInteger
                                                      5
-                                                     (fstPair
-                                                        {integer}
-                                                        {list data}
-                                                        tup))
+                                                     (case
+                                                        integer
+                                                        tup
+                                                        [ (\(l : integer)
+                                                            (r : list data) ->
+                                                             l) ]))
                                                   [False, True])
                                                {all dead. Bool}
                                                (/\dead ->
                                                   `$fEqCredential_$c==`
                                                     (headList
                                                        {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup))
+                                                       (case
+                                                          (list data)
+                                                          tup
+                                                          [ (\(l : integer)
+                                                              (r : list data) ->
+                                                               r) ]))
                                                     (headList
                                                        {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup)))
+                                                       (case
+                                                          (list data)
+                                                          tup
+                                                          [ (\(l : integer)
+                                                              (r : list data) ->
+                                                               r) ])))
                                                (/\dead -> fail ())
                                                {all dead. dead})
                                           (/\dead -> fail ())
@@ -1105,7 +1307,10 @@ in
                              Bool
                              (equalsInteger
                                 4
-                                (fstPair {integer} {list data} tup))
+                                (case
+                                   integer
+                                   tup
+                                   [(\(l : integer) (r : list data) -> l)]))
                              [False, True])
                           {all dead. Bool}
                           (/\dead ->
@@ -1115,7 +1320,10 @@ in
                                (\(x : data) -> x)
                                (headList
                                   {data}
-                                  (sndPair {integer} {list data} tup))
+                                  (case
+                                     (list data)
+                                     tup
+                                     [(\(l : integer) (r : list data) -> r)]))
                                (unMapData
                                   (headList
                                      {data}
@@ -1140,13 +1348,21 @@ in
                                   Bool
                                   (equalsInteger
                                      5
-                                     (fstPair {integer} {list data} tup))
+                                     (case
+                                        integer
+                                        tup
+                                        [ (\(l : integer) (r : list data) ->
+                                             l) ]))
                                   [False, True])
                                {all dead. Bool}
                                (/\dead ->
                                   let
                                     !l : list data
-                                      = sndPair {integer} {list data} tup
+                                      = case
+                                          (list data)
+                                          tup
+                                          [ (\(l : integer) (r : list data) ->
+                                               r) ]
                                   in
                                   True)
                                (/\dead ->

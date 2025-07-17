@@ -20,8 +20,8 @@ letrec
                  (Tuple2
                     {integer}
                     {integer}
-                    (unIData (fstPair {data} {data} hd))
-                    (unIData (sndPair {data} {data} hd)))
+                    (unIData (case data hd [(\(l : data) (r : data) -> l)]))
+                    (unIData (case data hd [(\(l : data) (r : data) -> r)])))
                  (go tl)) ]
 in
 letrec
@@ -131,8 +131,8 @@ in
             [ []
             , (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
-                   !v' : data = sndPair {data} {data} hd
-                   !k' : data = fstPair {data} {data} hd
+                   !v' : data = case data hd [(\(l : data) (r : data) -> r)]
+                   !k' : data = case data hd [(\(l : data) (r : data) -> l)]
                  in
                  letrec
                    !go : list (pair data data) -> Maybe data
@@ -145,13 +145,23 @@ in
                                 Bool_match
                                   (case
                                      Bool
-                                     (equalsData k' (fstPair {data} {data} hd))
+                                     (equalsData
+                                        k'
+                                        (case
+                                           data
+                                           hd
+                                           [(\(l : data) (r : data) -> l)]))
                                      [False, True])
                                   {all dead.
                                      list (pair data data) -> Maybe data}
                                   (/\dead ->
                                      \(ds : list (pair data data)) ->
-                                       Just {data} (sndPair {data} {data} hd))
+                                       Just
+                                         {data}
+                                         (case
+                                            data
+                                            hd
+                                            [(\(l : data) (r : data) -> r)]))
                                   (/\dead -> go)
                                   {all dead. dead}) ]
                  in
@@ -210,7 +220,7 @@ in
                  in
                  Bool_match
                    (let
-                     !k : data = fstPair {data} {data} hd
+                     !k : data = case data hd [(\(l : data) (r : data) -> l)]
                    in
                    letrec
                      !go : list (pair data data) -> Bool
@@ -223,7 +233,12 @@ in
                                   Bool_match
                                     (case
                                        Bool
-                                       (equalsData k (fstPair {data} {data} hd))
+                                       (equalsData
+                                          k
+                                          (case
+                                             data
+                                             hd
+                                             [(\(l : data) (r : data) -> l)]))
                                        [False, True])
                                     {all dead. list (pair data data) -> Bool}
                                     (/\dead ->

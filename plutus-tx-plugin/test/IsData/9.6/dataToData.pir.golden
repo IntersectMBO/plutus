@@ -58,7 +58,8 @@ let
   ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
-  !snd : all a b. pair a b -> b = sndPair
+  !snd : all a b. pair a b -> b
+    = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
   ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
     = /\a -> \(v : (\a -> data -> a) a) -> v
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData

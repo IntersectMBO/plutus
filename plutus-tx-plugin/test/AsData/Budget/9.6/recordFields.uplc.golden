@@ -34,4 +34,4 @@
                       (unIData (force headList (force tailList l))))
                    (force tailList l))
                 (force tailList l))
-             (force (force sndPair) (unConstrData d)))))
+             (case (unConstrData d) [(\l r -> r)]))))

@@ -51,10 +51,10 @@
                         (fail : unit -> r) ->
                          let
                            !l : list data
-                             = sndPair
-                                 {integer}
-                                 {list data}
+                             = case
+                                 (list data)
                                  (unConstrData scrut)
+                                 [(\(l : integer) (r : list data) -> r)]
                            !l : list data = tailList {data} l
                            !l : list data = tailList {data} l
                            !l : list data = tailList {data} l
@@ -83,9 +83,20 @@
                                = unConstrData
                                    (headList {data} (tailList {data} l))
                              !index : integer
-                               = fstPair {integer} {list data} tup
+                               = (let
+                                     b = list data
+                                   in
+                                   \(x : pair integer b) ->
+                                     case
+                                       integer
+                                       x
+                                       [(\(l : integer) (r : b) -> l)])
+                                   tup
                              !args : list data
-                               = sndPair {integer} {list data} tup
+                               = case
+                                   (list data)
+                                   tup
+                                   [(\(l : integer) (r : list data) -> r)]
                            in
                            Bool_match
                              (case Bool (equalsInteger 0 index) [False, True])
@@ -99,7 +110,10 @@
                              {all dead. dead}))
                        (headList
                           {data}
-                          (sndPair {integer} {list data} (unConstrData d)))
+                          (case
+                             (list data)
+                             (unConstrData d)
+                             [(\(l : integer) (r : list data) -> r)]))
                        (\(ds : (\a -> list data) data)
                          (ds : (\a -> list data) data)
                          (ds : (\a -> list data) data)
