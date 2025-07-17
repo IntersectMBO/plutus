@@ -33,7 +33,7 @@ import Prettyprinter
 -- component, and Plutus should only need to care about the major component anyway.
 -- This relies on careful understanding between us and the ledger as to what this means.
 newtype MajorProtocolVersion = MajorProtocolVersion { getMajorProtocolVersion :: Int }
-  deriving newtype (Eq, Ord, Show, Serialise)
+  deriving newtype (Eq, Ord, Show, Serialise, Enum)
   deriving stock (Generic)
 
 instance Pretty MajorProtocolVersion where
@@ -54,6 +54,8 @@ maryPV = MajorProtocolVersion 4
 -- | Alonzo era was introduced in protocol version 5.0
 alonzoPV :: MajorProtocolVersion
 alonzoPV = MajorProtocolVersion 5
+
+-- According to https://cardano.org/hardforks/, PV 6 was called "Lobster".
 
 -- | The Vasil HF introduced the Babbage era and Plutus V2
 vasilPV :: MajorProtocolVersion

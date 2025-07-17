@@ -8,9 +8,10 @@ import PlutusCore as PLC
 import PlutusCore.MkPlc as PLC
 import PlutusCore.Version as PLC
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.Versions (batch1, batch2, batch3, batch4a, batch4b, batch5, batch6)
 import PlutusPrelude
 import UntypedPlutusCore as UPLC
+
+import PlutusLedgerApi.Common.Versions
 
 import PlutusLedgerApi.Test.Scripts
 import PlutusLedgerApi.V1 qualified as V1
@@ -33,6 +34,12 @@ tests = testGroup "versions"
     , testPermittedBuiltins
     , testRmdr
     ]
+
+newestPV :: MajorProtocolVersion
+newestPV = anonPV
+
+allPVs :: [MajorProtocolVersion]
+allPVs = [ shelleyPV .. newestPV ]
 
 testLedgerLanguages :: TestTree
 testLedgerLanguages = testGroup "ledger languages"
@@ -57,76 +64,79 @@ testLedgerLanguages = testGroup "ledger languages"
            -- generated an eq or gt the expected protocol version
            else isRight resPhase1
 
+sdMkTermToEvaluate
+  :: PlutusLedgerLanguage
+  -> MajorProtocolVersion
+  -> UPLC.Program DeBruijn DefaultUni DefaultFun ()
+  -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+sdMkTermToEvaluate ll pv prog =
+  case deserialiseScript ll pv $ serialiseUPLC prog
+  of Right s -> case  mkTermToEvaluate ll pv s []
+       of Right t             -> Right t
+          Left (CodecError e) -> Left e
+          Left e              -> Prelude.error $ show e
+     Left e  -> Left e
+
 testHorn :: TestTree
 testHorn =
   testGroup "Horn: new ledger language tests" $
-    let expectGood ll deserialise pv =
-          testCase (showPV pv) $
+    let mkScript
+          :: PlutusLedgerLanguage
+          -> MajorProtocolVersion
+          -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+        mkScript ll pv = sdMkTermToEvaluate ll pv v110script
+        expectGood ll pv =
+          testCase ("Ok in " ++ showPV pv) $
           assertBool  ("v110" ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
-           isRight $ mkTermToEvaluate ll pv
-          (either (Prelude.error . show)
-           id
-          (deserialise changPV $ serialiseUPLC v110script)
-          ) []
-        expectBad :: PlutusLedgerLanguage -> MajorProtocolVersion -> TestTree
+          isRight $ mkScript ll pv
         expectBad ll pv =
-          testCase (showPV pv) $
+          testCase ("Not in " ++ showPV pv) $
           assertBool  ("v110" ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
-          isLeft $ uplcToScriptForEvaluation ll pv v110script
-  in [ expectBad  PlutusV1 shelleyPV
-     , expectBad  PlutusV1 allegraPV
-     , expectBad  PlutusV1 maryPV
-     , expectBad  PlutusV1 alonzoPV
-     , expectBad  PlutusV1 vasilPV
-     , expectBad  PlutusV1 valentinePV
-     , expectGood PlutusV1 V1.deserialiseScript changPV
-     , expectGood PlutusV1 V1.deserialiseScript anonPV
-     , expectBad  PlutusV2 shelleyPV
-     , expectBad  PlutusV2 allegraPV
-     , expectBad  PlutusV2 allegraPV
-     , expectBad  PlutusV2 maryPV
-     , expectBad  PlutusV2 alonzoPV
-     , expectBad  PlutusV2 vasilPV
-     , expectBad  PlutusV2 valentinePV
-     , expectBad  PlutusV2 changPV
-     , expectGood PlutusV2 V2.deserialiseScript anonPV
-     , expectBad  PlutusV3 shelleyPV
-     , expectBad  PlutusV3 allegraPV
-     , expectBad  PlutusV3 allegraPV
-     , expectBad  PlutusV3 maryPV
-     , expectBad  PlutusV3 alonzoPV
-     , expectBad  PlutusV3 vasilPV
-     , expectBad  PlutusV3 valentinePV
-     , expectBad  PlutusV3 changPV
-     , expectGood PlutusV3 V3.deserialiseScript anonPV
+          isLeft $  mkScript ll pv
+        mkTestsFor ll firstGood =
+          let expectedGood = [ firstGood .. newestPV ]
+          in testGroup (show ll) $
+             fmap (expectBad ll) (allPVs \\ expectedGood)
+             ++ fmap (expectGood ll) expectedGood
+    in [ testGroup "v1.1.0 availability"
+         [ mkTestsFor PlutusV1 newestPV
+         , mkTestsFor PlutusV2 newestPV
+         , mkTestsFor PlutusV3 changPV
+         ]
+       , testGroup "Extra"
+         [ testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
+             -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
+             assertBool "in PlutusV3/Vasil" $
+               isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
+         -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
+             assertBool "in PlutusV2/Chang" $ isLeft $
+               sdMkTermToEvaluate PlutusV2 changPV v110script
+{-               mkTermToEvaluate PlutusV2 changPV
+               (either (Prelude.error . show)
+                id
+                (V2.deserialiseScript changPV $ serialiseUPLC v110script)
+               ) []
+-}
+         -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
+             assertBool "not in PlutusV3/Chang" $ isRight $ sdMkTermToEvaluate PlutusV3 changPV  v110script
 
-
-     , testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
-      -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
-         assertBool "in PlutusV3/Vasil" $
-           isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
-       -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
-         assertBool "in PlutusV2/Chang" $ isLeft $
-           mkTermToEvaluate PlutusV2 changPV
-           (either (Prelude.error . show)
-            id
-            (V2.deserialiseScript changPV $ serialiseUPLC v110script)
-           ) []
-       -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-         assertBool "not in PlutusV3/Chang" $ isRight $ mkTermToEvaluate PlutusV2 alonzoPV  -- <---- Oops!
-           (either (Prelude.error . show)
-            id
-            (V2.deserialiseScript changPV $ serialiseUPLC v110script)
-           ) []
-
-     -- The availability of `case` and `constr` is checked in `deserialise`
-     , testCase "constr is not available with v1.0.0 ever" $
-       assertBool "in PlutusV3/future" $
-       isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
-     , testCase "case is not available with v1.0.0 ever" $
-       assertBool "in PlutusV3/future" $
-       isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
-     ]
+         -- The availability of `case` and `constr` is checked in `deserialise`
+         , testCase "constr is not available with v1.0.0 ever" $
+           assertBool "in PlutusV3/future" $
+           -- isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
+           isLeft $ sdMkTermToEvaluate PlutusV3 changPV badConstrScript
+         , testCase "case is not available with v1.0.0 ever" $
+           assertBool "in PlutusV3/future" $
+           isLeft $ sdMkTermToEvaluate PlutusV3 futurePV badCaseScript
+         , testCase "case is not available with v1.0.0 ever" $
+           assertBool "in PlutusV2/future" $
+           isLeft $ sdMkTermToEvaluate PlutusV2 futurePV badCaseScript
+         , testCase "case is not available with v1.0.0 ever" $
+           assertBool "in PlutusV1/future" $
+           isLeft $ sdMkTermToEvaluate PlutusV1 futurePV badCaseScript
+--           isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
+         ]
+       ]
 
 -- ** FIX THESE TOO
 -- See Note [Checking the Plutus Core language version] for why these have to use mkTermToEvaluate
@@ -135,20 +145,11 @@ testLanguageVersions = testGroup "Plutus Core language versions"
   [ testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
       -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
       assertBool "in PlutusV3/Vasil" $
-        isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
+        isLeft $ sdMkTermToEvaluate PlutusV3 vasilPV v110script
       -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
-      assertBool "in PlutusV2/Chang" $ isLeft $
-        mkTermToEvaluate PlutusV2 changPV
-        (either (Prelude.error . show)
-          id
-         (V2.deserialiseScript changPV $ serialiseUPLC v110script)
-        ) []
+      assertBool "in PlutusV2/Chang" $ isLeft $ sdMkTermToEvaluate PlutusV2 changPV v110script
       -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-      assertBool "not in PlutusV3/Chang" $ isRight $ mkTermToEvaluate PlutusV3 changPV
-        (either (Prelude.error . show)
-         id
-         (V3.deserialiseScript changPV $ serialiseUPLC v110script)
-        ) []
+      assertBool "not in PlutusV3/Chang" $ isRight $ sdMkTermToEvaluate PlutusV3 changPV v110script
     -- The availability of `case` and `constr` is checked in `deserialise`
   , testCase "constr is not available with v1.0.0 ever" $
     assertBool "in PlutusV3/future" $
@@ -188,31 +189,35 @@ showPV (MajorProtocolVersion pv) =
     11 -> "Anon (PV11)"
     _  -> "<unknown> (PV" ++ show pv ++ ")"
 
+
 -- Should we test plcVersion110 as well?
-mkScript :: DefaultFun -> (String, SerialisedScript)
-mkScript fun =
+mkScriptForBuiltin :: DefaultFun -> (String, SerialisedScript)
+mkScriptForBuiltin fun =
   (show fun, serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ builtin () fun)
 
+mkScriptsForBuiltins :: [DefaultFun] -> [(String, SerialisedScript)]
+mkScriptsForBuiltins = fmap mkScriptForBuiltin
+
 builtins1 :: [(String, SerialisedScript)]
-builtins1 = fmap mkScript batch1
+builtins1 = mkScriptsForBuiltins batch1
 
 builtins2 :: [(String, SerialisedScript)]
-builtins2 = fmap mkScript batch2
+builtins2 = mkScriptsForBuiltins batch2
 
 builtins3 :: [(String, SerialisedScript)]
-builtins3 = fmap mkScript batch3
+builtins3 = mkScriptsForBuiltins batch3
 
 builtins4a :: [(String, SerialisedScript)]
-builtins4a = fmap mkScript batch4a
+builtins4a = mkScriptsForBuiltins batch4a
 
 builtins4b :: [(String, SerialisedScript)]
-builtins4b = fmap mkScript batch4b
+builtins4b = mkScriptsForBuiltins batch4b
 
 builtins5 :: [(String, SerialisedScript)]
-builtins5 = fmap mkScript batch5
+builtins5 = mkScriptsForBuiltins batch5
 
 builtins6 :: [(String, SerialisedScript)]
-builtins6 = fmap mkScript batch6
+builtins6 = mkScriptsForBuiltins batch6
 
 allBuiltins :: [(String, SerialisedScript)]  -- Not quite: there may be some in futurePV as well
 allBuiltins = builtins1 ++ builtins2
@@ -256,7 +261,7 @@ testPermittedBuiltins =
          , mkTest valentinePV builtins1
          , mkTest changPV     builtins1
          , mkTest plominPV    builtins1
-         , mkTest anonPV      allBuiltins
+         , mkTest newestPV    allBuiltins
       ]
     , let mkTest = testBuiltins PlutusV2 V2.deserialiseScript
       in testGroup "PlutusV2"
@@ -268,7 +273,7 @@ testPermittedBuiltins =
          , mkTest valentinePV $ builtins1 ++ builtins2 ++ builtins3
          , mkTest changPV     $ builtins1 ++ builtins2 ++ builtins3
          , mkTest plominPV    $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4b
-         , mkTest anonPV      allBuiltins
+         , mkTest newestPV    allBuiltins
       ]
     , let mkTest = testBuiltins PlutusV3 V3.deserialiseScript
       in testGroup "PlutusV3"
@@ -280,7 +285,7 @@ testPermittedBuiltins =
          , mkTest valentinePV []
          , mkTest changPV     $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b
          , mkTest plominPV    $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b ++ builtins5
-         , mkTest anonPV      allBuiltins
+         , mkTest newestPV    allBuiltins
       ]
     ]
 
@@ -302,4 +307,3 @@ testRmdr = testGroup "extra bytes after end of script"
     -- we cannot make the same property as above for remdr3gen because it may generate valid bytestring append extensions to the original script
     -- a more sophisticated one could work though
     ]
-
