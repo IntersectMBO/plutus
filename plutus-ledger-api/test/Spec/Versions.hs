@@ -153,7 +153,7 @@ testLanguageVersions = testGroup "Plutus Core language versions"
     -- The availability of `case` and `constr` is checked in `deserialise`
   , testCase "constr is not available with v1.0.0 ever" $
     assertBool "in PlutusV3/future" $
-    isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
+    isLeft $ sdMkTermToEvaluate PlutusV3 changPV badConstrScript
   , testCase "case is not available with v1.0.0 ever" $
     assertBool "in PlutusV3/future" $
     isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
