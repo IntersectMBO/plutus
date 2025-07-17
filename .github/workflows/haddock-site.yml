@@ -74,8 +74,9 @@ jobs:
 
       - name: Delete Oldest Build
         run: |
-          # Delete the oldest haddock build if there are more than 11 builds.
-          if [[ $(ls -1A haddock | wc -l) -gt 11 ]]; then
+          # Delete the oldest haddock build if there are more than 10 builds.
+          # We test '-gt 13' becasue the 'haddock' folder contains the 'index.html' file and the 'latest' and 'master' subfolders.
+          if [[ $(ls -1A haddock | wc -l) -gt 13 ]]; then
             OLDEST_BUILD=$(ls -1A haddock | sort | head -n 1)
             rm -rf haddock/$OLDEST_BUILD
 
