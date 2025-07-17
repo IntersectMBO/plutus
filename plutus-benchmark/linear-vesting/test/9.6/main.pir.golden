@@ -240,39 +240,29 @@
               {all dead. dead}
     data (Solo :: * -> *) a | Solo_match where
       MkSolo : a -> Solo a
-    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-      = /\a r ->
-          \(z : r) (f : a -> list a -> r) (xs : list a) ->
-            chooseList
-              {a}
-              {all dead. r}
-              xs
-              (/\dead -> z)
-              (/\dead -> f (headList {a} xs) (tailList {a} xs))
-              {r}
     !lookup' : data -> list (pair data data) -> Maybe data
-      = \(k : data) (m : list (pair data data)) ->
-          (letrec
-              !go : list (pair data data) -> Maybe data
-                = caseList'
-                    {pair data data}
-                    {Maybe data}
-                    (Nothing {data})
-                    (\(hd : pair data data) ->
-                       Bool_match
-                         (case
-                            Bool
-                            (equalsData k (fstPair {data} {data} hd))
-                            [False, True])
-                         {all dead. list (pair data data) -> Maybe data}
-                         (/\dead ->
-                            \(ds : list (pair data data)) ->
-                              Just {data} (sndPair {data} {data} hd))
-                         (/\dead -> go)
-                         {all dead. dead})
-            in
-            go)
-            m
+      = \(k : data) ->
+          letrec
+            !go : list (pair data data) -> Maybe data
+              = \(xs : list (pair data data)) ->
+                  case
+                    (Maybe data)
+                    xs
+                    [ (Nothing {data})
+                    , (\(hd : pair data data) ->
+                         Bool_match
+                           (case
+                              Bool
+                              (equalsData k (fstPair {data} {data} hd))
+                              [False, True])
+                           {all dead. list (pair data data) -> Maybe data}
+                           (/\dead ->
+                              \(ds : list (pair data data)) ->
+                                Just {data} (sndPair {data} {data} hd))
+                           (/\dead -> go)
+                           {all dead. dead}) ]
+          in
+          \(m : list (pair data data)) -> go m
     !assetClassValueOf :
        (\k a -> list (pair data data))
          bytestring
@@ -667,21 +657,20 @@
             letrec
               !go : (\a -> list data) a -> Maybe a
                 = \(ds : (\a -> list data) a) ->
-                    caseList'
-                      {data}
-                      {Maybe a}
-                      (Nothing {a})
-                      (\(x : data) (eta : list data) ->
-                         let
-                           !h : a = `$dUnsafeFromData` x
-                         in
-                         Bool_match
-                           (pred' h)
-                           {all dead. Maybe a}
-                           (/\dead -> Just {a} h)
-                           (/\dead -> go eta)
-                           {all dead. dead})
+                    case
+                      (Maybe a)
                       ds
+                      [ (Nothing {a})
+                      , (\(x : data) (eta : list data) ->
+                           let
+                             !h : a = `$dUnsafeFromData` x
+                           in
+                           Bool_match
+                             (pred' h)
+                             {all dead. Maybe a}
+                             (/\dead -> Just {a} h)
+                             (/\dead -> go eta)
+                             {all dead. dead}) ]
             in
             \(eta : (\a -> list data) a) -> go eta
     !txSignedBy : data -> bytestring -> Bool
@@ -770,37 +759,16 @@
                              (\(ds : data) (ds : data) (ds : data) -> ds)
                              (\(void : unit) -> error {data})
                      in
-                     (let
-                         r = Maybe VestingRedeemer
-                       in
-                       \(fConstr : integer -> list data -> r)
-                        (fMap : list (pair data data) -> r)
-                        (fList : list data -> r)
-                        (fI : integer -> r)
-                        (fB : bytestring -> r)
-                        (d : data) ->
-                         chooseData
-                           {all dead. r}
-                           d
-                           (/\dead ->
-                              (let
-                                  b = list data
-                                in
-                                /\c ->
-                                  \(f : integer -> b -> c)
-                                   (p : pair integer b) ->
-                                    f
-                                      (fstPair {integer} {b} p)
-                                      (sndPair {integer} {b} p))
-                                {r}
-                                fConstr
-                                (unConstrData d))
-                           (/\dead -> fMap (unMapData d))
-                           (/\dead -> fList (unListData d))
-                           (/\dead -> fI (unIData d))
-                           (/\dead -> fB (unBData d))
-                           {r})
-                       (\(index : integer) (args : list data) ->
+                     chooseData
+                       {Unit -> Maybe VestingRedeemer}
+                       d
+                       (\(ds : Unit) ->
+                          let
+                            !tup : pair integer (list data) = unConstrData d
+                            !index : integer = fstPair {integer} {list data} tup
+                            !args : list data
+                              = sndPair {integer} {list data} tup
+                          in
                           Bool_match
                             (case Bool (equalsInteger 0 index) [False, True])
                             {all dead. Maybe VestingRedeemer}
@@ -816,12 +784,11 @@
                                  (/\dead -> Nothing {VestingRedeemer})
                                  {all dead. dead})
                             {all dead. dead})
-                       (\(ds : list (pair data data)) ->
-                          Nothing {VestingRedeemer})
-                       (\(ds : list data) -> Nothing {VestingRedeemer})
-                       (\(ds : integer) -> Nothing {VestingRedeemer})
-                       (\(ds : bytestring) -> Nothing {VestingRedeemer})
-                       d)
+                       (\(ds : Unit) -> Nothing {VestingRedeemer})
+                       (\(ds : Unit) -> Nothing {VestingRedeemer})
+                       (\(ds : Unit) -> Nothing {VestingRedeemer})
+                       (\(ds : Unit) -> Nothing {VestingRedeemer})
+                       Unit)
                      {all dead. VestingRedeemer}
                      (\(r : VestingRedeemer) ->
                         /\dead -> trace {VestingRedeemer} "Parsed Redeemer" r)
@@ -1295,44 +1262,44 @@
                                               integer
                                              = \(n : integer)
                                                 (ds : (\a -> list data) data) ->
-                                                 caseList'
-                                                   {data}
-                                                   {integer}
-                                                   n
-                                                   (\(x : data)
-                                                     (eta : list data) ->
-                                                      let
-                                                        !nt :
-                                                           data
-                                                          = addressCredential
-                                                              (txOutAddress
-                                                                 (txInInfoResolved
-                                                                    x))
-                                                      in
-                                                      `$mScriptCredential`
-                                                        {integer}
-                                                        nt
-                                                        (\(vh : bytestring) ->
-                                                           Bool_match
-                                                             (case
-                                                                Bool
-                                                                (equalsByteString
-                                                                   vh
-                                                                   ipv)
-                                                                [False, True])
-                                                             {all dead. integer}
-                                                             (/\dead ->
-                                                                go
-                                                                  (addInteger
-                                                                     1
-                                                                     n)
-                                                                  eta)
-                                                             (/\dead ->
-                                                                go n eta)
-                                                             {all dead. dead})
-                                                        (\(void : unit) ->
-                                                           go n eta))
+                                                 case
+                                                   integer
                                                    ds
+                                                   [ n
+                                                   , (\(x : data)
+                                                       (eta : list data) ->
+                                                        let
+                                                          !nt :
+                                                             data
+                                                            = addressCredential
+                                                                (txOutAddress
+                                                                   (txInInfoResolved
+                                                                      x))
+                                                        in
+                                                        `$mScriptCredential`
+                                                          {integer}
+                                                          nt
+                                                          (\(vh : bytestring) ->
+                                                             Bool_match
+                                                               (case
+                                                                  Bool
+                                                                  (equalsByteString
+                                                                     vh
+                                                                     ipv)
+                                                                  [False, True])
+                                                               {all dead.
+                                                                  integer}
+                                                               (/\dead ->
+                                                                  go
+                                                                    (addInteger
+                                                                       1
+                                                                       n)
+                                                                    eta)
+                                                               (/\dead ->
+                                                                  go n eta)
+                                                               {all dead. dead})
+                                                          (\(void : unit) ->
+                                                             go n eta)) ]
                                          in
                                          let
                                            !ds : integer
