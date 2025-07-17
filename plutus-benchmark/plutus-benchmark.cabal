@@ -773,4 +773,3 @@ executable gen-coop-flat
     , plutus-ledger-api
     , plutus-tx                    ^>=1.49
     , plutus-tx:plutus-tx-testlib
-    , QuickCheck
