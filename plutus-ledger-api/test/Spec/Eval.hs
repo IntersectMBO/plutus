@@ -29,7 +29,6 @@ import Control.Monad.Writer
 import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
-import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
 import Test.Tasty.Extras (ignoreTestWhenHpcEnabled)
@@ -112,7 +111,7 @@ evaluationContextCacheIsComplete =
     testGroup "EvaluationContext has machine parameters for all protocol versions" $
         enumerate <&> \ll -> testCase (show ll) $ do
             evalCtx <- mkEvaluationContextV ll
-            for_ (Set.insert futurePV knownPVs) $ \pv ->
+            for_ (futurePV:knownPVs) $ \pv ->
                 evaluate $ toMachineParameters pv evalCtx
 
 failIfThunk :: Show a => Maybe a -> IO ()
