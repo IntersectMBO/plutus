@@ -9,7 +9,6 @@ import Common
 import Control.DeepSeq (force)
 import Control.Exception
 import Criterion
-import Data.ByteString as BS
 import Data.Functor
 
 {-|
@@ -24,8 +23,7 @@ the time taken to only flat-deserialize the script
 main :: IO ()
 main = benchWith mkDecBM
   where
-    mkDecBM :: FilePath -> BS.ByteString -> Benchmarkable
-    mkDecBM file bsFlat =
+    mkDecBM file bsFlat _ =
         let
             UPLC.Program _ v (fullyApplied :: Term) = unsafeUnflat file bsFlat
 

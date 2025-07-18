@@ -614,7 +614,6 @@ benchmark validation-agda-cek
     , base                     >=4.9     && <5
     , bytestring
     , criterion                >=1.5.9.0
-    , deepseq
     , directory
     , filepath
     , flat                     ^>=0.6
