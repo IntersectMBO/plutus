@@ -832,7 +832,7 @@ library plutus-core-testlib
     , pretty-simple
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable
-    , QuickCheck
+    , QuickCheck                  >=2.16
     , quickcheck-instances
     , quickcheck-transformer
     , size-based
