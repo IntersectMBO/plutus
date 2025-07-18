@@ -15,6 +15,8 @@ module PlutusCore.Rename.Monad
     , HasRenaming (..)
     , scopedRenamingTypes
     , scopedRenamingTerms
+    , emptyRenaming
+    , emptyScopedRenaming
     , runRenameT
     , lookupNameM
     , renameNameM
@@ -26,7 +28,7 @@ import PlutusPrelude (Alternative, Coercible, Lens', coerce, over, view, (&), (.
 
 import PlutusCore.Name.Unique (HasUnique (..), TermUnique (TermUnique), TypeUnique (TypeUnique),
                                Unique (Unique))
-import PlutusCore.Name.UniqueMap (UniqueMap (UniqueMap), insertByName, lookupName)
+import PlutusCore.Name.UniqueMap (UniqueMap (UniqueMap), emptyUniqueMap, insertByName, lookupName)
 import PlutusCore.Quote (MonadQuote, freshUnique)
 
 import Control.Lens (makeLenses)
@@ -44,7 +46,7 @@ newtype RenameT ren m a = RenameT
 -- | A renaming is a mapping from old uniques to new ones.
 newtype Renaming unique = Renaming
     { unRenaming :: UniqueMap unique unique
-    } deriving newtype (Semigroup, Monoid)
+    }
 
 -- | A type-level renaming.
 -- Needed for instantiating functions running over types in generic @RenameT ren m@ to
@@ -66,13 +68,6 @@ makeLenses ''ScopedRenaming
 
 type ScopedRenameT = RenameT ScopedRenaming
 
-instance Semigroup ScopedRenaming where
-    ScopedRenaming types1 terms1 <> ScopedRenaming types2 terms2 =
-        ScopedRenaming (types1 <> types2) (terms1 <> terms2)
-
-instance Monoid ScopedRenaming where
-    mempty = ScopedRenaming mempty mempty
-
 instance (Coercible unique1 Unique, unique1 ~ unique2) =>
         HasRenaming (Renaming unique1) unique2 where
     renaming = id
@@ -83,9 +78,15 @@ instance HasRenaming ScopedRenaming TypeUnique where
 instance HasRenaming ScopedRenaming TermUnique where
     renaming = scopedRenamingTerms . renaming
 
+emptyRenaming :: Renaming unique
+emptyRenaming = Renaming emptyUniqueMap
+
+emptyScopedRenaming :: ScopedRenaming
+emptyScopedRenaming = ScopedRenaming emptyRenaming emptyRenaming
+
 -- | Run a 'RenameT' computation with an empty renaming.
-runRenameT :: Monoid ren => RenameT ren m a -> m a
-runRenameT (RenameT a) = runReaderT a mempty
+runRenameT :: ren -> RenameT ren m a -> m a
+runRenameT emp (RenameT a) = runReaderT a emp
 
 -- | Map the underlying representation of 'Renaming'.
 mapRenaming

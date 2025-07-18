@@ -15,7 +15,7 @@ import PlutusCore.Core.Type (Term (LamAbs, TyAbs, Var), Type (TyForall, TyLam, T
 import PlutusCore.Error (UniqueError (..))
 import PlutusCore.Name.Unique (HasUnique, TermUnique (TermUnique), TypeUnique (TypeUnique),
                                Unique (Unique), theUnique)
-import PlutusCore.Name.UniqueMap (UniqueMap, insertByNameIndex, lookupNameIndex)
+import PlutusCore.Name.UniqueMap (UniqueMap, emptyUniqueMap, insertByNameIndex, lookupNameIndex)
 
 
 import Control.Lens (forMOf_, (^.))
@@ -183,4 +183,4 @@ runTermDefs
         Monad m)
     => Term tyname name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
-runTermDefs = runWriterT . flip execStateT mempty . termDefs
+runTermDefs = runWriterT . flip execStateT emptyUniqueMap . termDefs

@@ -198,7 +198,7 @@ recursive and non-recursive data types with a single function.
 
 instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Term tyname name uni fun ann) where
     -- See Note [Marking]
-    rename = through markNonFreshTerm >=> PLC.runRenameT . renameTermM
+    rename = through markNonFreshTerm >=> PLC.runRenameT PLC.emptyScopedRenaming . renameTermM
 
 instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Program tyname name uni fun ann) where
     rename (Program ann v term) = Program ann v <$> PLC.rename term
