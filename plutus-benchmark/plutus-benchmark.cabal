@@ -650,7 +650,7 @@ benchmark marlowe-agda-cek
     , plutus-ledger-api        ^>=1.49
     , plutus-tx                ^>=1.49
 
--------------------- bitwise-----------------------
+-------------------- bitwise -----------------------
 
 library bitwise-internal
   import:          lang, ghc-version-support, os-support
@@ -719,6 +719,63 @@ executable linear-vesting
     , linear-vesting-internal
     , plutus-tx:plutus-tx-testlib
     , text
+
+------------------ Cardano Open Oracle Protocol -------------------
+
+library coop
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  coop/src
+  exposed-modules:
+    PlutusBenchmark.Coop.Gen
+    PlutusBenchmark.Coop.Scripts
+    PlutusBenchmark.Coop.TestContext
+    PlutusBenchmark.Coop.Types
+    PlutusBenchmark.Coop.Utils
+
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , crypton
+    , lens
+    , memory
+    , plutus-ledger-api
+    , plutus-tx          ^>=1.49
+    , plutus-tx-plugin   ^>=1.49
+    , QuickCheck
+
+test-suite coop-test
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: coop/test
+  build-depends:
+    , base                             >=4.9   && <5
+    , coop
+    , plutus-core:plutus-core-testlib  ^>=1.49
+    , plutus-ledger-api
+    , plutus-tx                        ^>=1.49
+    , plutus-tx:plutus-tx-testlib
+    , tasty
+
+executable gen-coop-flat
+  import:         lang, ghc-version-support, os-support
+  hs-source-dirs: coop/exe
+  main-is:        Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , coop
+    , directory
+    , filepath
+    , flat
+    , plutus-benchmark-common
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-tx                    ^>=1.49
+    , plutus-tx:plutus-tx-testlib
+
+------------------ linear vesting -------------------    
 
 test-suite linear-vesting-test
   import:         lang, ghc-version-support, os-support
