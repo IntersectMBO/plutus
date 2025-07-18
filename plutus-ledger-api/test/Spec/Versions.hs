@@ -13,7 +13,6 @@ import UntypedPlutusCore as UPLC
 
 import PlutusLedgerApi.Common.Versions
 
-import PlutusLedgerApi.Test.Scripts
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
@@ -29,138 +28,30 @@ import Test.Tasty.QuickCheck
 tests :: TestTree
 tests = testGroup "versions"
     [ testLedgerLanguages
-    , testHorn
     , testLanguageVersions
     , testPermittedBuiltins
     , testRmdr
     ]
 
-newestPV :: MajorProtocolVersion
-newestPV = anonPV
-
 allPVs :: [MajorProtocolVersion]
 allPVs = [ shelleyPV .. newestPV ]
 
-testLedgerLanguages :: TestTree
-testLedgerLanguages = testGroup "ledger languages"
-    [ testProperty "v1 not before but after" $ prop_notBeforeButAfter V1.deserialiseScript alonzoPV
-    , testProperty "v2 not before but after" $ prop_notBeforeButAfter V2.deserialiseScript vasilPV
-    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.deserialiseScript changPV
-    , testProperty "protocol-versions can add but not remove ledger languages" $
-        \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
-    ]
-  where
-    prop_notBeforeButAfter :: (MajorProtocolVersion -> SerialisedScript -> Either ScriptDecodeError b)
-                           -> MajorProtocolVersion -> MajorProtocolVersion -> Bool
-    prop_notBeforeButAfter phase1Func expectedPv genPv =
-        -- run phase 1 on an example script
-        let resPhase1 = phase1Func genPv errorScript
-        in if genPv < expectedPv
-           -- generated an old protocol version
-           then
-               case resPhase1 of
-                   Left LedgerLanguageNotAvailableError{} -> True
-                   _                                      -> False
-           -- generated an eq or gt the expected protocol version
-           else isRight resPhase1
+showPV :: MajorProtocolVersion -> String
+showPV (MajorProtocolVersion pv) =
+  case pv of
+    2  -> "Shelley (PV2)"
+    3  -> "Allegra (PV3)"
+    4  -> "Mary (PV4)"
+    5  -> "Alonzo (PV5)"
+    6  -> "(Lobster) (PV6)"
+    7  -> "Vasil (PV7)"
+    8  -> "Valentine (PV8)"
+    9  -> "Chang (PV9)"
+    10 -> "Plomin (PV10)"
+    11 -> "Anon (PV11)"
+    _  -> "<unknown> (PV" ++ show pv ++ ")"
 
-sdMkTermToEvaluate
-  :: PlutusLedgerLanguage
-  -> MajorProtocolVersion
-  -> UPLC.Program DeBruijn DefaultUni DefaultFun ()
-  -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-sdMkTermToEvaluate ll pv prog =
-  case deserialiseScript ll pv $ serialiseUPLC prog
-  of Right s -> case  mkTermToEvaluate ll pv s []
-       of Right t             -> Right t
-          Left (CodecError e) -> Left e
-          Left e              -> Prelude.error $ show e
-     Left e  -> Left e
-
-testHorn :: TestTree
-testHorn =
-  testGroup "Horn: new ledger language tests" $
-    let mkScript
-          :: PlutusLedgerLanguage
-          -> MajorProtocolVersion
-          -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-        mkScript ll pv = sdMkTermToEvaluate ll pv v110script
-        expectGood ll pv =
-          testCase ("Ok in " ++ showPV pv) $
-          assertBool  ("v110" ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
-          isRight $ mkScript ll pv
-        expectBad ll pv =
-          testCase ("Not in " ++ showPV pv) $
-          assertBool  ("v110" ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
-          isLeft $  mkScript ll pv
-        mkTestsFor ll firstGood =
-          let expectedGood = [ firstGood .. newestPV ]
-          in testGroup (show ll) $
-             fmap (expectBad ll) (allPVs \\ expectedGood)
-             ++ fmap (expectGood ll) expectedGood
-    in [ testGroup "v1.1.0 availability"
-         [ mkTestsFor PlutusV1 newestPV
-         , mkTestsFor PlutusV2 newestPV
-         , mkTestsFor PlutusV3 changPV
-         ]
-       , testGroup "Extra"
-         [ testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
-             -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
-             assertBool "in PlutusV3/Vasil" $
-               isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
-         -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
-             assertBool "in PlutusV2/Chang" $ isLeft $
-               sdMkTermToEvaluate PlutusV2 changPV v110script
-{-               mkTermToEvaluate PlutusV2 changPV
-               (either (Prelude.error . show)
-                id
-                (V2.deserialiseScript changPV $ serialiseUPLC v110script)
-               ) []
--}
-         -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-             assertBool "not in PlutusV3/Chang" $ isRight $ sdMkTermToEvaluate PlutusV3 changPV  v110script
-
-         -- The availability of `case` and `constr` is checked in `deserialise`
-         , testCase "constr is not available with v1.0.0 ever" $
-           assertBool "in PlutusV3/future" $
-           -- isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
-           isLeft $ sdMkTermToEvaluate PlutusV3 changPV badConstrScript
-         , testCase "case is not available with v1.0.0 ever" $
-           assertBool "in PlutusV3/future" $
-           isLeft $ sdMkTermToEvaluate PlutusV3 futurePV badCaseScript
-         , testCase "case is not available with v1.0.0 ever" $
-           assertBool "in PlutusV2/future" $
-           isLeft $ sdMkTermToEvaluate PlutusV2 futurePV badCaseScript
-         , testCase "case is not available with v1.0.0 ever" $
-           assertBool "in PlutusV1/future" $
-           isLeft $ sdMkTermToEvaluate PlutusV1 futurePV badCaseScript
---           isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
-         ]
-       ]
-
--- ** FIX THESE TOO
--- See Note [Checking the Plutus Core language version] for why these have to use mkTermToEvaluate
-testLanguageVersions :: TestTree
-testLanguageVersions = testGroup "Plutus Core language versions"
-  [ testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
-      -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
-      assertBool "in PlutusV3/Vasil" $
-        isLeft $ sdMkTermToEvaluate PlutusV3 vasilPV v110script
-      -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
-      assertBool "in PlutusV2/Chang" $ isLeft $ sdMkTermToEvaluate PlutusV2 changPV v110script
-      -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-      assertBool "not in PlutusV3/Chang" $ isRight $ sdMkTermToEvaluate PlutusV3 changPV v110script
-    -- The availability of `case` and `constr` is checked in `deserialise`
-  , testCase "constr is not available with v1.0.0 ever" $
-    assertBool "in PlutusV3/future" $
-    isLeft $ sdMkTermToEvaluate PlutusV3 changPV badConstrScript
-  , testCase "case is not available with v1.0.0 ever" $
-    assertBool "in PlutusV3/future" $
-    isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
-  ]
-
--- * UPLC examples to test deserialisation
-
+-- Some scripts for use in the version tests.
 errorScript :: SerialisedScript
 errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
 
@@ -173,23 +64,96 @@ badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 mempty
 badCaseScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) mempty
 
+{- Given a UPLC term, serialise it then deserialise it for use in a particular
+   LL/PV combination, checking whether or not it deserialises successfully.  See
+   Note [Checking the Plutus Core language version] for why this has to use
+   `mkTermToEvaluate`. Both `deserialiseScript` and `mkTermToEvaluate` can
+   produce script decoding errors (for different reasons) and we intercept these
+   and return them as `Left` values.  Any other errors will cause `error` to be
+   invoked.
+-}
+mkTestTerm
+  :: PlutusLedgerLanguage
+  -> MajorProtocolVersion
+  -> UPLC.Program DeBruijn DefaultUni DefaultFun ()
+  -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+mkTestTerm ll pv prog =
+  case deserialiseScript ll pv $ serialiseUPLC prog
+  of Right s ->
+       case mkTermToEvaluate ll pv s []
+       of Right t             -> Right t
+          Left (CodecError e) -> Left e
+          Left e              -> Prelude.error $ show e
+     Left e  -> Left e
+
+-- Test that the different Plutus Core ledger languages are available in the
+-- expected protocol versions and not in others.
+testLedgerLanguages :: TestTree
+testLedgerLanguages = testGroup "ledger languages"
+    [ testProperty "PlutusV1 not before but after" $ prop_notBeforeButAfter V1.deserialiseScript alonzoPV
+    , testProperty "PlutusV2 not before but after" $ prop_notBeforeButAfter V2.deserialiseScript vasilPV
+    , testProperty "PlutusV3 not before but after" $ prop_notBeforeButAfter V3.deserialiseScript changPV
+    , testProperty "protocol-versions can add but not remove ledger languages" $
+        \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
+    ]
+  where
+    prop_notBeforeButAfter
+      :: (MajorProtocolVersion -> SerialisedScript -> Either ScriptDecodeError b)
+      -> MajorProtocolVersion -> MajorProtocolVersion -> Bool
+    prop_notBeforeButAfter phase1Func expectedPv genPv =
+        -- run phase 1 on an example script
+        let resPhase1 = phase1Func genPv errorScript
+        in if genPv < expectedPv
+           -- generated an old protocol version
+           then
+               case resPhase1 of
+                   Left LedgerLanguageNotAvailableError{} -> True
+                   _                                      -> False
+           -- generated an eq or gt the expected protocol version
+           else isRight resPhase1
+
+-- Test that the different Plutus Core language versions are available in the
+-- expected LL/PV combinations.
+testLanguageVersions :: TestTree
+testLanguageVersions =
+  testGroup "Plutus Core language versions" $
+    let expectGood prog ll pv =
+          testCase ("Ok in " ++ showPV pv) $
+          assertBool  ("v110" ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
+          isRight $ mkTestTerm ll pv prog
+        expectBad prog ll pv =
+          testCase ("Not in " ++ showPV pv) $
+          assertBool  ("v110" ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
+          isLeft $  mkTestTerm ll pv prog
+        testOkFrom ll firstGood prog =
+          let expectedGood = [ firstGood .. newestPV ]
+          in testGroup (show ll) $
+             fmap (expectBad prog ll) (allPVs \\ expectedGood) ++
+             fmap (expectGood prog ll) expectedGood
+    in [ testGroup "v1.1.0 availability"
+         [ testOkFrom PlutusV1 newestPV v110script
+         , testOkFrom PlutusV2 newestPV v110script
+         , testOkFrom PlutusV3 changPV  v110script
+         ]
+         -- Check that case and constr are not allowed in 1.1.0 in any LL/PV combination
+       , testCase "case is not available in v1.0.0 ever" $
+         sequence_ [ assertBool ("case unexpectedly allowed in " ++ show ll ++ " @PV" ++ show pv) $
+                     isLeft $ mkTestTerm ll pv badCaseScript
+                   | ll <- enumerate, pv <- allPVs ]
+
+       , testCase "constr is not available in v1.0.0 ever" $
+         sequence_ [ assertBool ("constr unexpectedly allowed in " ++ show ll ++ " @PV" ++ show pv) $
+                     isLeft $ mkTestTerm ll pv badConstrScript
+                   | ll <- enumerate, pv <- allPVs ]
+       ]
+
 -- Testing deserialisation checks for builtins
 
-showPV :: MajorProtocolVersion -> String
-showPV (MajorProtocolVersion pv) =
-  case pv of
-    2  -> "Shelley (PV2)"
-    3  -> "Allegra (PV3)"
-    4  -> "Mary (PV4)"
-    5  -> "Alonzo (PV5)"
-    7  -> "Vasil (PV7)"
-    8  -> "Valentine (PV8)"
-    9  -> "Chang (PV9)"
-    10 -> "Plomin (PV10)"
-    11 -> "Anon (PV11)"
-    _  -> "<unknown> (PV" ++ show pv ++ ")"
-
-
+{- | Make small scripts containing each builtin and check that the expected
+   builtins are successfully deserialised in each PV/LL combination (and
+   unexpected builtins cause an error during deserialisation.  These MUST BE
+   EXTENDED when new builtins are deployed.
+-}
 -- Should we test plcVersion110 as well?
 mkScriptForBuiltin :: DefaultFun -> (String, SerialisedScript)
 mkScriptForBuiltin fun =
@@ -219,23 +183,24 @@ builtins5 = mkScriptsForBuiltins batch5
 builtins6 :: [(String, SerialisedScript)]
 builtins6 = mkScriptsForBuiltins batch6
 
-allBuiltins :: [(String, SerialisedScript)]  -- Not quite: there may be some in futurePV as well
+allBuiltins :: [(String, SerialisedScript)]
 allBuiltins = builtins1 ++ builtins2
              ++ builtins3 ++ builtins4a
              ++ builtins4b ++ builtins5
              ++ builtins6
 
--- | Test that the builtins that we expect to be allowed in each LL/PV
--- combination can be successfully deserialised and that the rest cannot.  This
--- is mostly testing that `builtinsAvailableIn` does what it's supposed to.
--- This should be updated when new builtins, ledger languages, or protocol
--- versions are added, but we expect that after Anon all builtins will be
--- allowed in all ledger languages.
---
--- FIXME: Ideally we'd test that for PV11 scripts, all of the newer builtins
--- have the same cost in each Plutus ledger language.  That would involve having
--- appropriate sets of cost model parameters to feed into the parameter update
--- process though.
+{-| Test that the builtins that we expect to be allowed in each LL/PV
+  combination can be successfully deserialised and that the rest cannot.  This
+  is mostly testing that `builtinsAvailableIn` does what it's supposed to.
+  This should be updated when new builtins, ledger languages, or protocol
+  versions are added, but we expect that after Anon all builtins will be
+  allowed in all ledger languages.
+-}
+{- FIXME: Ideally we'd test that for PV11 scripts, all of the newer builtins
+   have the same cost in each Plutus ledger language.  That would involve having
+   appropriate sets of cost model parameters to feed into the parameter update
+   process though.
+-}
 testPermittedBuiltins :: TestTree
 testPermittedBuiltins =
   let testBuiltins ll deserialise pv expectedGood =
@@ -289,7 +254,7 @@ testPermittedBuiltins =
       ]
     ]
 
--- Test that the checks for extra bytes after ends of scripts behave properly
+-- Test that the checks for extra bytes after ends of scripts behave properly.
 deriving newtype instance Arbitrary MajorProtocolVersion
 
 testRmdr :: TestTree

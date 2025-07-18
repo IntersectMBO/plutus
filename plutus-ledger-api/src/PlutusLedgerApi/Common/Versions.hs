@@ -125,18 +125,21 @@ collectUpTo m thisPv =
   fold $  -- ie, iterated `union`
   Map.elems $ Map.takeWhileAntitone (<= thisPv) m
 
--- Batches of builtins which were introduced in the same hard fork (but perhaps
--- not for all LLs): see the Plutus Core specification and
--- `builtinsIntroducedIn` below.
+{- Batches of builtins which were introduced in the same hard fork (but perhaps
+   not for all LLs): see the Plutus Core specification and
+   `builtinsIntroducedIn` below.
+-}
 
--- If any new builtins are introduced after a batch has been deployed on the
--- chain then a new `batch` object MUST be added to contain them and the
--- `builtinsIntroducedIn` function must be updated.
+{- If any new builtins are introduced after a batch has been deployed on the chain
+  then a new `batch` object MUST be added to contain them and the
+  `builtinsIntroducedIn` function must be updated.  Also, remember to UPDATE THE
+  TESTS in `Spec.Versions` and `Spec.Data.Versions` when a new batch is added.
+-}
 
 {- It's tempting to try something like `fmap toEnum [0..50]` here, but that's
    dangerous because the order of the constructors in DefaultFun doesn't
    precisely match the order that the builtins were introduced in.  A safer
-   alternative would be to use the flat tags, but they're not driectly
+   alternative would be to use the flat tags, but they're not directly
    accessible at the moment.
 -}
 batch1 :: [DefaultFun]

@@ -11,6 +11,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , changPV
     , plominPV
     , anonPV
+    , newestPV
     , knownPVs
     , futurePV
     ) where
@@ -22,10 +23,11 @@ import Prettyprinter
 {- Note [Adding new builtins: protocol versions]
 
   *** ATTENTION! ***
-  New built-in functions must initially be added under `futurePV` and should
-  only be moved to an earlier MajorProtocolVersion once they have been fully
-  implemented and costed and their release under the relevant protocol version
-  has been officially approved.
+  New built-in functions must initially be added under
+  `futurePV` and should only be moved to an earlier MajorProtocolVersion once
+  they have been fully implemented and costed and their release under the
+  relevant protocol version has been officially approved.  Remember to update
+  the tests in `Spec.Versions` and `Spec.Data.Versions` when this happens.
 -}
 
 -- | This represents the major component of the Cardano protocol version.
@@ -94,14 +96,23 @@ knownPVs =
     , anonPV
     ]
 
--- | This is a placeholder for when we don't yet know what protocol version will
--- be used for something. It's a very high protocol version that should never
--- appear in reality.  New builtins should always be given this protocol version
--- until they've been finalised.
---
--- We should not assign names to future protocol versions until it's
--- confirmed that they are correct, otherwise we could accidentally
--- associate something with the wrong protocol version.
+-- We're sometimes in an intermediate state where we've added new builtins but
+-- not yet released them (but intend to). This is used by some of the tests to
+-- decide what PVs the test should include.  UPDATE THIS when we're expecting to
+-- release new builtins in a forthcoming PV.
+newestPV :: MajorProtocolVersion
+newestPV = anonPV
+
+{-| This is a placeholder for when we don't yet know what protocol version will
+  be used for something. It's a very high protocol version that should never
+  appear in reality.  New builtins should always be given this protocol version
+  until they've been finalised (at which point they should be moved to
+  the PV named in `newestPV`).
+
+We should not assign names to future protocol versions until it's
+  confirmed that they are correct, otherwise we could accidentally
+  associate something with the wrong protocol version.
+-}
 futurePV :: MajorProtocolVersion
 futurePV = MajorProtocolVersion maxBound
 
