@@ -11,7 +11,7 @@ module VerifiedCompilation.UCaseOfCase where
 ## Imports
 
 ```
-open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
+open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; caseOfCaseT)
