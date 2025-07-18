@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 module PlutusBenchmark.NoFib.Knights.Queue
   ( Queue, createQueue, addFront, addBack,
     addAllFront, addAllBack, inquireFront,
