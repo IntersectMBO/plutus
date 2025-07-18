@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Types</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Types</h1>
+    <section>
+      <pre class="Agda"><a id="40" class="Keyword">module</a> <a id="47" href="Type.html" class="Module">Type</a> <a id="52" class="Keyword">where</a>
+</pre>
+<h2 id="fixity-declarations">Fixity declarations</h2>
+
+<p>To begin, we get all our infix declarations out of the way.</p>
+
+<pre class="Agda"><a id="152" class="Keyword">infix</a>  <a id="159" class="Number">4</a> <a id="161" href="Type.html#887" class="Datatype Operator">_∋⋆_</a>
+<a id="166" class="Keyword">infix</a>  <a id="173" class="Number">4</a> <a id="175" href="Type.html#1704" class="Datatype Operator">_⊢⋆_</a>
+<a id="180" class="Keyword">infixl</a> <a id="187" class="Number">5</a> <a id="189" href="Type.html#545" class="InductiveConstructor Operator">_,⋆_</a>
+
+<a id="195" class="Keyword">infix</a>  <a id="202" class="Number">6</a> <a id="204" href="Type.html#1839" class="InductiveConstructor">Π</a>
+<a id="206" class="Keyword">infixr</a> <a id="213" class="Number">7</a> <a id="215" href="Type.html#1889" class="InductiveConstructor Operator">_⇒_</a>
+<a id="219" class="Keyword">infix</a>  <a id="226" class="Number">5</a> <a id="228" href="Type.html#1950" class="InductiveConstructor">ƛ</a>
+<a id="230" class="Keyword">infixl</a> <a id="237" class="Number">7</a> <a id="239" href="Type.html#2004" class="InductiveConstructor Operator">_·_</a>
+<a id="243" class="Keyword">infix</a>  <a id="250" class="Number">9</a> <a id="252" href="Type.html#960" class="InductiveConstructor">S</a>
+</pre>
+<h2 id="imports">Imports</h2>
+
+<pre class="Agda"><a id="275" class="Keyword">open</a> <a id="280" class="Keyword">import</a> <a id="287" href="Data.Vec.html" class="Module">Data.Vec</a> <a id="296" class="Keyword">using</a> <a id="302" class="Symbol">(</a><a id="303" href="Data.Vec.Base.html#1119" class="Datatype">Vec</a><a id="306" class="Symbol">)</a>
+<a id="308" class="Keyword">open</a> <a id="313" class="Keyword">import</a> <a id="320" href="Data.List.html" class="Module">Data.List</a> <a id="330" class="Keyword">using</a> <a id="336" class="Symbol">(</a><a id="337" href="Agda.Builtin.List.html#147" class="Datatype">List</a><a id="341" class="Symbol">)</a>
+
+<a id="344" class="Keyword">open</a> <a id="349" class="Keyword">import</a> <a id="356" href="Utils.html" class="Module">Utils</a> <a id="362" class="Keyword">using</a> <a id="368" class="Symbol">(</a><a id="369" href="Utils.html#10121" class="Datatype">Kind</a><a id="373" class="Symbol">;</a><a id="374" href="Utils.html#10383" class="Generalizable">J</a><a id="375" class="Symbol">;</a><a id="376" href="Utils.html#10385" class="Generalizable">K</a><a id="377" class="Symbol">)</a>
+<a id="379" class="Keyword">open</a> <a id="384" href="Utils.html#10121" class="Module">Kind</a>
+</pre>
+<h2 id="type-contexts">Type contexts</h2>
+
+<p>A type context is either empty or extends a type
+context by a type variable of a given kind.</p>
+
+<pre class="Agda"><a id="510" class="Keyword">data</a> <a id="Ctx⋆"></a><a id="515" href="Type.html#515" class="Datatype">Ctx⋆</a> <a id="520" class="Symbol">:</a> <a id="522" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="526" class="Keyword">where</a>
+  <a id="Ctx⋆.∅"></a><a id="534" href="Type.html#534" class="InductiveConstructor">∅</a> <a id="536" class="Symbol">:</a> <a id="538" href="Type.html#515" class="Datatype">Ctx⋆</a>
+  <a id="Ctx⋆._,⋆_"></a><a id="545" href="Type.html#545" class="InductiveConstructor Operator">_,⋆_</a> <a id="550" class="Symbol">:</a> <a id="552" href="Type.html#515" class="Datatype">Ctx⋆</a> <a id="557" class="Symbol">→</a> <a id="559" href="Utils.html#10121" class="Datatype">Kind</a> <a id="564" class="Symbol">→</a> <a id="566" href="Type.html#515" class="Datatype">Ctx⋆</a>
+</pre>
+<p>Let <code class="language-plaintext highlighter-rouge">Φ</code>, <code class="language-plaintext highlighter-rouge">Ψ</code>, <code class="language-plaintext highlighter-rouge">Θ</code> range over type contexts:</p>
+<pre class="Agda"><a id="624" class="Keyword">variable</a>
+  <a id="635" href="Type.html#635" class="Generalizable">Φ</a> <a id="637" href="Type.html#637" class="Generalizable">Ψ</a> <a id="639" href="Type.html#639" class="Generalizable">Θ</a> <a id="641" class="Symbol">:</a> <a id="643" href="Type.html#515" class="Datatype">Ctx⋆</a>
+</pre>
+<h2 id="type-variables">Type variables</h2>
+
+<p>Type variables are not named, they are numbered (de Bruijn indices).</p>
+
+<p>A type variable is indexed by its context and kind. For a given
+context, it’s impossible to construct a variable that is out of
+scope.</p>
+
+<pre class="Agda"><a id="882" class="Keyword">data</a> <a id="_∋⋆_"></a><a id="887" href="Type.html#887" class="Datatype Operator">_∋⋆_</a> <a id="892" class="Symbol">:</a> <a id="894" href="Type.html#515" class="Datatype">Ctx⋆</a> <a id="899" class="Symbol">→</a> <a id="901" href="Utils.html#10121" class="Datatype">Kind</a> <a id="906" class="Symbol">→</a> <a id="908" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="912" class="Keyword">where</a>
+
+  <a id="_∋⋆_.Z"></a><a id="921" href="Type.html#921" class="InductiveConstructor">Z</a> <a id="923" class="Symbol">:</a> <a id="925" class="Comment">-------------</a>
+      <a id="945" href="Type.html#635" class="Generalizable">Φ</a> <a id="947" href="Type.html#545" class="InductiveConstructor Operator">,⋆</a> <a id="950" href="Utils.html#10383" class="Generalizable">J</a> <a id="952" href="Type.html#887" class="Datatype Operator">∋⋆</a> <a id="955" href="Utils.html#10383" class="Generalizable">J</a>
+
+  <a id="_∋⋆_.S"></a><a id="960" href="Type.html#960" class="InductiveConstructor">S</a> <a id="962" class="Symbol">:</a> <a id="964" href="Type.html#635" class="Generalizable">Φ</a> <a id="966" href="Type.html#887" class="Datatype Operator">∋⋆</a> <a id="969" href="Utils.html#10383" class="Generalizable">J</a>
+      <a id="977" class="Comment">-------------</a>
+    <a id="995" class="Symbol">→</a> <a id="997" href="Type.html#635" class="Generalizable">Φ</a> <a id="999" href="Type.html#545" class="InductiveConstructor Operator">,⋆</a> <a id="1002" href="Utils.html#10385" class="Generalizable">K</a> <a id="1004" href="Type.html#887" class="Datatype Operator">∋⋆</a> <a id="1007" href="Utils.html#10383" class="Generalizable">J</a>
+</pre>
+<p>Let <code class="language-plaintext highlighter-rouge">α</code>, <code class="language-plaintext highlighter-rouge">β</code> range over type variables</p>
+
+<h2 id="types">Types</h2>
+
+<p>A type is indexed by its context and kind. Types are intrinsically
+scoped and kinded: it’s impossible to construct an ill-kinded
+application and it’s impossible to refer to a variable that is not in
+scope.</p>
+
+<p>A type is either a type variable, a pi type, a function type, a
+lambda, an application, an iso-recursive type <code class="language-plaintext highlighter-rouge">μ</code>, a size, or a type
+constant (base type). Note that recursive types range over an
+arbitrary kind <code class="language-plaintext highlighter-rouge">k</code> which goes beyond standard iso-recursive types. Also note that <code class="language-plaintext highlighter-rouge">Π</code>,
+<code class="language-plaintext highlighter-rouge">⇒</code>, and <code class="language-plaintext highlighter-rouge">µ</code> are effectively base types as they live at kind <code class="language-plaintext highlighter-rouge">*</code>.</p>
+
+<p>The Sum of Products types are based on Agda’s standard Vectors and Lists.</p>
+
+<pre class="Agda"><a id="1699" class="Keyword">data</a> <a id="_⊢⋆_"></a><a id="1704" href="Type.html#1704" class="Datatype Operator">_⊢⋆_</a> <a id="1709" class="Symbol">:</a> <a id="1711" href="Type.html#515" class="Datatype">Ctx⋆</a> <a id="1716" class="Symbol">→</a> <a id="1718" href="Utils.html#10121" class="Datatype">Kind</a> <a id="1723" class="Symbol">→</a> <a id="1725" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+
+<a id="1730" class="Keyword">open</a> <a id="1735" class="Keyword">import</a> <a id="1742" href="Builtin.Constant.Type.html" class="Module">Builtin.Constant.Type</a> <a id="1764" class="Keyword">using</a> <a id="1770" class="Symbol">(</a><a id="1771" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a><a id="1776" class="Symbol">)</a>
+
+<a id="1779" class="Keyword">data</a> <a id="1784" href="Type.html#1704" class="Datatype Operator">_⊢⋆_</a> <a id="1789" class="Keyword">where</a>
+  <a id="_⊢⋆_.`"></a><a id="1797" href="Type.html#1797" class="InductiveConstructor">`</a> <a id="1799" class="Symbol">:</a> <a id="1801" href="Type.html#635" class="Generalizable">Φ</a> <a id="1803" href="Type.html#887" class="Datatype Operator">∋⋆</a> <a id="1806" href="Utils.html#10383" class="Generalizable">J</a>
+      <a id="1814" class="Comment">--------</a>
+    <a id="1827" class="Symbol">→</a> <a id="1829" href="Type.html#635" class="Generalizable">Φ</a> <a id="1831" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1834" href="Utils.html#10383" class="Generalizable">J</a>
+
+  <a id="_⊢⋆_.Π"></a><a id="1839" href="Type.html#1839" class="InductiveConstructor">Π</a> <a id="1841" class="Symbol">:</a> <a id="1843" href="Type.html#635" class="Generalizable">Φ</a> <a id="1845" href="Type.html#545" class="InductiveConstructor Operator">,⋆</a> <a id="1848" href="Utils.html#10385" class="Generalizable">K</a> <a id="1850" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1853" href="Utils.html#10140" class="InductiveConstructor">*</a>
+      <a id="1861" class="Comment">-----------</a>
+    <a id="1877" class="Symbol">→</a> <a id="1879" href="Type.html#635" class="Generalizable">Φ</a> <a id="1881" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1884" href="Utils.html#10140" class="InductiveConstructor">*</a>
+
+  <a id="_⊢⋆_._⇒_"></a><a id="1889" href="Type.html#1889" class="InductiveConstructor Operator">_⇒_</a> <a id="1893" class="Symbol">:</a> <a id="1895" href="Type.html#635" class="Generalizable">Φ</a> <a id="1897" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1900" href="Utils.html#10140" class="InductiveConstructor">*</a>
+      <a id="1908" class="Symbol">→</a> <a id="1910" href="Type.html#635" class="Generalizable">Φ</a> <a id="1912" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1915" href="Utils.html#10140" class="InductiveConstructor">*</a>
+        <a id="1925" class="Comment">------</a>
+      <a id="1938" class="Symbol">→</a> <a id="1940" href="Type.html#635" class="Generalizable">Φ</a> <a id="1942" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1945" href="Utils.html#10140" class="InductiveConstructor">*</a>
+
+  <a id="_⊢⋆_.ƛ"></a><a id="1950" href="Type.html#1950" class="InductiveConstructor">ƛ</a> <a id="1952" class="Symbol">:</a> <a id="1954" href="Type.html#635" class="Generalizable">Φ</a> <a id="1956" href="Type.html#545" class="InductiveConstructor Operator">,⋆</a> <a id="1959" href="Utils.html#10385" class="Generalizable">K</a> <a id="1961" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1964" href="Utils.html#10383" class="Generalizable">J</a>
+      <a id="1972" class="Comment">-----------</a>
+    <a id="1988" class="Symbol">→</a> <a id="1990" href="Type.html#635" class="Generalizable">Φ</a> <a id="1992" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="1995" href="Utils.html#10385" class="Generalizable">K</a> <a id="1997" href="Utils.html#10213" class="InductiveConstructor Operator">⇒</a> <a id="1999" href="Utils.html#10383" class="Generalizable">J</a>
+
+  <a id="_⊢⋆_._·_"></a><a id="2004" href="Type.html#2004" class="InductiveConstructor Operator">_·_</a> <a id="2008" class="Symbol">:</a> <a id="2010" href="Type.html#635" class="Generalizable">Φ</a> <a id="2012" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2015" href="Utils.html#10385" class="Generalizable">K</a> <a id="2017" href="Utils.html#10213" class="InductiveConstructor Operator">⇒</a> <a id="2019" href="Utils.html#10383" class="Generalizable">J</a>
+      <a id="2027" class="Symbol">→</a> <a id="2029" href="Type.html#635" class="Generalizable">Φ</a> <a id="2031" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2034" href="Utils.html#10385" class="Generalizable">K</a>
+        <a id="2044" class="Comment">------</a>
+      <a id="2057" class="Symbol">→</a> <a id="2059" href="Type.html#635" class="Generalizable">Φ</a> <a id="2061" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2064" href="Utils.html#10383" class="Generalizable">J</a>
+
+  <a id="_⊢⋆_.μ"></a><a id="2069" href="Type.html#2069" class="InductiveConstructor">μ</a> <a id="2071" class="Symbol">:</a> <a id="2073" href="Type.html#635" class="Generalizable">Φ</a> <a id="2075" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2078" class="Symbol">(</a><a id="2079" href="Utils.html#10385" class="Generalizable">K</a> <a id="2081" href="Utils.html#10213" class="InductiveConstructor Operator">⇒</a> <a id="2083" href="Utils.html#10140" class="InductiveConstructor">*</a><a id="2084" class="Symbol">)</a> <a id="2086" href="Utils.html#10213" class="InductiveConstructor Operator">⇒</a> <a id="2088" href="Utils.html#10385" class="Generalizable">K</a> <a id="2090" href="Utils.html#10213" class="InductiveConstructor Operator">⇒</a> <a id="2092" href="Utils.html#10140" class="InductiveConstructor">*</a>
+    <a id="2098" class="Symbol">→</a> <a id="2100" href="Type.html#635" class="Generalizable">Φ</a> <a id="2102" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2105" href="Utils.html#10385" class="Generalizable">K</a>
+      <a id="2113" class="Comment">---------------------</a>
+    <a id="2139" class="Symbol">→</a> <a id="2141" href="Type.html#635" class="Generalizable">Φ</a> <a id="2143" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2146" href="Utils.html#10140" class="InductiveConstructor">*</a>
+
+  <a id="_⊢⋆_.^"></a><a id="2151" href="Type.html#2151" class="InductiveConstructor">^</a> <a id="2153" class="Symbol">:</a> <a id="2155" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a> <a id="2161" href="Utils.html#10385" class="Generalizable">K</a>
+      <a id="2169" class="Comment">-------</a>
+    <a id="2181" class="Symbol">→</a> <a id="2183" href="Type.html#635" class="Generalizable">Φ</a> <a id="2185" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2188" href="Utils.html#10385" class="Generalizable">K</a>
+
+  <a id="_⊢⋆_.con"></a><a id="2193" href="Type.html#2193" class="InductiveConstructor">con</a> <a id="2197" class="Symbol">:</a> <a id="2199" href="Type.html#635" class="Generalizable">Φ</a> <a id="2201" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2204" href="Utils.html#10175" class="InductiveConstructor">♯</a>
+        <a id="2214" class="Comment">------</a>
+      <a id="2227" class="Symbol">→</a> <a id="2229" href="Type.html#635" class="Generalizable">Φ</a> <a id="2231" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2234" href="Utils.html#10140" class="InductiveConstructor">*</a>
+
+   <a id="2240" class="Comment">-- Sum of Products</a>
+  <a id="_⊢⋆_.SOP"></a><a id="2261" href="Type.html#2261" class="InductiveConstructor">SOP</a> <a id="2265" class="Symbol">:</a> <a id="2267" class="Symbol">∀{</a><a id="2269" href="Type.html#2269" class="Bound">n</a><a id="2270" class="Symbol">}</a> <a id="2272" class="Symbol">→</a>
+        <a id="2282" href="Data.Vec.Base.html#1119" class="Datatype">Vec</a> <a id="2286" class="Symbol">(</a><a id="2287" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="2292" class="Symbol">(</a><a id="2293" href="Type.html#635" class="Generalizable">Φ</a> <a id="2295" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2298" href="Utils.html#10140" class="InductiveConstructor">*</a><a id="2299" class="Symbol">))</a> <a id="2302" href="Type.html#2269" class="Bound">n</a>
+        <a id="2312" class="Comment">----------------------</a>
+     <a id="2340" class="Symbol">→</a>  <a id="2343" href="Type.html#635" class="Generalizable">Φ</a> <a id="2345" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2348" href="Utils.html#10140" class="InductiveConstructor">*</a>
+</pre>
+<p>Let <code class="language-plaintext highlighter-rouge">A</code>, <code class="language-plaintext highlighter-rouge">B</code>, <code class="language-plaintext highlighter-rouge">C</code> range over types:</p>
+<pre class="Agda"><a id="2395" class="Keyword">variable</a>
+  <a id="2406" href="Type.html#2406" class="Generalizable">A</a> <a id="2408" href="Type.html#2408" class="Generalizable">A&#39;</a> <a id="2411" href="Type.html#2411" class="Generalizable">B</a> <a id="2413" href="Type.html#2413" class="Generalizable">B&#39;</a> <a id="2416" href="Type.html#2416" class="Generalizable">C</a> <a id="2418" href="Type.html#2418" class="Generalizable">C&#39;</a>  <a id="2422" class="Symbol">:</a> <a id="2424" href="Type.html#635" class="Generalizable">Φ</a> <a id="2426" href="Type.html#1704" class="Datatype Operator">⊢⋆</a> <a id="2429" href="Utils.html#10383" class="Generalizable">J</a>
+</pre>
+
+    </section>
+  </body>
+</html>
