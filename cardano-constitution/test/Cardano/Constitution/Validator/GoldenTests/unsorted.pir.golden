@@ -425,8 +425,8 @@ program
                (Tuple2
                   {data}
                   {data}
-                  (fstPair {data} {data} x)
-                  (sndPair {data} {data} x))
+                  (case data x [(\(l : data) (r : data) -> l)])
+                  (case data x [(\(l : data) (r : data) -> r)]))
                (matchData_go xs))
   in
   let
@@ -5208,9 +5208,8 @@ program
                     {data}
                     (tailList
                        {data}
-                       (sndPair
-                          {integer}
-                          {list data}
+                       (case
+                          (list data)
                           (unConstrData
                              (let
                                !si : pair integer (list data)
@@ -5221,17 +5220,23 @@ program
                                            {data}
                                            (tailList
                                               {data}
-                                              (sndPair
-                                                 {integer}
-                                                 {list data}
-                                                 (unConstrData ds)))))
+                                              (case
+                                                 (list data)
+                                                 (unConstrData ds)
+                                                 [ (\(l : integer)
+                                                     (r : list data) ->
+                                                      r) ]))))
                              in
                              Bool_match
                                (case
                                   Bool
                                   (equalsInteger
                                      5
-                                     (fstPair {integer} {list data} si))
+                                     (case
+                                        integer
+                                        si
+                                        [ (\(l : integer) (r : list data) ->
+                                             l) ]))
                                   [False, True])
                                {all dead. data}
                                (/\dead ->
@@ -5239,10 +5244,15 @@ program
                                     {data}
                                     (tailList
                                        {data}
-                                       (sndPair {integer} {list data} si)))
+                                       (case
+                                          (list data)
+                                          si
+                                          [ (\(l : integer) (r : list data) ->
+                                               r) ])))
                                (/\dead -> error {data})
-                               {all dead. dead}))))))
-        !x : integer = fstPair {integer} {list data} ds
+                               {all dead. dead}))
+                          [(\(l : integer) (r : list data) -> r)]))))
+        !x : integer = case integer ds [(\(l : integer) (r : list data) -> l)]
       in
       Bool_match
         (case Bool (equalsInteger 0 x) [False, True])
@@ -5254,7 +5264,12 @@ program
                !d : data
                  = headList
                      {data}
-                     (tailList {data} (sndPair {integer} {list data} ds))
+                     (tailList
+                        {data}
+                        (case
+                           (list data)
+                           ds
+                           [(\(l : integer) (r : list data) -> r)]))
              in
              matchData_go (unMapData d)))
         (/\dead ->

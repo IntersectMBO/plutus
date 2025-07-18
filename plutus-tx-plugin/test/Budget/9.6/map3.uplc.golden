@@ -53,10 +53,11 @@
                                                        constr 1
                                                          [ (constr 0
                                                               [ (unIData
-                                                                   (force
-                                                                      (force
-                                                                         fstPair)
-                                                                      hd))
+                                                                   (case
+                                                                      hd
+                                                                      [ (\l
+                                                                          r ->
+                                                                           l) ]))
                                                               , ((\tup ->
                                                                     (\index ->
                                                                        (\args ->
@@ -100,19 +101,22 @@
                                                                                       (force
                                                                                          headList
                                                                                          args)) ]) ])
-                                                                         (force
-                                                                            (force
-                                                                               sndPair)
-                                                                            tup))
-                                                                      (force
-                                                                         (force
-                                                                            fstPair)
-                                                                         tup))
+                                                                         (case
+                                                                            tup
+                                                                            [ (\l
+                                                                                r ->
+                                                                                 r) ]))
+                                                                      (case
+                                                                         tup
+                                                                         [ (\l
+                                                                             r ->
+                                                                              l) ]))
                                                                    (unConstrData
-                                                                      (force
-                                                                         (force
-                                                                            sndPair)
-                                                                         hd))) ])
+                                                                      (case
+                                                                         hd
+                                                                         [ (\l
+                                                                             r ->
+                                                                              r) ]))) ])
                                                          , (s s tl) ]) ])
                                              nt))
                                        (safeAppend (goLeft nt) (goRight nt)))
@@ -154,10 +158,8 @@
                                                                        [ (unIData
                                                                             v) ])))
                                                               (s s tl)) ])
-                                                      (force (force fstPair)
-                                                         hd))
-                                                   (force (force sndPair)
-                                                      hd)) ])))
+                                                      (case hd [(\l r -> l)]))
+                                                   (case hd [(\l r -> r)])) ])))
                                  (unsafeFromSOPList
                                     (\i -> iData i)
                                     (\i -> iData i)
@@ -217,8 +219,8 @@
                                                                  [ (unIData
                                                                       v) ])))
                                                         (s s tl)) ])
-                                                (force (force fstPair) hd))
-                                             (force (force sndPair) hd)) ])))
+                                                (case hd [(\l r -> l)]))
+                                             (case hd [(\l r -> r)])) ])))
                            (unsafeFromSOPList
                               (\i -> iData i)
                               (\i -> iData i)
@@ -279,11 +281,10 @@
                       [ (constr 1 [])
                       , (\hd ->
                            case
-                             (equalsData k (force (force fstPair) hd))
+                             (equalsData k (case hd [(\l r -> l)]))
                              [ (\x -> s s x)
                              , (\ds ->
-                                  constr 0
-                                    [(force (force sndPair) hd)]) ]) ]))))
+                                  constr 0 [(case hd [(\l r -> r)])]) ]) ]))))
       ((\s -> s s)
          (\s xs xs ->
             case
@@ -303,7 +304,7 @@
                                            case
                                              (equalsData
                                                 k
-                                                (force (force fstPair) hd))
+                                                (case hd [(\l r -> l)]))
                                              [ (\eta ->
                                                   force mkCons hd (s s eta))
                                              , (force mkCons
@@ -311,5 +312,5 @@
                                  eta)
                               (force mkCons (mkPairData k v) []))
                            (s s tl xs))
-                        (force (force fstPair) hd))
-                     (force (force sndPair) hd)) ]))))
+                        (case hd [(\l r -> l)]))
+                     (case hd [(\l r -> r)])) ]))))

@@ -7,6 +7,8 @@ import Control.Monad.Except
 import Data.Either
 import PlutusBenchmark.Common (Term)
 import PlutusCore (DefaultUni (..), SomeTypeIn (..), Type (..), freshName, runQuote, someValueOf)
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc
 import UntypedPlutusCore qualified as UPLC
 
@@ -75,7 +77,8 @@ casingList i = debruijnTermUnsafe $ go i arg
   where
     arg =
       constant () $
-        someValueOf (DefaultUniApply DefaultUniProtoList DefaultUniInteger) $ replicate (fromIntegral i) 42
+        someValueOf (DefaultUniApply DefaultUniProtoList DefaultUniInteger) $
+          replicate (fromIntegral i) 42
 
     go 0 t = t
     go n t =
@@ -98,3 +101,106 @@ casingListOneBranch i = debruijnTermUnsafe $ go i arg
         (TyBuiltin () (SomeTypeIn $ DefaultUniApply DefaultUniProtoList DefaultUniInteger))
         t
         [listConsHandler (\_x xs -> go (n-1) xs)]
+
+pairFstSnd :: Integer -> Term
+pairFstSnd i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    pairVal =
+      constant () $
+        someValueOf (PLC.DefaultUniPair DefaultUniInteger DefaultUniInteger) (42, 42)
+    comp t = runQuote $ do
+      x <- freshName "x"
+      y <- freshName "y"
+      pure $
+        apply ()
+          (apply ()
+            (lamAbs () x intTy $
+             lamAbs () y intTy $
+             t)
+            (apply () (tyInst () (tyInst () (builtin () PLC.FstPair) intTy) intTy) pairVal))
+        (apply () (tyInst () (tyInst () (builtin () PLC.SndPair) intTy) intTy) pairVal)
+
+pairCasing :: Integer -> Term
+pairCasing i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    pairVal =
+      constant () $
+        someValueOf (PLC.DefaultUniPair DefaultUniInteger DefaultUniInteger) (42, 42)
+    comp t = runQuote $ do
+      x <- freshName "x"
+      y <- freshName "y"
+      fstL <- freshName "fstL"
+      fstR <- freshName "fstR"
+      sndL <- freshName "sndL"
+      sndR <- freshName "sndR"
+      pure $
+        apply ()
+          (apply ()
+            (lamAbs () x intTy $
+             lamAbs () y intTy $
+             t)
+            (kase () intTy pairVal [lamAbs () sndL intTy $ lamAbs () sndR intTy $ var () sndL]))
+        (kase () intTy pairVal [lamAbs () fstL intTy $ lamAbs () fstR intTy $ var () fstR])
+
+chooseUnit :: Integer -> Term
+chooseUnit i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    unitVal = constant () $ someValueOf PLC.DefaultUniUnit ()
+    comp t =
+      apply ()
+        (apply () (tyInst () (builtin () PLC.ChooseUnit) intTy) unitVal)
+      t
+
+unitCasing :: Integer -> Term
+unitCasing i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    unitVal = constant () $ someValueOf PLC.DefaultUniUnit ()
+    comp t =
+      kase () intTy unitVal [t]
+
+headList :: Integer -> Term
+headList i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    listVal =
+      constant () $
+        someValueOf (PLC.DefaultUniList DefaultUniInteger) [1, 2, 3]
+    comp t = runQuote $ do
+      x <- freshName "x"
+      pure $
+        apply ()
+          (lamAbs () x intTy t)
+        (apply () (tyInst () (builtin () PLC.HeadList) intTy) listVal)
+
+headListCasing :: Integer -> Term
+headListCasing i =
+  debruijnTermUnsafe $
+    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+  where
+    intTy = PLC.mkTyBuiltin @_ @Integer ()
+    intListTy = PLC.mkTyBuiltin @_ @[Integer] ()
+    listVal =
+      constant () $
+        someValueOf (PLC.DefaultUniList DefaultUniInteger) [1, 2, 3]
+    comp t = runQuote $ do
+      x <- freshName "x"
+      y <- freshName "y"
+      ys <- freshName "ys"
+      pure $
+        apply ()
+          (lamAbs () x intTy t)
+        (kase () intTy listVal [lamAbs () y intTy $ lamAbs () ys intListTy $ var () y])

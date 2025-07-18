@@ -29,8 +29,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -52,8 +54,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -90,8 +94,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -188,8 +194,10 @@
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
             let
               !tup : pair integer (list data) = unConstrData d
-              !index : integer = fstPair {integer} {list data} tup
-              !args : list data = sndPair {integer} {list data} tup
+              !index : integer
+                = case integer tup [(\(l : integer) (r : list data) -> l)]
+              !args : list data
+                = case (list data) tup [(\(l : integer) (r : list data) -> r)]
             in
             Bool_match
               (case Bool (equalsInteger 1 index) [False, True])
@@ -229,9 +237,16 @@
                              (Tuple2
                                 {k}
                                 {v}
-                                (`$dUnsafeFromData` (fstPair {data} {data} tup))
                                 (`$dUnsafeFromData`
-                                   (sndPair {data} {data} tup)))
+                                   (case
+                                      data
+                                      tup
+                                      [(\(l : data) (r : data) -> l)]))
+                                (`$dUnsafeFromData`
+                                   (case
+                                      data
+                                      tup
+                                      [(\(l : data) (r : data) -> r)])))
                              (go tups)) ]
             in
             \(d : data) -> go (unMapData d)
@@ -262,8 +277,10 @@
       = \(eta : data) ->
           let
             !tup : pair integer (list data) = unConstrData eta
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -277,8 +294,13 @@
                  (let
                    !tup : pair integer (list data)
                      = unConstrData (headList {data} args)
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
+                   !index : integer
+                     = case integer tup [(\(l : integer) (r : list data) -> l)]
+                   !args : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  Bool_match
                    (case Bool (equalsInteger 0 index) [False, True])
@@ -302,8 +324,13 @@
                  (let
                    !tup : pair integer (list data)
                      = unConstrData (headList {data} l)
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
+                   !index : integer
+                     = case integer tup [(\(l : integer) (r : list data) -> l)]
+                   !args : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  Bool_match
                    (case Bool (equalsInteger 0 index) [False, True])
@@ -349,8 +376,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -364,8 +393,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -383,8 +414,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -431,8 +464,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -456,8 +491,10 @@
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
             let
               !tup : pair integer (list data) = unConstrData d
-              !index : integer = fstPair {integer} {list data} tup
-              !args : list data = sndPair {integer} {list data} tup
+              !index : integer
+                = case integer tup [(\(l : integer) (r : list data) -> l)]
+              !args : list data
+                = case (list data) tup [(\(l : integer) (r : list data) -> r)]
             in
             Bool_match
               (case Bool (equalsInteger 0 index) [False, True])
@@ -488,8 +525,10 @@
       = \(d : data) ->
           let
             !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
+            !index : integer
+              = case integer tup [(\(l : integer) (r : list data) -> l)]
+            !args : list data
+              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
           in
           Bool_match
             (case Bool (equalsInteger 0 index) [False, True])
@@ -558,8 +597,10 @@
          ScriptContext
         = let
           !tup : pair integer (list data) = unConstrData d
-          !index : integer = fstPair {integer} {list data} tup
-          !args : list data = sndPair {integer} {list data} tup
+          !index : integer
+            = case integer tup [(\(l : integer) (r : list data) -> l)]
+          !args : list data
+            = case (list data) tup [(\(l : integer) (r : list data) -> r)]
         in
         Bool_match
           (case Bool (equalsInteger 0 index) [False, True])
@@ -569,8 +610,13 @@
                (let
                  !tup : pair integer (list data)
                    = unConstrData (headList {data} args)
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                Bool_match
                  (case Bool (equalsInteger 0 index) [False, True])
@@ -626,8 +672,16 @@
                       (let
                         !tup : pair integer (list data)
                           = unConstrData (headList {data} l)
-                        !index : integer = fstPair {integer} {list data} tup
-                        !args : list data = sndPair {integer} {list data} tup
+                        !index : integer
+                          = case
+                              integer
+                              tup
+                              [(\(l : integer) (r : list data) -> l)]
+                        !args : list data
+                          = case
+                              (list data)
+                              tup
+                              [(\(l : integer) (r : list data) -> r)]
                       in
                       Bool_match
                         (case Bool (equalsInteger 0 index) [False, True])
@@ -639,9 +693,15 @@
                                !tup : pair integer (list data)
                                  = unConstrData (headList {data} args)
                                !index : integer
-                                 = fstPair {integer} {list data} tup
+                                 = case
+                                     integer
+                                     tup
+                                     [(\(l : integer) (r : list data) -> l)]
                                !args : list data
-                                 = sndPair {integer} {list data} tup
+                                 = case
+                                     (list data)
+                                     tup
+                                     [(\(l : integer) (r : list data) -> r)]
                              in
                              Bool_match
                                (case Bool (equalsInteger 0 index) [False, True])
@@ -664,9 +724,15 @@
                                  = unConstrData
                                      (headList {data} (tailList {data} args))
                                !index : integer
-                                 = fstPair {integer} {list data} tup
+                                 = case
+                                     integer
+                                     tup
+                                     [(\(l : integer) (r : list data) -> l)]
                                !args : list data
-                                 = sndPair {integer} {list data} tup
+                                 = case
+                                     (list data)
+                                     tup
+                                     [(\(l : integer) (r : list data) -> r)]
                              in
                              Bool_match
                                (case Bool (equalsInteger 0 index) [False, True])

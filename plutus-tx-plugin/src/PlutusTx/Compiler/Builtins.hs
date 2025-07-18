@@ -441,7 +441,22 @@ defineBuiltinTerms = do
                               (PLC.TyVar () a)
                               (PIR.Var () b)
                               [PIR.Var () y, PIR.Var () x]
-          PLC.ChooseUnit -> defineBuiltinInl 'Builtins.chooseUnit
+          PLC.ChooseUnit -> case datatypeStyle of
+              PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.chooseUnit
+              PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.chooseUnit
+              PIR.BuiltinCasing  -> defineBuiltinTerm annMayInline 'Builtins.chooseUnit $
+                  fmap (const annMayInline) . runQuote $ do
+                      r <- freshTyName "r"
+                      unit <- freshName "unit"
+                      x <- freshName "x"
+                      return $
+                        PIR.tyAbs () r (PLC.Type ()) $
+                        PIR.lamAbs () unit (PLC.mkTyBuiltin @_ @() ()) $
+                        PIR.lamAbs () x (PLC.TyVar () r) $
+                        PIR.kase ()
+                          (PLC.TyVar () r)
+                          (PIR.Var () unit)
+                          [ PIR.var () x ]
           -- Bytestrings
           PLC.AppendByteString -> defineBuiltinInl 'Builtins.appendByteString
           PLC.ConsByteString -> defineBuiltinInl 'Builtins.consByteString
@@ -480,8 +495,64 @@ defineBuiltinTerms = do
           -- Tracing
           PLC.Trace -> defineBuiltinInl 'Builtins.trace
           -- Pairs
-          PLC.FstPair -> defineBuiltinInl 'Builtins.fst
-          PLC.SndPair -> defineBuiltinInl 'Builtins.snd
+          PLC.FstPair -> case datatypeStyle of
+              PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.fst
+              PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.fst
+              PIR.BuiltinCasing  -> defineBuiltinTerm annMayInline 'Builtins.fst $
+                  fmap (const annMayInline) . runQuote $ do
+                      a <- freshTyName "a"
+                      b <- freshTyName "b"
+                      x <- freshName "x"
+                      l <- freshName "l"
+                      r <- freshName "r"
+                      let
+                        pairTy =
+                          PLC.TyApp ()
+                            (PLC.TyApp ()
+                               (PLC.mkTyBuiltin @_ @(,) ())
+                               (PLC.TyVar () a)
+                            )
+                            (PLC.TyVar () b)
+                      return $
+                        PIR.tyAbs () a (PLC.Type ()) $
+                        PIR.tyAbs () b (PLC.Type ()) $
+                        PIR.lamAbs () x pairTy $
+                        PIR.kase ()
+                          (PLC.TyVar () a)
+                          (PIR.Var () x)
+                          [ PIR.lamAbs () l (PLC.TyVar () a) $
+                            PIR.lamAbs () r (PLC.TyVar () b) $
+                            PIR.var () l
+                          ]
+          PLC.SndPair -> case datatypeStyle of
+              PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.snd
+              PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.snd
+              PIR.BuiltinCasing  -> defineBuiltinTerm annMayInline 'Builtins.snd $
+                  fmap (const annMayInline) . runQuote $ do
+                      a <- freshTyName "a"
+                      b <- freshTyName "b"
+                      x <- freshName "x"
+                      l <- freshName "l"
+                      r <- freshName "r"
+                      let
+                        pairTy =
+                          PLC.TyApp ()
+                            (PLC.TyApp ()
+                               (PLC.mkTyBuiltin @_ @(,) ())
+                               (PLC.TyVar () a)
+                            )
+                            (PLC.TyVar () b)
+                      return $
+                        PIR.tyAbs () a (PLC.Type ()) $
+                        PIR.tyAbs () b (PLC.Type ()) $
+                        PIR.lamAbs () x pairTy $
+                        PIR.kase ()
+                          (PLC.TyVar () b)
+                          (PIR.Var () x)
+                          [ PIR.lamAbs () l (PLC.TyVar () a) $
+                            PIR.lamAbs () r (PLC.TyVar () b) $
+                            PIR.var () r
+                          ]
           PLC.MkPairData -> defineBuiltinInl 'Builtins.mkPairData
           -- List
           PLC.NullList -> defineBuiltinInl 'Builtins.null
