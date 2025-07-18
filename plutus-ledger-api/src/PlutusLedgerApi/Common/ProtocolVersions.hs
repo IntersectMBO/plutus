@@ -82,7 +82,8 @@ anonPV :: MajorProtocolVersion
 anonPV = MajorProtocolVersion 11
 
 -- | The set of protocol versions that are "known", i.e. that have been released
--- and have actual differences associated with them.
+-- and have actual differences associated with them.  This is currently only
+-- used for testing, so efficiency is not parmount and a list is fine.
 knownPVs :: [MajorProtocolVersion]
 knownPVs =
     [ shelleyPV
