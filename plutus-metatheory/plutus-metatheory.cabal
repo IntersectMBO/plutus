@@ -85,6 +85,7 @@ library
     , text
     , time
     , transformers
+    , vector
 
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
