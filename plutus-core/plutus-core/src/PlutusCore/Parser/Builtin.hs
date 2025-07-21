@@ -14,6 +14,8 @@ import PlutusCore.Name.Unique
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)
+import PlutusCore.Value qualified as PLC (Value)
+import PlutusCore.Value qualified as Value
 
 import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack)
@@ -86,6 +88,18 @@ conList uniA = trailingWhitespace . inBrackets $
 conArray :: DefaultUni (Esc a) -> Parser (Vector a)
 conArray uniA = Vector.fromList <$> conList uniA
 
+-- | Parser for values.
+conValue :: Parser PLC.Value
+conValue =
+  Value.fromList
+  <$> conList
+        (DefaultUniPair
+          DefaultUniByteString
+          (DefaultUniList
+            (DefaultUniPair DefaultUniByteString DefaultUniInteger)
+          )
+        )
+
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
 conPair uniA uniB = trailingWhitespace . inParens $ do
@@ -136,6 +150,7 @@ constantOf expectParens uni =
     DefaultUniString                                                  -> conText
     DefaultUniUnit                                                    -> conUnit
     DefaultUniBool                                                    -> conBool
+    DefaultUniValue                                                   -> conValue
     DefaultUniProtoList `DefaultUniApply` uniA                        -> conList uniA
     DefaultUniProtoArray `DefaultUniApply` uniA                       -> conArray uniA
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB

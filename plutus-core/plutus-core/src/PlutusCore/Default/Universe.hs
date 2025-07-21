@@ -53,6 +53,7 @@ import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
+import PlutusCore.Value qualified as PLC
 
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
@@ -110,6 +111,7 @@ data DefaultUni a where
     DefaultUniString :: DefaultUni (Esc Text)
     DefaultUniUnit :: DefaultUni (Esc ())
     DefaultUniBool :: DefaultUni (Esc Bool)
+    DefaultUniValue :: DefaultUni (Esc PLC.Value)
     DefaultUniProtoArray :: DefaultUni (Esc Strict.Vector)
     DefaultUniProtoList :: DefaultUni (Esc [])
     DefaultUniProtoPair :: DefaultUni (Esc (,))
@@ -156,6 +158,9 @@ instance GEq DefaultUni where
         geqStep DefaultUniBool a2 = do
             DefaultUniBool <- Just a2
             Just Refl
+        geqStep DefaultUniValue a2 = do
+            DefaultUniValue <- Just a2
+            Just Refl
         geqStep DefaultUniProtoList a2 = do
             DefaultUniProtoList <- Just a2
             Just Refl
@@ -198,6 +203,7 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniString               = knownKind
     toSingKind DefaultUniUnit                 = knownKind
     toSingKind DefaultUniBool                 = knownKind
+    toSingKind DefaultUniValue                = knownKind
     toSingKind DefaultUniProtoList            = knownKind
     toSingKind DefaultUniProtoArray           = knownKind
     toSingKind DefaultUniProtoPair            = knownKind
@@ -223,6 +229,7 @@ instance PrettyBy RenderContext (DefaultUni a) where
         DefaultUniString               -> "string"
         DefaultUniUnit                 -> "unit"
         DefaultUniBool                 -> "bool"
+        DefaultUniValue                -> "value"
         DefaultUniProtoList            -> "list"
         DefaultUniProtoArray           -> "array"
         DefaultUniProtoPair            -> "pair"
@@ -263,6 +270,8 @@ instance DefaultUni `Contains` () where
     knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool where
     knownUni = DefaultUniBool
+instance DefaultUni `Contains` PLC.Value where
+    knownUni = DefaultUniValue
 instance DefaultUni `Contains` [] where
     knownUni = DefaultUniProtoList
 instance DefaultUni `Contains` Strict.Vector where
@@ -288,6 +297,8 @@ instance KnownBuiltinTypeAst tyname DefaultUni () =>
     KnownTypeAst tyname DefaultUni ()
 instance KnownBuiltinTypeAst tyname DefaultUni Bool =>
     KnownTypeAst tyname DefaultUni Bool
+instance KnownBuiltinTypeAst tyname DefaultUni PLC.Value =>
+    KnownTypeAst tyname DefaultUni PLC.Value
 instance KnownBuiltinTypeAst tyname DefaultUni [a] =>
     KnownTypeAst tyname DefaultUni [a]
 instance KnownBuiltinTypeAst tyname DefaultUni (Strict.Vector a) =>
@@ -313,6 +324,8 @@ instance KnownBuiltinTypeIn DefaultUni term () =>
     ReadKnownIn DefaultUni term ()
 instance KnownBuiltinTypeIn DefaultUni term Bool =>
     ReadKnownIn DefaultUni term Bool
+instance KnownBuiltinTypeIn DefaultUni term PLC.Value =>
+    ReadKnownIn DefaultUni term PLC.Value
 instance KnownBuiltinTypeIn DefaultUni term Data =>
     ReadKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
@@ -338,6 +351,8 @@ instance KnownBuiltinTypeIn DefaultUni term () =>
     MakeKnownIn DefaultUni term ()
 instance KnownBuiltinTypeIn DefaultUni term Bool =>
     MakeKnownIn DefaultUni term Bool
+instance KnownBuiltinTypeIn DefaultUni term PLC.Value =>
+    MakeKnownIn DefaultUni term PLC.Value
 instance KnownBuiltinTypeIn DefaultUni term Data =>
     MakeKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
@@ -588,6 +603,7 @@ instance Closed DefaultUni where
         , constr `Permits` Text
         , constr `Permits` ()
         , constr `Permits` Bool
+        , constr `Permits` PLC.Value
         , constr `Permits` []
         , constr `Permits` Strict.Vector
         , constr `Permits` (,)
@@ -612,6 +628,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniBLS12_381_G2_Element = [10]
     encodeUni DefaultUniBLS12_381_MlResult   = [11]
     encodeUni DefaultUniProtoArray           = [12]
+    encodeUni DefaultUniValue                = [13]
 
     -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
@@ -633,6 +650,7 @@ instance Closed DefaultUni where
         10 -> k DefaultUniBLS12_381_G2_Element
         11 -> k DefaultUniBLS12_381_MlResult
         12 -> k DefaultUniProtoArray
+        13 -> k DefaultUniValue
         _  -> empty
 
     bring
@@ -643,6 +661,7 @@ instance Closed DefaultUni where
     bring _ DefaultUniString r = r
     bring _ DefaultUniUnit r = r
     bring _ DefaultUniBool r = r
+    bring _ DefaultUniValue r = r
     bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
         bring p uniA r
     bring p (DefaultUniProtoArray `DefaultUniApply` uniA) r =

@@ -20,6 +20,7 @@ import PlutusCore.Core
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Name.Unique
+import PlutusCore.Value qualified as PLC (Value)
 
 import Data.Proxy
 import Flat
@@ -120,6 +121,11 @@ decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
 
 deriving via FlatViaSerialise Data instance Flat Data
+
+-- TODO: implement Flat instance either using FlatViaSerialise or manually
+instance Flat PLC.Value where
+    encode = undefined
+    decode = undefined
 
 decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
 decodeKindedUniFlat =
