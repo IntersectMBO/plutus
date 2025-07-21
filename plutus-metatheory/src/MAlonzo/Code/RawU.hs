@@ -169,7 +169,7 @@ check_bool_36 = TagBool
 check_unit_38 ::
   T_Tag_28 (T_Esc_24 MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6)
 check_unit_38 = TagUnit
-check_pdata_40 :: T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_DATA_490)
+check_pdata_40 :: T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_DATA_494)
 check_pdata_40 = TagData
 check_pair_46 ::
   forall xA.
@@ -190,15 +190,15 @@ check_array_54 ::
 check_array_54 = TagArray
 check_bls12'45'381'45'g1'45'element_56 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_636)
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_640)
 check_bls12'45'381'45'g1'45'element_56 = TagBLS12_381_G1_Element
 check_bls12'45'381'45'g2'45'element_58 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_640)
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_644)
 check_bls12'45'381'45'g2'45'element_58 = TagBLS12_381_G2_Element
 check_bls12'45'381'45'mlresult_60 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_644)
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_648)
 check_bls12'45'381'45'mlresult_60 = TagBLS12_381_MlResult
 cover_Tag_28 :: Tag a1 -> ()
 cover_Tag_28 x
@@ -383,7 +383,7 @@ du_decTagCon''_124 v0 v1 v2 v3
                 _ -> coe v4
          C_pdata_40
            -> case coe v2 of
-                C_pdata_40 -> coe MAlonzo.Code.Utils.d_eqDATA_502 (coe v1) (coe v3)
+                C_pdata_40 -> coe MAlonzo.Code.Utils.d_eqDATA_506 (coe v1) (coe v3)
                 _ -> coe v4
          C_pair_46 v7 v8
            -> case coe v1 of

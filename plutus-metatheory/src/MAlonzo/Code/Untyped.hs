@@ -47,7 +47,7 @@ data T__'8866'_14
     C_builtin_44 MAlonzo.Code.Builtin.T_Builtin_2 | C_error_46
 -- Untyped.uglyDATA
 d_uglyDATA_64 ::
-  MAlonzo.Code.Utils.T_DATA_490 ->
+  MAlonzo.Code.Utils.T_DATA_494 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_uglyDATA_64 ~v0 = du_uglyDATA_64
 du_uglyDATA_64 :: MAlonzo.Code.Agda.Builtin.String.T_String_6
