@@ -2,6 +2,7 @@
 
 module FFI.AgdaUnparse where
 
+import Data.Aeson (Value (String))
 import Data.ByteString (ByteString)
 import Data.Functor.Identity
 import Data.String (String)
@@ -78,13 +79,16 @@ instance AgdaUnparse ByteString where
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"
 
-unparseFunctor :: AgdaUnparse a => Foldable f => f a -> String
-unparseFunctor l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
+unfoldFunctor :: Foldable f => (a -> String) -> f a -> String
+unfoldFunctor toString ls = "(" ++ foldr (\x xs -> toString x ++ " ∷ " ++ xs) "[]" ls ++ ")"
+
+agdaUnparseFunctor :: (AgdaUnparse a, Foldable f) => f a -> String
+agdaUnparseFunctor = unfoldFunctor agdaUnparse
 
 instance AgdaUnparse a => AgdaUnparse [a] where
-  agdaUnparse = unparseFunctor
+  agdaUnparse = agdaUnparseFunctor
 instance AgdaUnparse a => AgdaUnparse (Vector.Vector a) where
-  agdaUnparse = unparseFunctor
+  agdaUnparse = agdaUnparseFunctor
 
 instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
   agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
@@ -127,6 +131,51 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse (PLC.DefaultUniArray t) = "(array " ++ agdaUnparse t ++ ")"
   agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
+agdaUnparseDList elemType xs =
+      let xs' :: [ DSum (PLC.ValueOf PLC.DefaultUni) Identity ]
+          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
+        in unfoldFunctor plainAgdaUnparseValue xs'
+agdaUnparseDArray elemType xs =
+      let xs' :: Vector.Vector (DSum (PLC.ValueOf PLC.DefaultUni) Identity)
+          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
+        in unfoldFunctor plainAgdaUnparseValue xs'
+agdaUnparseDPair type1 type2 (x, y) =
+      let x' = mkValueDSum $ PLC.Some $ PLC.ValueOf type1 x
+          y' = mkValueDSum $ PLC.Some $ PLC.ValueOf type2 y
+        in agdaUnparse (agdaUnparseValue x', agdaUnparseValue y')
+
+plainAgdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
+plainAgdaUnparseValue dSum =
+    case dSum of
+      PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniString _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ ->
+        agdaUnparse ()
+      PLC.ValueOf PLC.DefaultUniData _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
+        "[ " ++ agdaUnparseDList elemType val ++ "]"
+      PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
+        agdaUnparseDPair type1 type2 val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
+        agdaUnparse val
+      PLC.ValueOf (PLC.DefaultUniArray elemType) _ :=> Identity val ->
+       "(mkArray "
+          ++ agdaUnparseDArray elemType val ++ ")"
+      PLC.ValueOf (PLC.DefaultUniApply _ _) _ :=> Identity _ ->
+        error "Application of an unknown type is not supported."
+
+
 agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
 agdaUnparseValue dSum =
   "(tagCon " ++
@@ -164,19 +213,6 @@ agdaUnparseValue dSum =
       PLC.ValueOf (PLC.DefaultUniApply _ _) _ :=> Identity _ ->
         error "Application of an unknown type is not supported."
   ++ ")"
-  where
-    agdaUnparseDList elemType xs =
-      let xs' :: [ DSum (PLC.ValueOf PLC.DefaultUni) Identity ]
-          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
-        in unparseFunctor xs'
-    agdaUnparseDArray elemType xs =
-      let xs' :: Vector.Vector (DSum (PLC.ValueOf PLC.DefaultUni) Identity)
-          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
-        in unparseFunctor xs'
-    agdaUnparseDPair type1 type2 (x, y) =
-      let x' = mkValueDSum $ PLC.Some $ PLC.ValueOf type1 x
-          y' = mkValueDSum $ PLC.Some $ PLC.ValueOf type2 y
-        in agdaUnparse (agdaUnparseValue x', agdaUnparseValue y')
 
 instance
   AgdaUnparse (DSum (PLC.ValueOf UPLC.DefaultUni) Identity) where
