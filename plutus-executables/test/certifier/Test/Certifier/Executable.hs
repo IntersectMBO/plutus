@@ -158,9 +158,7 @@ srcTests =
   , "MinBS"
   , "AA2-CSE"
   , "forceDelayIfThenElse"
-  , "listUnparse"
-  , "pairUnparse"
-  , "nestedUnparse"
+  , "builtinUnparse"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]
