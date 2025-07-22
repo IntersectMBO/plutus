@@ -107,6 +107,7 @@ parserInfo cfg =
 benchWith
     :: (   FilePath
         -> BS.ByteString
+        -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
         -> Benchmarkable
        )
     -> IO ()
@@ -131,11 +132,11 @@ benchWith act = do
     mkScriptBM dir file =
         let readAndPrep = do
                 script <- BS.readFile (dir </> file)
-                pure script
-        in env readAndPrep $ \(~script) ->
+                pure (script, UPLC.Error ()) -- toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file script)
+        in env readAndPrep $ \(~scriptAndTerm) ->
             -- We use 'uncurry', because for whatever reason lazy matching on a tuple doesn't work
             -- when @Strict@ is enabled.
-            bench (dropExtension file) $ act file script
+            bench (dropExtension file) $ uncurry (act file) scriptAndTerm
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 
