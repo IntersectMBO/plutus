@@ -186,6 +186,12 @@ data Inlined : List (X ⊢) → Bind X → (X ⊢) → (X ⊢) → Set₁ where
 
 [] (□ , wk a , wk wk b , (` nothing)) t (wk (wk (wk t')))
 
+
+
+
+(ƛ ƛ t . a . b) ==> t'[deleted-lets := 2]
+
+
 ```
 
   _·_ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
