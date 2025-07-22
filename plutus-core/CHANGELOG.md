@@ -1,4 +1,17 @@
 
+<a id='changelog-1.49.0.0'></a>
+# 1.49.0.0 — 2025-07-08
+
+## Added
+
+- In #7029 added support for `Case`ing on booleans and integers. For example, `case True a b` now evaluates to `b`.
+
+- Added a new UPLC optimisation which removes `force` when applied to case expressions where each branch contains a `delay` at the top, or if the delay is under any number of lambda abstractions.
+
+## Changed
+
+- Drop `hex-text` package in favor of `base16-bytestring`.
+
 <a id='changelog-1.47.0.0'></a>
 # 1.47.0.0 — 2025-06-10
 

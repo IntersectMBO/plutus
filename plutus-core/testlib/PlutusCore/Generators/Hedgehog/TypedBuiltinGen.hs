@@ -67,9 +67,7 @@ attachCoercedTerm a = do
             [ "Got 'EvaluationFailure' when generating a value of a built-in type: "
             , render $ prettyConst botRenderContext x
             ]
-        EvaluationSuccess res -> case res of
-            HeadOnly v -> pure $ TermOf v x
-            _          -> fail "Iterated application is not supported"
+        EvaluationSuccess res -> pure $ TermOf res x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen

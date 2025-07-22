@@ -4,6 +4,7 @@
 module PlutusTx.Test.Util.Compiled (
   Program,
   Term,
+  countFlatBytes,
   toAnonDeBruijnTerm,
   toAnonDeBruijnProg,
   toNamedDeBruijnTerm,
@@ -14,15 +15,45 @@ where
 
 import Prelude
 
+import Codec.Extras.SerialiseViaFlat (SerialiseViaFlat (..))
+import Codec.Serialise (serialise)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusTx qualified as Tx
+import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
 type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
+
+{-| The size of a 'CompiledCodeIn' as measured in Flat bytes.
+
+This function serialises the code to 'ByteString' and counts the number
+of bytes. It uses the same serialisation format as used by the ledger:
+CBOR(Flat(StripNames(Strip Annotations(UPLC))))
+
+Caveat: the 'SerialisedCode' constructor of the 'CompiledCode' type
+already contains a PLC program as 'ByteString', but it isn't the same byte
+representation as the one produced by 'serialiseCompiledCode' function:
+in uses the 'NamedDeBruijn' representation, which also stores names.
+On the mainnet we don't serialise names, only DeBruijn indices, so this function
+re-serialises the code to get the size in bytes that we would actually
+use on the mainnet.
+-}
+countFlatBytes :: CompiledCode ann -> Integer
+countFlatBytes =
+  fromIntegral
+    . BS.length
+    . BSL.toStrict
+    . serialise
+    . SerialiseViaFlat
+    . UPLC.UnrestrictedProgram
+    . toAnonDeBruijnProg
+    . getPlcNoAnn
 
 {-| Given a DeBruijn-named term, give every variable the name "v".  If we later
    call unDeBruijn, that will rename the variables to things like "v123", where

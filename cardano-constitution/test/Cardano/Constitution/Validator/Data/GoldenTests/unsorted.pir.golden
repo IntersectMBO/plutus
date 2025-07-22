@@ -433,19 +433,12 @@ program
               {all dead. dead}
   in
   letrec
-    ~caseData_go : list (pair data data) -> List (Tuple2 data data)
+    ~matchData_go : list (pair data data) -> List (Tuple2 data data)
       = (let
             a = pair data data
           in
           /\r ->
-            \(z : r) (f : a -> list a -> r) (xs : list a) ->
-              chooseList
-                {a}
-                {all dead. r}
-                xs
-                (/\dead -> z)
-                (/\dead -> f (headList {a} xs) (tailList {a} xs))
-                {r})
+            \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f])
           {List (Tuple2 data data)}
           (Nil {Tuple2 data data})
           (\(x : pair data data) (xs : list (pair data data)) ->
@@ -456,7 +449,7 @@ program
                   {data}
                   (fstPair {data} {data} x)
                   (sndPair {data} {data} x))
-               (caseData_go xs))
+               (matchData_go xs))
   in
   let
     !cfg : List (Tuple2 integer ParamValue)
@@ -5305,7 +5298,7 @@ program
             {all dead. dead})
         nt
         (\(ds : Maybe data) (cparams : data) (ds : Maybe bytestring) ->
-           Just {List (Tuple2 data data)} (caseData_go (unMapData cparams)))
+           Just {List (Tuple2 data data)} (matchData_go (unMapData cparams)))
         (\(void : unit) ->
            (let
                r = Maybe (List (Tuple2 data data))

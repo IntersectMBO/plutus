@@ -70,7 +70,7 @@ let
               pkgs.ocaml-ng.ocamlPackages_4_10.findlib
               pkgs.coqPackages_8_13.coq
               pkgs.coqPackages_8_13.mathcomp
-              pkgs.coqPackages_8_13.coq-ext-lib
+              pkgs.coqPackages_8_13.ExtLib
               pkgs.coqPackages_8_13.ssreflect
               pkgs.coqPackages_8_13.equations
             ];
@@ -91,6 +91,15 @@ let
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           };
         }
+        ({ lib, pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
+          # This fixed basement compilation error on Windows (ref: https://ci.iog.io/build/8529222/nixlog/1)
+          # ```
+          # Preprocessing library for basement-0.0.16...
+          # Size.hsc:126:30: error: initialization of ‘long long int’ from ‘void *’ makes integer from pointer without a cast []
+          # compilation failed
+          # ```
+          packages.basement.configureFlags = [ "--hsc2hs-option=--cflag=-Wno-int-conversion" ];
+        })
       ];
     });
 in

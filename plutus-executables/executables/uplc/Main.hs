@@ -384,6 +384,7 @@ runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
             Logs               -> Cek.logEmitter
             LogsWithTimestamps -> Cek.logWithTimeEmitter
             LogsWithBudgets    -> Cek.logWithBudgetEmitter
+            LogsWithCallTrace  -> Cek.logWithCallTraceEmitter
     -- Need the existential cost type in scope
     let budgetM = case budgetMode of
             Silent     -> SomeBudgetMode Cek.restrictingEnormous

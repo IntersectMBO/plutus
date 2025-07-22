@@ -12,13 +12,7 @@ in
             r = Tuple2 (list data) (list data)
           in
           \(z : r) (f : data -> list data -> r) (xs : list data) ->
-            chooseList
-              {data}
-              {all dead. r}
-              xs
-              (/\dead -> z)
-              (/\dead -> f (headList {data} xs) (tailList {data} xs))
-              {r})
+            case r xs [z, f])
           (Tuple2 {list data} {list data} [] [])
           (\(h : data) (t : list data) ->
              Tuple2_match

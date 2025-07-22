@@ -452,16 +452,6 @@ let
             {all dead. dead}
   !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
     = \(d : data) -> d
-  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r ->
-        \(z : r) (f : a -> list a -> r) (xs : list a) ->
-          chooseList
-            {a}
-            {all dead. r}
-            xs
-            (/\dead -> z)
-            (/\dead -> f (headList {a} xs) (tailList {a} xs))
-            {r}
   !filter :
      all a.
        (\a -> data -> a) a ->
@@ -476,54 +466,52 @@ let
           letrec
             !go : (\a -> list data) a -> (\a -> list data) a
               = \(ds : (\a -> list data) a) ->
-                  caseList'
-                    {data}
-                    {(\a -> list data) a}
-                    []
-                    (\(x : data) (eta : list data) ->
-                       let
-                         !h : a = `$dUnsafeFromData` x
-                       in
-                       Bool_match
-                         (pred h)
-                         {all dead. (\a -> list data) a}
-                         (/\dead ->
-                            let
-                              !nt : list data = go eta
-                            in
-                            mkCons {data} (`$dToData` h) nt)
-                         (/\dead -> go eta)
-                         {all dead. dead})
+                  case
+                    ((\a -> list data) a)
                     ds
+                    [ []
+                    , (\(x : data) (eta : list data) ->
+                         let
+                           !h : a = `$dUnsafeFromData` x
+                         in
+                         Bool_match
+                           (pred h)
+                           {all dead. (\a -> list data) a}
+                           (/\dead ->
+                              let
+                                !nt : list data = go eta
+                              in
+                              mkCons {data} (`$dToData` h) nt)
+                           (/\dead -> go eta)
+                           {all dead. dead}) ]
           in
           \(eta : (\a -> list data) a) -> go eta
   !member :
      all k a.
        (\a -> a -> data) k -> k -> (\k a -> list (pair data data)) k a -> Bool
     = /\k a ->
-        \(`$dToData` : (\a -> a -> data) k)
-         (ds : k)
-         (ds : (\k a -> list (pair data data)) k a) ->
+        \(`$dToData` : (\a -> a -> data) k) (ds : k) ->
           letrec
             !go : list (pair data data) -> Bool
-              = caseList'
-                  {pair data data}
-                  {Bool}
-                  False
-                  (\(hd : pair data data) ->
-                     Bool_match
-                       (case
-                          Bool
-                          (equalsData
-                             (`$dToData` ds)
-                             (fstPair {data} {data} hd))
-                          [False, True])
-                       {all dead. list (pair data data) -> Bool}
-                       (/\dead -> \(ds : list (pair data data)) -> True)
-                       (/\dead -> go)
-                       {all dead. dead})
+              = \(xs : list (pair data data)) ->
+                  case
+                    Bool
+                    xs
+                    [ False
+                    , (\(hd : pair data data) ->
+                         Bool_match
+                           (case
+                              Bool
+                              (equalsData
+                                 (`$dToData` ds)
+                                 (fstPair {data} {data} hd))
+                              [False, True])
+                           {all dead. list (pair data data) -> Bool}
+                           (/\dead -> \(ds : list (pair data data)) -> True)
+                           (/\dead -> go)
+                           {all dead. dead}) ]
           in
-          go ds
+          \(ds : (\k a -> list (pair data data)) k a) -> go ds
   !mapMaybe :
      all k a b.
        (\a -> data -> a) a ->
@@ -537,27 +525,28 @@ let
          (f : a -> Maybe b) ->
           letrec
             !go : list (pair data data) -> list (pair data data)
-              = caseList'
-                  {pair data data}
-                  {list (pair data data)}
-                  []
-                  (\(hd : pair data data) ->
-                     Maybe_match
-                       {b}
-                       (f (`$dUnsafeFromData` (sndPair {data} {data} hd)))
-                       {all dead.
-                          list (pair data data) -> list (pair data data)}
-                       (\(v' : b) ->
-                          /\dead ->
-                            \(eta : list (pair data data)) ->
-                              mkCons
-                                {pair data data}
-                                (mkPairData
-                                   (fstPair {data} {data} hd)
-                                   (`$dToData` v'))
-                                (go eta))
-                       (/\dead -> go)
-                       {all dead. dead})
+              = \(xs : list (pair data data)) ->
+                  case
+                    (list (pair data data))
+                    xs
+                    [ []
+                    , (\(hd : pair data data) ->
+                         Maybe_match
+                           {b}
+                           (f (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                           {all dead.
+                              list (pair data data) -> list (pair data data)}
+                           (\(v' : b) ->
+                              /\dead ->
+                                \(eta : list (pair data data)) ->
+                                  mkCons
+                                    {pair data data}
+                                    (mkPairData
+                                       (fstPair {data} {data} hd)
+                                       (`$dToData` v'))
+                                    (go eta))
+                           (/\dead -> go)
+                           {all dead. dead}) ]
           in
           go
   !null : all a. (\a -> list data) a -> Bool

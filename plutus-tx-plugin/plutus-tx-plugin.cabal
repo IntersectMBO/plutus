@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.48.0.0
+version:         1.49.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -85,10 +85,10 @@ library
     , lens
     , megaparsec
     , mtl
-    , plutus-core            ^>=1.48
+    , plutus-core            ^>=1.49
     , plutus-core:plutus-ir
-    , plutus-metatheory      ^>=1.48
-    , plutus-tx              ^>=1.48
+    , plutus-metatheory      ^>=1.49
+    , plutus-tx              ^>=1.49
     , prettyprinter
     , template-haskell
     , text
@@ -104,7 +104,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.48
+    , plutus-tx-plugin      ^>=1.49
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -136,6 +136,9 @@ test-suite plutus-tx-plugin-tests
     BuiltinList.Budget.Spec
     ByteStringLiterals.Lib
     ByteStringLiterals.Spec
+    CallTrace.Lib
+    CallTrace.OtherModule
+    CallTrace.Spec
     DataList.Budget.Spec
     Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
@@ -191,11 +194,12 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.48
+    , plutus-core                      ^>=1.49
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.48
-    , plutus-tx-plugin                 ^>=1.48
+    , plutus-tx                        ^>=1.49
+    , plutus-tx-plugin                 ^>=1.49
     , plutus-tx:plutus-tx-testlib
+    , prettyprinter
     , serialise
     , tasty
     , tasty-golden
@@ -224,10 +228,10 @@ test-suite size
   hs-source-dirs:     test/size
   build-depends:
     , base                             >=4.9   && <5.0
-    , plutus-core                      ^>=1.48
+    , plutus-core                      ^>=1.49
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.48
-    , plutus-tx-plugin                 ^>=1.48
+    , plutus-tx                        ^>=1.49
+    , plutus-tx-plugin                 ^>=1.49
     , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty

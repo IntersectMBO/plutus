@@ -7,7 +7,7 @@ module Main (main) where
 import Data.Kind (Type)
 import Data.Tagged (Tagged (Tagged))
 import Data.Typeable (Typeable)
-import PlutusTx.Code (CompiledCode, sizePlc)
+import PlutusTx.Code (CompiledCode, countAstNodes)
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as PlutusRatio
@@ -196,8 +196,8 @@ data SizeComparisonTest (a :: Type)
 
 instance (Typeable a) => IsTest (SizeComparisonTest a) where
   run _ (SizeComparisonTest (mName, mCode) (tName, tCode)) _ = do
-    let tEstimate = sizePlc tCode
-    let mEstimate = sizePlc mCode
+    let tEstimate = countAstNodes tCode
+    let mEstimate = countAstNodes mCode
     let diff = tEstimate - mEstimate
     pure $ case signum diff of
       (-1) ->

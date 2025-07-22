@@ -348,8 +348,6 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramRipemd_160                      = unitCostOneArgument
     -- Batch 6
     , paramExpModInteger                   = unitCostThreeArguments
-    -- paramCaseList
-    -- paramCaseData
     , paramDropList                        = unitCostTwoArguments
     -- Arrays
     , paramLengthOfArray                   = unitCostOneArgument

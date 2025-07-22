@@ -7,6 +7,7 @@ import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
 import BuiltinList.Budget.Spec qualified as BuiltinList.Budget
 import ByteStringLiterals.Spec qualified as ByteStringLiterals
+import CallTrace.Spec qualified as CallTrace
 import DataList.Budget.Spec qualified as DataList.Budget
 import Inline.Spec qualified as Inline
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
@@ -60,4 +61,5 @@ tests =
     , embed AssocMap.propertyTests
     , embed List.propertyTests
     , Array.smokeTests
+    , CallTrace.tests
     ]

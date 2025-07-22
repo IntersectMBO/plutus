@@ -1,36 +1,36 @@
-[ entering fact
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fact
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fact
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fact
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fact
-, entering equalsInteger
-, exiting equalsInteger
-, exiting fact
-, entering multiplyInteger
-, exiting multiplyInteger
-, exiting fact
-, entering multiplyInteger
-, exiting multiplyInteger
-, exiting fact
-, entering multiplyInteger
-, exiting multiplyInteger
-, exiting fact
-, entering multiplyInteger
-, exiting multiplyInteger
-, exiting fact ]
+[ -> fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> equalsInteger
+, <- equalsInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:90:1-90:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:90:1-90:4) ]

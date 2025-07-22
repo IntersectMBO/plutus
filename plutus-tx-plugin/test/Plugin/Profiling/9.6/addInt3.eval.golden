@@ -1,1 +1,2 @@
-[entering addInt, exiting addInt]
+[ -> addInt (test/Plugin/Profiling/Spec.hs:115:1-115:6)
+, <- addInt (test/Plugin/Profiling/Spec.hs:115:1-115:6) ]

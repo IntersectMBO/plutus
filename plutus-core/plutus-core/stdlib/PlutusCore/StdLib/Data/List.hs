@@ -31,7 +31,6 @@ import PlutusCore.StdLib.Data.Unit
 list :: uni `HasTypeLevel` [] => Type tyname uni ()
 list = mkTyBuiltin @_ @[] ()
 
--- See Note [Pattern matching on built-in types].
 -- | Pattern matching on built-in lists. @matchList {a} xs@ on built-in lists is
 -- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
 --
@@ -74,16 +73,6 @@ matchList optMatch = runQuote $ do
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         $ case optMatch of
-            UseCase ->
-                mkIterAppNoAnn
-                    (mkIterInstNoAnn (builtin () CaseList)
-                        [ TyVar () a
-                        , TyVar () r
-                        ])
-                    [ var () z
-                    , var () f
-                    , var () xs
-                    ]
             UseChoose ->
                 mkIterAppNoAnn
                     (mkIterInstNoAnn (builtin () ChooseList)
