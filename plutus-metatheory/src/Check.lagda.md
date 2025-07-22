@@ -396,7 +396,11 @@ decNfTy-VecList (xs ∷ xss) (ys ∷ yss) = dcong₂ _∷_ (λ { refl → refl ,
 decTyCon : ∀{Φ}(c c' : TyCon Φ) → Dec (c ≡ c')
 decTyCon (atomic x) (atomic y) = dcong atomic (λ {refl → refl}) (decAtomicTyCon x y)
 decTyCon list list = yes refl
+decTyCon array array = yes refl
 decTyCon pair pair = yes refl
+decTyCon array list = no λ ()
+decTyCon list array = no λ ()
+
 
 decNfTy (Π {K = K} A) (Π {K = K'} A') = dhcong (λ k t → Π {K = k} t)
                                                 (λ {refl → refl ,, refl})

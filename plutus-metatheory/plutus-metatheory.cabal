@@ -85,7 +85,7 @@ library
     , text
     , time
     , transformers
-    , vector
+    , vector                           ^>=0.13.2
 
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
@@ -354,6 +354,7 @@ library
     MAlonzo.Code.Untyped
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.CEKWithCost
+    MAlonzo.Code.Untyped.Equality
     MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Untyped.RenamingSubstitution
@@ -363,7 +364,6 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Certificate
-    MAlonzo.Code.VerifiedCompilation.Equality
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UCSE

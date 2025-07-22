@@ -77,26 +77,29 @@ instance AgdaUnparse ByteString where
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"
 
+agdaUnfold :: (AgdaUnparse a , Foldable f) => f a -> String
+agdaUnfold l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
+
 instance AgdaUnparse a => AgdaUnparse [a] where
-  agdaUnparse l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
+  agdaUnparse = agdaUnfold
 
 instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
   agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
 
 instance (AgdaUnparse a) => AgdaUnparse (Vector a) where
-  agdaUnparse = error "Vector is not supported in Agda unparse"
+  agdaUnparse v = "(mkArray (" ++ agdaUnfold v ++ "))"
 
 instance AgdaUnparse Data where
   agdaUnparse (Data.Constr i args) =
-    "(ConstrDATA" ++ " " ++ agdaUnparse i ++ " " ++ agdaUnparse args ++ ")"
+    "(ConstrDATA " ++ agdaUnparse i ++ " " ++ agdaUnparse args ++ ")"
   agdaUnparse (Data.Map assocList) =
-    "(MapDATA" ++ " " ++ agdaUnparse assocList ++ ")"
+    "(MapDATA " ++ agdaUnparse assocList ++ ")"
   agdaUnparse (Data.List xs) =
-    "(ListDATA" ++ " " ++ agdaUnparse xs ++ ")"
+    "(ListDATA " ++ agdaUnparse xs ++ ")"
   agdaUnparse (Data.I i) =
-    "(iDATA" ++ " " ++ agdaUnparse i ++ ")"
+    "(iDATA " ++ agdaUnparse i ++ ")"
   agdaUnparse (Data.B b) =
-    "(bDATA" ++ " " ++ agdaUnparse b ++ ")"
+    "(bDATA " ++ agdaUnparse b ++ ")"
 
 instance AgdaUnparse BLS12_381.G1.Element where
   agdaUnparse = show
@@ -121,7 +124,8 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse PLC.DefaultUniBLS12_381_G1_Element = "bls12-381-g1-element"
   agdaUnparse PLC.DefaultUniBLS12_381_G2_Element = "bls12-381-g2-element"
   agdaUnparse PLC.DefaultUniBLS12_381_MlResult = "bls12-381-mlresult"
-  agdaUnparse (PLC.DefaultUniArray _) = error "Arrays are currently not supported."
+  agdaUnparse (PLC.DefaultUniArray t) =
+    "(array " ++ agdaUnparse t ++ ")"
   agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
 instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
@@ -142,12 +146,14 @@ instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
           "pdata " ++ agdaUnparse val
         PLC.ValueOf univ@(PLC.DefaultUniList elemType) val ->
           agdaUnparse univ
+          ++ " "
           ++
             ( PLC.bring (Proxy @AgdaUnparse) elemType
             $ agdaUnparse val
             )
         PLC.ValueOf univ@(PLC.DefaultUniPair type1 type2) val ->
           agdaUnparse univ
+          ++ " "
           ++
             ( PLC.bring (Proxy @AgdaUnparse) type1
             $ PLC.bring (Proxy @AgdaUnparse) type2
@@ -159,8 +165,13 @@ instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
           "bls12-381-g2-element " ++  agdaUnparse val
         PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult val ->
           "bls12-381-mlresult " ++ agdaUnparse val
-        PLC.ValueOf (PLC.DefaultUniArray _)  _ ->
-          error "Arrays are currently not supported."
+        PLC.ValueOf univ@(PLC.DefaultUniArray elemType)  val ->
+          agdaUnparse univ
+          ++ " "
+          ++
+            ( PLC.bring (Proxy @AgdaUnparse) elemType
+            $ agdaUnparse val
+            )
         PLC.ValueOf (PLC.DefaultUniApply _ _) _ ->
           error "Application of an unknown type is not supported."
     ++ ")"

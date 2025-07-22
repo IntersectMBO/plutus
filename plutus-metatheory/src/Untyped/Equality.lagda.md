@@ -1,24 +1,20 @@
 ---
-title: VerifiedCompilation.Equality
+title: Untyped.Equality
 layout: page
 ---
-# Verified Compilation Equality
+# Untyped Equality
 ```
-module VerifiedCompilation.Equality where
+module Untyped.Equality where
 ```
 
-## Decidable Equivalence
-
-There are various points in the Translation definitions where we need to compare terms
-for equality. It is almost always the case that an unchanged term is a valid translation; in
-many of the translations there are parts that must remain untouched. 
+## Decidable Equality
 
 ```
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; isEquivalence; cong)
 open import Data.Nat using (ℕ)
 open import Data.Empty using (⊥)
-open import RawU using (TmCon; tmCon; decTag; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
+open import RawU using (TmCon; tmCon; decTyTag; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Builtin.Constant.AtomicType using (AtomicTyCon; decAtomicTyCon; ⟦_⟧at)
 open import Agda.Builtin.Bool using (true; false)
@@ -40,20 +36,49 @@ open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; b
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary.Definitions as Binary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Nullary.Decidable.Core using (isYes)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (_×-dec_)
-open import Utils as U using (Maybe; nothing; just; Either)
+open import Utils as U using (Maybe; nothing; just; Either; _×_; _,_)
 import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 open import Agda.Builtin.TrustMe using (primTrustMe)
 open import Agda.Builtin.String using (String; primStringEquality)
+open import Agda.Builtin.Unit using (⊤)
 ```
-Instances of `DecEq` will provide a Decidable Equality procedure for their type. 
+Instances of `DecEq` will provide a Decidable Equality procedure for their type.
 
 ```
 record DecEq (A : Set) : Set where
   field _≟_ : DecidableEquality A
 open DecEq {{...}} public
+
+open import Agda.Builtin.Bool using (Bool)
+open import Algorithmic using (⟦_⟧)
+open import Type using (Ctx⋆)
+open import Type.BetaNormal using (_⊢Nf⋆_)
+
+{-# FOREIGN GHC data HasEq a = Eq a => HasEq #-}
+postulate
+  HasEq : Set → Set
+{-# COMPILE GHC HasEq = type HasEq #-}
+
+postulate
+    hasEq-TyTag : (t : TyTag) → HasEq ⟦ t ⟧tag
+
+record HsEq (A : Set) : Set where
+  field
+    hsEq : A → A → Bool
+open HsEq {{...}} public
+
+-- This uses the same mechanism as eqBytestring.
+-- This is only used in the decidable equality function which also
+-- uses `refl` to unify the two sides and defacto confirms or refutes
+-- structural equality.
+eqArray : {A : Set} → {{HE : HasEq A}} → U.Array A → U.Array A → Bool
+eqArray _ _ = Bool.true
+{-# COMPILE GHC eqArray = \ _ HasEq -> (==) #-}
+
 ```
 Several of the decision procedures depend on other `DecEq` instances, so it is useful
 to give them types and bind them to instance declarations first and then use them in the
@@ -62,15 +87,16 @@ implementations further down.
 ```
 decEq-TmCon : DecidableEquality TmCon
 
-decEq-TyTag : DecidableEquality TyTag
-
 decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
+
+decEq-⊢ : ∀{X} {{_ : DecEq X}} → DecidableEquality (X ⊢)
+
 ```
 # Pointwise Decisions
 
-We often need to show that one list of AST elements is a valid translation
-of another list of AST elements by showing the `n`th element of one is a translation of the
-`n`th element of the other, pointwise. 
+We often need to show that one list of AST elements is equivalent to
+another list of AST elements by showing the `n`th element of one is related to the
+`n`th element of the other, pointwise.
 
 ```
 decPointwise : {l₁ l₂ : Level} { A B : Set l₁ } { _~_ : A → B → Set l₂} → Binary.Decidable _~_ → Binary.Decidable (Pointwise _~_)
@@ -78,19 +104,17 @@ decPointwise dec [] [] = yes Pointwise.[]
 decPointwise dec [] (x ∷ ys) = no (λ ())
 decPointwise dec (x ∷ xs) [] = no (λ ())
 decPointwise dec (x ∷ xs) (y ∷ ys) with dec x y | decPointwise dec xs ys
-... | yes p | yes q = yes (p Pointwise.∷ q) 
+... | yes p | yes q = yes (p Pointwise.∷ q)
 ... | yes _ | no ¬q = no λ where (_ Pointwise.∷ xs~ys) → ¬q xs~ys
 ... | no ¬p | _     = no λ where (x∼y Pointwise.∷ _) → ¬p x∼y
 ```
 
-## Decidable Equality Instances 
+## Decidable Equality Instances
 
 Creating Instance declarations for various Decidable Equality functions to be used
 when creating translation decision procedures.
 
 ```
-decEq-⊢ : ∀{X} {{_ : DecEq X}} → DecidableEquality (X ⊢)
-
 instance
   DecEq-Maybe : ∀{A} {{_ : DecEq A}} → DecEq (Maybe A)
   DecEq-Maybe ._≟_ = M.≡-dec _≟_
@@ -108,8 +132,8 @@ instance
   DecEq-⊢ : ∀{X} {{_ : DecEq X}} → DecEq (X ⊢)
   DecEq-⊢ ._≟_ = decEq-⊢
 
-  DecEq-List-⊢ : ∀{X} {{_ : DecEq X}} → DecEq (List (X ⊢))
-  DecEq-List-⊢ ._≟_ = LP.≡-dec decEq-⊢
+  DecEq-List : ∀{X} {{DE : DecEq X}} → DecEq (List X)
+  DecEq-List {{DE}} = record {_≟_ =  LP.≡-dec (DecEq._≟_ DE)}
 
   DecEq-Builtin : DecEq Builtin
   DecEq-Builtin ._≟_ = decBuiltin
@@ -120,32 +144,43 @@ instance
   DecEq-ℤ : DecEq ℤ
   DecEq-ℤ ._≟_ = Data.Integer.Properties._≟_
 
+  DecEq-String : DecEq String
+  DecEq-String ._≟_ = Data.String.Properties._≟_
+
+  DecEq-Unit : DecEq ⊤
+  DecEq-Unit ._≟_ = Data.Unit.Properties._≟_
+
+  DecEq-Bool : DecEq Bool
+  DecEq-Bool ._≟_ = Data.Bool.Properties._≟_
+
   DecEq-TyTag : DecEq TyTag
-  DecEq-TyTag ._≟_ = decEq-TyTag
+  DecEq-TyTag ._≟_ = decTyTag
 
-```
-The `TmCon` type inserts constants into Terms, so it is built from the
-type tag and semantics equality decision procedures. 
+DecEq-⟦_⟧tag : (t : TyTag) → DecEq ⟦ t ⟧tag
+DecEq-⟦ t ⟧tag = record { _≟_ = decEq-⟦ t ⟧tag }
 
-Type Tags (`TyTag`) are just a list of constructors to represent each
-of the builtin types, or they are a structure built on top of those using
-`list` or `pair`.
-```
-decEq-TyTag (_⊢♯.atomic x) (_⊢♯.atomic x₁) with (decAtomicTyCon x x₁)
-... | yes refl = yes refl
-... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
-decEq-TyTag (_⊢♯.atomic x) (_⊢♯.list t') = no (λ ())
-decEq-TyTag (_⊢♯.atomic x) (_⊢♯.pair t' t'') = no (λ ())
-decEq-TyTag (_⊢♯.list t) (_⊢♯.atomic x) = no (λ ())
-decEq-TyTag (_⊢♯.list t) (_⊢♯.list t') with t ≟ t'
-... | yes refl = yes refl
-... | no ¬p = no λ { refl → ¬p refl }
-decEq-TyTag (_⊢♯.list t) (_⊢♯.pair t' t'') = no (λ ())
-decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.atomic x) = no (λ ())
-decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.list t') = no (λ ())
-decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.pair t' t'') with (t ≟ t') ×-dec (t₁ ≟ t'')
-... | yes (refl , refl) = yes refl
-... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
+listDec : {A : Set} → DecidableEquality A → DecidableEquality (U.List A)
+listDec _ U.[] U.[] = yes refl
+listDec _ U.[] (x U.∷ ls₂) = no (λ ())
+listDec _ (x₁ U.∷ ls₁) U.[] = no (λ ())
+listDec _≟_ (x₁ U.∷ ls₁) (x₂ U.∷ ls₂) with x₁ ≟ x₂
+... | no x₁≠x₂ = no λ { refl → x₁≠x₂ refl }
+... | yes refl with listDec _≟_ ls₁ ls₂
+...     | no ls₁≠ls₂ = no λ { refl → ls₁≠ls₂ refl }
+...     | yes refl = yes refl
+
+pairDec : {A B : Set} → DecidableEquality A → DecidableEquality B → DecidableEquality (A × B)
+pairDec eqA eqB (a₁ , b₁) (a₂ , b₂) with (eqA a₁ a₂) | (eqB b₁ b₂)
+... | yes refl   | yes refl = yes refl
+... | no a₁≠a₂ | _ = no λ { refl → a₁≠a₂ refl }
+... | _             | no b₁≠b₂ = no λ { refl → b₁≠b₂ refl }
+
+instance
+  DecEq-UList : ∀{X} {{DE : DecEq X}} → DecEq (U.List X)
+  DecEq-UList {{DE}} = record {_≟_ =  listDec (DecEq._≟_ DE)}
+
+  DecEq-Pair : {A B : Set} {{DE-A : DecEq A}} {{DE-B : DecEq B}} → DecEq (A × B)
+  DecEq-Pair {{DE-A}} {{DE-B}} = record { _≟_ = pairDec (DecEq._≟_ DE-A) (DecEq._≟_ DE-B) }
 
 ```
 # Decidable Equality of Builtins
@@ -162,7 +197,7 @@ done by matching on `refl`, which checks whether the left hand side and the
 right hand side of `≡` are definitionally equal. However, this does not translate
 to the runtime stage, since at runtime the values which the `≡` type depends on
 are erased. Therefore, we need to somehow "inject" a Haskell equality function which
-triggers only at the runtime stage. 
+triggers only at the runtime stage.
 
 ## Why not just implement the builtin types in Agda?
 
@@ -179,7 +214,7 @@ specification of UPLC is also used in conformance testing.
 Agda's FFI machinery allows us to define functions with different runtime
 and type-checking definitions (see the warning at https://agda.readthedocs.io/en/v2.7.0.1/language/foreign-function-interface.html#using-haskell-functions-from-agda).
 We are still constrained by the type, which needs to agree between the two
-stages, so we can't just define the two implementations arbitrarily. 
+stages, so we can't just define the two implementations arbitrarily.
 
 The simplest solution is to provide separate type-checking time and runtime definitions
 for the instances of `HsEq`. During type-checking, the functions are essentially no-ops
@@ -188,15 +223,19 @@ equality for each type. At type-checking time, we rely on matching on `refl` to 
 Agda's unification algorithm, while at runtime, the matching on `refl` becomes a no-op.
 
 ```
-record HsEq (A : Set) : Set where
-  field
-    hsEq : A → A → Agda.Builtin.Bool.Bool
 
-open HsEq {{...}} public
+fromDec : {A : Set} → {{DE : DecEq A}} → HsEq A
+fromDec = record { hsEq = λ x₁ x₂ → isYes (x₁ ≟ x₂) }
 
 instance
   HsEqBytestring : HsEq U.ByteString
   HsEqBytestring = record { hsEq = U.eqByteString }
+  HsEqArray : {A : Set} {{HE : HasEq A}} {{HS : HsEq A}} → HsEq (U.Array A)
+  HsEqArray {{HE = HE}} = record { hsEq = eqArray {{HE}}}
+  HsEqList : {A : Set} {{DE : DecEq A}} → HsEq (U.List A)
+  HsEqList = fromDec
+  HsEqPair : {A B : Set} {{DE-A : DecEq A}} {{DE-B : DecEq B}} → HsEq (A × B)
+  HsEqPair = fromDec
   HsEqBlsG1 : HsEq U.Bls12-381-G1-Element
   HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Element }
   HsEqBlsG2 : HsEq U.Bls12-381-G2-Element
@@ -206,12 +245,25 @@ instance
   HsEqDATA : HsEq U.DATA
   HsEqDATA = record { hsEq = U.eqDATA }
 
+HsEq-⟦_⟧tag : (t : TyTag) → HsEq ⟦ t ⟧tag
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = HsEqBytestring
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = HsEqDATA
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = HsEqBlsG1
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = HsEqBlsG2
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = HsEqBlsMlResult
+HsEq-⟦ _⊢♯.list t ⟧tag = HsEqList {A = ⟦ t ⟧tag} {{DE = DecEq-⟦ t ⟧tag }}
+HsEq-⟦ _⊢♯.array t ⟧tag = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}}
+HsEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag = HsEqPair {A = ⟦ t₁ ⟧tag} {B = ⟦ t₂ ⟧tag} {{DE-A = DecEq-⟦ t₁ ⟧tag}} {{DE-B = DecEq-⟦ t₂ ⟧tag}}
 ```
 
 ## An example
 
 Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
-`builtinEq (mkByteString "foo") (mkByteString "bar")`. 
+`builtinEq (mkByteString "foo") (mkByteString "bar")`.
 
 At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
 and the function will return `yes refl`. There is no way to return `no` because there is
@@ -228,11 +280,27 @@ at runtime and the proof gets erased anyway.
 postulate
   magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
 
-builtinEq : {A : Set} {{_ : HsEq A}} → Binary.Decidable {A = A} _≡_
+builtinEq : {A : Set} {{HS : HsEq A}} → Binary.Decidable {A = A} _≡_
 builtinEq {A} x y with hsEq x y
 ... | false = no magicNeg
 ... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
 ...             | refl = yes refl
+
+-- This is split out because the HTML generator can't handle double nested instance arguments!
+hsEqArrayHelper : (t : TyTag) → HsEq (U.Array ⟦ t ⟧tag)
+hsEqArrayHelper t = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}}
+
+decEq-Array-⟦_⟧tag :
+                     (t : TyTag)
+                     → DecidableEquality ⟦ _⊢♯.array t ⟧tag
+decEq-Array-⟦ t ⟧tag = builtinEq {A = U.Array ⟦ t ⟧tag} {{HS = hsEqArrayHelper t}}
+```
+# Decidable Equality for TmCon
+
+The `TmCon` type inserts constants into Terms, so it is built from the
+type tag and semantics equality decision procedures.
+
+```
 
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = Data.Integer.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
@@ -251,21 +319,23 @@ decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t �
 ... | yes refl with decEq-⟦ _⊢♯.list t ⟧tag v v₁
 ...                  | yes refl = yes refl
 ...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
-decEq-⟦ _⊢♯.pair t t₁ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₁ ⟧tag proj₂ proj₄)
+decEq-⟦ _⊢♯.array t ⟧tag = decEq-Array-⟦ t ⟧tag
+decEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t₁ ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₂ ⟧tag proj₂ proj₄)
 ... | yes ( refl , refl ) = yes refl
-... | no ¬pq = no λ { refl → ¬pq (refl , refl) } 
+... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
+
 decEq-TmCon (tmCon t x) (tmCon t₁ x₁) with t ≟ t₁
 ... | no ¬t=t₁ = no λ { refl → ¬t=t₁ refl }
 ... | yes refl with decEq-⟦ t ⟧tag x x₁
-... | yes refl = yes refl
-... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl } 
+...   | yes refl = yes refl
+...   | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
 
 ```
 The Decidable Equality of terms needs to use the other instances, so we can present
-that now. 
+that now.
 ```
 -- This terminating declaration shouldn't be needed?
--- It is the mutual recursion with list equality that requires it. 
+-- It is the mutual recursion with list equality that requires it.
 {-# TERMINATING #-}
 decEq-⊢ (` x) (` x₁) with x ≟ x₁
 ... | yes refl = yes refl
@@ -347,7 +417,7 @@ decEq-⊢ (constr i xs) (delay t₁) = no (λ ())
 decEq-⊢ (constr i xs) (con x) = no (λ ())
 decEq-⊢ (constr i xs) (constr i₁ xs₁) with (i ≟ i₁) ×-dec  (xs ≟ xs₁)
 ... | yes (refl , refl) = yes refl
-... | no ¬pq = no λ { refl → ¬pq (refl , refl) } 
+... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
 decEq-⊢ (constr i xs) (case t₁ ts) = no (λ ())
 decEq-⊢ (constr i xs) (builtin b) = no (λ ())
 decEq-⊢ (constr i xs) error = no (λ ())
@@ -360,7 +430,7 @@ decEq-⊢ (case t ts) (con x) = no (λ ())
 decEq-⊢ (case t ts) (constr i xs) = no (λ ())
 decEq-⊢ (case t ts) (case t₁ ts₁) with (decEq-⊢ t t₁) ×-dec (ts ≟ ts₁)
 ... | yes (refl , refl) = yes refl
-... | no ¬pq = no λ { refl → ¬pq (refl , refl) } 
+... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
 decEq-⊢ (case t ts) (builtin b) = no (λ ())
 decEq-⊢ (case t ts) error = no (λ ())
 decEq-⊢ (builtin b) (` x) = no (λ ())

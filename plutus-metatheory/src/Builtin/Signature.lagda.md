@@ -65,6 +65,10 @@ data _⊢♯ : ℕ → Set where
       → n♯ ⊢♯
         -------
       → n♯ ⊢♯
+  array : ∀ {n♯}
+      → n♯ ⊢♯
+        -------
+      → n♯ ⊢♯
   pair : ∀ {n♯}
       → n♯ ⊢♯
       → n♯ ⊢♯
@@ -219,6 +223,7 @@ module FromSig (Ty : Ctx⋆ → Kind → Set)
     ⊢♯2TyNe♯ (` x) =  var (fin♯2∋⋆ x)
     ⊢♯2TyNe♯ (atomic x) = ^ (atomic x)
     ⊢♯2TyNe♯ (list x)   = ^ list · ne (⊢♯2TyNe♯ x)
+    ⊢♯2TyNe♯ (array x)   = ^ array · ne (⊢♯2TyNe♯ x)
     ⊢♯2TyNe♯ (pair x y) = ((^ pair) · ne (⊢♯2TyNe♯ x)) · ne (⊢♯2TyNe♯ y)
 
     mkTy : ∀{n⋆ n♯} → n⋆ / n♯ ⊢⋆ → Ty (mkCtx⋆ n⋆ n♯) *
