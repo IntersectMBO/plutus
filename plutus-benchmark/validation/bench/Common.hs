@@ -132,7 +132,7 @@ benchWith act = do
     mkScriptBM dir file =
         let readAndPrep = do
                 script <- BS.readFile (dir </> file)
-                pure (script, UPLC.Error ()) -- toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file script)
+                pure (script, toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file script)
         in env readAndPrep $ \(~scriptAndTerm) ->
             -- We use 'uncurry', because for whatever reason lazy matching on a tuple doesn't work
             -- when @Strict@ is enabled.
