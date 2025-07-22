@@ -130,13 +130,9 @@ benchWith act = do
 
     mkScriptBM :: FilePath -> FilePath -> Benchmark
     mkScriptBM dir file =
-        let readAndPrep = do
-                script <- BS.readFile (dir </> file)
-                pure (script, toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file script)
-        in env readAndPrep $ \(~scriptAndTerm) ->
-            -- We use 'uncurry', because for whatever reason lazy matching on a tuple doesn't work
-            -- when @Strict@ is enabled.
-            bench (dropExtension file) $ uncurry (act file) scriptAndTerm
+        env (BS.readFile (dir </> file)) $ \(~script) ->
+        env (pure . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file script) $ \(~term) ->
+            bench (dropExtension file) $ act file script term
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 
