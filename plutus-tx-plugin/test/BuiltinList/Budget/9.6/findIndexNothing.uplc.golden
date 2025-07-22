@@ -8,19 +8,14 @@
            (\go arg ->
               delay
                 (\i xs ->
-                   force
-                     (force (force chooseList)
-                        xs
-                        (delay (constr 1 []))
-                        (delay
-                           ((\xs ->
-                               case
-                                 (equalsInteger (force headList xs) 99)
-                                 [ (force (go (delay (\x -> x)))
-                                      (addInteger i 1)
-                                      xs)
-                                 , (constr 0 [i]) ])
-                              (force tailList xs))))))
+                   case
+                     xs
+                     [ (constr 1 [])
+                     , (\x xs ->
+                          case
+                            (equalsInteger x 99)
+                            [ (force (go (delay (\x -> x))) (addInteger i 1) xs)
+                            , (constr 0 [i]) ]) ]))
            (delay (\x -> x)))
         0
         xs))

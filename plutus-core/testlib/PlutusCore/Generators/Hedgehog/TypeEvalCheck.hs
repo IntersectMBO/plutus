@@ -51,7 +51,7 @@ data TypeEvalCheckError uni fun
           !(Normalized (Type TyName uni ()))
     | TypeEvalCheckErrorException !String
     | TypeEvalCheckErrorIllEvaled
-          !(EvaluationResult (HeadSpine (Term TyName Name uni fun ())))
+          !(EvaluationResult (Term TyName Name uni fun ()))
           !(EvaluationResult (Term TyName Name uni fun ()))
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 
@@ -65,7 +65,6 @@ data TypeEvalCheckResult uni fun = TypeEvalCheckResult
 
 instance ( PrettyBy config (Type TyName uni ())
          , PrettyBy config (Term TyName Name uni fun ())
-         , PrettyBy config (HeadSpine (Term TyName Name uni fun ()))
          , PrettyBy config (Error uni fun ())
          ) => PrettyBy config (TypeEvalCheckError uni fun) where
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =
@@ -105,7 +104,7 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     if tyExpected == tyActual
         then case splitStructuralOperational $ eval term of
                 Right valActual ->
-                    if valExpected == fmap HeadOnly valActual
+                    if valExpected == valActual
                         then return $ TypeEvalCheckResult tyExpected valActual
                         else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
                 Left exc        -> throwError $ TypeEvalCheckErrorException $ show exc

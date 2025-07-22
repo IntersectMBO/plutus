@@ -113,9 +113,9 @@ transferArgStack ann = go
     go EmptyStack c           = c
     go (ConsStack arg rest) c = go rest (FrameAwaitFunValue ann arg c)
 
--- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
-transferSpine :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
-transferSpine ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
+-- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
+transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
+transferConstantSpine ann args ctx = foldr (FrameAwaitFunValue ann . VCon) ctx args
 
 computeCek
     :: forall uni fun ann s
@@ -180,18 +180,18 @@ returnCek NoFrame val = do
     spendAccumulatedBudget
     pure $ Terminating (dischargeCekValue val)
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
-returnCek (FrameForce ann ctx) fun = forceEvaluate ann ctx fun
+returnCek (FrameForce _ ctx) fun = forceEvaluate ctx fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
 returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
     -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
     pure $ Computing (FrameAwaitArg (termAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME: add rule for VBuiltin once it's in the specification.
-returnCek (FrameAwaitArg ann fun ctx) arg =
-    applyEvaluate ann ctx fun arg
+returnCek (FrameAwaitArg _ fun ctx) arg =
+    applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameAwaitFunValue ann arg ctx) fun =
-    applyEvaluate ann ctx fun arg
+returnCek (FrameAwaitFunValue _ arg ctx) fun =
+    applyEvaluate ctx fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
     let done' = ConsStack e done
@@ -213,7 +213,8 @@ returnCek (FrameCases ann env cs ctx) e = case e of
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-        Right res -> pure $ Computing ctx env res
+        Right (HeadOnly fX) -> pure $ Computing ctx env fX
+        Right (HeadSpine f xs) -> pure $ Computing (transferConstantSpine ann xs ctx) env f
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
@@ -225,13 +226,12 @@ returnCek (FrameCases ann env cs ctx) e = case e of
 forceEvaluate
     :: forall uni fun ann s
     . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
-    => ann
-    -> Context uni fun ann
+    => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
-forceEvaluate _ !ctx (VDelay body env) =
+forceEvaluate !ctx (VDelay body env) =
     pure $ Computing ctx env body
-forceEvaluate ann !ctx (VBuiltin fun term runtime) = do
+forceEvaluate !ctx (VBuiltin fun term runtime) = do
     -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
     let term' = Force () term
     case runtime of
@@ -241,10 +241,10 @@ forceEvaluate ann !ctx (VBuiltin fun term runtime) = do
             -- We allow a type argument to appear last in the type of a built-in function,
             -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
             -- application.
-            evalBuiltinApp ann ctx fun term' runtime'
+            evalBuiltinApp ctx fun term' runtime'
         _ ->
           throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
-forceEvaluate _ !_ val =
+forceEvaluate !_ val =
     throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
 
 -- | Apply a function to an argument and proceed.
@@ -257,16 +257,15 @@ forceEvaluate _ !_ val =
 applyEvaluate
     :: forall uni fun ann s
     . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
-    => ann
-    -> Context uni fun ann
+    => Context uni fun ann
     -> CekValue uni fun ann   -- lhs of application
     -> CekValue uni fun ann   -- rhs of application
     -> CekM uni fun s (CekState uni fun ann)
-applyEvaluate _ !ctx (VLamAbs _ body env) arg =
+applyEvaluate !ctx (VLamAbs _ body env) arg =
     pure $ Computing ctx (Env.cons arg env) body
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-applyEvaluate ann !ctx (VBuiltin fun term runtime) arg = do
+applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
     let argTerm = dischargeCekValue arg
         -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
         -- in a 'VBuiltin'.
@@ -274,10 +273,10 @@ applyEvaluate ann !ctx (VBuiltin fun term runtime) arg = do
     case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        BuiltinExpectArgument f -> evalBuiltinApp ann ctx fun term' $ f arg
+        BuiltinExpectArgument f -> evalBuiltinApp ctx fun term' $ f arg
         _ ->
           throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
-applyEvaluate _ !_ val _ =
+applyEvaluate !_ val _ =
     throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
@@ -443,16 +442,6 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
           throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) (Var () varName)
         Just val -> pure val
 
--- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
--- the returning phase of the CEK machine.
-returnCekHeadSpine
-    :: ann
-    -> Context uni fun ann
-    -> HeadSpine (CekValue uni fun ann)
-    -> CekM uni fun s (CekState uni fun ann)
-returnCekHeadSpine _   ctx (HeadOnly  x)    = pure $ Returning ctx x
-returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine ann xs ctx) f
-
 -- | Take a possibly partial builtin application and
 --
 -- - either create a 'CekValue' by evaluating the application if it's saturated (emitting logs, if
@@ -462,13 +451,12 @@ returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine an
 -- and proceed with the returning phase of the CEK machine.
 evalBuiltinApp
     :: (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
-    => ann
-    -> Context uni fun ann
+    => Context uni fun ann
     -> fun
     -> NTerm uni fun ()
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
-evalBuiltinApp ann ctx fun term runtime = case runtime of
+evalBuiltinApp ctx fun term runtime = case runtime of
     BuiltinCostedResult budgets0 getFXs -> do
         let exCat = BBuiltinApp fun
             spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
@@ -476,11 +464,11 @@ evalBuiltinApp ann ctx fun term runtime = case runtime of
                 spendBudget exCat budget *> spendBudgets budgets
         spendBudgets budgets0
         case getFXs of
-            BuiltinSuccess fXs ->
-                returnCekHeadSpine ann ctx fXs
-            BuiltinSuccessWithLogs logs fXs -> do
+            BuiltinSuccess y ->
+                returnCek ctx y
+            BuiltinSuccessWithLogs logs y -> do
                 ?cekEmitter logs
-                returnCekHeadSpine ann ctx fXs
+                returnCek ctx y
             BuiltinFailure logs err -> do
                 ?cekEmitter logs
                 throwBuiltinErrorWithCause term err

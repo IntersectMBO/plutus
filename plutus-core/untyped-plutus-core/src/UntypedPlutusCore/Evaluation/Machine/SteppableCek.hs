@@ -38,6 +38,7 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek
     , logEmitter
     , logWithTimeEmitter
     , logWithBudgetEmitter
+    , logWithCallTraceEmitter
     -- * Misc
     , CekValue(..)
     , readKnownCek

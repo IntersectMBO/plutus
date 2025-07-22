@@ -9,15 +9,7 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r ->
-        \(z : r) (f : a -> list a -> r) (xs : list a) ->
-          chooseList
-            {a}
-            {all dead. r}
-            xs
-            (/\dead -> z)
-            (/\dead -> f (headList {a} xs) (tailList {a} xs))
-            {r}
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
   ~uncons : all a. list a -> Maybe (Tuple2 a (list a))
     = /\a ->
         caseList'

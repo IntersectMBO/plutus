@@ -31,7 +31,6 @@ import PlutusCore.StdLib.Data.Unit
 list :: uni `HasTypeLevel` [] => Type tyname uni ()
 list = mkTyBuiltin @_ @[] ()
 
--- See Note [Pattern matching on built-in types].
 -- | Pattern matching on built-in lists. @matchList {a} xs@ on built-in lists is
 -- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
 --

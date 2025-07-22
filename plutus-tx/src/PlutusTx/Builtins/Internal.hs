@@ -586,25 +586,6 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
   PLC.B{}      -> bCase
 {-# OPAQUE chooseData #-}
 
--- | Similar to 'chooseData' but deconstructs the data on each cases. Never fails.
-caseData'
-  :: (Integer -> BuiltinList BuiltinData -> r)
-  -> (BuiltinList (BuiltinPair BuiltinData BuiltinData) -> r)
-  -> (BuiltinList BuiltinData -> r)
-  -> (Integer -> r)
-  -> (BuiltinByteString -> r)
-  -> BuiltinData
-  -> r
-caseData' constrCase mapCase listCase iCase bCase (BuiltinData d) = case d of
-  PLC.Constr i ds -> constrCase i (BuiltinList (fmap dataToBuiltinData ds))
-  PLC.Map ps      -> mapCase (BuiltinList (fmap p2p ps))
-  PLC.List ds     -> listCase (BuiltinList (fmap dataToBuiltinData ds))
-  PLC.I i         -> iCase i
-  PLC.B b         -> bCase (BuiltinByteString b)
- where
-  p2p (d1, d2) = BuiltinPair (dataToBuiltinData d1, dataToBuiltinData d2)
-{-# OPAQUE caseData' #-}
-
 -- | Creates 'Constr' data value with the given index and elements; never fails.
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData
 mkConstr i (BuiltinList args) = BuiltinData (PLC.Constr i (fmap builtinDataToData args))

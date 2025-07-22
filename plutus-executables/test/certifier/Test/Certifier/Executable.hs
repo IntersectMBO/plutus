@@ -132,8 +132,9 @@ agdaTestCert name = do
     setCurrentDirectory certDir
     (resCode, resText) <- runAgda ("src" </> fstToUpper name <> ".agda")
     setCurrentDirectory oldDir
-    removeDirectoryRecursive certDir
-    assertBool (name ++ " creates an invalid certificate:" ++ resText) (resCode == ExitSuccess)
+    if resCode == ExitSuccess
+      then removeDirectoryRecursive certDir
+      else assertFailure $ name ++ " creates an invalid certificate: " ++ resText
 
 {-
 agdaExampleCert :: String -> Assertion
@@ -157,7 +158,7 @@ srcTests =
   , "MinBS"
   , "AA2-CSE"
   , "forceDelayIfThenElse"
-  , "types"
+  , "builtinUnparse"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]

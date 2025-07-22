@@ -85,8 +85,8 @@ instance ToData Integer where
   toBuiltinData i = mkI i
 instance FromData Integer where
   {-# INLINEABLE fromBuiltinData #-}
-  fromBuiltinData =
-    caseData' (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just (\_ -> Nothing)
+  fromBuiltinData d =
+    matchData' d (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just (\_ -> Nothing)
 instance UnsafeFromData Integer where
   {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = BI.unsafeDataAsI
@@ -96,8 +96,8 @@ instance ToData Builtins.BuiltinByteString where
   toBuiltinData = mkB
 instance FromData Builtins.BuiltinByteString where
   {-# INLINEABLE fromBuiltinData #-}
-  fromBuiltinData =
-    caseData' (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just
+  fromBuiltinData d =
+    matchData' d (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just
 instance UnsafeFromData Builtins.BuiltinByteString where
   {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = BI.unsafeDataAsB
@@ -115,8 +115,9 @@ instance (ToData a) => ToData [a] where
       go (x : xs) = BI.mkCons (toBuiltinData x) (go xs)
 instance (FromData a) => FromData [a] where
   {-# INLINEABLE fromBuiltinData #-}
-  fromBuiltinData =
-    caseData'
+  fromBuiltinData d =
+    matchData'
+      d
       (\_ _ -> Nothing)
       (\_ -> Nothing)
       traverseFromBuiltin

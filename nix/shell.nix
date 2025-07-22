@@ -51,7 +51,6 @@ let
       };
       editorconfig-checker = {
         enable = true;
-        args = [ "-config" ".editorconfig" ];
         package = pkgs.editorconfig-checker;
       };
       generate-malonzo-code = {
@@ -69,6 +68,7 @@ let
   ];
 
   common-pkgs = [
+    pkgs.ghcid
     agda-tools.agda
     agda-tools.agda-with-stdlib
     agda-tools.agda-mode
@@ -147,9 +147,9 @@ let
 
 
   shell = {
-    ghc966 = full-shell;
+    ghc967 = full-shell;
     ghc984 = quick-shell;
-    ghc9101 = quick-shell;
+    ghc9102 = quick-shell;
   }.${project.args.compiler-nix-name};
 
 in
