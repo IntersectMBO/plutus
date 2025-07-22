@@ -286,10 +286,14 @@ builtinEq {A} x y with hsEq x y
 ... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
 ...             | refl = yes refl
 
+-- This is split out because the HTML generator can't handle double nested instance arguments!
+hsEqArrayHelper : (t : TyTag) → HsEq (U.Array ⟦ t ⟧tag)
+hsEqArrayHelper t = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}}
+
 decEq-Array-⟦_⟧tag :
                      (t : TyTag)
                      → DecidableEquality ⟦ _⊢♯.array t ⟧tag
-decEq-Array-⟦ t ⟧tag = builtinEq {A = U.Array ⟦ t ⟧tag} {{HS = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}} }}
+decEq-Array-⟦ t ⟧tag = builtinEq {A = U.Array ⟦ t ⟧tag} {{HS = hsEqArrayHelper t}}
 ```
 # Decidable Equality for TmCon
 

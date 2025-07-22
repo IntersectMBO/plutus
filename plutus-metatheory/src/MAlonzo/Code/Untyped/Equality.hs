@@ -243,7 +243,7 @@ d_decEq'45''10214'_'10215'tag_48 v0
                               _ -> MAlonzo.RTE.mazUnreachableError)
                   _ -> MAlonzo.RTE.mazUnreachableError)
       MAlonzo.Code.Builtin.Signature.C_array_20 v2
-        -> coe du_decEq'45'Array'45''10214'_'10215'tag_464
+        -> coe du_decEq'45'Array'45''10214'_'10215'tag_470
       MAlonzo.Code.Builtin.Signature.C_pair_24 v2 v3
         -> coe
              (\ v4 ->
@@ -1606,22 +1606,28 @@ du_builtinEq_428 v0 v1 v2
                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                 (coe v3)
                 (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+-- Untyped.Equality.hsEqArrayHelper
+d_hsEqArrayHelper_464 ::
+  MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 -> T_HsEq_26
+d_hsEqArrayHelper_464 ~v0 = du_hsEqArrayHelper_464
+du_hsEqArrayHelper_464 :: T_HsEq_26
+du_hsEqArrayHelper_464 = coe du_HsEqArray_376
 -- Untyped.Equality.decEq-Array-⟦_⟧tag
-d_decEq'45'Array'45''10214'_'10215'tag_464 ::
+d_decEq'45'Array'45''10214'_'10215'tag_470 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Utils.T_Array_478 AgdaAny ->
   MAlonzo.Code.Utils.T_Array_478 AgdaAny ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_decEq'45'Array'45''10214'_'10215'tag_464 ~v0
-  = du_decEq'45'Array'45''10214'_'10215'tag_464
-du_decEq'45'Array'45''10214'_'10215'tag_464 ::
+d_decEq'45'Array'45''10214'_'10215'tag_470 ~v0
+  = du_decEq'45'Array'45''10214'_'10215'tag_470
+du_decEq'45'Array'45''10214'_'10215'tag_470 ::
   MAlonzo.Code.Utils.T_Array_478 AgdaAny ->
   MAlonzo.Code.Utils.T_Array_478 AgdaAny ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_decEq'45'Array'45''10214'_'10215'tag_464
-  = coe du_builtinEq_428 (coe du_HsEqArray_376)
+du_decEq'45'Array'45''10214'_'10215'tag_470
+  = coe du_builtinEq_428 (coe du_hsEqArrayHelper_464)
 -- Untyped.Equality..extendedlambda6
-d_'46'extendedlambda6_508 ::
+d_'46'extendedlambda6_514 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   AgdaAny ->
   AgdaAny ->
@@ -1631,9 +1637,9 @@ d_'46'extendedlambda6_508 ::
   MAlonzo.Code.Utils.T_List_384 AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda6_508 = erased
+d_'46'extendedlambda6_514 = erased
 -- Untyped.Equality..extendedlambda7
-d_'46'extendedlambda7_546 ::
+d_'46'extendedlambda7_552 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Utils.T_List_384 AgdaAny ->
   MAlonzo.Code.Utils.T_List_384 AgdaAny ->
@@ -1642,9 +1648,9 @@ d_'46'extendedlambda7_546 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda7_546 = erased
+d_'46'extendedlambda7_552 = erased
 -- Untyped.Equality..extendedlambda8
-d_'46'extendedlambda8_592 ::
+d_'46'extendedlambda8_598 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   AgdaAny ->
@@ -1655,9 +1661,9 @@ d_'46'extendedlambda8_592 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda8_592 = erased
+d_'46'extendedlambda8_598 = erased
 -- Untyped.Equality..extendedlambda9
-d_'46'extendedlambda9_616 ::
+d_'46'extendedlambda9_622 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
@@ -1666,9 +1672,9 @@ d_'46'extendedlambda9_616 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda9_616 = erased
+d_'46'extendedlambda9_622 = erased
 -- Untyped.Equality..extendedlambda10
-d_'46'extendedlambda10_648 ::
+d_'46'extendedlambda10_654 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   AgdaAny ->
   AgdaAny ->
@@ -1676,9 +1682,9 @@ d_'46'extendedlambda10_648 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda10_648 = erased
+d_'46'extendedlambda10_654 = erased
 -- Untyped.Equality..extendedlambda11
-d_'46'extendedlambda11_668 ::
+d_'46'extendedlambda11_674 ::
   () ->
   T_DecEq_6 ->
   AgdaAny ->
@@ -1687,9 +1693,9 @@ d_'46'extendedlambda11_668 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda11_668 = erased
+d_'46'extendedlambda11_674 = erased
 -- Untyped.Equality..extendedlambda12
-d_'46'extendedlambda12_734 ::
+d_'46'extendedlambda12_740 ::
   () ->
   T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1698,9 +1704,9 @@ d_'46'extendedlambda12_734 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda12_734 = erased
+d_'46'extendedlambda12_740 = erased
 -- Untyped.Equality..extendedlambda13
-d_'46'extendedlambda13_814 ::
+d_'46'extendedlambda13_820 ::
   () ->
   T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1711,9 +1717,9 @@ d_'46'extendedlambda13_814 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda13_814 = erased
+d_'46'extendedlambda13_820 = erased
 -- Untyped.Equality..extendedlambda14
-d_'46'extendedlambda14_892 ::
+d_'46'extendedlambda14_898 ::
   () ->
   T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1722,9 +1728,9 @@ d_'46'extendedlambda14_892 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda14_892 = erased
+d_'46'extendedlambda14_898 = erased
 -- Untyped.Equality..extendedlambda15
-d_'46'extendedlambda15_956 ::
+d_'46'extendedlambda15_962 ::
   () ->
   T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1733,9 +1739,9 @@ d_'46'extendedlambda15_956 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda15_956 = erased
+d_'46'extendedlambda15_962 = erased
 -- Untyped.Equality..extendedlambda16
-d_'46'extendedlambda16_1020 ::
+d_'46'extendedlambda16_1026 ::
   MAlonzo.Code.RawU.T_TmCon_202 ->
   MAlonzo.Code.RawU.T_TmCon_202 ->
   (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
@@ -1744,9 +1750,9 @@ d_'46'extendedlambda16_1020 ::
   T_DecEq_6 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda16_1020 = erased
+d_'46'extendedlambda16_1026 = erased
 -- Untyped.Equality..extendedlambda17
-d_'46'extendedlambda17_1108 ::
+d_'46'extendedlambda17_1114 ::
   () ->
   T_DecEq_6 ->
   Integer ->
@@ -1757,9 +1763,9 @@ d_'46'extendedlambda17_1108 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda17_1108 = erased
+d_'46'extendedlambda17_1114 = erased
 -- Untyped.Equality..extendedlambda18
-d_'46'extendedlambda18_1204 ::
+d_'46'extendedlambda18_1210 ::
   () ->
   T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1770,9 +1776,9 @@ d_'46'extendedlambda18_1204 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda18_1204 = erased
+d_'46'extendedlambda18_1210 = erased
 -- Untyped.Equality..extendedlambda19
-d_'46'extendedlambda19_1272 ::
+d_'46'extendedlambda19_1278 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
@@ -1781,4 +1787,4 @@ d_'46'extendedlambda19_1272 ::
   T_DecEq_6 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda19_1272 = erased
+d_'46'extendedlambda19_1278 = erased
