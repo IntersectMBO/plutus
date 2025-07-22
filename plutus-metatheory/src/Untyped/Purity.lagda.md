@@ -1,5 +1,5 @@
 ---
-title: VerifiedCompilation.Purity
+title: Untyped.Purity
 layout: page
 ---
 

@@ -27,39 +27,9 @@ open import Data.List using (List; []; _∷_; sum; map)
 open import Data.Nat using (ℕ; _+_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Untyped.Purity using (Pure)
+open import Untyped.Annotation using (Annotation; strip; read)
 ```
 ## Translation Relation
-
-(λ ( f · (` 0) )) · b
-==>
-(f · b)
-
-(λ ((` 0) · x)) · (λ (f (`0))) -- before1
-==>
-((λ (f (`0))) · x) -- a1/b2
-==>
-(f x) -- after2
-
-
-(λ ((f (` 0)) · (g (` 0)))) · b
-= partial =>
-(λ ((f (` 0)) · (g b))) · b
-
-(λ ((f (` 0)) · (g (` 0)))) · b
-= complete =>
-(f b) · (g b)
-
-(λ N) · M
-==>
-LET M N
-
-LET M N[`0]
-==>
-LET M N[M]
-
-LET M N
-= (` 0) not in N =>
-N
 
 Abstractly, inlining is much like β-reduction - where a term is applied to a
 lambda, the term is substituted in. However, the UPLC compiler's inliner
@@ -101,9 +71,6 @@ bind : Bind X → X ⊢ → Bind (Maybe X)
 bind b t = (b , weaken t)
 
 ```
-
-[ M X , M M X , M M M X ] : Bind (M M M X)
-
 
 Note that `get` weakens the terms as it retrieves them. This is because we are
 in the scope of the "tip" element. This is works out correctly, despite the fact
@@ -154,45 +121,12 @@ data Inlined : List (X ⊢) → Bind X → (X ⊢) → (X ⊢) → Set₁ where
           → Inlined e b t t'
           → Inlined e b (` v) t'
 
-
 {-
   complete : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
           → Inlined (v ∷ e) b t₁ t₂
           → Inlined e b (t₁ · v) t₂
   partial : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
   -}
-
-```
-
-[] □ ((ƛ ƛ ƛ t) · a · b) t'
-
-==> _·_
-
-[b] □  ((ƛ ƛ ƛ t) · a) t'
-
-==> _·_
-
-[a , b] □  (ƛ ƛ ƛ t) t'
-
-==> ƛb
-
-[wk b] (□ , wk a) (ƛ ƛ t) (wk t')
-
-==> ƛb
-
-[] (□ , wk a , wk wk b) (ƛ t) (wk (wk t'))
-
-==> ƛ
-
-[] (□ , wk a , wk wk b , (` nothing)) t (wk (wk (wk t')))
-
-
-
-
-(ƛ ƛ t . a . b) ==> t'[deleted-lets := 2]
-
-
-```
 
   _·_ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
           → Inlined (v₂ ∷ e) b t₁ t₂
