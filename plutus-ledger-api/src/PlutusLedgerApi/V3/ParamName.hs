@@ -313,7 +313,7 @@ data ParamName =
   | Ripemd_160'cpu'arguments'intercept
   | Ripemd_160'cpu'arguments'slope
   | Ripemd_160'memory'arguments
-  -- Not yet deployed
+  -- To be deployed in PV11
   | ExpModInteger'cpu'arguments'coefficient00
   | ExpModInteger'cpu'arguments'coefficient11
   | ExpModInteger'cpu'arguments'coefficient12
