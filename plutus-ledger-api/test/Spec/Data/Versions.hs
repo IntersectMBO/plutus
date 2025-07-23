@@ -20,6 +20,7 @@ import PlutusLedgerApi.Data.V3 qualified as V3
 import Data.ByteString.Short qualified as BSS
 import Data.Either
 import Data.List ((\\))
+import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -30,6 +31,7 @@ tests = testGroup "versions"
     [ testLedgerLanguages
     , testLanguageVersions
     , testPermittedBuiltins
+    , testBuiltinAvailabilityCompatibility
     , testRmdr
     ]
 
@@ -253,6 +255,79 @@ testPermittedBuiltins =
          , mkTest newestPV    allBuiltins
       ]
     ]
+
+{- It's important that the results returned by `builtinsAvailableIn` don't change.
+   The implementation changed when we enabled all builtins in all ledger
+   languages in PV11, so this test compares the results returned by the old and
+   new versions to make sure that they're the same (the old version's been
+   transplanted from PlutusLedgerApi.Common.Versions into the test below).  A
+   little care is required because the old version can return a nonempty result
+   for an (LL,PV) combination where LL didn't actually exist in PV and the new
+   version returns the empty set: to avoid this we only test pairs where LL was
+   available in PV.
+-}
+testBuiltinAvailabilityCompatibility :: TestTree
+testBuiltinAvailabilityCompatibility =
+    testCase "Old and new versions of builtinsAvailableIn are compatible" $
+    let builtinsIntroducedIn_old
+            :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set DefaultFun)
+        builtinsIntroducedIn_old =
+            Map.fromList
+                   [ ((PlutusV1, alonzoPV), Set.fromList
+                      [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger
+                      , QuotientInteger, RemainderInteger, ModInteger, EqualsInteger
+                      , LessThanInteger, LessThanEqualsInteger, AppendByteString
+                      , ConsByteString, SliceByteString, LengthOfByteString
+                      , IndexByteString, EqualsByteString, LessThanByteString
+                      , LessThanEqualsByteString, Sha2_256, Sha3_256, Blake2b_256
+                      , VerifyEd25519Signature, AppendString, EqualsString, EncodeUtf8
+                      , DecodeUtf8, IfThenElse, ChooseUnit, Trace, FstPair, SndPair
+                      , ChooseList, MkCons, HeadList, TailList, NullList, ChooseData
+                      , ConstrData, MapData, ListData, IData, BData, UnConstrData
+                      , UnMapData, UnListData, UnIData, UnBData, EqualsData, MkPairData
+                      , MkNilData, MkNilPairData ])
+                   , ((PlutusV2, vasilPV), Set.fromList
+                      [ SerialiseData ])
+                   , ((PlutusV2, valentinePV), Set.fromList
+                      [ VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature ])
+                   , ((PlutusV2, plominPV), Set.fromList
+                      [ IntegerToByteString, ByteStringToInteger ])
+                   , ((PlutusV3, changPV), Set.fromList
+                      [ Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul
+                      , Bls12_381_G1_equal, Bls12_381_G1_hashToGroup
+                      , Bls12_381_G1_compress, Bls12_381_G1_uncompress
+                      , Bls12_381_G2_add, Bls12_381_G2_neg, Bls12_381_G2_scalarMul
+                      , Bls12_381_G2_equal, Bls12_381_G2_hashToGroup
+                      , Bls12_381_G2_compress, Bls12_381_G2_uncompress
+                      , Bls12_381_millerLoop, Bls12_381_mulMlResult
+                      , Bls12_381_finalVerify,  Keccak_256, Blake2b_224
+                      , IntegerToByteString, ByteStringToInteger ])
+                   , ((PlutusV3, plominPV), Set.fromList
+                      [ AndByteString, OrByteString, XorByteString
+                      , ComplementByteString , ReadBit, WriteBits
+                      , ReplicateByte , ShiftByteString, RotateByteString
+                      , CountSetBits, FindFirstSetBit, Ripemd_160 ])
+                   , ((PlutusV3, futurePV), Set.fromList
+                      [ ExpModInteger, DropList
+                      , ListToArray, IndexArray, LengthOfArray ])
+                   ]
+        builtinsAvailableIn_old
+            :: PlutusLedgerLanguage
+            -> MajorProtocolVersion
+            -> Set.Set DefaultFun
+        builtinsAvailableIn_old thisLv thisPv =
+            fold $
+            Map.filterWithKey (const . alreadyIntroduced) builtinsIntroducedIn_old
+            where
+              alreadyIntroduced :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
+              alreadyIntroduced (introducedInLv,introducedInPv) =
+              -- both should be satisfied
+                  introducedInLv <= thisLv && introducedInPv <= thisPv
+    in sequence_ [ assertBool ("Old and new versions of builtinsAvailableIn differ for "
+                               ++ show ll ++ " @PV" ++ show pv)
+                 $ builtinsAvailableIn ll pv == builtinsAvailableIn_old ll pv
+                 | pv <- [alonzoPV .. plominPV]
+                 , ll <- Set.toList (ledgerLanguagesAvailableIn pv) ]
 
 -- Test that the checks for extra bytes after ends of scripts behave properly.
 deriving newtype instance Arbitrary MajorProtocolVersion
