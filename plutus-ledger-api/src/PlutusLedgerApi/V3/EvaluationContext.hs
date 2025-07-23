@@ -40,7 +40,7 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
         PlutusV3
         (\pv ->
-          if pv < anonPV
+          if pv < pv11PV
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
             else CaserBuiltin caseBuiltin)
         [DefaultFunSemanticsVariantC]

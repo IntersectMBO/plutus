@@ -233,24 +233,24 @@ builtinsIntroducedIn =
     PlutusV1 ->
       Map.fromList
       [ (alonzoPV, Set.fromList batch1)
-      , (anonPV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+      , (pv11PV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
       ]
     PlutusV2 ->
       Map.fromList
       [ (vasilPV,     Set.fromList (batch1 ++ batch2))
       , (valentinePV, Set.fromList batch3)
       , (plominPV,    Set.fromList batch4b)
-      , (anonPV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
+      , (pv11PV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
       ]
     PlutusV3 ->
       Map.fromList
       [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
       , (plominPV, Set.fromList batch5)
-      , (anonPV,   Set.fromList batch6)
+      , (pv11PV,   Set.fromList batch6)
       ]
 
 {- | Return a set containing the builtins which are available in a given LL in a
-given PV.  All builtins are available in all LLs from `anonPV` onwards. -}
+given PV.  All builtins are available in all LLs from `pv11PV` onwards. -}
 builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
 builtinsAvailableIn = collectUpTo . builtinsIntroducedIn
 
@@ -266,12 +266,12 @@ plcVersionsIntroducedIn =
     PlutusV1 ->
       Map.fromList
       [ (alonzoPV, Set.fromList [ plcVersion100 ])
-      , (anonPV,   Set.fromList [ plcVersion110 ])
+      , (pv11PV,   Set.fromList [ plcVersion110 ])
       ]
     PlutusV2 ->
       Map.fromList
       [ (alonzoPV, Set.fromList [ plcVersion100 ])
-      , (anonPV,   Set.fromList [ plcVersion110 ])
+      , (pv11PV,   Set.fromList [ plcVersion110 ])
       ]
     PlutusV3 ->
       Map.fromList

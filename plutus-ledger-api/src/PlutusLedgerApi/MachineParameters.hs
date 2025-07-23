@@ -15,7 +15,7 @@ machineParametersFor
   -> DefaultMachineParameters
 machineParametersFor ledgerLang majorPV =
   MachineParameters
-      (if majorPV < anonPV
+      (if majorPV < pv11PV
         then unavailableCaserBuiltin $ getMajorProtocolVersion majorPV
         else CaserBuiltin caseBuiltin)
       (mkMachineVariantParameters builtinSemVar $ cekCostModelForVariant builtinSemVar)

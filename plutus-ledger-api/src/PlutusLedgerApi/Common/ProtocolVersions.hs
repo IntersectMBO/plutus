@@ -10,7 +10,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , valentinePV
     , changPV
     , plominPV
-    , anonPV
+    , pv11PV
     , newestPV
     , knownPVs
     , futurePV
@@ -78,8 +78,8 @@ plominPV :: MajorProtocolVersion
 plominPV = MajorProtocolVersion 10
 
 -- | Not sure what this is going to be called yet
-anonPV :: MajorProtocolVersion
-anonPV = MajorProtocolVersion 11
+pv11PV :: MajorProtocolVersion
+pv11PV = MajorProtocolVersion 11
 
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.  This is currently only
@@ -94,7 +94,7 @@ knownPVs =
     , valentinePV
     , changPV
     , plominPV
-    , anonPV
+    , pv11PV
     ]
 
 -- We're sometimes in an intermediate state where we've added new builtins but
@@ -102,7 +102,7 @@ knownPVs =
 -- decide what PVs the test should include.  UPDATE THIS when we're expecting to
 -- release new builtins in a forthcoming PV.
 newestPV :: MajorProtocolVersion
-newestPV = anonPV
+newestPV = pv11PV
 
 {-| This is a placeholder for when we don't yet know what protocol version will
   be used for something. It's a very high protocol version that should never
