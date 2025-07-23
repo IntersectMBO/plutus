@@ -9,7 +9,7 @@ module Utils where
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
-open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_)
 open _≤_
 open _≤‴_
 open import Data.Nat.Properties
@@ -244,6 +244,31 @@ infixr 5 _∷_
 {-# COMPILE GHC List = data [] ([] | (:)) #-}
 
 ```
+## Arrays
+
+```
+
+postulate Array : Set → Set
+{-# FOREIGN GHC import qualified Data.Vector.Strict as Strict #-}
+{-# COMPILE GHC Array = type Strict.Vector #-}
+
+variable A : Set
+
+postulate
+  HSlengthOfArray : Array A → ℤ
+  HSlistToArray : (ls : List A) → Array A
+  HSindexArray : Array A → ℤ → A
+-- These have to consume the hidden {A : Set} param in the Agda.
+{-# COMPILE GHC HSlengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
+{-# COMPILE GHC HSlistToArray = \() -> Strict.fromList #-}
+{-# COMPILE GHC HSindexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
+
+-- This only exists for literal arrays in certificates,
+-- much like mkBytestring above.
+postulate
+  mkArray : {A : Set} → List A → Array A
+
+```
 ## DATA
 ```
 
@@ -264,7 +289,7 @@ eqDATA : DATA → DATA → Bool
 eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
     (Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂))
   Data.Bool.∧
-    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))  
+    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))
 eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
@@ -277,7 +302,7 @@ eqDATA (MapDATA m₁) (MapDATA m₂) =
       (toList m₁)
       (toList m₂)
     )
-eqDATA (MapDATA x) (ListDATA x₁) = Bool.false 
+eqDATA (MapDATA x) (ListDATA x₁) = Bool.false
 eqDATA (MapDATA x) (iDATA x₁) = Bool.false
 eqDATA (MapDATA x) (bDATA x₁) = Bool.false
 eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
@@ -350,4 +375,3 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 ```
-

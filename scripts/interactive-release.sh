@@ -148,7 +148,7 @@ open-plutus-pr() {
     popd > /dev/null
   done
 
-  git add '*.cabal' '*CHANGELOG.md' '*CHANGELOG.rst'
+  git add '*.cabal' '*CHANGELOG.md' '*CHANGELOG.rst' '*/changelog.d/*'
   pre-commit run cabal-fmt || true # pre-commit will fail but will modify the files in place, hence the second git add below
   git add '*.cabal' 
   git commit -m "Release $VERSION" || true

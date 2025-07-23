@@ -281,6 +281,7 @@ scopeCheckTy (A · B) = do
   return (A · B)
 scopeCheckTy (con (atomic x)) = return (con (atomic x))
 scopeCheckTy (con list) = return (con list)
+scopeCheckTy (con array) = return (con array)
 scopeCheckTy (con pair) = return (con pair)
 scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
@@ -357,6 +358,7 @@ extricateScopeTy (ƛ K A)    = ƛ K (extricateScopeTy A)
 extricateScopeTy (A · B)    = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con (atomic x)) = con (atomic x)
 extricateScopeTy (con list) = con list
+extricateScopeTy (con array) = con array
 extricateScopeTy (con pair) = con pair
 extricateScopeTy (μ A B)    = μ (extricateScopeTy A) (extricateScopeTy B)
 extricateScopeTy (SOP Tss)  = SOP (extricateScopeTyListList Tss)
