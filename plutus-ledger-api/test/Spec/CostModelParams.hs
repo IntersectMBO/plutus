@@ -10,7 +10,6 @@ import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
--- import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParamsForTesting)
 
 import Control.Monad.Except (runExcept)
 import Control.Monad.Writer.Strict (WriterT (runWriterT))
