@@ -132,7 +132,8 @@ collectUpTo m thisPv =
 
 {- If any new builtins are introduced after a batch has been deployed on the chain
   then a new `batch` object MUST be added to contain them and the
-  `builtinsIntroducedIn` function must be updated.  Also, remember to UPDATE THE
+  `builtinsIntroducedIn` function must be updated; the contents of batches which
+  have already been deployed must NOT be altered.  Also, remember to UPDATE THE
   TESTS in `Spec.Versions` and `Spec.Data.Versions` when a new batch is added.
 -}
 
@@ -142,6 +143,7 @@ collectUpTo m thisPv =
    alternative would be to use the flat tags, but they're not directly
    accessible at the moment.
 -}
+-- DO NOT CHANGE THIS.
 batch1 :: [DefaultFun]
 batch1 =
   [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger
@@ -155,10 +157,12 @@ batch1 =
   , MkPairData, MkNilData, MkNilPairData
   ]
 
+-- DO NOT CHANGE THIS.
 batch2 :: [DefaultFun]
 batch2 =
   [ SerialiseData ]
 
+-- DO NOT CHANGE THIS.
 batch3 :: [DefaultFun]
 batch3 =
   [ VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature ]
@@ -167,6 +171,7 @@ batch3 =
 -- PlutusV3 cost model parameters, although that's irrelevant here.
 
 -- batch4, excluding IntegerToByteString and ByteStringToInteger.
+-- DO NOT CHANGE THIS.
 batch4a :: [DefaultFun]
 batch4a =
   [ Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul
@@ -192,13 +197,16 @@ batch4a =
  However, if we do do this there's a theoretical risk of turning a phase 2
  failure into a phase 1 failure: would that be problematic?
 -}
+-- DO NOT CHANGE THIS.
 batch4b :: [DefaultFun]
 batch4b =
   [ IntegerToByteString, ByteStringToInteger ]
 
+-- DO NOT CHANGE THIS.
 batch4 :: [DefaultFun]
 batch4 = batch4a ++ batch4b
 
+-- DO NOT CHANGE THIS.
 batch5 :: [DefaultFun]
 batch5 =
   [ AndByteString, OrByteString, XorByteString, ComplementByteString
