@@ -311,11 +311,11 @@ getConstructors tc = do
         "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
-getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIRTerm uni fun)
+getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIR.ManualMatcher uni fun Ann)
 getMatch tc = do
   -- ensure the tycon has been compiled, which will create the matcher
   _ <- compileTyCon tc
-  maybeMatch <- PIR.lookupDestructor annMayInline (LexName $ GHC.getName tc)
+  maybeMatch <- PIR.lookupManualDestructor annMayInline (LexName $ GHC.getName tc)
   case maybeMatch of
     Just match -> pure match
     Nothing ->
@@ -325,14 +325,14 @@ getMatch tc = do
 {-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types.
 -}
-getMatchInstantiated :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRTerm uni fun)
+getMatchInstantiated :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIR.Term PIR.TyName PIR.Name uni fun Ann -> PIR.Type PIR.TyName uni Ann -> [PIR.Term PIR.TyName PIR.Name uni fun Ann] -> PIR.Term PIR.TyName PIR.Name uni fun Ann)
 getMatchInstantiated t =
   traceCompilation 3 ("Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
       match <- getMatch tc
       -- We drop 'RuntimeRep' arguments, see Note [Runtime reps]
       args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
-      pure $ PIR.mkIterInst match $ (annMayInline,) <$> args'
+      pure $ match args'
     -- must be a TC app
     _ ->
       throwSd CompilationError $
