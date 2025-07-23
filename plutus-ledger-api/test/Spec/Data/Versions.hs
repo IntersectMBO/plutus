@@ -259,12 +259,12 @@ testPermittedBuiltins =
 {- It's important that the results returned by `builtinsAvailableIn` don't change.
    The implementation changed when we enabled all builtins in all ledger
    languages in PV11, so this test compares the results returned by the old and
-   new versions to make sure that they're the same (the old version's been
-   transplanted from PlutusLedgerApi.Common.Versions into the test below).  A
-   little care is required because the old version can return a nonempty result
-   for an (LL,PV) combination where LL didn't actually exist in PV and the new
-   version returns the empty set: to avoid this we only test pairs where LL was
-   available in PV.
+   new versions to make sure that they're the same up to PV10 (the old version's
+   been transplanted from PlutusLedgerApi.Common.Versions into the test below).
+   A little care is required because the old version can return a nonempty
+   result for an (LL,PV) combination where LL didn't actually exist in PV and
+   the new version returns the empty set: to avoid this we only test pairs where
+   LL was available in PV.
 -}
 testBuiltinAvailabilityCompatibility :: TestTree
 testBuiltinAvailabilityCompatibility =
@@ -326,7 +326,7 @@ testBuiltinAvailabilityCompatibility =
     in sequence_ [ assertBool ("Old and new versions of builtinsAvailableIn differ for "
                                ++ show ll ++ " @PV" ++ show pv)
                  $ builtinsAvailableIn ll pv == builtinsAvailableIn_old ll pv
-                 | pv <- [alonzoPV .. plominPV]
+                 | pv <- [shelleyPV .. plominPV]
                  , ll <- Set.toList (ledgerLanguagesAvailableIn pv) ]
 
 -- Test that the checks for extra bytes after ends of scripts behave properly.
