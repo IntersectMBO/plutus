@@ -1559,6 +1559,7 @@ compileExprWithDefs e = do
   defineBuiltinTypes
   defineBuiltinTerms
   defineIntegerNegate
+  defineBoolType
   defineFix
   compileExpr e
 

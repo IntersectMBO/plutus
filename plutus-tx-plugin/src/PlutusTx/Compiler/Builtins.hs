@@ -14,6 +14,7 @@ module PlutusTx.Compiler.Builtins (
   builtinNames,
   defineBuiltinTypes,
   defineBuiltinTerms,
+  defineBoolType,
   lookupBuiltinTerm,
   lookupBuiltinType,
   errorFunc,
@@ -308,6 +309,30 @@ defineBuiltinType name ty = do
   PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) mempty
   -- these are all aliases for now
   PIR.recordAlias (LexName $ GHC.getName tc)
+
+defineBoolType :: (CompilingDefault uni fun m ann) => m ()
+defineBoolType = do
+  defineBuiltinType ''Bool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
+
+  boolTyCon <- lookupGhcTyCon ''Bool
+  let
+    boolLexName = LexName $ GHC.getName boolTyCon
+    -- -- > \(b : Bool) ->
+    -- -- >   /\ r ->
+    -- -- >     \(fCase : r) (tCase : r) ->
+    -- -- >        (case r b fCase tCase)
+    -- boolMatcher _tyArgs scrut resTy branches =
+
+    --     PIR.kase () resTy scrut branches
+
+  PIR.defineManualDatatype
+    boolLexName
+    (PIR.ManualDatatype
+        [PIR.mkConstant annAlwaysInline True, PIR.mkConstant annAlwaysInline False]
+        (\_tyArgs scrut resTy branches -> PIR.kase annAlwaysInline resTy scrut (reverse branches))
+        []
+    )
+    mempty
 
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: (CompilingDefault uni fun m ann) => m ()

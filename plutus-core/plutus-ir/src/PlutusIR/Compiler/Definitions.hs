@@ -92,7 +92,7 @@ type ManualMatcher uni fun ann =
   Term TyName Name uni fun ann ->
   -- ^ Scrutinee
   Type TyName uni ann ->
-  -- ^ Return type
+  -- ^ Result type
   [Term TyName Name uni fun ann] ->
   -- ^ Branches
   Term TyName Name uni fun ann
