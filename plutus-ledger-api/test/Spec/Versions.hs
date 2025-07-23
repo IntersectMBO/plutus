@@ -263,9 +263,9 @@ testPermittedBuiltins =
    new versions to make sure that they're the same up to PV10 (the old version's
    been transplanted from PlutusLedgerApi.Common.Versions into the test below).
    A little care is required because the old version can return a nonempty
-   result for an (LL,PV) combination where LL didn't actually exist in PV and
-   the new version returns the empty set: to avoid this we only test pairs where
-   LL was available in PV.
+   result for an (LL,PV) combination where LL didn't actually exist in PV but
+   the new version returns the empty set in this case: to avoid this we only
+   test pairs where LL was available in PV.
 -}
 testBuiltinAvailabilityCompatibility :: TestTree
 testBuiltinAvailabilityCompatibility =
