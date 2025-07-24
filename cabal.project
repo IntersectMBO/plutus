@@ -90,3 +90,7 @@ allow-newer:
   ral:QuickCheck,
   fin:QuickCheck,
   bin:QuickCheck,
+
+-- This forces turtle to use a newer version of optparse-applicative.
+constraints: setup.optparse-applicative >=0.19.0.0
+allow-newer: turtle:optparse-applicative
