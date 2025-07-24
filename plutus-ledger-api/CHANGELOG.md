@@ -1,4 +1,13 @@
 
+<a id='changelog-1.50.0.0'></a>
+# 1.50.0.0 — 2025-07-22
+
+## Added
+
+- `PlutusLedgerApi.Envelope` module with two functions:
+  - `compiledCodeEnvelope`: creates a JSON envelope for `CompiledCode` with a description.
+  - `writeCodeEnvelope`: writes a JSON envelope for `CompiledCode` to a file.
+
 <a id='changelog-1.46.0.0'></a>
 # 1.46.0.0 — 2025-05-09
 
