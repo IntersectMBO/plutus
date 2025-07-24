@@ -13,9 +13,9 @@ module PlutusBenchmark.Coop.TestContext (
   correctAuthMpBurningContext,
   ) where
 
-import PlutusLedgerApi.V1.Address (scriptHashAddress)
-import PlutusLedgerApi.V1.Value (AssetClass, CurrencySymbol (..), TokenName (..), assetClass)
-import PlutusLedgerApi.V2 (Address, ScriptContext, ScriptHash (..))
+import PlutusLedgerApi.Data.V2 (Address, ScriptContext, ScriptHash (..))
+import PlutusLedgerApi.V1.Data.Address (scriptHashAddress)
+import PlutusLedgerApi.V1.Data.Value (AssetClass, CurrencySymbol (..), TokenName (..), assetClass)
 
 import Test.QuickCheck.Gen (Gen (unGen))
 import Test.QuickCheck.Random (mkQCGen)
