@@ -740,8 +740,8 @@ library coop
     , lens
     , memory
     , plutus-ledger-api
-    , plutus-tx          ^>=1.49
-    , plutus-tx-plugin   ^>=1.49
+    , plutus-tx          ^>=1.50
+    , plutus-tx-plugin   ^>=1.50
     , QuickCheck
 
 test-suite coop-test
@@ -752,9 +752,9 @@ test-suite coop-test
   build-depends:
     , base                             >=4.9   && <5
     , coop
-    , plutus-core:plutus-core-testlib  ^>=1.49
+    , plutus-core:plutus-core-testlib  ^>=1.50
     , plutus-ledger-api
-    , plutus-tx                        ^>=1.49
+    , plutus-tx                        ^>=1.50
     , plutus-tx:plutus-tx-testlib
     , tasty
 
@@ -772,7 +772,7 @@ executable gen-coop-flat
     , plutus-benchmark-common
     , plutus-core
     , plutus-ledger-api
-    , plutus-tx                    ^>=1.49
+    , plutus-tx                    ^>=1.50
     , plutus-tx:plutus-tx-testlib
 
 ------------------ linear vesting -------------------    
