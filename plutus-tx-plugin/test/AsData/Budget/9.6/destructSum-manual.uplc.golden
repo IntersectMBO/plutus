@@ -5,7 +5,7 @@
          case
            (equalsInteger 0 (force (force fstPair) cse))
            [ (case
-                (equalsInteger 0 (force (force fstPair) cse))
+                (equalsInteger 1 (force (force fstPair) cse))
                 [ (case
                      (equalsInteger 2 (force (force fstPair) cse))
                      [ ((\cse -> case cse [cse]) error)

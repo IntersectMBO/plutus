@@ -40,6 +40,7 @@ module PlutusIR.Compiler.Definitions (
   lookupConstructors,
   lookupDestructor,
   lookupManualDestructor,
+  bindings,
 ) where
 
 import PlutusIR as PIR
@@ -101,7 +102,6 @@ data ManualDatatype uni fun ann
   = ManualDatatype -- TODO make these take annotations as argument.
   { _constructors :: [Term TyName Name uni fun ann]
   , _matcher      :: ManualMatcher uni fun ann
-
   , _bindings     :: [Binding TyName Name uni fun ann]
   }
 makeLenses ''ManualDatatype

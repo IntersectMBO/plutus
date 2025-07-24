@@ -41,7 +41,7 @@ in
          in
          case
            (all dead. data)
-           (equalsInteger 0 (fstPair {integer} {list data} tup))
+           (equalsInteger 1 (fstPair {integer} {list data} tup))
            [ (/\dead ->
                 let
                   !tup : pair integer (list data) = unConstrData d
