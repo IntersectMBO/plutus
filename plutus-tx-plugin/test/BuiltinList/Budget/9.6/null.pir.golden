@@ -1,15 +1,7 @@
 let
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !null : all a. list a -> bool = nullList
   ~null : all a. list a -> bool
-    = /\a ->
-        \(l : list a) ->
-          let
-            !l : list a = l
-            !b : bool = null {a} l
-          in
-          ifThenElse {bool} b True False
+    = /\a -> \(l : list a) -> let !l : list a = l in null {a} l
   ~null : all a. list a -> bool = null
 in
 \(xs : list integer) -> let !xs : list integer = xs in null {integer} xs

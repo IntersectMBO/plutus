@@ -12,20 +12,13 @@ let
             v
             {a -> integer}
             (\(v : a -> integer) (v : a -> Animal -> bool) -> v)
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
   ~lessThanInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-            !b : bool = lessThanInteger x y
-          in
-          ifThenElse {bool} b True False
+        \(y : integer) -> let !y : integer = y in lessThanInteger x y
   ~likesAnimal : all a. PersonLike a -> a -> Animal -> bool
     = /\a ->
         \(v : PersonLike a) ->

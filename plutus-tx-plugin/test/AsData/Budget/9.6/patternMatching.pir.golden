@@ -4,8 +4,7 @@ let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
   !lessThanInteger : integer -> integer -> bool
-    = \(x : integer) (y : integer) ->
-        case bool (lessThanInteger x y) [False, True]
+    = \(x : integer) (y : integer) -> lessThanInteger x y
 in
 \(d : data) ->
   let

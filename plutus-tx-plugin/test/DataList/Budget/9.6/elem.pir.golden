@@ -8,7 +8,7 @@ letrec
           , (\(h : data) (t : list data) ->
                case
                  (all dead. bool)
-                 (case bool (equalsData (I 8) h) [False, True])
+                 (equalsData (I 8) h)
                  [(/\dead -> go t), (/\dead -> True)]
                  {all dead. dead}) ]
 in

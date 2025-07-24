@@ -1,7 +1,5 @@
 let
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !subtractInteger : integer -> integer -> integer = subtractInteger
 in
 letrec
@@ -9,22 +7,20 @@ letrec
     = \(n : integer) ->
         let
           !n : integer = n
-          !b : bool = equalsInteger n 0
         in
         case
           (all dead. bool)
-          (ifThenElse {bool} b True False)
+          (equalsInteger n 0)
           [(/\dead -> oddDirect (subtractInteger n 1)), (/\dead -> True)]
           {all dead. dead}
   ~oddDirect : integer -> bool
     = \(n : integer) ->
         let
           !n : integer = n
-          !b : bool = equalsInteger n 0
         in
         case
           (all dead. bool)
-          (ifThenElse {bool} b True False)
+          (equalsInteger n 0)
           [(/\dead -> evenDirect (subtractInteger n 1)), (/\dead -> False)]
           {all dead. dead}
 in

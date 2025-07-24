@@ -50,10 +50,7 @@ let
                       , (\(hd : pair data data) ->
                            case
                              (all dead. list (pair data data) -> Maybe data)
-                             (case
-                                bool
-                                (equalsData k (fstPair {data} {data} hd))
-                                [False, True])
+                             (equalsData k (fstPair {data} {data} hd))
                              [ (/\dead -> go)
                              , (/\dead ->
                                   \(ds : list (pair data data)) ->
@@ -109,10 +106,7 @@ in
                                 (all dead.
                                    list (pair data data) ->
                                    list (pair data data))
-                                (case
-                                   bool
-                                   (equalsData k (fstPair {data} {data} hd))
-                                   [False, True])
+                                (equalsData k (fstPair {data} {data} hd))
                                 [ (/\dead ->
                                      \(eta : list (pair data data)) ->
                                        mkCons {pair data data} hd (go eta))
@@ -138,10 +132,7 @@ in
                          case
                            (all dead.
                               list (pair data data) -> list (pair data data))
-                           (case
-                              bool
-                              (equalsData k (fstPair {data} {data} hd))
-                              [False, True])
+                           (equalsData k (fstPair {data} {data} hd))
                            [ (/\dead ->
                                 \(eta : list (pair data data)) ->
                                   mkCons {pair data data} hd (go eta))

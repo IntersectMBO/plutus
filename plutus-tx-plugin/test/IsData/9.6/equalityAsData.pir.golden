@@ -1,18 +1,11 @@
 let
   !equalsData : data -> data -> bool = equalsData
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   ~equalsData : data -> data -> bool
     = \(d : data) ->
         let
           !d : data = d
         in
-        \(d : data) ->
-          let
-            !d : data = d
-            !b : bool = equalsData d d
-          in
-          ifThenElse {bool} b True False
+        \(d : data) -> let !d : data = d in equalsData d d
   ~`$fEqBuiltinData` : (\a -> a -> a -> bool) data = equalsData
   ~`==` : all a. (\a -> a -> a -> bool) a -> a -> a -> bool
     = /\a -> \(v : (\a -> a -> a -> bool) a) -> v

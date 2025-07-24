@@ -1300,7 +1300,6 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
 
         -- it's important to instantiate the match before alts compilation
         match <- getMatchInstantiated scrutineeType
-        let matched = match scrutinee'
 
         let (rest, mdef) = GHC.findDefault alts
         -- This does two things:
@@ -1341,9 +1340,8 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
         -- See Note [Scott encoding of datatypes]
         -- we're going to delay the body, so the matcher needs to be instantiated at the delayed type
         resultType <- maybeDelayType lazyCase originalResultType
-        let instantiated = matched resultType
 
-        let applied = instantiated branches
+        let applied = match scrutinee' resultType branches
         -- See Note [Case expressions and laziness]
         mainCase <- maybeForce lazyCase applied
 

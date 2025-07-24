@@ -142,10 +142,7 @@ in
                                 case
                                   (all dead.
                                      list (pair data data) -> Maybe data)
-                                  (case
-                                     bool
-                                     (equalsData k' (fstPair {data} {data} hd))
-                                     [False, True])
+                                  (equalsData k' (fstPair {data} {data} hd))
                                   [ (/\dead -> go)
                                   , (/\dead ->
                                        \(ds : list (pair data data)) ->
@@ -222,10 +219,7 @@ in
                              , (\(hd : pair data data) ->
                                   case
                                     (all dead. list (pair data data) -> bool)
-                                    (case
-                                       bool
-                                       (equalsData k (fstPair {data} {data} hd))
-                                       [False, True])
+                                    (equalsData k (fstPair {data} {data} hd))
                                     [ (/\dead -> go)
                                     , (/\dead ->
                                          \(ds : list (pair data data)) ->

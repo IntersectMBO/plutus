@@ -22,11 +22,11 @@ in
       in
       case
         (all dead. Maybe a)
-        (case bool (equalsInteger 1 index) [False, True])
+        (equalsInteger 1 index)
         [ (/\dead ->
              case
                (all dead. Maybe a)
-               (case bool (equalsInteger 0 index) [False, True])
+               (equalsInteger 0 index)
                [ (/\dead -> traceError {Maybe a} "PT1")
                , (/\dead ->
                     Just {a} (`$dUnsafeFromData` (headList {data} args))) ]
@@ -41,7 +41,7 @@ in
        in
        case
          (all dead. Tuple2 integer integer)
-         (case bool (equalsInteger 0 index) [False, True])
+         (equalsInteger 0 index)
          [ (/\dead -> traceError {Tuple2 integer integer} "PT1")
          , (/\dead ->
               Tuple2

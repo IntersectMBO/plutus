@@ -8,7 +8,7 @@ letrec
     = \(n : integer) ->
         case
           (all dead. List integer)
-          (case bool (lessThanEqualsInteger n 0) [False, True])
+          (lessThanEqualsInteger n 0)
           [ (/\dead -> Cons {integer} 0 (go (subtractInteger n 1)))
           , (/\dead -> Nil {integer}) ]
           {all dead. dead}

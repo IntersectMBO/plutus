@@ -4,8 +4,6 @@ let
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
   !drop : all a. integer -> list a -> list a = dropList
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
   data Unit | Unit_match where
     Unit : Unit
@@ -29,11 +27,10 @@ let
           \(i : integer) ->
             let
               !i : integer = i
-              !b : bool = lessThanInteger i 0
             in
             case
               (all dead. a)
-              (ifThenElse {bool} b True False)
+              (lessThanInteger i 0)
               [ (/\dead ->
                    let
                      !l : list a = drop {a} i xs

@@ -19,24 +19,21 @@
     !`$fOrdInteger` : Ord integer
       = CConsOrd
           {integer}
-          (\(x : integer) (y : integer) ->
-             case bool (equalsInteger x y) [False, True])
+          (\(x : integer) (y : integer) -> equalsInteger x y)
           (\(eta : integer) (eta : integer) ->
              case
                (all dead. Ordering)
-               (case bool (equalsInteger eta eta) [False, True])
+               (equalsInteger eta eta)
                [ (/\dead ->
                     case
                       (all dead. Ordering)
-                      (case bool (lessThanEqualsInteger eta eta) [False, True])
+                      (lessThanEqualsInteger eta eta)
                       [(/\dead -> GT), (/\dead -> LT)]
                       {all dead. dead})
                , (/\dead -> EQ) ]
                {all dead. dead})
-          (\(x : integer) (y : integer) ->
-             case bool (lessThanInteger x y) [False, True])
-          (\(x : integer) (y : integer) ->
-             case bool (lessThanEqualsInteger x y) [False, True])
+          (\(x : integer) (y : integer) -> lessThanInteger x y)
+          (\(x : integer) (y : integer) -> lessThanEqualsInteger x y)
           (\(x : integer) (y : integer) ->
              ifThenElse {bool} (lessThanEqualsInteger x y) False True)
           (\(x : integer) (y : integer) ->
@@ -44,13 +41,13 @@
           (\(x : integer) (y : integer) ->
              case
                (all dead. integer)
-               (case bool (lessThanEqualsInteger x y) [False, True])
+               (lessThanEqualsInteger x y)
                [(/\dead -> x), (/\dead -> y)]
                {all dead. dead})
           (\(x : integer) (y : integer) ->
              case
                (all dead. integer)
-               (case bool (lessThanEqualsInteger x y) [False, True])
+               (lessThanEqualsInteger x y)
                [(/\dead -> y), (/\dead -> x)]
                {all dead. dead})
     !`<` : all a. Ord a -> a -> a -> bool

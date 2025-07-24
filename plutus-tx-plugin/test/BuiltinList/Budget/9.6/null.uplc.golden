@@ -1,1 +1,1 @@
-(program 1.1.0 (\xs -> case (force nullList xs) [False, True]))
+(program 1.1.0 (\xs -> force nullList xs))

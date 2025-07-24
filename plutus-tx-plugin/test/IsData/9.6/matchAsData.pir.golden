@@ -37,19 +37,12 @@ let
   ~`$fUnsafeFromDataSecretlyData` : (\a -> data -> a) data
     = `$cunsafeFromBuiltinData`
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   ~equalsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-            !b : bool = equalsInteger x y
-          in
-          ifThenElse {bool} b True False
+        \(y : integer) -> let !y : integer = y in equalsInteger x y
   ~`$fEqInteger` : (\a -> a -> a -> bool) integer = equalsInteger
   ~`==` : all a. (\a -> a -> a -> bool) a -> a -> a -> bool
     = /\a -> \(v : (\a -> a -> a -> bool) a) -> v

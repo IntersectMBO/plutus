@@ -19,7 +19,7 @@ letrec
              /\dead ->
                case
                  (all dead. data)
-                 (case bool (equalsInteger 0 ds) [False, True])
+                 (equalsInteger 0 ds)
                  [(/\dead -> go (subtractInteger ds 1) xs), (/\dead -> x)]
                  {all dead. dead})
           {all dead. dead}

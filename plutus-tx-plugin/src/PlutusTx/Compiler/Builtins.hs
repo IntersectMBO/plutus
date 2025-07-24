@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -214,8 +215,6 @@ builtinNames =
   , 'Builtins.trace
   , ''Builtins.BuiltinBool
   , 'Builtins.ifThenElse
-  , 'Builtins.true
-  , 'Builtins.false
   , ''Builtins.BuiltinUnit
   , 'Builtins.unitval
   , 'Builtins.chooseUnit
@@ -311,21 +310,37 @@ defineBuiltinType name ty = do
   -- these are all aliases for now
   PIR.recordAlias (LexName $ GHC.getName tc)
 
-defineBoolType :: (CompilingDefault uni fun m ann) => m ()
+defineBoolType :: forall uni fun m ann. (CompilingDefault uni fun m ann) => m ()
 defineBoolType = do
+  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
+
   defineBuiltinType ''Bool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
 
   builtinBoolName <- LexName . GHC.getName <$> lookupGhcTyCon ''Bool
   boolTyCon <- lookupGhcTyCon ''Bool
 
+  let
+    -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
+    -- changes definintion of `Bool`, of course). Similarly, we can expect we always
+    -- get correct number of branches, two.
+    caseMatcher :: PIR.ManualMatcher uni fun Ann
+    caseMatcher _tyArgs scrut resTy branches =
+      case datatypeStyle of
+        PIR.ScottEncoding ->
+          -- For IfThenElse, true branch comes first.
+          PIR.mkIterApp
+            (PIR.tyInst annAlwaysInline
+               (PIR.builtin annAlwaysInline PLC.IfThenElse)
+               resTy)
+            ((annAlwaysInline, ) <$> (scrut : reverse branches))
+        _SOP_or_BuiltinCasing ->
+          PIR.kase annAlwaysInline resTy scrut branches
+
   PIR.defineManualDatatype
     (LexName $ GHC.getName boolTyCon)
     (PIR.ManualDatatype
         [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
-        -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
-        -- changes definintion of `Bool`, of course). Similarly, we can expect we always
-        -- get correct number of branches, two.
-        (\_tyArgs scrut resTy branches -> PIR.kase annAlwaysInline resTy scrut branches)
+        caseMatcher
         []
     )
     (Set.fromList [builtinBoolName])

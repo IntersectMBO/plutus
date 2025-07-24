@@ -52,20 +52,13 @@ let
     = /\a ->
         \(g : all b. (a -> b -> b) -> b -> b) ->
           g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
   ~lessThanInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-            !b : bool = lessThanInteger x y
-          in
-          ifThenElse {bool} b True False
+        \(y : integer) -> let !y : integer = y in lessThanInteger x y
 in
 allDirect
   {integer}

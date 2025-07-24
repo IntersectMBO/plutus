@@ -20,8 +20,8 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
                                    BuiltinBLS12_381_MlResult, BuiltinBool, BuiltinByteString (..),
                                    BuiltinData, BuiltinInteger, BuiltinList (..), BuiltinPair,
-                                   BuiltinString (..), BuiltinUnit, caseList', chooseUnit, false,
-                                   fst, ifThenElse, mkCons, mkPairData, snd, true, unitval)
+                                   BuiltinString (..), BuiltinUnit, caseList', chooseUnit, fst,
+                                   mkCons, mkPairData, snd, unitval)
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
@@ -253,10 +253,10 @@ instance HasFromOpaque BuiltinUnit () where
   {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque Bool BuiltinBool where
-  toOpaque b = if b then true else false
+  toOpaque b = b
   {-# INLINEABLE toOpaque #-}
 instance HasFromOpaque BuiltinBool Bool where
-  fromOpaque b = ifThenElse b True False
+  fromOpaque b = b
   {-# INLINEABLE fromOpaque #-}
 
 {-| The empty list of elements of the given type that gets spotted by the plugin (grep for

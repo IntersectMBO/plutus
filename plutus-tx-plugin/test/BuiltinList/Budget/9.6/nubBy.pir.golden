@@ -1,19 +1,12 @@
 let
   ~`$fMkNilInteger` : (\arep -> list arep) integer = []
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
   ~lessThanEqualsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-            !b : bool = lessThanEqualsInteger x y
-          in
-          ifThenElse {bool} b True False
+        \(y : integer) -> let !y : integer = y in lessThanEqualsInteger x y
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
   ~elemBy : all a. (a -> a -> bool) -> a -> list a -> bool

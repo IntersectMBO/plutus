@@ -94,55 +94,6 @@
     )
     (termbind
       { no-src-span }
-      (strict)
-      (vardecl
-        { no-src-span }
-        ifThenElse
-        (all
-          { no-src-span }
-          a
-          ({ no-src-span } type)
-          (fun
-            { no-src-span }
-            (con { no-src-span } bool)
-            (fun
-              { no-src-span }
-              { no-src-span } a
-              (fun { no-src-span } { no-src-span } a { no-src-span } a)
-            )
-          )
-        )
-      )
-      (abs
-        { no-src-span }
-        a
-        ({ no-src-span } type)
-        (lam
-          { no-src-span }
-          b
-          (con { no-src-span } bool)
-          (lam
-            { no-src-span }
-            x
-            { no-src-span } a
-            (lam
-              { no-src-span }
-              y
-              { no-src-span } a
-              (case
-                { no-src-span }
-                { no-src-span } a
-                { no-src-span } b
-                { no-src-span } y
-                { no-src-span } x
-              )
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      { no-src-span }
       (nonstrict)
       (vardecl
         { no-src-span }
@@ -183,36 +134,14 @@
                 (vardecl { no-src-span } y (con { no-src-span } integer))
                 { no-src-span } y
               )
-              (termbind
-                { no-src-span }
-                (strict)
-                (vardecl { no-src-span } b (con { no-src-span } bool))
-                [
-                  { no-src-span }
-                  [
-                    { no-src-span }
-                    { no-src-span } equalsInteger
-                    { no-src-span } x
-                  ]
-                  { no-src-span } y
-                ]
-              )
               [
                 { no-src-span }
                 [
                   { no-src-span }
-                  [
-                    { no-src-span }
-                    {
-                      { no-src-span }
-                      { no-src-span } ifThenElse
-                      (con { no-src-span } bool)
-                    }
-                    { no-src-span } b
-                  ]
-                  (con { no-src-span } bool True)
+                  { no-src-span } equalsInteger
+                  { no-src-span } x
                 ]
-                (con { no-src-span } bool False)
+                { no-src-span } y
               ]
             )
           )

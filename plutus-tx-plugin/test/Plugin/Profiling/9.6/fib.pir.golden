@@ -16,8 +16,6 @@ let
                trace {integer} "<- addInteger" (addInteger x y))
             ()
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   ~equalsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
@@ -31,13 +29,7 @@ let
             {unit -> bool}
             "-> equalsInteger"
             (\(thunk : unit) ->
-               trace
-                 {bool}
-                 "<- equalsInteger"
-                 (let
-                   !b : bool = equalsInteger x y
-                 in
-                 ifThenElse {bool} b True False))
+               trace {bool} "<- equalsInteger" (equalsInteger x y))
             ()
   !subtractInteger : integer -> integer -> integer = subtractInteger
   ~subtractInteger : integer -> integer -> integer

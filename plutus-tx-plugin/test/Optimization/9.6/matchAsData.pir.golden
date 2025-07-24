@@ -22,7 +22,7 @@ in
     (\(ds : integer) (ds : list data) ->
        case
          (all dead. integer)
-         (case bool (equalsInteger 0 ds) [False, True])
+         (equalsInteger 0 ds)
          [ (/\dead ->
               Tuple2_match
                 {integer}
@@ -41,7 +41,7 @@ in
                 (\(ds : integer) (ds : list data) ->
                    case
                      (all dead. integer)
-                     (case bool (equalsInteger 1 ds) [False, True])
+                     (equalsInteger 1 ds)
                      [ (/\dead ->
                           let
                             !defaultBody : integer = error {integer}

@@ -18,7 +18,7 @@ letrec
                in
                case
                  (all dead. List integer)
-                 (case bool (equalsInteger 0 (modInteger x 2)) [False, True])
+                 (equalsInteger 0 (modInteger x 2))
                  [(/\dead -> xs), (/\dead -> Cons {integer} x xs)]
                  {all dead. dead})
           {all dead. dead}

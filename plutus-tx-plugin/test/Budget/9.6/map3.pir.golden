@@ -26,10 +26,7 @@ letrec
                                 (all dead.
                                    list (pair data data) ->
                                    list (pair data data))
-                                (case
-                                   bool
-                                   (equalsData k (fstPair {data} {data} hd))
-                                   [False, True])
+                                (equalsData k (fstPair {data} {data} hd))
                                 [ (/\dead ->
                                      \(eta : list (pair data data)) ->
                                        mkCons {pair data data} hd (go eta))
@@ -83,10 +80,7 @@ let
                   , (\(hd : pair data data) ->
                        case
                          (all dead. list (pair data data) -> Maybe data)
-                         (case
-                            bool
-                            (equalsData k (fstPair {data} {data} hd))
-                            [False, True])
+                         (equalsData k (fstPair {data} {data} hd))
                          [ (/\dead -> go)
                          , (/\dead ->
                               \(ds : list (pair data data)) ->
@@ -378,15 +372,15 @@ in
           in
           case
             (all dead. These integer integer)
-            (case bool (equalsInteger 0 index) [False, True])
+            (equalsInteger 0 index)
             [ (/\dead ->
                  case
                    (all dead. These integer integer)
-                   (case bool (equalsInteger 1 index) [False, True])
+                   (equalsInteger 1 index)
                    [ (/\dead ->
                         case
                           (all dead. These integer integer)
-                          (case bool (equalsInteger 2 index) [False, True])
+                          (equalsInteger 2 index)
                           [ (/\dead ->
                                let
                                  !x : Unit = trace {Unit} "PT1" Unit

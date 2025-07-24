@@ -34,30 +34,21 @@ in
   in
   case
     (all dead. data)
-    (case
-       bool
-       (equalsInteger 0 (fstPair {integer} {list data} tup))
-       [False, True])
+    (equalsInteger 0 (fstPair {integer} {list data} tup))
     [ (/\dead ->
          let
            !tup : pair integer (list data) = unConstrData d
          in
          case
            (all dead. data)
-           (case
-              bool
-              (equalsInteger 0 (fstPair {integer} {list data} tup))
-              [False, True])
+           (equalsInteger 0 (fstPair {integer} {list data} tup))
            [ (/\dead ->
                 let
                   !tup : pair integer (list data) = unConstrData d
                 in
                 case
                   (all dead. data)
-                  (case
-                     bool
-                     (equalsInteger 2 (fstPair {integer} {list data} tup))
-                     [False, True])
+                  (equalsInteger 2 (fstPair {integer} {list data} tup))
                   [ (/\dead -> fail ())
                   , (/\dead ->
                        let

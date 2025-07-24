@@ -3,7 +3,7 @@ letrec
     = \(x : integer) ->
         case
           (all dead. integer)
-          (case bool (equalsInteger 0 x) [False, True])
+          (equalsInteger 0 x)
           [ (/\dead -> multiplyInteger x (factorial (subtractInteger x 1)))
           , (/\dead -> 1) ]
           {all dead. dead}

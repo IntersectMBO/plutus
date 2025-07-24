@@ -50,8 +50,7 @@ let
           (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
           (\(void : unit) -> error {integer})
   !lessThanInteger : integer -> integer -> bool
-    = \(x : integer) (y : integer) ->
-        case bool (lessThanInteger x y) [False, True]
+    = \(x : integer) (y : integer) -> lessThanInteger x y
 in
 \(d : data) ->
   let

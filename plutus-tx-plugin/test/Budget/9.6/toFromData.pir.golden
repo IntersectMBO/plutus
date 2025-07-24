@@ -89,11 +89,11 @@ in
     in
     case
       (all dead. Either integer b)
-      (case bool (equalsInteger 0 index) [False, True])
+      (equalsInteger 0 index)
       [ (/\dead ->
            case
              (all dead. Either integer b)
-             (case bool (equalsInteger 1 index) [False, True])
+             (equalsInteger 1 index)
              [ (/\dead -> traceError {Either integer b} "PT1")
              , (/\dead ->
                   Right
@@ -116,11 +116,11 @@ in
        in
        case
          (all dead. Maybe a)
-         (case bool (equalsInteger 1 index) [False, True])
+         (equalsInteger 1 index)
          [ (/\dead ->
               case
                 (all dead. Maybe a)
-                (case bool (equalsInteger 0 index) [False, True])
+                (equalsInteger 0 index)
                 [ (/\dead -> traceError {Maybe a} "PT1")
                 , (/\dead ->
                      Just {a} (`$dUnsafeFromData` (headList {data} args))) ]
@@ -135,7 +135,7 @@ in
         in
         case
           (all dead. Tuple3 bool integer bool)
-          (case bool (equalsInteger 0 index) [False, True])
+          (equalsInteger 0 index)
           [ (/\dead -> traceError {Tuple3 bool integer bool} "PT1")
           , (/\dead ->
                let

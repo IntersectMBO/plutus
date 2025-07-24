@@ -11,8 +11,6 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !fst : all a b. pair a b -> a = fstPair
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !snd : all a b. pair a b -> b = sndPair
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~`$fFromDataTuple2_$cfromBuiltinData` :
@@ -36,11 +34,10 @@ let
                  !tup : pair integer (list data) = unsafeDataAsConstr d
                  !index : integer = fst {integer} {list data} tup
                  !args : list data = snd {integer} {list data} tup
-                 !b : bool = equalsInteger 0 index
                in
                case
                  (all dead. Maybe (Tuple2 a b))
-                 (ifThenElse {bool} b True False)
+                 (equalsInteger 0 index)
                  [ (/\dead -> Nothing {Tuple2 a b})
                  , (/\dead ->
                       Maybe_match

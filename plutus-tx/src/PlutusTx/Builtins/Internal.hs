@@ -115,12 +115,6 @@ BOOL
 -- See Note [Opaque builtin types]
 type BuiltinBool = Bool
 
-true :: BuiltinBool
-true = True
-
-false :: BuiltinBool
-false = False
-
 ifThenElse :: Bool -> a -> a -> a
 ifThenElse b x y = if b then x else y
 {-# OPAQUE ifThenElse #-}

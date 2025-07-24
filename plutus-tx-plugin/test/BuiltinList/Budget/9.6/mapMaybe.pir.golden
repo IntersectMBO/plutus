@@ -37,19 +37,14 @@ let
           in
           go
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !modInteger : integer -> integer -> integer = modInteger
-  ~even : integer -> bool
+  ~odd : integer -> bool
     = \(n : integer) ->
         let
           !n : integer = n
           !x : integer = modInteger n 2
-          !b : bool = equalsInteger x 0
         in
-        ifThenElse {bool} b True False
-  ~odd : integer -> bool
-    = \(n : integer) -> let !n : integer = n in case bool (even n) [True, False]
+        case bool (equalsInteger x 0) [True, False]
 in
 \(xs : list integer) ->
   let

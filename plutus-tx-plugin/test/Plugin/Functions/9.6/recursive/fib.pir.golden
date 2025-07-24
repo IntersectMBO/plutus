@@ -7,19 +7,12 @@ let
         in
         \(y : integer) -> let !y : integer = y in addInteger x y
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   ~equalsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-            !b : bool = equalsInteger x y
-          in
-          ifThenElse {bool} b True False
+        \(y : integer) -> let !y : integer = y in equalsInteger x y
   !subtractInteger : integer -> integer -> integer = subtractInteger
   ~subtractInteger : integer -> integer -> integer
     = \(x : integer) ->

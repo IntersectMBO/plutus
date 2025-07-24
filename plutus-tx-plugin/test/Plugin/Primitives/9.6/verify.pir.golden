@@ -1,6 +1,4 @@
 let
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !verifyEd25519Signature : bytestring -> bytestring -> bytestring -> bool
     = verifyEd25519Signature
   ~verifyEd25519Signature : bytestring -> bytestring -> bytestring -> bool
@@ -15,9 +13,8 @@ let
           \(signature : bytestring) ->
             let
               !signature : bytestring = signature
-              !b : bool = verifyEd25519Signature pubKey message signature
             in
-            ifThenElse {bool} b True False
+            verifyEd25519Signature pubKey message signature
 in
 \(ds : bytestring) ->
   let

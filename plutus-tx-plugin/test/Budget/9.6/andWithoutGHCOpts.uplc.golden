@@ -1,8 +1,3 @@
 (program
    1.1.0
-   ((\x y ->
-       case
-         (case (lessThanInteger x 3) [False, True])
-         [False, (case (lessThanInteger y 3) [False, True])])
-      4
-      4))
+   ((\x y -> case (lessThanInteger x 3) [False, (lessThanInteger y 3)]) 4 4))

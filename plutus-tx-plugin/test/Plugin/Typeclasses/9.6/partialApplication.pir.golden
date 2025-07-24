@@ -4,8 +4,6 @@ let
     GT : Ordering
     LT : Ordering
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
   ~`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
     = \(eta : integer) ->
@@ -15,18 +13,14 @@ let
         \(eta : integer) ->
           let
             !y : integer = eta
-            !b : bool = equalsInteger x y
           in
           case
             (all dead. Ordering)
-            (ifThenElse {bool} b True False)
+            (equalsInteger x y)
             [ (/\dead ->
-                 let
-                   !b : bool = lessThanEqualsInteger x y
-                 in
                  case
                    (all dead. Ordering)
-                   (ifThenElse {bool} b True False)
+                   (lessThanEqualsInteger x y)
                    [(/\dead -> GT), (/\dead -> LT)]
                    {all dead. dead})
             , (/\dead -> EQ) ]
