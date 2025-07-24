@@ -329,17 +329,17 @@ defineBoolType = do
         PIR.ScottEncoding ->
           -- For IfThenElse, true branch comes first.
           PIR.mkIterApp
-            (PIR.tyInst annAlwaysInline
-               (PIR.builtin annAlwaysInline PLC.IfThenElse)
+            (PIR.tyInst annMayInline
+               (PIR.builtin annMayInline PLC.IfThenElse)
                resTy)
-            ((annAlwaysInline, ) <$> (scrut : reverse branches))
+            ((annMayInline, ) <$> (scrut : reverse branches))
         _SOP_or_BuiltinCasing ->
-          PIR.kase annAlwaysInline resTy scrut branches
+          PIR.kase annMayInline resTy scrut branches
 
   PIR.defineManualDatatype
     (LexName $ GHC.getName boolTyCon)
     (PIR.ManualDatatype
-        [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
+        [PIR.mkConstant annMayInline False, PIR.mkConstant annAlwaysInline True]
         caseMatcher
         []
     )

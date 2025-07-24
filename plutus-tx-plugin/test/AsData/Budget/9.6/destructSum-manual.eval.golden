@@ -1,6 +1,6 @@
-CPU:                 7_253_244
-Memory:                 25_387
-Term Size:                 218
-Flat Size:                 223
+CPU:                 6_889_454
+Memory:                 24_823
+Term Size:                 213
+Flat Size:                 220
 
 (con data (Constr 0 [I 20, I 40, I 60, I 80]))
