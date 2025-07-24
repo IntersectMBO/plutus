@@ -610,7 +610,7 @@ doMintAndPayOtherTokenName cs ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoMint = txInfoMint txInfo <> assetClassValue otherAc (toInteger . Li.length . txInfoOutputs $ txInfo)
+              { txInfoMint = txInfoMint txInfo <> assetClassValue otherAc (Li.length . txInfoOutputs $ txInfo)
               , txInfoOutputs = txInfoOutputs txInfo <> Li.fromSOP [out {txOutValue = assetClassValue otherAc 1 <> txOutValue out} | out <- Li.toSOP (txInfoOutputs txInfo)]
               }
         }
