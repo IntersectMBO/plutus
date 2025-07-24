@@ -189,33 +189,23 @@
                                                                                                                                                                    tailList
                                                                                                                                                                    args)))) ])
                                                                                                                                                   (\d ->
-                                                                                                                                                     (\tup ->
-                                                                                                                                                        (\index ->
-                                                                                                                                                           (\args ->
-                                                                                                                                                              case
-                                                                                                                                                                (equalsInteger
-                                                                                                                                                                   0
-                                                                                                                                                                   index)
-                                                                                                                                                                [ (case
-                                                                                                                                                                     (equalsInteger
-                                                                                                                                                                        1
-                                                                                                                                                                        index)
-                                                                                                                                                                     [ (traceError
-                                                                                                                                                                          "PT1")
-                                                                                                                                                                     , (constr 0
-                                                                                                                                                                          [  ]) ])
-                                                                                                                                                                , (constr 1
-                                                                                                                                                                     [  ]) ])
-                                                                                                                                                             (force
-                                                                                                                                                                (force
-                                                                                                                                                                   sndPair)
-                                                                                                                                                                tup))
+                                                                                                                                                     (\idx ->
+                                                                                                                                                        case
+                                                                                                                                                          (equalsInteger
+                                                                                                                                                             0
+                                                                                                                                                             idx)
+                                                                                                                                                          [ (case
+                                                                                                                                                               (equalsInteger
+                                                                                                                                                                  1
+                                                                                                                                                                  idx)
+                                                                                                                                                               [ error
+                                                                                                                                                               , True ])
+                                                                                                                                                          , False ])
+                                                                                                                                                       (force
                                                                                                                                                           (force
-                                                                                                                                                             (force
-                                                                                                                                                                fstPair)
-                                                                                                                                                             tup))
-                                                                                                                                                       (unConstrData
-                                                                                                                                                          d)))
+                                                                                                                                                             fstPair)
+                                                                                                                                                          (unConstrData
+                                                                                                                                                             d))))
                                                                                                                                                (\`$dUnsafeFromData`
                                                                                                                                                  d ->
                                                                                                                                                   (\tup ->
@@ -493,20 +483,21 @@
                                                                                     (\obsScriptCred' ->
                                                                                        (\`$fEqStakingCredential_$c==` ->
                                                                                           (\go ->
-                                                                                             case
+                                                                                             (\cse ->
+                                                                                                case
+                                                                                                  (cse
+                                                                                                     a)
+                                                                                                  [ (case
+                                                                                                       (cse
+                                                                                                          a)
+                                                                                                       [ (go
+                                                                                                            ds)
+                                                                                                       , (constr 0
+                                                                                                            [  ]) ])
+                                                                                                  , (constr 0
+                                                                                                       [  ]) ])
                                                                                                (`$fEqStakingCredential_$c==`
-                                                                                                  obsScriptCred'
-                                                                                                  a)
-                                                                                               [ (constr 0
-                                                                                                    [  ])
-                                                                                               , (case
-                                                                                                    (`$fEqStakingCredential_$c==`
-                                                                                                       obsScriptCred'
-                                                                                                       a)
-                                                                                                    [ (constr 0
-                                                                                                         [  ])
-                                                                                                    , (go
-                                                                                                         ds) ]) ])
+                                                                                                  obsScriptCred'))
                                                                                             ((\s ->
                                                                                                 s
                                                                                                   s)
@@ -531,11 +522,11 @@
                                                                                                                   (`$fEqStakingCredential_$c==`
                                                                                                                      c'
                                                                                                                      obsScriptCred')
-                                                                                                                  [ (constr 0
-                                                                                                                       [  ])
-                                                                                                                  , (s
+                                                                                                                  [ (s
                                                                                                                        s
-                                                                                                                       xs') ]) ]) ])))
+                                                                                                                       xs')
+                                                                                                                  , (constr 0
+                                                                                                                       [  ]) ]) ]) ])))
                                                                                          (\ds
                                                                                            ds ->
                                                                                             case
@@ -550,45 +541,31 @@
                                                                                                                  case
                                                                                                                    r
                                                                                                                    [ (\r ->
-                                                                                                                        case
-                                                                                                                          (equalsByteString
-                                                                                                                             l
-                                                                                                                             r)
-                                                                                                                          [ (constr 1
-                                                                                                                               [  ])
-                                                                                                                          , (constr 0
-                                                                                                                               [  ]) ])
+                                                                                                                        equalsByteString
+                                                                                                                          l
+                                                                                                                          r)
                                                                                                                    , (\ipv ->
-                                                                                                                        constr 1
-                                                                                                                          [  ]) ])
+                                                                                                                        False) ])
                                                                                                             , (\a ->
                                                                                                                  case
                                                                                                                    r
                                                                                                                    [ (\ipv ->
-                                                                                                                        constr 1
-                                                                                                                          [  ])
+                                                                                                                        False)
                                                                                                                    , (\a' ->
-                                                                                                                        case
-                                                                                                                          (equalsByteString
-                                                                                                                             a
-                                                                                                                             a')
-                                                                                                                          [ (constr 1
-                                                                                                                               [  ])
-                                                                                                                          , (constr 0
-                                                                                                                               [  ]) ]) ]) ])
+                                                                                                                        equalsByteString
+                                                                                                                          a
+                                                                                                                          a') ]) ])
                                                                                                      , (\ipv
                                                                                                          ipv
                                                                                                          ipv ->
-                                                                                                          constr 1
-                                                                                                            [  ]) ])
+                                                                                                          False) ])
                                                                                               , (\a
                                                                                                   b
                                                                                                   c ->
                                                                                                    case
                                                                                                      ds
                                                                                                      [ (\ipv ->
-                                                                                                          constr 1
-                                                                                                            [  ])
+                                                                                                          False)
                                                                                                      , (\a'
                                                                                                          b'
                                                                                                          c' ->
@@ -596,22 +573,15 @@
                                                                                                             (equalsInteger
                                                                                                                a
                                                                                                                a')
-                                                                                                            [ (constr 1
-                                                                                                                 [  ])
+                                                                                                            [ False
                                                                                                             , (case
                                                                                                                  (equalsInteger
                                                                                                                     b
                                                                                                                     b')
-                                                                                                                 [ (constr 1
-                                                                                                                      [  ])
-                                                                                                                 , (case
-                                                                                                                      (equalsInteger
-                                                                                                                         c
-                                                                                                                         c')
-                                                                                                                      [ (constr 1
-                                                                                                                           [  ])
-                                                                                                                      , (constr 0
-                                                                                                                           [  ]) ]) ]) ]) ]) ]))
+                                                                                                                 [ False
+                                                                                                                 , (equalsInteger
+                                                                                                                      c
+                                                                                                                      c') ]) ]) ]) ]))
                                                                                       (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
                                                                                          obsScriptCred)))))))) ]) ])
                                              ((\s ->

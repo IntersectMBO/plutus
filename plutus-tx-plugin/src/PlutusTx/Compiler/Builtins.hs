@@ -326,20 +326,20 @@ defineBoolType = do
     caseMatcher :: PIR.ManualMatcher uni fun Ann
     caseMatcher _tyArgs scrut resTy branches =
       case datatypeStyle of
-        PIR.ScottEncoding ->
-          -- For IfThenElse, true branch comes first.
+        style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+          -- For IfThenElse, true branch comes first hence we reverse brenches
           PIR.mkIterApp
             (PIR.tyInst annMayInline
                (PIR.builtin annMayInline PLC.IfThenElse)
                resTy)
             ((annMayInline, ) <$> (scrut : reverse branches))
-        _SOP_or_BuiltinCasing ->
+        _BuiltinCasing ->
           PIR.kase annMayInline resTy scrut branches
 
   PIR.defineManualDatatype
     (LexName $ GHC.getName boolTyCon)
     (PIR.ManualDatatype
-        [PIR.mkConstant annMayInline False, PIR.mkConstant annAlwaysInline True]
+        [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
         caseMatcher
         []
     )
