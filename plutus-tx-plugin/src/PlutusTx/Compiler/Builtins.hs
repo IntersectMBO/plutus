@@ -313,19 +313,25 @@ defineBuiltinType name ty = do
 
 defineBoolType :: (CompilingDefault uni fun m ann) => m ()
 defineBoolType = do
+  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
+
   defineBuiltinType ''Bool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
 
   builtinBoolName <- LexName . GHC.getName <$> lookupGhcTyCon ''Bool
   boolTyCon <- lookupGhcTyCon ''Bool
 
+  let
+    -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
+    -- changes definintion of `Bool`, of course). Similarly, we can expect we always
+    -- get correct number of branches, two.
+    matcher :: PIR.ManualMatcher uni fun Ann
+    matcher _tyArgs scrut resTy branches = PIR.kase annAlwaysInline resTy scrut branches
+
   PIR.defineManualDatatype
     (LexName $ GHC.getName boolTyCon)
     (PIR.ManualDatatype
         [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
-        -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
-        -- changes definintion of `Bool`, of course). Similarly, we can expect we always
-        -- get correct number of branches, two.
-        (\_tyArgs scrut resTy branches -> PIR.kase annAlwaysInline resTy scrut branches)
+        matcher
         []
     )
     (Set.fromList [builtinBoolName])
