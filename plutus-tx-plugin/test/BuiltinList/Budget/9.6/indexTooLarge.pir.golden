@@ -1,7 +1,4 @@
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   ~builtinListIndexTooLargeError : string = "PT22"
   ~builtinListNegativeIndexError : string = "PT21"
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
@@ -34,27 +31,27 @@ let
               !i : integer = i
               !b : bool = lessThanInteger i 0
             in
-            Bool_match
-              (ifThenElse {Bool} b True False)
-              {all dead. a}
-              (/\dead -> traceError {a} builtinListNegativeIndexError)
-              (/\dead ->
-                 let
-                   !l : list a = drop {a} i xs
-                 in
-                 caseList'
-                   {a}
-                   {Unit -> Unit -> a}
-                   (\(_ann : Unit) ->
-                      traceError {Unit -> a} builtinListIndexTooLargeError)
-                   (\(x : a) ->
-                      let
-                        !x : a = x
-                      in
-                      \(xs : list a) (ds : Unit) (_ann : Unit) -> x)
-                   l
-                   Unit
-                   Unit)
+            case
+              (all dead. a)
+              (ifThenElse {bool} b True False)
+              [ (/\dead ->
+                   let
+                     !l : list a = drop {a} i xs
+                   in
+                   caseList'
+                     {a}
+                     {Unit -> Unit -> a}
+                     (\(_ann : Unit) ->
+                        traceError {Unit -> a} builtinListIndexTooLargeError)
+                     (\(x : a) ->
+                        let
+                          !x : a = x
+                        in
+                        \(xs : list a) (ds : Unit) (_ann : Unit) -> x)
+                     l
+                     Unit
+                     Unit)
+              , (/\dead -> traceError {a} builtinListNegativeIndexError) ]
               {all dead. dead}
 in
 \(xs : list integer) -> let !xs : list integer = xs in `!!` {integer} xs 10

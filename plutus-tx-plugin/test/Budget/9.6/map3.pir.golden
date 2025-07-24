@@ -1,8 +1,3 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
   !safeAppend :
      list (pair data data) -> list (pair data data) -> list (pair data data)
@@ -27,19 +22,19 @@ letrec
                          xs
                          [ nilCase
                          , (\(hd : pair data data) ->
-                              Bool_match
+                              case
+                                (all dead.
+                                   list (pair data data) ->
+                                   list (pair data data))
                                 (case
-                                   Bool
+                                   bool
                                    (equalsData k (fstPair {data} {data} hd))
                                    [False, True])
-                                {all dead.
-                                   list (pair data data) ->
-                                   list (pair data data)}
-                                (/\dead ->
-                                   mkCons {pair data data} (mkPairData k v))
-                                (/\dead ->
-                                   \(eta : list (pair data data)) ->
-                                     mkCons {pair data data} hd (go eta))
+                                [ (/\dead ->
+                                     \(eta : list (pair data data)) ->
+                                       mkCons {pair data data} hd (go eta))
+                                , (/\dead ->
+                                     mkCons {pair data data} (mkPairData k v)) ]
                                 {all dead. dead}) ]
                in
                go eta) ]
@@ -86,16 +81,16 @@ let
                   xs
                   [ (Nothing {data})
                   , (\(hd : pair data data) ->
-                       Bool_match
+                       case
+                         (all dead. list (pair data data) -> Maybe data)
                          (case
-                            Bool
+                            bool
                             (equalsData k (fstPair {data} {data} hd))
                             [False, True])
-                         {all dead. list (pair data data) -> Maybe data}
-                         (/\dead ->
-                            \(ds : list (pair data data)) ->
-                              Just {data} (sndPair {data} {data} hd))
-                         (/\dead -> go)
+                         [ (/\dead -> go)
+                         , (/\dead ->
+                              \(ds : list (pair data data)) ->
+                                Just {data} (sndPair {data} {data} hd)) ]
                          {all dead. dead}) ]
         in
         \(m : list (pair data data)) -> go m
@@ -381,33 +376,37 @@ in
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          Bool_match
-            (case Bool (equalsInteger 0 index) [False, True])
-            {all dead. These integer integer}
-            (/\dead ->
-               This {integer} {integer} (unIData (headList {data} args)))
-            (/\dead ->
-               Bool_match
-                 (case Bool (equalsInteger 1 index) [False, True])
-                 {all dead. These integer integer}
-                 (/\dead ->
-                    That {integer} {integer} (unIData (headList {data} args)))
-                 (/\dead ->
-                    Bool_match
-                      (case Bool (equalsInteger 2 index) [False, True])
-                      {all dead. These integer integer}
-                      (/\dead ->
-                         These
-                           {integer}
-                           {integer}
-                           (unIData (headList {data} args))
-                           (unIData (headList {data} (tailList {data} args))))
-                      (/\dead ->
-                         let
-                           !x : Unit = trace {Unit} "PT1" Unit
-                         in
-                         error {These integer integer})
-                      {all dead. dead})
-                 {all dead. dead})
+          case
+            (all dead. These integer integer)
+            (case bool (equalsInteger 0 index) [False, True])
+            [ (/\dead ->
+                 case
+                   (all dead. These integer integer)
+                   (case bool (equalsInteger 1 index) [False, True])
+                   [ (/\dead ->
+                        case
+                          (all dead. These integer integer)
+                          (case bool (equalsInteger 2 index) [False, True])
+                          [ (/\dead ->
+                               let
+                                 !x : Unit = trace {Unit} "PT1" Unit
+                               in
+                               error {These integer integer})
+                          , (/\dead ->
+                               These
+                                 {integer}
+                                 {integer}
+                                 (unIData (headList {data} args))
+                                 (unIData
+                                    (headList {data} (tailList {data} args)))) ]
+                          {all dead. dead})
+                   , (/\dead ->
+                        That
+                          {integer}
+                          {integer}
+                          (unIData (headList {data} args))) ]
+                   {all dead. dead})
+            , (/\dead ->
+                 This {integer} {integer} (unIData (headList {data} args))) ]
             {all dead. dead})
        nt)

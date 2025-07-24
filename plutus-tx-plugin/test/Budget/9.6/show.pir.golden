@@ -1,8 +1,3 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
   data (List :: * -> *) a | List_match where
     Nil : List a
@@ -14,11 +9,11 @@ letrec
         let
           !x : integer = quotientInteger n 10
         in
-        Bool_match
-          (case Bool (equalsInteger 0 x) [False, True])
-          {all dead. List integer}
-          (/\dead -> Cons {integer} (remainderInteger n 10) acc)
-          (/\dead -> go (Cons {integer} (remainderInteger n 10) acc) x)
+        case
+          (all dead. List integer)
+          (case bool (equalsInteger 0 x) [False, True])
+          [ (/\dead -> go (Cons {integer} (remainderInteger n 10) acc) x)
+          , (/\dead -> Cons {integer} (remainderInteger n 10) acc) ]
           {all dead. dead}
 in
 letrec
@@ -39,90 +34,109 @@ letrec
                \(eta : List string) ->
                  Cons
                    {string}
-                   (Bool_match
-                      (case Bool (equalsInteger 0 x) [False, True])
-                      {all dead. string}
-                      (/\dead -> "0")
-                      (/\dead ->
-                         Bool_match
-                           (case Bool (equalsInteger 1 x) [False, True])
-                           {all dead. string}
-                           (/\dead -> "1")
-                           (/\dead ->
-                              Bool_match
-                                (case Bool (equalsInteger 2 x) [False, True])
-                                {all dead. string}
-                                (/\dead -> "2")
-                                (/\dead ->
-                                   Bool_match
-                                     (case
-                                        Bool
-                                        (equalsInteger 3 x)
-                                        [False, True])
-                                     {all dead. string}
-                                     (/\dead -> "3")
-                                     (/\dead ->
-                                        Bool_match
-                                          (case
-                                             Bool
-                                             (equalsInteger 4 x)
-                                             [False, True])
-                                          {all dead. string}
-                                          (/\dead -> "4")
-                                          (/\dead ->
-                                             Bool_match
-                                               (case
-                                                  Bool
-                                                  (equalsInteger 5 x)
-                                                  [False, True])
-                                               {all dead. string}
-                                               (/\dead -> "5")
-                                               (/\dead ->
-                                                  Bool_match
-                                                    (case
-                                                       Bool
-                                                       (equalsInteger 6 x)
-                                                       [False, True])
-                                                    {all dead. string}
-                                                    (/\dead -> "6")
-                                                    (/\dead ->
-                                                       Bool_match
+                   (case
+                      (all dead. string)
+                      (case bool (equalsInteger 0 x) [False, True])
+                      [ (/\dead ->
+                           case
+                             (all dead. string)
+                             (case bool (equalsInteger 1 x) [False, True])
+                             [ (/\dead ->
+                                  case
+                                    (all dead. string)
+                                    (case
+                                       bool
+                                       (equalsInteger 2 x)
+                                       [False, True])
+                                    [ (/\dead ->
+                                         case
+                                           (all dead. string)
+                                           (case
+                                              bool
+                                              (equalsInteger 3 x)
+                                              [False, True])
+                                           [ (/\dead ->
+                                                case
+                                                  (all dead. string)
+                                                  (case
+                                                     bool
+                                                     (equalsInteger 4 x)
+                                                     [False, True])
+                                                  [ (/\dead ->
+                                                       case
+                                                         (all dead. string)
                                                          (case
-                                                            Bool
-                                                            (equalsInteger 7 x)
+                                                            bool
+                                                            (equalsInteger 5 x)
                                                             [False, True])
-                                                         {all dead. string}
-                                                         (/\dead -> "7")
-                                                         (/\dead ->
-                                                            Bool_match
-                                                              (case
-                                                                 Bool
-                                                                 (equalsInteger
-                                                                    8
-                                                                    x)
-                                                                 [False, True])
-                                                              {all dead. string}
-                                                              (/\dead -> "8")
-                                                              (/\dead ->
-                                                                 Bool_match
-                                                                   (case
-                                                                      Bool
-                                                                      (equalsInteger
-                                                                         9
-                                                                         x)
-                                                                      [ False
-                                                                      , True ])
-                                                                   {string}
-                                                                   "9"
-                                                                   "<invalid digit>")
-                                                              {all dead. dead})
+                                                         [ (/\dead ->
+                                                              case
+                                                                (all dead.
+                                                                   string)
+                                                                (case
+                                                                   bool
+                                                                   (equalsInteger
+                                                                      6
+                                                                      x)
+                                                                   [ False
+                                                                   , True ])
+                                                                [ (/\dead ->
+                                                                     case
+                                                                       (all dead.
+                                                                          string)
+                                                                       (case
+                                                                          bool
+                                                                          (equalsInteger
+                                                                             7
+                                                                             x)
+                                                                          [ False
+                                                                          , True ])
+                                                                       [ (/\dead ->
+                                                                            case
+                                                                              (all dead.
+                                                                                 string)
+                                                                              (case
+                                                                                 bool
+                                                                                 (equalsInteger
+                                                                                    8
+                                                                                    x)
+                                                                                 [ False
+                                                                                 , True ])
+                                                                              [ (/\dead ->
+                                                                                   case
+                                                                                     string
+                                                                                     (case
+                                                                                        bool
+                                                                                        (equalsInteger
+                                                                                           9
+                                                                                           x)
+                                                                                        [ False
+                                                                                        , True ])
+                                                                                     [ "<invalid digit>"
+                                                                                     , "9" ])
+                                                                              , (/\dead ->
+                                                                                   "8") ]
+                                                                              {all dead.
+                                                                                 dead})
+                                                                       , (/\dead ->
+                                                                            "7") ]
+                                                                       {all dead.
+                                                                          dead})
+                                                                , (/\dead ->
+                                                                     "6") ]
+                                                                {all dead.
+                                                                   dead})
+                                                         , (/\dead -> "5") ]
                                                          {all dead. dead})
-                                                    {all dead. dead})
-                                               {all dead. dead})
-                                          {all dead. dead})
-                                     {all dead. dead})
-                                {all dead. dead})
-                           {all dead. dead})
+                                                  , (/\dead -> "4") ]
+                                                  {all dead. dead})
+                                           , (/\dead -> "3") ]
+                                           {all dead. dead})
+                                    , (/\dead -> "2") ]
+                                    {all dead. dead})
+                             , (/\dead -> "1") ]
+                             {all dead. dead})
+                      , (/\dead -> "0") ]
                       {all dead. dead})
                    (acc eta))
           {all dead. dead}
@@ -131,75 +145,89 @@ letrec
   !`$fShowBuiltinByteString_$cshowsPrec` :
      integer -> integer -> List string -> List string
     = \(p : integer) (n : integer) ->
-        Bool_match
-          (case Bool (lessThanInteger n 0) [False, True])
-          {all dead. List string -> List string}
-          (/\dead ->
-             \(eta : List string) ->
-               Cons
-                 {string}
-                 "-"
-                 (`$fShowBuiltinByteString_$cshowsPrec`
-                    p
-                    (subtractInteger 0 n)
-                    eta))
-          (/\dead -> go (go (Nil {integer}) n))
+        case
+          (all dead. List string -> List string)
+          (case bool (lessThanInteger n 0) [False, True])
+          [ (/\dead -> go (go (Nil {integer}) n))
+          , (/\dead ->
+               \(eta : List string) ->
+                 Cons
+                   {string}
+                   "-"
+                   (`$fShowBuiltinByteString_$cshowsPrec`
+                      p
+                      (subtractInteger 0 n)
+                      eta)) ]
           {all dead. dead}
 in
 let
   !toHex : integer -> List string -> List string
     = \(x : integer) ->
-        Bool_match
-          (case Bool (lessThanEqualsInteger x 9) [False, True])
-          {all dead. List string -> List string}
-          (/\dead -> `$fShowBuiltinByteString_$cshowsPrec` 0 x)
-          (/\dead ->
-             Bool_match
-               (case Bool (equalsInteger 10 x) [False, True])
-               {all dead. List string -> List string}
-               (/\dead -> \(ds : List string) -> Cons {string} "a" ds)
-               (/\dead ->
-                  Bool_match
-                    (case Bool (equalsInteger 11 x) [False, True])
-                    {all dead. List string -> List string}
-                    (/\dead -> \(ds : List string) -> Cons {string} "b" ds)
-                    (/\dead ->
-                       Bool_match
-                         (case Bool (equalsInteger 12 x) [False, True])
-                         {all dead. List string -> List string}
-                         (/\dead -> \(ds : List string) -> Cons {string} "c" ds)
-                         (/\dead ->
-                            Bool_match
-                              (case Bool (equalsInteger 13 x) [False, True])
-                              {all dead. List string -> List string}
-                              (/\dead ->
-                                 \(ds : List string) -> Cons {string} "d" ds)
-                              (/\dead ->
-                                 Bool_match
-                                   (case
-                                      Bool
-                                      (equalsInteger 14 x)
-                                      [False, True])
-                                   {all dead. List string -> List string}
-                                   (/\dead ->
-                                      \(ds : List string) ->
-                                        Cons {string} "e" ds)
-                                   (/\dead ->
-                                      Bool_match
-                                        (case
-                                           Bool
-                                           (equalsInteger 15 x)
-                                           [False, True])
-                                        {List string -> List string}
-                                        (\(ds : List string) ->
-                                           Cons {string} "f" ds)
-                                        (\(ds : List string) ->
-                                           Cons {string} "<invalid byte>" ds))
-                                   {all dead. dead})
-                              {all dead. dead})
-                         {all dead. dead})
-                    {all dead. dead})
-               {all dead. dead})
+        case
+          (all dead. List string -> List string)
+          (case bool (lessThanEqualsInteger x 9) [False, True])
+          [ (/\dead ->
+               case
+                 (all dead. List string -> List string)
+                 (case bool (equalsInteger 10 x) [False, True])
+                 [ (/\dead ->
+                      case
+                        (all dead. List string -> List string)
+                        (case bool (equalsInteger 11 x) [False, True])
+                        [ (/\dead ->
+                             case
+                               (all dead. List string -> List string)
+                               (case bool (equalsInteger 12 x) [False, True])
+                               [ (/\dead ->
+                                    case
+                                      (all dead. List string -> List string)
+                                      (case
+                                         bool
+                                         (equalsInteger 13 x)
+                                         [False, True])
+                                      [ (/\dead ->
+                                           case
+                                             (all dead.
+                                                List string -> List string)
+                                             (case
+                                                bool
+                                                (equalsInteger 14 x)
+                                                [False, True])
+                                             [ (/\dead ->
+                                                  case
+                                                    (List string -> List string)
+                                                    (case
+                                                       bool
+                                                       (equalsInteger 15 x)
+                                                       [False, True])
+                                                    [ (\(ds : List string) ->
+                                                         Cons
+                                                           {string}
+                                                           "<invalid byte>"
+                                                           ds)
+                                                    , (\(ds : List string) ->
+                                                         Cons
+                                                           {string}
+                                                           "f"
+                                                           ds) ])
+                                             , (/\dead ->
+                                                  \(ds : List string) ->
+                                                    Cons {string} "e" ds) ]
+                                             {all dead. dead})
+                                      , (/\dead ->
+                                           \(ds : List string) ->
+                                             Cons {string} "d" ds) ]
+                                      {all dead. dead})
+                               , (/\dead ->
+                                    \(ds : List string) ->
+                                      Cons {string} "c" ds) ]
+                               {all dead. dead})
+                        , (/\dead ->
+                             \(ds : List string) -> Cons {string} "b" ds) ]
+                        {all dead. dead})
+                 , (/\dead -> \(ds : List string) -> Cons {string} "a" ds) ]
+                 {all dead. dead})
+          , (/\dead -> `$fShowBuiltinByteString_$cshowsPrec` 0 x) ]
           {all dead. dead}
 in
 letrec
@@ -232,12 +260,15 @@ in
 letrec
   !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
-        Bool_match
-          (ifThenElse {Bool} (lessThanEqualsInteger x lim) False True)
-          {all dead. List integer}
-          (/\dead -> Nil {integer})
-          (/\dead ->
-             Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
+        case
+          (all dead. List integer)
+          (ifThenElse {bool} (lessThanEqualsInteger x lim) False True)
+          [ (/\dead ->
+               Cons
+                 {integer}
+                 x
+                 (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
+          , (/\dead -> Nil {integer}) ]
           {all dead. dead}
 in
 let
@@ -255,33 +286,33 @@ letrec
              Tuple2 {List string} {List string} (Nil {string}) (Nil {string}))
           (\(y : string) (ys : List string) ->
              /\dead ->
-               Bool_match
-                 (case Bool (equalsInteger 1 ds) [False, True])
-                 {all dead. Tuple2 (List string) (List string)}
-                 (/\dead ->
-                    Tuple2
-                      {List string}
-                      {List string}
-                      ((let
-                           a = List string
-                         in
-                         \(c : string -> a -> a) (n : a) -> c y n)
-                         (\(ds : string) (ds : List string) ->
-                            Cons {string} ds ds)
-                         (Nil {string}))
-                      ys)
-                 (/\dead ->
-                    Tuple2_match
-                      {List string}
-                      {List string}
-                      (go (subtractInteger ds 1) ys)
-                      {Tuple2 (List string) (List string)}
-                      (\(zs : List string) (ws : List string) ->
-                         Tuple2
-                           {List string}
-                           {List string}
-                           (Cons {string} y zs)
-                           ws))
+               case
+                 (all dead. Tuple2 (List string) (List string))
+                 (case bool (equalsInteger 1 ds) [False, True])
+                 [ (/\dead ->
+                      Tuple2_match
+                        {List string}
+                        {List string}
+                        (go (subtractInteger ds 1) ys)
+                        {Tuple2 (List string) (List string)}
+                        (\(zs : List string) (ws : List string) ->
+                           Tuple2
+                             {List string}
+                             {List string}
+                             (Cons {string} y zs)
+                             ws))
+                 , (/\dead ->
+                      Tuple2
+                        {List string}
+                        {List string}
+                        ((let
+                             a = List string
+                           in
+                           \(c : string -> a -> a) (n : a) -> c y n)
+                           (\(ds : string) (ds : List string) ->
+                              Cons {string} ds ds)
+                           (Nil {string}))
+                        ys) ]
                  {all dead. dead})
           {all dead. dead}
 in
@@ -317,12 +348,16 @@ letrec
                       (let
                         !n : integer = divideInteger (go ds) 2
                       in
-                      Bool_match
-                        (case Bool (lessThanEqualsInteger n 0) [False, True])
-                        {all dead. Tuple2 (List string) (List string)}
-                        (/\dead ->
-                           Tuple2 {List string} {List string} (Nil {string}) ds)
-                        (/\dead -> go n ds)
+                      case
+                        (all dead. Tuple2 (List string) (List string))
+                        (case bool (lessThanEqualsInteger n 0) [False, True])
+                        [ (/\dead -> go n ds)
+                        , (/\dead ->
+                             Tuple2
+                               {List string}
+                               {List string}
+                               (Nil {string})
+                               ds) ]
                         {all dead. dead})
                       {string}
                       (\(ipv : List string) (ipv : List string) ->
@@ -368,11 +403,10 @@ let
   !d : integer
     = trace
         {integer}
-        (Bool_match
-           (ifThenElse {Bool} (lessThanEqualsInteger c 0) False True)
-           {string}
-           "True"
-           "False")
+        (case
+           string
+           (ifThenElse {bool} (lessThanEqualsInteger c 0) False True)
+           ["False", "True"])
         c
   !e : integer
     = trace

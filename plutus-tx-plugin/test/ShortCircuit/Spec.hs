@@ -11,14 +11,14 @@ import ShortCircuit.WithGHCOptimisations qualified as WithOptimisations
 import ShortCircuit.WithoutGHCOptimisations qualified as WithoutOptimisations
 
 import Control.Lens ((&))
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default (DefaultFun, DefaultUni, someValue)
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode)
 import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertEqual, assertFailure, testCase)
-import UntypedPlutusCore.Core.Type (Term (Constr))
+import UntypedPlutusCore.Core.Type (Term (Constant))
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm)
 
 -- These tests are here to ensure that the short-circuiting behaviour of the logical operators
@@ -57,8 +57,8 @@ false' = liftCodeDef False
 true' :: CompiledCode Bool
 true' = liftCodeDef True
 
-termFalse :: Term name uni fun ()
-termFalse = Constr mempty 1 []
+termFalse :: NTerm DefaultUni DefaultFun ()
+termFalse = Constant () $ someValue False
 
-termTrue :: Term name uni fun ()
-termTrue = Constr mempty 0 []
+termTrue :: NTerm DefaultUni DefaultFun ()
+termTrue = Constant () $ someValue True

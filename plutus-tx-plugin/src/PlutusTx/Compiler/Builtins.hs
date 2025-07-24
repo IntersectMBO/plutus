@@ -53,6 +53,7 @@ import Control.Monad.Reader (asks)
 import Data.ByteString qualified as BS
 import Data.Functor
 import Data.Proxy
+import Data.Set qualified as Set
 import Data.Text (Text)
 import PlutusPrelude (enumerate, for_)
 
@@ -314,25 +315,20 @@ defineBoolType :: (CompilingDefault uni fun m ann) => m ()
 defineBoolType = do
   defineBuiltinType ''Bool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
 
+  builtinBoolName <- LexName . GHC.getName <$> lookupGhcTyCon ''Bool
   boolTyCon <- lookupGhcTyCon ''Bool
-  let
-    boolLexName = LexName $ GHC.getName boolTyCon
-    -- -- > \(b : Bool) ->
-    -- -- >   /\ r ->
-    -- -- >     \(fCase : r) (tCase : r) ->
-    -- -- >        (case r b fCase tCase)
-    -- boolMatcher _tyArgs scrut resTy branches =
-
-    --     PIR.kase () resTy scrut branches
 
   PIR.defineManualDatatype
-    boolLexName
+    (LexName $ GHC.getName boolTyCon)
     (PIR.ManualDatatype
-        [PIR.mkConstant annAlwaysInline True, PIR.mkConstant annAlwaysInline False]
-        (\_tyArgs scrut resTy branches -> PIR.kase annAlwaysInline resTy scrut (reverse branches))
+        [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
+        -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
+        -- changes definintion of `Bool`, of course). Similarly, we can expect we always
+        -- get correct number of branches, two.
+        (\_tyArgs scrut resTy branches -> PIR.kase annAlwaysInline resTy scrut branches)
         []
     )
-    mempty
+    (Set.fromList [builtinBoolName])
 
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: (CompilingDefault uni fun m ann) => m ()
@@ -346,10 +342,6 @@ defineBuiltinTerms = do
 
   -- Unit constant
   defineBuiltinTerm annMayInline 'Builtins.unitval $ PIR.mkConstant annMayInline ()
-
-  -- Bool constants
-  defineBuiltinTerm annMayInline 'Builtins.true $ PIR.mkConstant annMayInline True
-  defineBuiltinTerm annMayInline 'Builtins.false $ PIR.mkConstant annMayInline False
 
   -- ByteString constant
   defineBuiltinTerm annMayInline 'Builtins.emptyByteString $ PIR.mkConstant annMayInline BS.empty
@@ -577,7 +569,6 @@ defineBuiltinTypes = do
     PLC.toTypeAst $
       Proxy @BS.ByteString
   defineBuiltinType ''Integer . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Integer
-  defineBuiltinType ''Builtins.BuiltinBool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
   defineBuiltinType ''Builtins.BuiltinUnit . ($> annMayInline) $ PLC.toTypeAst $ Proxy @()
   defineBuiltinType ''Builtins.BuiltinString . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Text
   defineBuiltinType ''Builtins.BuiltinData . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data

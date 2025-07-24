@@ -1,6 +1,1 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 True

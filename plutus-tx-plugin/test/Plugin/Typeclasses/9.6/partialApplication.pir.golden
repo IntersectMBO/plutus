@@ -1,7 +1,4 @@
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data Ordering | Ordering_match where
     EQ : Ordering
     GT : Ordering
@@ -20,20 +17,19 @@ let
             !y : integer = eta
             !b : bool = equalsInteger x y
           in
-          Bool_match
-            (ifThenElse {Bool} b True False)
-            {all dead. Ordering}
-            (/\dead -> EQ)
-            (/\dead ->
-               let
-                 !b : bool = lessThanEqualsInteger x y
-               in
-               Bool_match
-                 (ifThenElse {Bool} b True False)
-                 {all dead. Ordering}
-                 (/\dead -> LT)
-                 (/\dead -> GT)
-                 {all dead. dead})
+          case
+            (all dead. Ordering)
+            (ifThenElse {bool} b True False)
+            [ (/\dead ->
+                 let
+                   !b : bool = lessThanEqualsInteger x y
+                 in
+                 case
+                   (all dead. Ordering)
+                   (ifThenElse {bool} b True False)
+                   [(/\dead -> GT), (/\dead -> LT)]
+                   {all dead. dead})
+            , (/\dead -> EQ) ]
             {all dead. dead}
 in
 `$fOrdInteger_$ccompare`

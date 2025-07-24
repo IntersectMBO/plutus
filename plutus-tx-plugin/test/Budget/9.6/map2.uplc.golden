@@ -29,7 +29,7 @@
                                                         xs ->
                                                          case
                                                            xs
-                                                           [ (constr 1 [])
+                                                           [ False
                                                            , (\hd ->
                                                                 case
                                                                   (equalsData
@@ -41,11 +41,10 @@
                                                                   [ (\x ->
                                                                        s s x)
                                                                   , (\ds ->
-                                                                       constr 0
-                                                                         [  ]) ]) ])
+                                                                       True) ]) ])
                                                       nt)
                                                    (force (force fstPair) hd))
-                                                [tl', (force mkCons hd tl')])
+                                                [(force mkCons hd tl'), tl'])
                                              (s s tl)) ])
                                  nt)))
                         (unsafeFromSOPList

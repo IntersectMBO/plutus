@@ -1556,10 +1556,13 @@ compileExprWithDefs
   => GHC.CoreExpr
   -> m (PIRTerm uni fun)
 compileExprWithDefs e = do
+  -- Order matters here. Generlly, Once that define types should go before anything that defines
+  -- terms. Otherwise, type definitions might get ignored if they appear in types of term definitions.
+  defineBoolType
   defineBuiltinTypes
+
   defineBuiltinTerms
   defineIntegerNegate
-  defineBoolType
   defineFix
   compileExpr e
 

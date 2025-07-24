@@ -3,9 +3,6 @@ let
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
   !ifThenElse : all a. bool -> a -> a -> a
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data Ordering | Ordering_match where
     EQ : Ordering
     GT : Ordering
@@ -20,20 +17,19 @@ let
             !y : integer = eta
             !b : bool = equalsInteger x y
           in
-          Bool_match
-            (ifThenElse {Bool} b True False)
-            {all dead. Ordering}
-            (/\dead -> EQ)
-            (/\dead ->
-               let
-                 !b : bool = lessThanEqualsInteger x y
-               in
-               Bool_match
-                 (ifThenElse {Bool} b True False)
-                 {all dead. Ordering}
-                 (/\dead -> LT)
-                 (/\dead -> GT)
-                 {all dead. dead})
+          case
+            (all dead. Ordering)
+            (ifThenElse {bool} b True False)
+            [ (/\dead ->
+                 let
+                   !b : bool = lessThanEqualsInteger x y
+                 in
+                 case
+                   (all dead. Ordering)
+                   (ifThenElse {bool} b True False)
+                   [(/\dead -> GT), (/\dead -> LT)]
+                   {all dead. dead})
+            , (/\dead -> EQ) ]
             {all dead. dead}
   ~`$fOrdInteger_$cmax` : integer -> integer -> integer
     = \(x : integer) ->
@@ -45,11 +41,10 @@ let
             !y : integer = y
             !b : bool = lessThanEqualsInteger x y
           in
-          Bool_match
-            (ifThenElse {Bool} b True False)
-            {all dead. integer}
-            (/\dead -> y)
-            (/\dead -> x)
+          case
+            (all dead. integer)
+            (ifThenElse {bool} b True False)
+            [(/\dead -> x), (/\dead -> y)]
             {all dead. dead}
   ~`$fOrdInteger_$cmin` : integer -> integer -> integer
     = \(x : integer) ->
@@ -61,13 +56,12 @@ let
             !y : integer = y
             !b : bool = lessThanEqualsInteger x y
           in
-          Bool_match
-            (ifThenElse {Bool} b True False)
-            {all dead. integer}
-            (/\dead -> x)
-            (/\dead -> y)
+          case
+            (all dead. integer)
+            (ifThenElse {bool} b True False)
+            [(/\dead -> y), (/\dead -> x)]
             {all dead. dead}
-  ~equalsInteger : integer -> integer -> Bool
+  ~equalsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -77,9 +71,9 @@ let
             !y : integer = y
             !b : bool = equalsInteger x y
           in
-          ifThenElse {Bool} b True False
+          ifThenElse {bool} b True False
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
-  ~greaterThanEqualsInteger : integer -> integer -> Bool
+  ~greaterThanEqualsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -88,8 +82,8 @@ let
           let
             !y : integer = y
           in
-          ifThenElse {Bool} (lessThanInteger x y) False True
-  ~greaterThanInteger : integer -> integer -> Bool
+          ifThenElse {bool} (lessThanInteger x y) False True
+  ~greaterThanInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -98,8 +92,8 @@ let
           let
             !y : integer = y
           in
-          ifThenElse {Bool} (lessThanEqualsInteger x y) False True
-  ~lessThanEqualsInteger : integer -> integer -> Bool
+          ifThenElse {bool} (lessThanEqualsInteger x y) False True
+  ~lessThanEqualsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -109,8 +103,8 @@ let
             !y : integer = y
             !b : bool = lessThanEqualsInteger x y
           in
-          ifThenElse {Bool} b True False
-  ~lessThanInteger : integer -> integer -> Bool
+          ifThenElse {bool} b True False
+  ~lessThanInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -120,15 +114,15 @@ let
             !y : integer = y
             !b : bool = lessThanInteger x y
           in
-          ifThenElse {Bool} b True False
+          ifThenElse {bool} b True False
   data (Ord :: * -> *) a | Ord_match where
     CConsOrd :
-      (\a -> a -> a -> Bool) a ->
+      (\a -> a -> a -> bool) a ->
       (a -> a -> Ordering) ->
-      (a -> a -> Bool) ->
-      (a -> a -> Bool) ->
-      (a -> a -> Bool) ->
-      (a -> a -> Bool) ->
+      (a -> a -> bool) ->
+      (a -> a -> bool) ->
+      (a -> a -> bool) ->
+      (a -> a -> bool) ->
       (a -> a -> a) ->
       (a -> a -> a) ->
       Ord a
@@ -150,12 +144,12 @@ let
             {a}
             v
             {a -> a -> Ordering}
-            (\(v : (\a -> a -> a -> Bool) a)
+            (\(v : (\a -> a -> a -> bool) a)
               (v : a -> a -> Ordering)
-              (v : a -> a -> Bool)
-              (v : a -> a -> Bool)
-              (v : a -> a -> Bool)
-              (v : a -> a -> Bool)
+              (v : a -> a -> bool)
+              (v : a -> a -> bool)
+              (v : a -> a -> bool)
+              (v : a -> a -> bool)
               (v : a -> a -> a)
               (v : a -> a -> a) ->
                v)

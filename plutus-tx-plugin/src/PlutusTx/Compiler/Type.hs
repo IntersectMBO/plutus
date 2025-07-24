@@ -223,6 +223,7 @@ clear natural ordering which we will assume GHC respects.
 -}
 
 {- Note [Ensuring compatibility with spec and stdlib types]
+TODO: ask question and update.
 Haskell's Bool has its constructors ordered with False before True, which results in the
 normal case expression having the opposite sense to the one in the spec, where
 the true branch comes first (which is more logical).
@@ -247,7 +248,7 @@ sortConstructors tc cs =
   -- note we compare on the OccName *not* the Name, as the latter compares on uniques,
   -- not the string name
   let sorted = sortBy (\dc1 dc2 -> compare (GHC.getOccName dc1) (GHC.getOccName dc2)) cs
-   in if tc == GHC.boolTyCon || tc == GHC.listTyCon then reverse sorted else sorted
+   in if tc == GHC.listTyCon then reverse sorted else sorted
 
 getDataCons :: (Compiling uni fun m ann) => GHC.TyCon -> m [GHC.DataCon]
 getDataCons tc' = sortConstructors tc' <$> extractDcs tc'

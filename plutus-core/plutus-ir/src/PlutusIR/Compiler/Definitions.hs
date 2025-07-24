@@ -229,7 +229,8 @@ modifyTermDef ::
 modifyTermDef name f = liftDef $ DefT $ modify $ over termDefs $ Map.adjust (first f) name
 
 defineType :: (MonadDefs key uni fun ann m) => key -> TypeDef TyName uni ann -> Set.Set key -> m ()
-defineType name def deps = liftDef $ DefT $ modify $ over typeDefs $ Map.insert name (def, deps)
+defineType name def deps =
+  liftDef $ DefT $ modify $ over typeDefs $ Map.insert name (def, deps)
 
 modifyTypeDef ::
   (MonadDefs key uni fun ann m) =>

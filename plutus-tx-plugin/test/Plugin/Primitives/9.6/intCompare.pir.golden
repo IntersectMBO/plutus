@@ -1,11 +1,8 @@
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !ifThenElse : all a. bool -> a -> a -> a
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
-  ~lessThanInteger : integer -> integer -> Bool
+  ~lessThanInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -15,7 +12,7 @@ let
             !y : integer = y
             !b : bool = lessThanInteger x y
           in
-          ifThenElse {Bool} b True False
+          ifThenElse {bool} b True False
 in
 \(ds : integer) ->
   let

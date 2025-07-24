@@ -1,9 +1,6 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
   !fst : all a b. pair a b -> a = fstPair
   !head : all a. list a -> a = headList
@@ -40,16 +37,16 @@ let
             !args : list data = snd {integer} {list data} tup
             !b : bool = equalsInteger 0 index
           in
-          Bool_match
-            (ifThenElse {Bool} b True False)
-            {all dead. Tuple2 a b}
-            (/\dead ->
-               Tuple2
-                 {a}
-                 {b}
-                 (`$dUnsafeFromData` (head {data} args))
-                 (`$dUnsafeFromData` (head {data} (wrapTail {data} args))))
-            (/\dead -> traceError {Tuple2 a b} reconstructCaseError)
+          case
+            (all dead. Tuple2 a b)
+            (ifThenElse {bool} b True False)
+            [ (/\dead -> traceError {Tuple2 a b} reconstructCaseError)
+            , (/\dead ->
+                 Tuple2
+                   {a}
+                   {b}
+                   (`$dUnsafeFromData` (head {data} args))
+                   (`$dUnsafeFromData` (head {data} (wrapTail {data} args)))) ]
             {all dead. dead}
   ~`$fUnsafeFromDataTuple2` :
      all a b.
@@ -79,20 +76,21 @@ let
             !args : list data = snd {integer} {list data} tup
             !b : bool = equalsInteger 1 index
           in
-          Bool_match
-            (ifThenElse {Bool} b True False)
-            {all dead. Maybe a}
-            (/\dead -> Nothing {a})
-            (/\dead ->
-               let
-                 !b : bool = equalsInteger 0 index
-               in
-               Bool_match
-                 (ifThenElse {Bool} b True False)
-                 {all dead. Maybe a}
-                 (/\dead -> Just {a} (`$dUnsafeFromData` (head {data} args)))
-                 (/\dead -> traceError {Maybe a} reconstructCaseError)
-                 {all dead. dead})
+          case
+            (all dead. Maybe a)
+            (ifThenElse {bool} b True False)
+            [ (/\dead ->
+                 let
+                   !b : bool = equalsInteger 0 index
+                 in
+                 case
+                   (all dead. Maybe a)
+                   (ifThenElse {bool} b True False)
+                   [ (/\dead -> traceError {Maybe a} reconstructCaseError)
+                   , (/\dead ->
+                        Just {a} (`$dUnsafeFromData` (head {data} args))) ]
+                   {all dead. dead})
+            , (/\dead -> Nothing {a}) ]
             {all dead. dead}
   ~`$fUnsafeFromDataMaybe` :
      all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)

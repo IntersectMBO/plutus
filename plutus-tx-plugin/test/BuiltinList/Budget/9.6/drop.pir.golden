@@ -1,8 +1,5 @@
 let
   ~`$fMkNilInteger` : (\arep -> list arep) integer = []
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
   !ifThenElse : all a. bool -> a -> a -> a
@@ -22,21 +19,21 @@ letrec
               !l : list a = l
               !b : bool = lessThanEqualsInteger n 0
             in
-            Bool_match
-              (ifThenElse {Bool} b True False)
-              {all dead. list a}
-              (/\dead -> l)
-              (/\dead ->
-                 caseList'
-                   {a}
-                   {list a}
-                   `$dMkNil`
-                   (\(ds : a) (xs : list a) ->
-                      let
-                        !xs : list a = xs
-                      in
-                      drop {a} `$dMkNil` (subtractInteger n 1) xs)
-                   l)
+            case
+              (all dead. list a)
+              (ifThenElse {bool} b True False)
+              [ (/\dead ->
+                   caseList'
+                     {a}
+                     {list a}
+                     `$dMkNil`
+                     (\(ds : a) (xs : list a) ->
+                        let
+                          !xs : list a = xs
+                        in
+                        drop {a} `$dMkNil` (subtractInteger n 1) xs)
+                     l)
+              , (/\dead -> l) ]
               {all dead. dead}
 in
 \(xs : list integer) ->

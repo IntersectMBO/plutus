@@ -3,7 +3,6 @@
    ((\x y ->
        case
          (lessThanInteger x 3)
-         [ (constr 1 [])
-         , (case (lessThanInteger y 3) [(constr 1 []), (constr 0 [])]) ])
+         [False, (case (lessThanInteger y 3) [False, True])])
       4
       4))

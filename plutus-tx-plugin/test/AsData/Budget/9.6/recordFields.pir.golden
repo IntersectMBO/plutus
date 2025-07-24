@@ -49,12 +49,9 @@ let
           ds
           (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
           (\(void : unit) -> error {integer})
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-  !lessThanInteger : integer -> integer -> Bool
+  !lessThanInteger : integer -> integer -> bool
     = \(x : integer) (y : integer) ->
-        case Bool (lessThanInteger x y) [False, True]
+        case bool (lessThanInteger x y) [False, True]
 in
 \(d : data) ->
   let
@@ -66,17 +63,16 @@ in
   addInteger
     (addInteger
        (addInteger (addInteger (addInteger x y) z) w)
-       (Bool_match
+       (case
+          (all dead. integer)
           (lessThanInteger (addInteger y z) (addInteger x w))
-          {all dead. integer}
-          (/\dead -> addInteger x z)
-          (/\dead -> addInteger y w)
+          [(/\dead -> addInteger y w), (/\dead -> addInteger x z)]
           {all dead. dead}))
-    (Bool_match
+    (case
+       (all dead. integer)
        (lessThanInteger
           (addInteger (int d) (int d))
           (addInteger (int d) (int d)))
-       {all dead. integer}
-       (/\dead -> addInteger (int d) (int d))
-       (/\dead -> addInteger (int d) (int d))
+       [ (/\dead -> addInteger (int d) (int d))
+       , (/\dead -> addInteger (int d) (int d)) ]
        {all dead. dead})

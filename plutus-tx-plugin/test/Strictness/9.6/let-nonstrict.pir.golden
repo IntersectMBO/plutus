@@ -1,15 +1,14 @@
 let
   data Unit | Unit_match where
     Unit : Unit
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 \(m : integer) ->
-  Bool_match
-    (case Bool (lessThanInteger m 0) [False, True])
-    {all dead. integer}
-    (/\dead ->
-       addInteger (error {integer -> integer} m) (error {integer -> integer} m))
-    (/\dead -> m)
+  case
+    (all dead. integer)
+    (case bool (lessThanInteger m 0) [False, True])
+    [ (/\dead -> m)
+    , (/\dead ->
+         addInteger
+           (error {integer -> integer} m)
+           (error {integer -> integer} m)) ]
     {all dead. dead}

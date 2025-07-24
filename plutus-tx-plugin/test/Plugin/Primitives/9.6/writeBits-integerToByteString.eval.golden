@@ -1,1 +1,328 @@
-#00000000002b
+Error: Reference to a name which is not a local, a builtin, or an external INLINABLE function: Variable PlutusTx.Builtins.Internal.false
+       No unfolding
+Context: Compiling expr: PlutusTx.Builtins.Internal.false
+Context: Creating alternative: GHC.Types.False
+Context: Compiling expr: case bit1 of {
+                           GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                           GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                         }
+Context: Compiling expr: PlutusTx.Builtins.Internal.writeBits
+                           bs1
+                           (letrec {
+                              goList [Occ=LoopBreaker]
+                                :: [GHC.Num.Integer.Integer]
+                                   -> PlutusTx.Builtins.Internal.BuiltinList GHC.Num.Integer.Integer
+                              [LclId, Arity=1]
+                              goList
+                                = \ (ds [Occ=Once1!] :: [GHC.Num.Integer.Integer]) ->
+                                    case ds of {
+                                      [] ->
+                                        PlutusTx.Builtins.HasOpaque.mkNilOpaque
+                                          @PlutusTx.Builtins.Internal.BuiltinInteger;
+                                      : d [Occ=Once1] ds1 [Occ=Once1] ->
+                                        PlutusTx.Builtins.Internal.mkCons
+                                          @GHC.Num.Integer.Integer d (goList ds1)
+                                    }; } in
+                            goList ixes1)
+                           (case bit1 of {
+                              GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                              GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                            })
+Context: Compiling expr: case bit of bit1 [Occ=Once1!] { __DEFAULT ->
+                         PlutusTx.Builtins.Internal.writeBits
+                           bs1
+                           (letrec {
+                              goList [Occ=LoopBreaker]
+                                :: [GHC.Num.Integer.Integer]
+                                   -> PlutusTx.Builtins.Internal.BuiltinList GHC.Num.Integer.Integer
+                              [LclId, Arity=1]
+                              goList
+                                = \ (ds [Occ=Once1!] :: [GHC.Num.Integer.Integer]) ->
+                                    case ds of {
+                                      [] ->
+                                        PlutusTx.Builtins.HasOpaque.mkNilOpaque
+                                          @PlutusTx.Builtins.Internal.BuiltinInteger;
+                                      : d [Occ=Once1] ds1 [Occ=Once1] ->
+                                        PlutusTx.Builtins.Internal.mkCons
+                                          @GHC.Num.Integer.Integer d (goList ds1)
+                                    }; } in
+                            goList ixes1)
+                           (case bit1 of {
+                              GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                              GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                            })
+                         }
+Context: Compiling expr: case ixes of ixes1 [Occ=Once1] { __DEFAULT ->
+                         case bit of bit1 [Occ=Once1!] { __DEFAULT ->
+                         PlutusTx.Builtins.Internal.writeBits
+                           bs1
+                           (letrec {
+                              goList [Occ=LoopBreaker]
+                                :: [GHC.Num.Integer.Integer]
+                                   -> PlutusTx.Builtins.Internal.BuiltinList GHC.Num.Integer.Integer
+                              [LclId, Arity=1]
+                              goList
+                                = \ (ds [Occ=Once1!] :: [GHC.Num.Integer.Integer]) ->
+                                    case ds of {
+                                      [] ->
+                                        PlutusTx.Builtins.HasOpaque.mkNilOpaque
+                                          @PlutusTx.Builtins.Internal.BuiltinInteger;
+                                      : d [Occ=Once1] ds1 [Occ=Once1] ->
+                                        PlutusTx.Builtins.Internal.mkCons
+                                          @GHC.Num.Integer.Integer d (goList ds1)
+                                    }; } in
+                            goList ixes1)
+                           (case bit1 of {
+                              GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                              GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                            })
+                         }
+                         }
+Context: Compiling expr: case bs of bs1 [Occ=Once1]
+                         { PlutusTx.Builtins.Internal.BuiltinByteString _ [Occ=Dead] ->
+                         case ixes of ixes1 [Occ=Once1] { __DEFAULT ->
+                         case bit of bit1 [Occ=Once1!] { __DEFAULT ->
+                         PlutusTx.Builtins.Internal.writeBits
+                           bs1
+                           (letrec {
+                              goList [Occ=LoopBreaker]
+                                :: [GHC.Num.Integer.Integer]
+                                   -> PlutusTx.Builtins.Internal.BuiltinList GHC.Num.Integer.Integer
+                              [LclId, Arity=1]
+                              goList
+                                = \ (ds [Occ=Once1!] :: [GHC.Num.Integer.Integer]) ->
+                                    case ds of {
+                                      [] ->
+                                        PlutusTx.Builtins.HasOpaque.mkNilOpaque
+                                          @PlutusTx.Builtins.Internal.BuiltinInteger;
+                                      : d [Occ=Once1] ds1 [Occ=Once1] ->
+                                        PlutusTx.Builtins.Internal.mkCons
+                                          @GHC.Num.Integer.Integer d (goList ds1)
+                                    }; } in
+                            goList ixes1)
+                           (case bit1 of {
+                              GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                              GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                            })
+                         }
+                         }
+                         }
+Context: Compiling expr: \ (bit [Occ=Once1] :: GHC.Types.Bool) ->
+                           case bs of bs1 [Occ=Once1]
+                           { PlutusTx.Builtins.Internal.BuiltinByteString _ [Occ=Dead] ->
+                           case ixes of ixes1 [Occ=Once1] { __DEFAULT ->
+                           case bit of bit1 [Occ=Once1!] { __DEFAULT ->
+                           PlutusTx.Builtins.Internal.writeBits
+                             bs1
+                             (letrec {
+                                goList [Occ=LoopBreaker]
+                                  :: [GHC.Num.Integer.Integer]
+                                     -> PlutusTx.Builtins.Internal.BuiltinList GHC.Num.Integer.Integer
+                                [LclId, Arity=1]
+                                goList
+                                  = \ (ds [Occ=Once1!] :: [GHC.Num.Integer.Integer]) ->
+                                      case ds of {
+                                        [] ->
+                                          PlutusTx.Builtins.HasOpaque.mkNilOpaque
+                                            @PlutusTx.Builtins.Internal.BuiltinInteger;
+                                        : d [Occ=Once1] ds1 [Occ=Once1] ->
+                                          PlutusTx.Builtins.Internal.mkCons
+                                            @GHC.Num.Integer.Integer d (goList ds1)
+                                      }; } in
+                              goList ixes1)
+                             (case bit1 of {
+                                GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                                GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                              })
+                           }
+                           }
+                           }
+Context: Compiling expr: \ (ixes [Occ=Once1] :: [GHC.Num.Integer.Integer])
+                           (bit [Occ=Once1] :: GHC.Types.Bool) ->
+                           case bs of bs1 [Occ=Once1]
+                           { PlutusTx.Builtins.Internal.BuiltinByteString _ [Occ=Dead] ->
+                           case ixes of ixes1 [Occ=Once1] { __DEFAULT ->
+                           case bit of bit1 [Occ=Once1!] { __DEFAULT ->
+                           PlutusTx.Builtins.Internal.writeBits
+                             bs1
+                             (letrec {
+                                goList [Occ=LoopBreaker]
+                                  :: [GHC.Num.Integer.Integer]
+                                     -> PlutusTx.Builtins.Internal.BuiltinList GHC.Num.Integer.Integer
+                                [LclId, Arity=1]
+                                goList
+                                  = \ (ds [Occ=Once1!] :: [GHC.Num.Integer.Integer]) ->
+                                      case ds of {
+                                        [] ->
+                                          PlutusTx.Builtins.HasOpaque.mkNilOpaque
+                                            @PlutusTx.Builtins.Internal.BuiltinInteger;
+                                        : d [Occ=Once1] ds1 [Occ=Once1] ->
+                                          PlutusTx.Builtins.Internal.mkCons
+                                            @GHC.Num.Integer.Integer d (goList ds1)
+                                      }; } in
+                              goList ixes1)
+                             (case bit1 of {
+                                GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                                GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                              })
+                           }
+                           }
+                           }
+Context: Compiling expr: \ (bs [Occ=Once1!]
+                              :: PlutusTx.Builtins.Internal.BuiltinByteString)
+                           (ixes [Occ=Once1] :: [GHC.Num.Integer.Integer])
+                           (bit [Occ=Once1] :: GHC.Types.Bool) ->
+                           case bs of bs1 [Occ=Once1]
+                           { PlutusTx.Builtins.Internal.BuiltinByteString _ [Occ=Dead] ->
+                           case ixes of ixes1 [Occ=Once1] { __DEFAULT ->
+                           case bit of bit1 [Occ=Once1!] { __DEFAULT ->
+                           PlutusTx.Builtins.Internal.writeBits
+                             bs1
+                             (letrec {
+                                goList [Occ=LoopBreaker]
+                                  :: [GHC.Num.Integer.Integer]
+                                     -> PlutusTx.Builtins.Internal.BuiltinList GHC.Num.Integer.Integer
+                                [LclId, Arity=1]
+                                goList
+                                  = \ (ds [Occ=Once1!] :: [GHC.Num.Integer.Integer]) ->
+                                      case ds of {
+                                        [] ->
+                                          PlutusTx.Builtins.HasOpaque.mkNilOpaque
+                                            @PlutusTx.Builtins.Internal.BuiltinInteger;
+                                        : d [Occ=Once1] ds1 [Occ=Once1] ->
+                                          PlutusTx.Builtins.Internal.mkCons
+                                            @GHC.Num.Integer.Integer d (goList ds1)
+                                      }; } in
+                              goList ixes1)
+                             (case bit1 of {
+                                GHC.Types.False -> PlutusTx.Builtins.Internal.false;
+                                GHC.Types.True -> PlutusTx.Builtins.Internal.true
+                              })
+                           }
+                           }
+                           }
+Context: Compiling definition of: PlutusTx.Builtins.writeBits
+Context: Compiling expr: PlutusTx.Builtins.writeBits
+Context: Compiling expr: PlutusTx.Builtins.writeBits
+                           (src<test/Plugin/Primitives/Spec.hs:279:18-90>
+                            PlutusTx.Builtins.writeBits
+                              (src<test/Plugin/Primitives/Spec.hs:279:31-77>
+                               PlutusTx.Builtins.integerToByteString
+                                 (src<test/Plugin/Primitives/Spec.hs:279:54-71>
+                                  GHC.ByteOrder.BigEndian)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:73> GHC.Num.Integer.IS 6#)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:75-76>
+                                  GHC.Num.Integer.IS 15#))
+                              (src<test/Plugin/Primitives/Spec.hs:279:79-84>
+                               GHC.Base.build
+                                 @GHC.Num.Integer.Integer
+                                 (\ (@a)
+                                    (c_d12Ca [OS=OneShot] :: GHC.Num.Integer.Integer -> a -> a)
+                                    (n_d12Cb [Occ=Once1, OS=OneShot] :: a) ->
+                                    c_d12Ca
+                                      (src<test/Plugin/Primitives/Spec.hs:279:80> GHC.Num.Integer.IS 0#)
+                                      (c_d12Ca
+                                         (src<test/Plugin/Primitives/Spec.hs:279:83> GHC.Num.Integer.IS 5#)
+                                         n_d12Cb)))
+                              (src<test/Plugin/Primitives/Spec.hs:279:86-89> GHC.Types.True))
+Context: Compiling expr: PlutusTx.Builtins.writeBits
+                           (src<test/Plugin/Primitives/Spec.hs:279:18-90>
+                            PlutusTx.Builtins.writeBits
+                              (src<test/Plugin/Primitives/Spec.hs:279:31-77>
+                               PlutusTx.Builtins.integerToByteString
+                                 (src<test/Plugin/Primitives/Spec.hs:279:54-71>
+                                  GHC.ByteOrder.BigEndian)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:73> GHC.Num.Integer.IS 6#)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:75-76>
+                                  GHC.Num.Integer.IS 15#))
+                              (src<test/Plugin/Primitives/Spec.hs:279:79-84>
+                               GHC.Base.build
+                                 @GHC.Num.Integer.Integer
+                                 (\ (@a)
+                                    (c_d12Ca [OS=OneShot] :: GHC.Num.Integer.Integer -> a -> a)
+                                    (n_d12Cb [Occ=Once1, OS=OneShot] :: a) ->
+                                    c_d12Ca
+                                      (src<test/Plugin/Primitives/Spec.hs:279:80> GHC.Num.Integer.IS 0#)
+                                      (c_d12Ca
+                                         (src<test/Plugin/Primitives/Spec.hs:279:83> GHC.Num.Integer.IS 5#)
+                                         n_d12Cb)))
+                              (src<test/Plugin/Primitives/Spec.hs:279:86-89> GHC.Types.True))
+                           (src<test/Plugin/Primitives/Spec.hs:279:92-94>
+                            GHC.Base.build
+                              @GHC.Num.Integer.Integer
+                              (\ (@a)
+                                 (c_d12Cd [Occ=Once1!, OS=OneShot]
+                                    :: GHC.Num.Integer.Integer -> a -> a)
+                                 (n_d12Ce [Occ=Once1, OS=OneShot] :: a) ->
+                                 c_d12Cd
+                                   (src<test/Plugin/Primitives/Spec.hs:279:93> GHC.Num.Integer.IS 2#)
+                                   n_d12Ce))
+Context: Compiling expr: PlutusTx.Builtins.writeBits
+                           (src<test/Plugin/Primitives/Spec.hs:279:18-90>
+                            PlutusTx.Builtins.writeBits
+                              (src<test/Plugin/Primitives/Spec.hs:279:31-77>
+                               PlutusTx.Builtins.integerToByteString
+                                 (src<test/Plugin/Primitives/Spec.hs:279:54-71>
+                                  GHC.ByteOrder.BigEndian)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:73> GHC.Num.Integer.IS 6#)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:75-76>
+                                  GHC.Num.Integer.IS 15#))
+                              (src<test/Plugin/Primitives/Spec.hs:279:79-84>
+                               GHC.Base.build
+                                 @GHC.Num.Integer.Integer
+                                 (\ (@a)
+                                    (c_d12Ca [OS=OneShot] :: GHC.Num.Integer.Integer -> a -> a)
+                                    (n_d12Cb [Occ=Once1, OS=OneShot] :: a) ->
+                                    c_d12Ca
+                                      (src<test/Plugin/Primitives/Spec.hs:279:80> GHC.Num.Integer.IS 0#)
+                                      (c_d12Ca
+                                         (src<test/Plugin/Primitives/Spec.hs:279:83> GHC.Num.Integer.IS 5#)
+                                         n_d12Cb)))
+                              (src<test/Plugin/Primitives/Spec.hs:279:86-89> GHC.Types.True))
+                           (src<test/Plugin/Primitives/Spec.hs:279:92-94>
+                            GHC.Base.build
+                              @GHC.Num.Integer.Integer
+                              (\ (@a)
+                                 (c_d12Cd [Occ=Once1!, OS=OneShot]
+                                    :: GHC.Num.Integer.Integer -> a -> a)
+                                 (n_d12Ce [Occ=Once1, OS=OneShot] :: a) ->
+                                 c_d12Cd
+                                   (src<test/Plugin/Primitives/Spec.hs:279:93> GHC.Num.Integer.IS 2#)
+                                   n_d12Ce))
+                           (src<test/Plugin/Primitives/Spec.hs:279:96-100> GHC.Types.False)
+Context: Compiling expr at: test/Plugin/Primitives/Spec.hs:279:5-101
+Context: Compiling expr: src<test/Plugin/Primitives/Spec.hs:279:5-101>
+                         PlutusTx.Builtins.writeBits
+                           (src<test/Plugin/Primitives/Spec.hs:279:18-90>
+                            PlutusTx.Builtins.writeBits
+                              (src<test/Plugin/Primitives/Spec.hs:279:31-77>
+                               PlutusTx.Builtins.integerToByteString
+                                 (src<test/Plugin/Primitives/Spec.hs:279:54-71>
+                                  GHC.ByteOrder.BigEndian)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:73> GHC.Num.Integer.IS 6#)
+                                 (src<test/Plugin/Primitives/Spec.hs:279:75-76>
+                                  GHC.Num.Integer.IS 15#))
+                              (src<test/Plugin/Primitives/Spec.hs:279:79-84>
+                               GHC.Base.build
+                                 @GHC.Num.Integer.Integer
+                                 (\ (@a)
+                                    (c_d12Ca [OS=OneShot] :: GHC.Num.Integer.Integer -> a -> a)
+                                    (n_d12Cb [Occ=Once1, OS=OneShot] :: a) ->
+                                    c_d12Ca
+                                      (src<test/Plugin/Primitives/Spec.hs:279:80> GHC.Num.Integer.IS 0#)
+                                      (c_d12Ca
+                                         (src<test/Plugin/Primitives/Spec.hs:279:83> GHC.Num.Integer.IS 5#)
+                                         n_d12Cb)))
+                              (src<test/Plugin/Primitives/Spec.hs:279:86-89> GHC.Types.True))
+                           (src<test/Plugin/Primitives/Spec.hs:279:92-94>
+                            GHC.Base.build
+                              @GHC.Num.Integer.Integer
+                              (\ (@a)
+                                 (c_d12Cd [Occ=Once1!, OS=OneShot]
+                                    :: GHC.Num.Integer.Integer -> a -> a)
+                                 (n_d12Ce [Occ=Once1, OS=OneShot] :: a) ->
+                                 c_d12Cd
+                                   (src<test/Plugin/Primitives/Spec.hs:279:93> GHC.Num.Integer.IS 2#)
+                                   n_d12Ce))
+                           (src<test/Plugin/Primitives/Spec.hs:279:96-100> GHC.Types.False)
+Context: Compiling expr at "writeBitsIntegerToByteString"
