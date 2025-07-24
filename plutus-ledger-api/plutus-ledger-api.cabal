@@ -106,6 +106,7 @@ library
   other-modules:
     PlutusLedgerApi.Common.Eval
     PlutusLedgerApi.Common.ParamName
+    PlutusLedgerApi.Common.PlutusLedgerLanguage
     PlutusLedgerApi.Common.ProtocolVersions
     PlutusLedgerApi.Common.SerialisedScript
     Prettyprinter.Extras
@@ -127,6 +128,7 @@ library
     , prettyprinter
     , serialise
     , tagged
+    , template-haskell
     , text
 
 library plutus-ledger-api-testlib

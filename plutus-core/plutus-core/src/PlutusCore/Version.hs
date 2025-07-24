@@ -19,6 +19,7 @@ import Control.Lens
 import Data.Hashable
 import Data.Set qualified as Set
 import Instances.TH.Lift ()
+import Language.Haskell.TH.Syntax (Lift)
 
 {- |
 The version of Plutus Core used by this program.
@@ -43,7 +44,7 @@ change what tools would need to do to process scripts.
 -}
 data Version
     = Version { _versionMajor :: Natural, _versionMinor :: Natural, _versionPatch :: Natural }
-    deriving stock (Eq, Show, Generic)
+    deriving stock (Eq, Show, Generic, Lift)
     deriving anyclass (NFData, Hashable)
 
 makeLenses ''Version

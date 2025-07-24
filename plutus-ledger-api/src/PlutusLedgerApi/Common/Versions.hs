@@ -1,6 +1,6 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 {- | This module contains the code for handling the various kinds of version that we care about:
 
@@ -32,15 +32,14 @@ module PlutusLedgerApi.Common.Versions
     ) where
 
 import PlutusCore
+import PlutusLedgerApi.Common.PlutusLedgerLanguage
 import PlutusLedgerApi.Common.ProtocolVersions
 import PlutusPrelude
 
-import Codec.Serialise.Class (Serialise)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import NoThunks.Class (NoThunks)
+import Language.Haskell.TH.Syntax
 import PlutusCore.Version (plcVersion100, plcVersion110)
-import Prettyprinter
 
 {- Note [New builtins/language versions and protocol versions]
 
@@ -86,15 +85,6 @@ and the __ordering of constructors__ is essential for deriving Enum,Ord,Bounded.
 
 IMPORTANT: this is different from the Plutus Core language version, `PlutusCore.Version`
 -}
-data PlutusLedgerLanguage =
-      PlutusV1 -- ^ introduced in Alonzo HF
-    | PlutusV2 -- ^ introduced in Vasil HF
-    | PlutusV3 -- ^ introduced in Chang HF
-   deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
-   deriving anyclass (NFData, NoThunks, Serialise)
-
-instance Pretty PlutusLedgerLanguage where
-    pretty = viaShow
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.
 -}
@@ -124,7 +114,7 @@ collectUpTo
   -> Set.Set a
 collectUpTo m thisLL thisPV =
     fold $ Map.elems $ Map.filterWithKey (\(ll,pv) _ -> ll == thisLL && pv <= thisPV) m
---  Map.elems $ Map.takeWhileAntitone (<= thisPv) m
+--  takeWhileAntitone doesn't work
 
 {- Batches of builtins which were introduced in the same hard fork (but perhaps
    not for all LLs): see the Plutus Core specification and
@@ -246,6 +236,7 @@ builtinsIntroducedIn =
 given PV.  All builtins are available in all LLs from `pv11PV` onwards. -}
 builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
 builtinsAvailableIn = collectUpTo builtinsIntroducedIn
+{-# NOINLINE builtinsAvailableIn #-}
 
 
 {-| A map indicating which Plutus Core versions were introduced in which
@@ -255,15 +246,16 @@ See Note [New builtins/language versions and protocol versions]
 -}
 plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
 plcVersionsIntroducedIn =
-  Map.fromList
+  $$(liftTyped (Map.fromList
   [ ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ])
   , ((PlutusV1, pv11PV),   Set.fromList [ plcVersion110 ])
   , ((PlutusV2, alonzoPV), Set.fromList [ plcVersion100 ])
   , ((PlutusV2, pv11PV),   Set.fromList [ plcVersion110 ])
   , ((PlutusV3, changPV),  Set.fromList [ plcVersion110 ])
-  ]
+  ]))
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
 and 'MajorProtocolVersion'? -}
 plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> (Set.Set Version)
 plcVersionsAvailableIn = collectUpTo plcVersionsIntroducedIn
+{-# NOINLINE plcVersionsAvailableIn #-}
