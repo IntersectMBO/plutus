@@ -50,7 +50,7 @@ showPV (MajorProtocolVersion pv) =
     8  -> "Valentine (PV8)"
     9  -> "Chang (PV9)"
     10 -> "Plomin (PV10)"
-    11 -> "Anon (PV11)"
+    11 -> "PV11"
     _  -> "<unknown> (PV" ++ show pv ++ ")"
 
 -- Some scripts for use in the version tests.
@@ -208,11 +208,11 @@ testPermittedBuiltins =
   let testBuiltins ll deserialise pv expectedGood =
         let expectGood scripts =
               for_ scripts $ \(name, script) ->
-              assertBool  (name ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
+              assertBool  (name ++ " should be allowed in " ++ show ll ++" @" ++ showPV pv) $
               isRight $ deserialise pv script
             expectBad scripts =
               for_ scripts $ \(name, script) ->
-              assertBool  (name ++ " should be allowed in " ++ show ll ++" @" ++ showPV pv) $
+              assertBool  (name ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
               isLeft $ deserialise pv script
         in testCase (showPV pv) $ do
           expectGood expectedGood
