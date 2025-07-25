@@ -8,16 +8,17 @@ module Shared (
 import PlutusBenchmark.Common (Term, benchTermCek, getConfig)
 
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
+import PlutusBenchmark.NoFib.Fibonacci qualified as Fibonacci
 import PlutusBenchmark.NoFib.Knights qualified as Knights
 import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
 
 import Criterion.Main
 
-
 {- | Package together functions to create benchmarks for each program given suitable inputs. -}
 type BenchmarkRunners =
-    ( Clausify.StaticFormula -> Benchmarkable
+    ( Integer -> Benchmarkable
+    , Clausify.StaticFormula -> Benchmarkable
     , Integer -> Integer -> Benchmarkable
     , Prime.PrimeID -> Benchmarkable
     , Integer -> Queens.Algorithm -> Benchmarkable
@@ -26,8 +27,14 @@ type BenchmarkRunners =
 {- | Make a benchmarks with a number of different inputs.  The input values have
    been chosen to complete in a reasonable time. -}
 mkBenchMarks :: BenchmarkRunners -> [Benchmark]
-mkBenchMarks (benchClausify, benchKnights, benchPrime, benchQueens) = [
-    bgroup "clausify" [ bench "formula1" $ benchClausify Clausify.F1
+mkBenchMarks (benchFibonacci, benchClausify, benchKnights, benchPrime, benchQueens) = [
+    bgroup "fibonacci" [ bench "15" $ benchFibonacci 15
+                       , bench "20" $ benchFibonacci 20
+                       , bench "25" $ benchFibonacci 25
+                       , bench "31" $ benchFibonacci 31
+                       , bench "33" $ benchFibonacci 33
+                       ]
+  , bgroup "clausify" [ bench "formula1" $ benchClausify Clausify.F1
                       , bench "formula2" $ benchClausify Clausify.F2
                       , bench "formula3" $ benchClausify Clausify.F3
                       , bench "formula4" $ benchClausify Clausify.F4
@@ -61,6 +68,9 @@ mkBenchMarks (benchClausify, benchKnights, benchPrime, benchQueens) = [
 
 
 ---------------- Create a benchmark with given inputs ----------------
+
+benchFibonacciWith :: (Term -> Benchmarkable) -> Integer -> Benchmarkable
+benchFibonacciWith benchmarker f = benchmarker $ Fibonacci.mkFibTerm f
 
 benchClausifyWith :: (Term -> Benchmarkable) -> Clausify.StaticFormula -> Benchmarkable
 benchClausifyWith benchmarker f = benchmarker $ Clausify.mkClausifyTerm f
@@ -100,7 +110,8 @@ benchKnightsWith benchmarker depth sz = benchmarker $ Knights.mkKnightsTerm dept
 -- from a Term, use it to construct and run all of the benchmarks
 benchWith :: (Term -> Benchmarkable) -> IO ()
 benchWith benchmarker = do
-  let runners = ( benchClausifyWith benchmarker, benchKnightsWith benchmarker
+  let runners = ( benchFibonacciWith benchmarker, benchClausifyWith benchmarker
+                , benchKnightsWith benchmarker
                 , benchPrimeWith benchmarker, benchQueensWith benchmarker)
   -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
   config <- getConfig 60.0

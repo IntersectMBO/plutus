@@ -109,6 +109,7 @@ library nofib-internal
   hs-source-dirs:  nofib/src
   exposed-modules:
     PlutusBenchmark.NoFib.Clausify
+    PlutusBenchmark.NoFib.Fibonacci
     PlutusBenchmark.NoFib.Knights
     PlutusBenchmark.NoFib.Knights.ChessSetList
     PlutusBenchmark.NoFib.Knights.KnightHeuristic
