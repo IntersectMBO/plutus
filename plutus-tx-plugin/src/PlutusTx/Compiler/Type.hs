@@ -26,6 +26,10 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.PIRTypes
 
+import Language.Haskell.TH.Syntax qualified as TH
+import PlutusTx.Builtins.Internal (BuiltinArray, BuiltinBool, BuiltinByteString, BuiltinData,
+                                   BuiltinList, BuiltinPair, BuiltinString, BuiltinUnit)
+
 import GHC.Builtin.Types.Prim qualified as GHC
 import GHC.Core.FamInstEnv qualified as GHC
 import GHC.Core.Multiplicity qualified as GHC
@@ -298,6 +302,42 @@ ghcStrictnessNote =
     GHC.<+> "'-fno-strictness', '-fno-specialise', '-fno-spec-constr',"
     GHC.<+> "'-fno-unbox-strict-fields', or '-fno-unbox-small-strict-fields'."
 
+-- | Check if a type constructor represents a builtin type
+-- that indicates a potential stage violation
+isBuiltinTypeCon :: (Compiling uni fun m ann) => GHC.TyCon -> m Bool
+isBuiltinTypeCon tc = do
+  let tcOccName = GHC.occNameString (GHC.getOccName tc)
+      isFromBuiltinsInternal =
+        "PlutusTx.Builtins.Internal" ==
+          GHC.moduleNameString (GHC.moduleName (GHC.nameModule (GHC.getName tc)))
+      builtinTypeNames = TH.nameBase <$>
+        [ ''BuiltinUnit
+        , ''BuiltinData
+        , ''BuiltinBool
+        , ''BuiltinString
+        , ''BuiltinByteString
+        , ''BuiltinList
+        , ''BuiltinPair
+        , ''BuiltinArray
+        ]
+  pure $ isFromBuiltinsInternal && tcOccName `elem` builtinTypeNames
+
+stageViolationError :: GHC.TyCon -> GHC.SDoc
+stageViolationError tc =
+  "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$
+  "" GHC.$+$
+  "This error often indicates a stage violation in PlutusTx compilation." GHC.$+$
+  "Variables inside compile quotations must be either:" GHC.$+$
+  "  • Top-level variables, or" GHC.$+$
+  "  • Bound inside the quotation itself" GHC.$+$
+  "" GHC.$+$
+  "Common causes:" GHC.$+$
+  "  • Using a function defined in a 'where' clause: move it to the top level" GHC.$+$
+  "  • Referencing local variables from outside the quotation" GHC.$+$
+  "" GHC.$+$
+  "Original error context:" GHC.<+> GHC.ppr tc GHC.$+$
+  ghcStrictnessNote
+
 -- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m [PIRTerm uni fun]
 getConstructors tc = do
@@ -306,9 +346,12 @@ getConstructors tc = do
   maybeConstrs <- PIR.lookupConstructors (LexName $ GHC.getName tc)
   case maybeConstrs of
     Just constrs -> pure constrs
-    Nothing ->
+    Nothing -> do
+      isBuiltin <- isBuiltinTypeCon tc
       throwSd UnsupportedError $
-        "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
+        if isBuiltin
+          then stageViolationError tc
+          else "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIRTerm uni fun)
@@ -318,9 +361,12 @@ getMatch tc = do
   maybeMatch <- PIR.lookupDestructor annMayInline (LexName $ GHC.getName tc)
   case maybeMatch of
     Just match -> pure match
-    Nothing ->
+    Nothing -> do
+      isBuiltin <- isBuiltinTypeCon tc
       throwSd UnsupportedError $
-        "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
+        if isBuiltin
+          then stageViolationError tc
+          else "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 {-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types.
