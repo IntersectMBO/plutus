@@ -130,34 +130,7 @@ Traces can be removed via the `remove-trace` plugin flag.
 
 ## Using `BuiltinArray` for index-based lookups
 
-For multiple lookups by index, converting a list to a `BuiltinArray` can be more cost-effective than performing lookups on the list directly. The initial cost of converting the list to an array can be offset by the significantly faster lookups.
-
-As a rule of thumb, if you only need to perform a single lookup, it is likely not worth the conversion cost. The benefits of using a `BuiltinArray` become apparent when you need to perform several lookups on the same data structure.
-
-For instance, a single lookup at index 99 of a 100-element list demonstrates this trade-off:
-*   **Lookup Cost:** The CPU cost for the lookup on a standard Plinth list (a sum-of-products type) is 206 times higher than on a `BuiltinArray`.
-*   **Creation Cost:** However, creating the `BuiltinArray` (by first creating a list and then converting it) is 11 times more expensive than creating the list alone.
-
-This highlights that the significant one-time cost of array creation needs to be amortized over multiple lookups to realize a net performance gain.
-
-Functions for working with `BuiltinArray` are available in the `PlutusTx.Builtins` module:
-
-```haskell
-import PlutusTx.Builtins 
-  ( BuiltinArray
-  , indexArray
-  , listToArray
-  , lengthOfArray
-  )
-```
-
-<details>
-  <summary>Lookup comparison: SOP List vs. BuiltinList vs. BuiltinArray</summary>
-  <LiteralInclude file="Example/Builtin/Array/Main.hs" language="haskell" />
-  
-  Result of the evaluation:
-  ![BuiltinArray Performance Comparison](/code/Example/Builtin/Array/Screenshot.png)
-</details>
+For optimizing multiple index-based lookups, see the upcoming [Builtin Arrays](../upcoming-features/builtin-arrays.md) feature.
 
 ## Using `error` for faster failure
 
