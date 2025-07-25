@@ -18,7 +18,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 
 ;// ./.docusaurus/docusaurus-plugin-content-docs/default/site-docs-troubleshooting-md-9d9.json
-const site_docs_troubleshooting_md_9d9_namespaceObject = /*#__PURE__*/JSON.parse('{"id":"troubleshooting","title":"Troubleshooting","description":"Compilation Errors","source":"@site/docs/troubleshooting.md","sourceDirName":".","slug":"/troubleshooting","permalink":"/pr-preview/pr-7092/troubleshooting","draft":false,"unlisted":false,"editUrl":"https://github.com/IntersectMBO/plutus/edit/master/doc/docusaurus/docs/troubleshooting.md","tags":[],"version":"current","sidebarPosition":80,"frontMatter":{"sidebar_position":80},"sidebar":"tutorialSidebar","previous":{"title":"Further Resources","permalink":"/pr-preview/pr-7092/delve-deeper/further-resources"}}');
+const site_docs_troubleshooting_md_9d9_namespaceObject = /*#__PURE__*/JSON.parse('{"id":"troubleshooting","title":"Troubleshooting","description":"Compilation Errors","source":"@site/docs/troubleshooting.md","sourceDirName":".","slug":"/troubleshooting","permalink":"/pr-preview/pr-7092/troubleshooting","draft":false,"unlisted":false,"editUrl":"https://github.com/IntersectMBO/plutus/edit/master/doc/docusaurus/docs/troubleshooting.md","tags":[],"version":"current","sidebarPosition":80,"frontMatter":{"sidebar_position":80},"sidebar":"tutorialSidebar","previous":{"title":"Builtin Arrays","permalink":"/pr-preview/pr-7092/upcoming-features/builtin-arrays"}}');
 // EXTERNAL MODULE: ./node_modules/react/jsx-runtime.js
 var jsx_runtime = __webpack_require__(4848);
 // EXTERNAL MODULE: ./node_modules/@mdx-js/react/lib/index.js

@@ -90,17 +90,11 @@ function _createMdxContent(props) {
     h1: "h1",
     h2: "h2",
     header: "header",
-    img: "img",
-    li: "li",
     p: "p",
     pre: "pre",
-    strong: "strong",
-    ul: "ul",
     ...(0,lib/* useMDXComponents */.R)(),
     ...props.components
-  }, {Details, LiteralInclude} = _components;
-  if (!Details) _missingMdxReference("Details", true);
-  if (!LiteralInclude) _missingMdxReference("LiteralInclude", true);
+  };
   return (0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
     children: [(0,jsx_runtime.jsx)(_components.header, {
       children: (0,jsx_runtime.jsx)(_components.h1, {
@@ -312,56 +306,10 @@ function _createMdxContent(props) {
         children: "BuiltinArray"
       }), " for index-based lookups"]
     }), "\n", (0,jsx_runtime.jsxs)(_components.p, {
-      children: ["For multiple lookups by index, converting a list to a ", (0,jsx_runtime.jsx)(_components.code, {
-        children: "BuiltinArray"
-      }), " can be more cost-effective than performing lookups on the list directly. The initial cost of converting the list to an array can be offset by the significantly faster lookups."]
-    }), "\n", (0,jsx_runtime.jsxs)(_components.p, {
-      children: ["As a rule of thumb, if you only need to perform a single lookup, it is likely not worth the conversion cost. The benefits of using a ", (0,jsx_runtime.jsx)(_components.code, {
-        children: "BuiltinArray"
-      }), " become apparent when you need to perform several lookups on the same data structure."]
-    }), "\n", (0,jsx_runtime.jsx)(_components.p, {
-      children: "For instance, a single lookup at index 99 of a 100-element list demonstrates this trade-off:"
-    }), "\n", (0,jsx_runtime.jsxs)(_components.ul, {
-      children: ["\n", (0,jsx_runtime.jsxs)(_components.li, {
-        children: [(0,jsx_runtime.jsx)(_components.strong, {
-          children: "Lookup Cost:"
-        }), " The CPU cost for the lookup on a standard Plinth list (a sum-of-products type) is 206 times higher than on a ", (0,jsx_runtime.jsx)(_components.code, {
-          children: "BuiltinArray"
-        }), "."]
-      }), "\n", (0,jsx_runtime.jsxs)(_components.li, {
-        children: [(0,jsx_runtime.jsx)(_components.strong, {
-          children: "Creation Cost:"
-        }), " However, creating the ", (0,jsx_runtime.jsx)(_components.code, {
-          children: "BuiltinArray"
-        }), " (by first creating a list and then converting it) is 11 times more expensive than creating the list alone."]
-      }), "\n"]
-    }), "\n", (0,jsx_runtime.jsx)(_components.p, {
-      children: "This highlights that the significant one-time cost of array creation needs to be amortized over multiple lookups to realize a net performance gain."
-    }), "\n", (0,jsx_runtime.jsxs)(_components.p, {
-      children: ["Functions for working with ", (0,jsx_runtime.jsx)(_components.code, {
-        children: "BuiltinArray"
-      }), " are available in the ", (0,jsx_runtime.jsx)(_components.code, {
-        children: "PlutusTx.Builtins"
-      }), " module:"]
-    }), "\n", (0,jsx_runtime.jsx)(_components.pre, {
-      children: (0,jsx_runtime.jsx)(_components.code, {
-        className: "language-haskell",
-        children: "import PlutusTx.Builtins \n  ( BuiltinArray\n  , indexArray\n  , listToArray\n  , lengthOfArray\n  )\n"
-      })
-    }), "\n", (0,jsx_runtime.jsxs)(Details, {
-      children: [(0,jsx_runtime.jsx)("summary", {
-        children: "Lookup comparison: SOP List vs. BuiltinList vs. BuiltinArray"
-      }), (0,jsx_runtime.jsx)(LiteralInclude, {
-        file: "Example/Builtin/Array/Main.hs",
-        language: "haskell"
-      }), (0,jsx_runtime.jsxs)(_components.p, {
-        children: ["Result of the evaluation:\n", (0,jsx_runtime.jsx)(_components.img, {
-          alt: "BuiltinArray Performance Comparison",
-          src: (__webpack_require__(6179)/* ["default"] */ .A) + "",
-          width: "1223",
-          height: "1672"
-        })]
-      })]
+      children: ["For optimizing multiple index-based lookups, see the upcoming ", (0,jsx_runtime.jsx)(_components.a, {
+        href: "/pr-preview/pr-7092/upcoming-features/builtin-arrays",
+        children: "Builtin Arrays"
+      }), " feature."]
     }), "\n", (0,jsx_runtime.jsxs)(_components.h2, {
       id: "using-error-for-faster-failure",
       children: ["Using ", (0,jsx_runtime.jsx)(_components.code, {
@@ -402,21 +350,8 @@ function MDXContent(props = {}) {
     })
   }) : _createMdxContent(props);
 }
-function _missingMdxReference(id, component) {
-  throw new Error("Expected " + (component ? "component" : "object") + " `" + id + "` to be defined: you likely forgot to import, pass, or provide it.");
-}
 
 
-
-/***/ }),
-
-/***/ 6179:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "assets/images/Screenshot-57d0bdb7037328301399ca2752bc6d53.png");
 
 /***/ }),
 
