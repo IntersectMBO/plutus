@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 module PlutusLedgerApi.Common.ProtocolVersions
     ( MajorProtocolVersion (..)
     -- ** Protocol Version aliases
@@ -18,6 +19,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
 
 import Codec.Serialise (Serialise)
 import GHC.Generics (Generic)
+import Language.Haskell.TH.Syntax (Lift)
 import Prettyprinter
 
 {- Note [Adding new builtins: protocol versions]
@@ -36,7 +38,7 @@ import Prettyprinter
 -- This relies on careful understanding between us and the ledger as to what this means.
 newtype MajorProtocolVersion = MajorProtocolVersion { getMajorProtocolVersion :: Int }
   deriving newtype (Eq, Ord, Show, Serialise, Enum)
-  deriving stock (Generic)
+  deriving stock (Generic, Lift)
 
 instance Pretty MajorProtocolVersion where
     pretty (MajorProtocolVersion v) = pretty v
