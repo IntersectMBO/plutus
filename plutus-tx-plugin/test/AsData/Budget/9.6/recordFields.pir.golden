@@ -12,7 +12,13 @@ let
          (cont : integer -> integer -> integer -> integer -> r)
          (fail : unit -> r) ->
           let
-            !l : list data = sndPair {integer} {list data} (unConstrData scrut)
+            !l : list data
+              = (let
+                    b = list data
+                  in
+                  \(x : pair integer b) ->
+                    case b x [(\(l : integer) (r : b) -> r)])
+                  (unConstrData scrut)
             !l : list data = tailList {data} l
             !l : list data = tailList {data} l
           in
