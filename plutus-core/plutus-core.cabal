@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               plutus-core
-version:            1.49.0.0
+version:            1.50.0.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -392,7 +392,7 @@ test-suite plutus-core-test
     , hedgehog
     , mmorph
     , mtl
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.50
     , plutus-core:plutus-core-testlib
     , prettyprinter
     , serialise
@@ -484,7 +484,7 @@ library untyped-plutus-core-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.50
     , plutus-core:plutus-core-testlib
     , pretty-show
     , prettyprinter
@@ -591,7 +591,7 @@ library plutus-ir
     , mtl
     , multiset
     , parser-combinators   >=0.4.0
-    , plutus-core          ^>=1.49
+    , plutus-core          ^>=1.50
     , prettyprinter        >=1.1.0.1
     , profunctors
     , semigroupoids
@@ -657,7 +657,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.50
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , QuickCheck
@@ -719,7 +719,7 @@ executable plutus
     , microlens-th           ^>=0.4
     , mono-traversable
     , mtl
-    , plutus-core            ^>=1.49
+    , plutus-core            ^>=1.50
     , plutus-core:plutus-ir
     , prettyprinter
     , primitive
@@ -760,7 +760,7 @@ library plutus-core-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.50
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , prettyprinter
@@ -827,7 +827,7 @@ library plutus-core-testlib
     , mmorph
     , mtl
     , multiset
-    , plutus-core                 ^>=1.49
+    , plutus-core                 ^>=1.50
     , plutus-core:plutus-ir
     , pretty-simple
     , prettyprinter               >=1.1.0.1
@@ -865,7 +865,7 @@ library plutus-ir-cert
   exposed-modules:  PlutusIR.Certifier
   build-depends:
     , base
-    , plutus-core            ^>=1.49
+    , plutus-core            ^>=1.50
     , plutus-core:plutus-ir
 
 ----------------------------------------------
@@ -945,7 +945,7 @@ executable cost-model-budgeting-bench
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core            ^>=1.49
+    , plutus-core            ^>=1.50
     , QuickCheck
     , quickcheck-instances
     , random
@@ -984,7 +984,7 @@ executable generate-cost-model
     , directory
     , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core           ^>=1.49
+    , plutus-core           ^>=1.50
     , text
 
   --    , exceptions
@@ -1028,7 +1028,7 @@ benchmark cost-model-test
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph
-    , plutus-core       ^>=1.49
+    , plutus-core       ^>=1.50
     , template-haskell
     , text
 
@@ -1045,7 +1045,7 @@ executable print-cost-model
     , aeson
     , base         >=4.9   && <5
     , bytestring
-    , plutus-core  ^>=1.49
+    , plutus-core  ^>=1.50
 
 ----------------------------------------------
 -- satint
