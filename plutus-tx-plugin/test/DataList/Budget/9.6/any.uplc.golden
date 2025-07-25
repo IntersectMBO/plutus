@@ -5,8 +5,6 @@
          (\s ds ->
             case
               ds
-              [ (constr 1 [])
+              [ False
               , (\x eta ->
-                   case
-                     (lessThanInteger (unIData x) 8)
-                     [(constr 0 []), (s s eta)]) ]))))
+                   case (lessThanInteger (unIData x) 8) [True, (s s eta)]) ]))))

@@ -1,9 +1,9 @@
 (program
    1.1.0
    ((\x y ->
-       case
-         (case (lessThanInteger x 3) [(constr 1 []), (constr 0 [])])
-         [ (case (lessThanInteger y 3) [(constr 1 []), (constr 0 [])])
-         , (constr 1 []) ])
+       force
+         (case
+            (lessThanInteger x 3)
+            [(delay False), (delay (lessThanInteger y 3))]))
       4
       4))

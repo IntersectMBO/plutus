@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TupleSections          #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
@@ -19,6 +20,8 @@
 module PlutusIR.Compiler.Definitions (
   DefT,
   MonadDefs (..),
+  ManualDatatype (..),
+  ManualMatcher,
   TermDefWithStrictness,
   runDefT,
   defineTerm,
@@ -26,6 +29,7 @@ module PlutusIR.Compiler.Definitions (
   defineType,
   modifyTypeDef,
   defineDatatype,
+  defineManualDatatype,
   modifyDatatypeDef,
   modifyDeps,
   recordAlias,
@@ -35,6 +39,8 @@ module PlutusIR.Compiler.Definitions (
   lookupOrDefineType,
   lookupConstructors,
   lookupDestructor,
+  lookupManualDestructor,
+  bindings,
 ) where
 
 import PlutusIR as PIR
@@ -81,11 +87,31 @@ mapDefs f = Map.map (first f)
 type TermDefWithStrictness uni fun ann =
   PLC.Def (VarDecl TyName Name uni ann) (Term TyName Name uni fun ann, Strictness)
 
+type ManualMatcher uni fun ann =
+  [Type TyName uni ann] ->
+  -- ^ Type arguments of the datatype
+  Term TyName Name uni fun ann ->
+  -- ^ Scrutinee
+  Type TyName uni ann ->
+  -- ^ Result type
+  [Term TyName Name uni fun ann] ->
+  -- ^ Branches
+  Term TyName Name uni fun ann
+
+data ManualDatatype uni fun ann
+  = ManualDatatype -- TODO make these take annotations as argument.
+  { _constructors :: [Term TyName Name uni fun ann]
+  , _matcher      :: ManualMatcher uni fun ann
+  , _bindings     :: [Binding TyName Name uni fun ann]
+  }
+makeLenses ''ManualDatatype
+
 data DefState key uni fun ann = DefState
-  { _termDefs     :: DefMap key (TermDefWithStrictness uni fun ann)
-  , _typeDefs     :: DefMap key (TypeDef TyName uni ann)
-  , _datatypeDefs :: DefMap key (DatatypeDef TyName Name uni ann)
-  , _aliases      :: Set.Set key
+  { _termDefs           :: DefMap key (TermDefWithStrictness uni fun ann)
+  , _typeDefs           :: DefMap key (TypeDef TyName uni ann)
+  , _datatypeDefs       :: DefMap key (DatatypeDef TyName Name uni ann)
+  , _manualDatatypeDefs :: DefMap key (ManualDatatype uni fun ann)
+  , _aliases            :: Set.Set key
   }
 makeLenses ''DefState
 
@@ -114,7 +140,7 @@ runDefT ::
   DefT key uni fun ann m (Term TyName Name uni fun ann) ->
   m (Term TyName Name uni fun ann)
 runDefT x act = do
-  (term, s) <- runStateT (unDefT act) (DefState mempty mempty mempty mempty)
+  (term, s) <- runStateT (unDefT act) (DefState mempty mempty mempty mempty mempty)
   pure $ wrapWithDefs x (bindingDefs s) term
   where
     bindingDefs defs =
@@ -203,7 +229,8 @@ modifyTermDef ::
 modifyTermDef name f = liftDef $ DefT $ modify $ over termDefs $ Map.adjust (first f) name
 
 defineType :: (MonadDefs key uni fun ann m) => key -> TypeDef TyName uni ann -> Set.Set key -> m ()
-defineType name def deps = liftDef $ DefT $ modify $ over typeDefs $ Map.insert name (def, deps)
+defineType name def deps =
+  liftDef $ DefT $ modify $ over typeDefs $ Map.insert name (def, deps)
 
 modifyTypeDef ::
   (MonadDefs key uni fun ann m) =>
@@ -221,6 +248,16 @@ defineDatatype ::
   m ()
 defineDatatype name def deps =
   liftDef $ DefT $ modify $ over datatypeDefs $ Map.insert name (def, deps)
+
+defineManualDatatype ::
+  forall key uni fun ann m.
+  (MonadDefs key uni fun ann m) =>
+  key ->
+  ManualDatatype uni fun ann ->
+  Set.Set key ->
+  m ()
+defineManualDatatype name def deps =
+  liftDef $ DefT $ modify $ over manualDatatypeDefs $ Map.insert name (def, deps)
 
 modifyDatatypeDef ::
   (MonadDefs key uni fun ann m) =>
@@ -295,10 +332,12 @@ lookupConstructors ::
   key ->
   m (Maybe [Term TyName Name uni fun ann])
 lookupConstructors name = do
-  ds <- liftDef $ DefT $ use datatypeDefs
-  pure $ case Map.lookup name ds of
-    Just (PLC.Def{PLC.defVal = (Datatype _ _ _ _ constrs)}, _) -> Just $ fmap mkVar constrs
-    Nothing                                                    -> Nothing
+  DefState{_datatypeDefs = ds, _manualDatatypeDefs = ms} <- liftDef $ DefT get
+  pure $ case Map.lookup name ms of
+    Just (mt, _) -> Just $ mt ^. constructors
+    Nothing -> case Map.lookup name ds of
+      Just (PLC.Def{PLC.defVal = (Datatype _ _ _ _ constrs)}, _) -> Just $ fmap mkVar constrs
+      Nothing                                                    -> Nothing
 
 lookupDestructor ::
   forall key uni fun ann m.
@@ -311,3 +350,27 @@ lookupDestructor x name = do
   pure $ case Map.lookup name ds of
     Just (PLC.Def{PLC.defVal = (Datatype _ _ _ destr _)}, _) -> Just $ Var x destr
     Nothing                                                  -> Nothing
+
+lookupManualDestructor ::
+  forall key uni fun ann m.
+  (MonadDefs key uni fun ann m) =>
+  ann ->
+  key ->
+  m (Maybe (ManualMatcher uni fun ann))
+lookupManualDestructor x name = do
+  DefState{_datatypeDefs = ds, _manualDatatypeDefs = ms} <- liftDef $ DefT get
+  pure $ case Map.lookup name ms of
+    Just (mt, _) -> Just $ mt ^. matcher
+    Nothing      -> case Map.lookup name ds of
+      Just (PLC.Def{PLC.defVal = (Datatype _ _ _ destr _)}, _) ->
+        Just $ \tyArgs scrut resTy branches ->
+          PLC.mkIterApp
+            (tyInst x
+               (apply x
+                  (PLC.mkIterInst
+                     (Var x destr)
+                     ((x,) <$> tyArgs))
+                  scrut)
+               resTy)
+            ((x,) <$> branches)
+      Nothing                               -> Nothing

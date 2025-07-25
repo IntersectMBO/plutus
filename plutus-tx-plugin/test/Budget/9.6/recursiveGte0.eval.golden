@@ -1,6 +1,6 @@
 CPU:               991_082_937
 Memory:              5_008_501
 Term Size:                  87
-Flat Size:                  92
+Flat Size:                  91
 
-(constr 0)
+(con bool True)

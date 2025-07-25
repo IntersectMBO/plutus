@@ -4,8 +4,7 @@
       (\s ds ->
          case
            ds
-           [ (constr 0 [])
-           , (\x xs -> case (lessThanInteger x 0) [(s s xs), (constr 1 [])]) ])
+           [True, (\x xs -> case (lessThanInteger x 0) [(s s xs), False])])
       ((\s -> s s)
          (\s n ->
             case

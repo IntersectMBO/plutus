@@ -1,16 +1,11 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
   !factorial : integer -> integer
     = \(x : integer) ->
-        Bool_match
-          (case Bool (equalsInteger 0 x) [False, True])
-          {all dead. integer}
-          (/\dead -> 1)
-          (/\dead -> multiplyInteger x (factorial (subtractInteger x 1)))
+        case
+          (all dead. integer)
+          (equalsInteger 0 x)
+          [ (/\dead -> multiplyInteger x (factorial (subtractInteger x 1)))
+          , (/\dead -> 1) ]
           {all dead. dead}
 in
 let

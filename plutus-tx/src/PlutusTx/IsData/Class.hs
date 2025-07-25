@@ -16,6 +16,7 @@ import Prelude qualified as Haskell (Int, error)
 
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Base
+import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal (BuiltinData (..))
 import PlutusTx.Builtins.Internal qualified as BI
@@ -101,6 +102,37 @@ instance FromData Builtins.BuiltinByteString where
 instance UnsafeFromData Builtins.BuiltinByteString where
   {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = BI.unsafeDataAsB
+
+instance ToData Bool where
+  {-# INLINEABLE toBuiltinData #-}
+  toBuiltinData False = BI.mkConstr 0 (BI.mkNilData BI.unitval)
+  toBuiltinData True  = BI.mkConstr 1 (BI.mkNilData BI.unitval)
+instance FromData Bool where
+  {-# INLINEABLE fromBuiltinData #-}
+  fromBuiltinData d =
+    matchData'
+      d
+      (\idx _ ->
+         -- TODO: we can use integer casing here
+         if BI.equalsInteger idx 0
+         then Just False
+         else if BI.equalsInteger idx 1
+              then Just True
+              else Nothing
+      )
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+instance UnsafeFromData Bool where
+  {-# INLINEABLE unsafeFromBuiltinData #-}
+  unsafeFromBuiltinData d =
+    let idx = BI.fst $ BI.unsafeDataAsConstr d
+    in if BI.equalsInteger idx 0
+       then False
+       else if BI.equalsInteger idx 1
+            then True
+            else BI.error BI.unitval
 
 instance (ToData a) => ToData [a] where
   {-# INLINEABLE toBuiltinData #-}

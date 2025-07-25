@@ -36,26 +36,16 @@ let
     = unsafeFromBuiltinData {data} `$fUnsafeFromDataBuiltinData`
   ~`$fUnsafeFromDataSecretlyData` : (\a -> data -> a) data
     = `$cunsafeFromBuiltinData`
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
-  ~equalsInteger : integer -> integer -> Bool
+  ~equalsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-            !b : bool = equalsInteger x y
-          in
-          ifThenElse {Bool} b True False
-  ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
-  ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
-    = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
+        \(y : integer) -> let !y : integer = y in equalsInteger x y
+  ~`$fEqInteger` : (\a -> a -> a -> bool) integer = equalsInteger
+  ~`==` : all a. (\a -> a -> a -> bool) a -> a -> a -> bool
+    = /\a -> \(v : (\a -> a -> a -> bool) a) -> v
   !head : all a. list a -> a = headList
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
@@ -100,16 +90,16 @@ let
                 (pairToPair {integer} {list data} (wrapUnsafeDataAsConstr nt))
                 {r}
                 (\(ds : integer) (ds : list data) ->
-                   Bool_match
+                   case
+                     (all dead. r)
                      (`==` {integer} `$fEqInteger` 0 ds)
-                     {all dead. r}
-                     (/\dead ->
-                        cont
-                          (unsafeFromBuiltinData
-                             {a}
-                             `$dUnsafeFromData`
-                             (head {data} ds)))
-                     (/\dead -> fail ())
+                     [ (/\dead -> fail ())
+                     , (/\dead ->
+                          cont
+                            (unsafeFromBuiltinData
+                               {a}
+                               `$dUnsafeFromData`
+                               (head {data} ds))) ]
                      {all dead. dead})
   ~`$mNothingD` : all r a. (\a -> data) a -> (unit -> r) -> (unit -> r) -> r
     = /\r a ->
@@ -131,11 +121,10 @@ let
                 (pairToPair {integer} {list data} (wrapUnsafeDataAsConstr nt))
                 {r}
                 (\(ds : integer) (ds : list data) ->
-                   Bool_match
+                   case
+                     (all dead. r)
                      (`==` {integer} `$fEqInteger` 1 ds)
-                     {all dead. r}
-                     (/\dead -> cont ())
-                     (/\dead -> fail ())
+                     [(/\dead -> fail ()), (/\dead -> cont ())]
                      {all dead. dead})
 in
 \(ds : (\a -> data) data) ->

@@ -1,9 +1,6 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 \(l : (\a -> list data) integer) ->
   letrec
@@ -21,13 +18,21 @@ in
                (go t)
                {Tuple2 (list data) (list data)}
                (\(ipv : list data) (ipv : list data) ->
-                  Bool_match
-                    (case Bool (lessThanInteger (unIData h) 8) [True, False])
-                    {all dead. Tuple2 (list data) (list data)}
-                    (/\dead ->
-                       Tuple2 {list data} {list data} (mkCons {data} h ipv) ipv)
-                    (/\dead ->
-                       Tuple2 {list data} {list data} ipv (mkCons {data} h ipv))
+                  case
+                    (all dead. Tuple2 (list data) (list data))
+                    (case bool (lessThanInteger (unIData h) 8) [True, False])
+                    [ (/\dead ->
+                         Tuple2
+                           {list data}
+                           {list data}
+                           ipv
+                           (mkCons {data} h ipv))
+                    , (/\dead ->
+                         Tuple2
+                           {list data}
+                           {list data}
+                           (mkCons {data} h ipv)
+                           ipv) ]
                     {all dead. dead}))
   in
   go l

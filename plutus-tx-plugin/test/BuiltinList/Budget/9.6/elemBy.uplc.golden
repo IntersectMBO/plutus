@@ -10,11 +10,10 @@
                 (\xs ->
                    case
                      xs
-                     [ (constr 1 [])
+                     [ False
                      , (\x xs ->
                           case
                             (lessThanEqualsInteger x 0)
-                            [ (force (go (delay (\x -> x))) xs)
-                            , (constr 0 []) ]) ]))
+                            [(force (go (delay (\x -> x))) xs), True]) ]))
            (delay (\x -> x)))
         xs))

@@ -15,7 +15,6 @@
 
 module PlutusTx.Lift.Instances () where
 
-import PlutusTx.Bool (Bool (..))
 import PlutusTx.Either (Either (..))
 import PlutusTx.Lift.TH
 import PlutusTx.Maybe (Maybe (..))
@@ -24,7 +23,6 @@ import PlutusTx.These (These (..))
 -- Standard types
 -- These need to be in a separate file for TH staging reasons
 
-makeLift ''Bool
 makeLift ''Maybe
 makeLift ''Either
 makeLift ''These

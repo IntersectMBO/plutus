@@ -5,17 +5,14 @@ program
       EQ : Ordering
       GT : Ordering
       LT : Ordering
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
     data (Ord :: * -> *) a | Ord_match where
       CConsOrd :
-        (\a -> a -> a -> Bool) a ->
+        (\a -> a -> a -> bool) a ->
         (a -> a -> Ordering) ->
-        (a -> a -> Bool) ->
-        (a -> a -> Bool) ->
-        (a -> a -> Bool) ->
-        (a -> a -> Bool) ->
+        (a -> a -> bool) ->
+        (a -> a -> bool) ->
+        (a -> a -> bool) ->
+        (a -> a -> bool) ->
         (a -> a -> a) ->
         (a -> a -> a) ->
         Ord a
@@ -33,171 +30,156 @@ program
   in
   let
     !validatePreds :
-       all a. Ord a -> (\v -> List (Tuple2 PredKey (List v))) a -> a -> Bool
+       all a. Ord a -> (\v -> List (Tuple2 PredKey (List v))) a -> a -> bool
       = /\a ->
           \(`$dOrd` : Ord a)
            (ds : (\v -> List (Tuple2 PredKey (List v))) a)
            (ds : a) ->
             letrec
-              !go : List (Tuple2 PredKey (List a)) -> Bool
+              !go : List (Tuple2 PredKey (List a)) -> bool
                 = \(ds : List (Tuple2 PredKey (List a))) ->
                     List_match
                       {Tuple2 PredKey (List a)}
                       ds
-                      {all dead. Bool}
-                      (/\dead -> True)
+                      {bool}
+                      True
                       (\(x : Tuple2 PredKey (List a))
                         (xs : List (Tuple2 PredKey (List a))) ->
-                         /\dead ->
-                           Tuple2_match
-                             {PredKey}
-                             {List a}
-                             x
-                             {Bool}
-                             (\(predKey : PredKey)
-                               (expectedPredValues : List a) ->
-                                let
-                                  !meaning : a -> a -> Bool
-                                    = PredKey_match
-                                        predKey
-                                        {all dead. a -> a -> Bool}
-                                        (/\dead ->
-                                           Ord_match
-                                             {a}
-                                             `$dOrd`
-                                             {a -> a -> Bool}
-                                             (\(v : (\a -> a -> a -> Bool) a)
-                                               (v : a -> a -> Ordering)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> a)
-                                               (v : a -> a -> a) ->
-                                                v))
-                                        (/\dead ->
-                                           Ord_match
-                                             {a}
-                                             `$dOrd`
-                                             {a -> a -> Bool}
-                                             (\(v : (\a -> a -> a -> Bool) a)
-                                               (v : a -> a -> Ordering)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> Bool)
-                                               (v : a -> a -> a)
-                                               (v : a -> a -> a) ->
-                                                v))
-                                        (/\dead ->
-                                           \(x : a) (y : a) ->
-                                             Bool_match
-                                               (Ord_match
-                                                  {a}
-                                                  `$dOrd`
-                                                  {(\a -> a -> a -> Bool) a}
-                                                  (\(v :
-                                                       (\a -> a -> a -> Bool) a)
-                                                    (v : a -> a -> Ordering)
-                                                    (v : a -> a -> Bool)
-                                                    (v : a -> a -> Bool)
-                                                    (v : a -> a -> Bool)
-                                                    (v : a -> a -> Bool)
-                                                    (v : a -> a -> a)
-                                                    (v : a -> a -> a) ->
-                                                     v)
-                                                  x
-                                                  y)
-                                               {all dead. Bool}
-                                               (/\dead -> False)
-                                               (/\dead -> True)
+                         Tuple2_match
+                           {PredKey}
+                           {List a}
+                           x
+                           {bool}
+                           (\(predKey : PredKey)
+                             (expectedPredValues : List a) ->
+                              let
+                                !meaning : a -> a -> bool
+                                  = PredKey_match
+                                      predKey
+                                      {all dead. a -> a -> bool}
+                                      (/\dead ->
+                                         Ord_match
+                                           {a}
+                                           `$dOrd`
+                                           {a -> a -> bool}
+                                           (\(v : (\a -> a -> a -> bool) a)
+                                             (v : a -> a -> Ordering)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> a)
+                                             (v : a -> a -> a) ->
+                                              v))
+                                      (/\dead ->
+                                         Ord_match
+                                           {a}
+                                           `$dOrd`
+                                           {a -> a -> bool}
+                                           (\(v : (\a -> a -> a -> bool) a)
+                                             (v : a -> a -> Ordering)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> bool)
+                                             (v : a -> a -> a)
+                                             (v : a -> a -> a) ->
+                                              v))
+                                      (/\dead ->
+                                         \(x : a) (y : a) ->
+                                           case
+                                             bool
+                                             (Ord_match
+                                                {a}
+                                                `$dOrd`
+                                                {(\a -> a -> a -> bool) a}
+                                                (\(v : (\a -> a -> a -> bool) a)
+                                                  (v : a -> a -> Ordering)
+                                                  (v : a -> a -> bool)
+                                                  (v : a -> a -> bool)
+                                                  (v : a -> a -> bool)
+                                                  (v : a -> a -> bool)
+                                                  (v : a -> a -> a)
+                                                  (v : a -> a -> a) ->
+                                                   v)
+                                                x
+                                                y)
+                                             [True, False])
+                                      {all dead. dead}
+                              in
+                              letrec
+                                !go : List a -> bool
+                                  = \(ds : List a) ->
+                                      List_match
+                                        {a}
+                                        ds
+                                        {all dead. bool}
+                                        (/\dead -> go xs)
+                                        (\(x : a) (xs : List a) ->
+                                           /\dead ->
+                                             case
+                                               (all dead. bool)
+                                               (meaning x ds)
+                                               [ (/\dead -> False)
+                                               , (/\dead -> go xs) ]
                                                {all dead. dead})
                                         {all dead. dead}
-                                in
-                                letrec
-                                  !go : List a -> Bool
-                                    = \(ds : List a) ->
-                                        List_match
-                                          {a}
-                                          ds
-                                          {all dead. Bool}
-                                          (/\dead -> go xs)
-                                          (\(x : a) (xs : List a) ->
-                                             /\dead ->
-                                               Bool_match
-                                                 (meaning x ds)
-                                                 {all dead. Bool}
-                                                 (/\dead -> go xs)
-                                                 (/\dead -> False)
-                                                 {all dead. dead})
-                                          {all dead. dead}
-                                in
-                                go expectedPredValues))
-                      {all dead. dead}
+                              in
+                              go expectedPredValues))
             in
             go ds
     !`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
       = \(eta : integer) (eta : integer) ->
-          Bool_match
-            (case Bool (equalsInteger eta eta) [False, True])
-            {all dead. Ordering}
-            (/\dead -> EQ)
-            (/\dead ->
-               Bool_match
-                 (case Bool (lessThanEqualsInteger eta eta) [False, True])
-                 {all dead. Ordering}
-                 (/\dead -> LT)
-                 (/\dead -> GT)
-                 {all dead. dead})
+          case
+            (all dead. Ordering)
+            (equalsInteger eta eta)
+            [ (/\dead ->
+                 case
+                   (all dead. Ordering)
+                   (lessThanEqualsInteger eta eta)
+                   [(/\dead -> GT), (/\dead -> LT)]
+                   {all dead. dead})
+            , (/\dead -> EQ) ]
             {all dead. dead}
-    data Rational | Rational_match where
-      Rational : integer -> integer -> Rational
-    !`$fOrdRational0_$c<=` : Rational -> Rational -> Bool
-      = \(ds : Rational) (ds : Rational) ->
-          Rational_match
-            ds
-            {Bool}
-            (\(n : integer) (d : integer) ->
-               Rational_match
-                 ds
-                 {Bool}
-                 (\(n' : integer) (d' : integer) ->
-                    case
-                      Bool
-                      (lessThanEqualsInteger
-                         (multiplyInteger n d')
-                         (multiplyInteger n' d))
-                      [False, True]))
+    !ifThenElse : all a. bool -> a -> a -> a
+      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   in
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
-          Bool_match
-            (case Bool (equalsInteger 0 y) [False, True])
-            {all dead. integer}
-            (/\dead -> x)
-            (/\dead -> euclid y (modInteger x y))
+          case
+            (all dead. integer)
+            (equalsInteger 0 y)
+            [(/\dead -> euclid y (modInteger x y)), (/\dead -> x)]
             {all dead. dead}
+  in
+  let
+    data Rational | Rational_match where
+      Rational : integer -> integer -> Rational
   in
   letrec
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
-          Bool_match
-            (case Bool (equalsInteger 0 d) [False, True])
-            {all dead. Rational}
-            (/\dead -> error {Rational})
-            (/\dead ->
-               Bool_match
-                 (case Bool (lessThanInteger d 0) [False, True])
-                 {all dead. Rational}
-                 (/\dead ->
-                    unsafeRatio (subtractInteger 0 n) (subtractInteger 0 d))
-                 (/\dead ->
-                    let
-                      !gcd' : integer = euclid n d
-                    in
-                    Rational (quotientInteger n gcd') (quotientInteger d gcd'))
-                 {all dead. dead})
+          case
+            (all dead. Rational)
+            (equalsInteger 0 d)
+            [ (/\dead ->
+                 case
+                   (all dead. Rational)
+                   (lessThanInteger d 0)
+                   [ (/\dead ->
+                        let
+                          !gcd' : integer = euclid n d
+                        in
+                        Rational
+                          (quotientInteger n gcd')
+                          (quotientInteger d gcd'))
+                   , (/\dead ->
+                        unsafeRatio
+                          (subtractInteger 0 n)
+                          (subtractInteger 0 d)) ]
+                   {all dead. dead})
+            , (/\dead -> error {Rational}) ]
             {all dead. dead}
   in
   letrec
@@ -212,15 +194,13 @@ program
   let
     data Unit | Unit_match where
       Unit : Unit
-    !ifThenElse : all a. bool -> a -> a -> a
-      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   in
   letrec
-    !validateParamValue : ParamValue -> data -> Bool
+    !validateParamValue : ParamValue -> data -> bool
       = \(eta : ParamValue) (eta : data) ->
           ParamValue_match
             eta
-            {all dead. Bool}
+            {all dead. bool}
             (/\dead -> True)
             (\(preds : (\v -> List (Tuple2 PredKey (List v))) integer) ->
                /\dead ->
@@ -228,34 +208,30 @@ program
                    {integer}
                    (CConsOrd
                       {integer}
-                      (\(x : integer) (y : integer) ->
-                         case Bool (equalsInteger x y) [False, True])
+                      (\(x : integer) (y : integer) -> equalsInteger x y)
                       `$fOrdInteger_$ccompare`
+                      (\(x : integer) (y : integer) -> lessThanInteger x y)
                       (\(x : integer) (y : integer) ->
-                         case Bool (lessThanInteger x y) [False, True])
-                      (\(x : integer) (y : integer) ->
-                         case Bool (lessThanEqualsInteger x y) [False, True])
+                         lessThanEqualsInteger x y)
                       (\(x : integer) (y : integer) ->
                          ifThenElse
-                           {Bool}
+                           {bool}
                            (lessThanEqualsInteger x y)
                            False
                            True)
                       (\(x : integer) (y : integer) ->
-                         ifThenElse {Bool} (lessThanInteger x y) False True)
+                         ifThenElse {bool} (lessThanInteger x y) False True)
                       (\(x : integer) (y : integer) ->
-                         Bool_match
-                           (case Bool (lessThanEqualsInteger x y) [False, True])
-                           {all dead. integer}
-                           (/\dead -> y)
-                           (/\dead -> x)
+                         case
+                           (all dead. integer)
+                           (lessThanEqualsInteger x y)
+                           [(/\dead -> x), (/\dead -> y)]
                            {all dead. dead})
                       (\(x : integer) (y : integer) ->
-                         Bool_match
-                           (case Bool (lessThanEqualsInteger x y) [False, True])
-                           {all dead. integer}
-                           (/\dead -> x)
-                           (/\dead -> y)
+                         case
+                           (all dead. integer)
+                           (lessThanEqualsInteger x y)
+                           [(/\dead -> y), (/\dead -> x)]
                            {all dead. dead}))
                    preds
                    (unIData eta))
@@ -270,24 +246,17 @@ program
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
                            ds
-                           {Bool}
+                           {bool}
                            (\(n : integer) (d : integer) ->
                               Rational_match
                                 ds
-                                {Bool}
+                                {bool}
                                 (\(n' : integer) (d' : integer) ->
-                                   Bool_match
-                                     (case
-                                        Bool
-                                        (equalsInteger n n')
-                                        [False, True])
-                                     {all dead. Bool}
-                                     (/\dead ->
-                                        case
-                                          Bool
-                                          (equalsInteger d d')
-                                          [False, True])
-                                     (/\dead -> False)
+                                   case
+                                     (all dead. bool)
+                                     (equalsInteger n n')
+                                     [ (/\dead -> False)
+                                     , (/\dead -> equalsInteger d d') ]
                                      {all dead. dead})))
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
@@ -298,75 +267,113 @@ program
                                 ds
                                 {Ordering}
                                 (\(n' : integer) (d' : integer) ->
-                                   `$fOrdInteger_$ccompare`
+                                   let
+                                     !x : integer = multiplyInteger n d'
+                                     !y : integer = multiplyInteger n' d
+                                   in
+                                   case
+                                     (all dead. Ordering)
+                                     (equalsInteger x y)
+                                     [ (/\dead ->
+                                          case
+                                            (all dead. Ordering)
+                                            (lessThanEqualsInteger x y)
+                                            [(/\dead -> GT), (/\dead -> LT)]
+                                            {all dead. dead})
+                                     , (/\dead -> EQ) ]
+                                     {all dead. dead})))
+                      (\(ds : Rational) (ds : Rational) ->
+                         Rational_match
+                           ds
+                           {bool}
+                           (\(n : integer) (d : integer) ->
+                              Rational_match
+                                ds
+                                {bool}
+                                (\(n' : integer) (d' : integer) ->
+                                   lessThanInteger
                                      (multiplyInteger n d')
                                      (multiplyInteger n' d))))
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
                            ds
-                           {Bool}
+                           {bool}
                            (\(n : integer) (d : integer) ->
                               Rational_match
                                 ds
-                                {Bool}
+                                {bool}
                                 (\(n' : integer) (d' : integer) ->
-                                   case
-                                     Bool
-                                     (lessThanInteger
-                                        (multiplyInteger n d')
-                                        (multiplyInteger n' d))
-                                     [False, True])))
-                      `$fOrdRational0_$c<=`
+                                   lessThanEqualsInteger
+                                     (multiplyInteger n d')
+                                     (multiplyInteger n' d))))
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
                            ds
-                           {Bool}
+                           {bool}
                            (\(n : integer) (d : integer) ->
                               Rational_match
                                 ds
-                                {Bool}
+                                {bool}
                                 (\(n' : integer) (d' : integer) ->
                                    let
                                      !x : integer = multiplyInteger n d'
                                      !y : integer = multiplyInteger n' d
                                    in
                                    ifThenElse
-                                     {Bool}
+                                     {bool}
                                      (lessThanEqualsInteger x y)
                                      False
                                      True)))
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
                            ds
-                           {Bool}
+                           {bool}
                            (\(n : integer) (d : integer) ->
                               Rational_match
                                 ds
-                                {Bool}
+                                {bool}
                                 (\(n' : integer) (d' : integer) ->
                                    let
                                      !x : integer = multiplyInteger n d'
                                      !y : integer = multiplyInteger n' d
                                    in
                                    ifThenElse
-                                     {Bool}
+                                     {bool}
                                      (lessThanInteger x y)
                                      False
                                      True)))
                       (\(x : Rational) (y : Rational) ->
-                         Bool_match
-                           (`$fOrdRational0_$c<=` x y)
-                           {all dead. Rational}
-                           (/\dead -> y)
-                           (/\dead -> x)
-                           {all dead. dead})
+                         Rational_match
+                           x
+                           {Rational}
+                           (\(ipv : integer) (ipv : integer) ->
+                              Rational_match
+                                y
+                                {Rational}
+                                (\(ipv : integer) (ipv : integer) ->
+                                   case
+                                     (all dead. Rational)
+                                     (lessThanEqualsInteger
+                                        (multiplyInteger ipv ipv)
+                                        (multiplyInteger ipv ipv))
+                                     [(/\dead -> x), (/\dead -> y)]
+                                     {all dead. dead})))
                       (\(x : Rational) (y : Rational) ->
-                         Bool_match
-                           (`$fOrdRational0_$c<=` x y)
-                           {all dead. Rational}
-                           (/\dead -> x)
-                           (/\dead -> y)
-                           {all dead. dead}))
+                         Rational_match
+                           x
+                           {Rational}
+                           (\(ipv : integer) (ipv : integer) ->
+                              Rational_match
+                                y
+                                {Rational}
+                                (\(ipv : integer) (ipv : integer) ->
+                                   case
+                                     (all dead. Rational)
+                                     (lessThanEqualsInteger
+                                        (multiplyInteger ipv ipv)
+                                        (multiplyInteger ipv ipv))
+                                     [(/\dead -> y), (/\dead -> x)]
+                                     {all dead. dead}))))
                    preds
                    (let
                      !bl : list data = unListData eta
@@ -382,36 +389,35 @@ program
                      (\(ds : Unit) -> error {Rational})
                      Unit))
             {all dead. dead}
-    !validateParamValues : List ParamValue -> list data -> Bool
+    !validateParamValues : List ParamValue -> list data -> bool
       = \(ds : List ParamValue) ->
           List_match
             {ParamValue}
             ds
-            {list data -> Bool}
-            (\(eta : list data) ->
-               case Bool (nullList {data} eta) [False, True])
+            {list data -> bool}
+            (\(eta : list data) -> nullList {data} eta)
             (\(paramValueHd : ParamValue)
               (paramValueTl : List ParamValue)
               (actualValueData : list data) ->
-               Bool_match
+               case
+                 (all dead. bool)
                  (validateParamValue
                     paramValueHd
                     (headList {data} actualValueData))
-                 {all dead. Bool}
-                 (/\dead ->
-                    validateParamValues
-                      paramValueTl
-                      (tailList {data} actualValueData))
-                 (/\dead -> False)
+                 [ (/\dead -> False)
+                 , (/\dead ->
+                      validateParamValues
+                        paramValueTl
+                        (tailList {data} actualValueData)) ]
                  {all dead. dead})
   in
   letrec
     !runRules :
-       List (Tuple2 integer ParamValue) -> List (Tuple2 data data) -> Bool
+       List (Tuple2 integer ParamValue) -> List (Tuple2 data data) -> bool
       = \(ds : List (Tuple2 integer ParamValue))
          (cparams : List (Tuple2 data data)) ->
           let
-            !fail : unit -> Bool
+            !fail : unit -> bool
               = \(ds : unit) ->
                   (let
                       a = Tuple2 data data
@@ -420,16 +426,15 @@ program
                       List_match
                         {a}
                         ds
-                        {all dead. Bool}
-                        (/\dead -> True)
-                        (\(ipv : a) (ipv : List a) -> /\dead -> False)
-                        {all dead. dead})
+                        {bool}
+                        True
+                        (\(ipv : a) (ipv : List a) -> False))
                     cparams
           in
           List_match
             {Tuple2 integer ParamValue}
             ds
-            {all dead. Bool}
+            {all dead. bool}
             (/\dead -> fail ())
             (\(ds : Tuple2 integer ParamValue)
               (cfgRest : List (Tuple2 integer ParamValue)) ->
@@ -438,12 +443,12 @@ program
                    {integer}
                    {ParamValue}
                    ds
-                   {Bool}
+                   {bool}
                    (\(expectedPid : integer) (paramValue : ParamValue) ->
                       List_match
                         {Tuple2 data data}
                         cparams
-                        {all dead. Bool}
+                        {all dead. bool}
                         (/\dead -> fail ())
                         (\(ds : Tuple2 data data)
                           (cparamsRest : List (Tuple2 data data)) ->
@@ -452,22 +457,22 @@ program
                                {data}
                                {data}
                                ds
-                               {Bool}
+                               {bool}
                                (\(ds : data) (actualValueData : data) ->
                                   Ordering_match
                                     (`$fOrdInteger_$ccompare`
                                        (unIData ds)
                                        expectedPid)
-                                    {all dead. Bool}
+                                    {all dead. bool}
                                     (/\dead ->
-                                       Bool_match
+                                       case
+                                         (all dead. bool)
                                          (validateParamValue
                                             paramValue
                                             actualValueData)
-                                         {all dead. Bool}
-                                         (/\dead ->
-                                            runRules cfgRest cparamsRest)
-                                         (/\dead -> False)
+                                         [ (/\dead -> False)
+                                         , (/\dead ->
+                                              runRules cfgRest cparamsRest) ]
                                          {all dead. dead})
                                     (/\dead -> runRules cfgRest cparams)
                                     (/\dead -> False)
@@ -500,7 +505,7 @@ program
                (matchData_go xs))
   in
   let
-    !fun : List (Tuple2 data data) -> Bool
+    !fun : List (Tuple2 data data) -> bool
       = runRules
           ((let
                a = Tuple2 integer ParamValue
@@ -5291,53 +5296,49 @@ program
                                                  {list data}
                                                  (unConstrData ds)))))
                              in
-                             Bool_match
-                               (case
-                                  Bool
-                                  (equalsInteger
-                                     5
-                                     (fstPair {integer} {list data} si))
-                                  [False, True])
-                               {all dead. data}
-                               (/\dead ->
-                                  headList
-                                    {data}
-                                    (tailList
-                                       {data}
-                                       (sndPair {integer} {list data} si)))
-                               (/\dead -> error {data})
+                             case
+                               (all dead. data)
+                               (equalsInteger
+                                  5
+                                  (fstPair {integer} {list data} si))
+                               [ (/\dead -> error {data})
+                               , (/\dead ->
+                                    headList
+                                      {data}
+                                      (tailList
+                                         {data}
+                                         (sndPair {integer} {list data} si))) ]
                                {all dead. dead}))))))
         !x : integer = fstPair {integer} {list data} ds
       in
-      Bool_match
-        (case Bool (equalsInteger 0 x) [False, True])
-        {all dead. Maybe (List (Tuple2 data data))}
-        (/\dead ->
-           Just
-             {List (Tuple2 data data)}
-             (let
-               !d : data
-                 = headList
-                     {data}
-                     (tailList {data} (sndPair {integer} {list data} ds))
-             in
-             matchData_go (unMapData d)))
-        (/\dead ->
-           Bool_match
-             (case Bool (equalsInteger 2 x) [False, True])
-             {all dead. Maybe (List (Tuple2 data data))}
-             (/\dead -> Nothing {List (Tuple2 data data)})
-             (/\dead -> error {Maybe (List (Tuple2 data data))})
-             {all dead. dead})
+      case
+        (all dead. Maybe (List (Tuple2 data data)))
+        (equalsInteger 0 x)
+        [ (/\dead ->
+             case
+               (all dead. Maybe (List (Tuple2 data data)))
+               (equalsInteger 2 x)
+               [ (/\dead -> error {Maybe (List (Tuple2 data data))})
+               , (/\dead -> Nothing {List (Tuple2 data data)}) ]
+               {all dead. dead})
+        , (/\dead ->
+             Just
+               {List (Tuple2 data data)}
+               (let
+                 !d : data
+                   = headList
+                       {data}
+                       (tailList {data} (sndPair {integer} {list data} ds))
+               in
+               matchData_go (unMapData d))) ]
         {all dead. dead})
       {all dead. unit}
       (\(cparams : List (Tuple2 data data)) ->
          /\dead ->
-           Bool_match
+           case
+             (all dead. unit)
              (fun cparams)
-             {all dead. unit}
-             (/\dead -> ())
-             (/\dead -> error {unit})
+             [(/\dead -> error {unit}), (/\dead -> ())]
              {all dead. dead})
       (/\dead -> ())
       {all dead. dead})

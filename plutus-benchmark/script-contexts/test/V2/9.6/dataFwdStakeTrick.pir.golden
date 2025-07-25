@@ -1,7 +1,4 @@
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data Unit | Unit_match where
     Unit : Unit
 in
@@ -37,50 +34,46 @@ in
     !rest : list (pair data data) = tailList {pair data data} ds
     !wdrlAtOne : data = fstPair {data} {data} (headList {pair data data} rest)
   in
-  Bool_match
-    (case Bool (equalsData obsScriptCred wdrlAtZero) [False, True])
-    {all dead. Unit}
-    (/\dead -> Unit)
-    (/\dead ->
-       Bool_match
-         (case Bool (equalsData obsScriptCred wdrlAtOne) [False, True])
-         {all dead. Unit}
-         (/\dead -> Unit)
-         (/\dead ->
-            Bool_match
-              ((let
-                   a = pair data data
-                 in
-                 \(p : a -> Bool) ->
-                   letrec
-                     !go : list a -> Bool
-                       = \(xs : list a) ->
-                           case
-                             Bool
-                             xs
-                             [ False
-                             , (\(x : a) (xs : list a) ->
-                                  Bool_match
-                                    (p x)
-                                    {all dead. Bool}
-                                    (/\dead -> True)
-                                    (/\dead -> go xs)
-                                    {all dead. dead}) ]
-                   in
-                   go)
-                 (\(x : pair data data) ->
-                    case
-                      Bool
-                      (equalsData obsScriptCred (fstPair {data} {data} x))
-                      [False, True])
-                 rest)
-              {all dead. Unit}
-              (/\dead -> Unit)
-              (/\dead ->
-                 let
-                   !x : Unit = trace {Unit} "not found" Unit
-                 in
-                 error {Unit})
-              {all dead. dead})
-         {all dead. dead})
+  case
+    (all dead. Unit)
+    (equalsData obsScriptCred wdrlAtZero)
+    [ (/\dead ->
+         case
+           (all dead. Unit)
+           (equalsData obsScriptCred wdrlAtOne)
+           [ (/\dead ->
+                case
+                  (all dead. Unit)
+                  ((let
+                       a = pair data data
+                     in
+                     \(p : a -> bool) ->
+                       letrec
+                         !go : list a -> bool
+                           = \(xs : list a) ->
+                               case
+                                 bool
+                                 xs
+                                 [ False
+                                 , (\(x : a) (xs : list a) ->
+                                      case
+                                        (all dead. bool)
+                                        (p x)
+                                        [(/\dead -> go xs), (/\dead -> True)]
+                                        {all dead. dead}) ]
+                       in
+                       go)
+                     (\(x : pair data data) ->
+                        equalsData obsScriptCred (fstPair {data} {data} x))
+                     rest)
+                  [ (/\dead ->
+                       let
+                         !x : Unit = trace {Unit} "not found" Unit
+                       in
+                       error {Unit})
+                  , (/\dead -> Unit) ]
+                  {all dead. dead})
+           , (/\dead -> Unit) ]
+           {all dead. dead})
+    , (/\dead -> Unit) ]
     {all dead. dead}

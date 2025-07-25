@@ -89,7 +89,7 @@ pattern ThisDManual arg <-
 pattern ThatDManual :: (PlutusTx.ToData b, PlutusTx.UnsafeFromData b) => b -> TheseDManual a b
 pattern ThatDManual arg <-
   TheseDManual_
-    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 0 -> True, unpack1 -> arg))
+    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 1 -> True, unpack1 -> arg))
   where
     ThatDManual arg =
       TheseDManual_
