@@ -137,7 +137,7 @@ decodeTerm
     => Version
     -> (fun -> Maybe String)
     -> Get (Term name uni fun ann)
-decodeTerm version builtinPred = go
+decodeTerm version _builtinPred = go
     where
         go = handleTerm =<< decodeTermTag
         handleTerm 0 = Var      <$> decode <*> decode
@@ -147,14 +147,7 @@ decodeTerm version builtinPred = go
         handleTerm 4 = Constant <$> decode <*> decode
         handleTerm 5 = Force    <$> decode <*> go
         handleTerm 6 = Error    <$> decode
-        handleTerm 7 = do
-            ann <- decode
-            fun <- decode
-            let t :: Term name uni fun ann
-                t = Builtin ann fun
-            case builtinPred fun of
-                Nothing -> pure t
-                Just e  -> fail e
+        handleTerm 7 = Builtin  <$> decode <*> decode
         handleTerm 8 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'constr' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
             Constr   <$> decode <*> decode <*> decodeListWith go
