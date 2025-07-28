@@ -48,7 +48,7 @@ import System.Console.Haskeline qualified as Repl
 import Data.Version.Extras (gitAwareVersionInfo)
 import Paths_plutus_executables qualified as Paths
 
-import Certifier 
+import Certifier
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
