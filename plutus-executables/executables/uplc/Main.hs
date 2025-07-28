@@ -16,6 +16,7 @@ import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
+
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
@@ -46,6 +47,8 @@ import System.Console.Haskeline qualified as Repl
 
 import Data.Version.Extras (gitAwareVersionInfo)
 import Paths_plutus_executables qualified as Paths
+
+import Certifier 
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
