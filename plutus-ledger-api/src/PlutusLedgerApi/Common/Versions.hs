@@ -221,7 +221,7 @@ batch6 =
   , LengthOfArray, ListToArray, IndexArray
   ]
 
-plutusV1builtins :: _
+plutusV1builtins :: Map.Map MajorProtocolVersion (Set.Set DefaultFun)
 plutusV1builtins =
   Map.fromList
   [ (alonzoPV, Set.fromList batch1)
@@ -229,7 +229,7 @@ plutusV1builtins =
   ]
 {-# OPAQUE plutusV1builtins #-}
 
-plutusV2builtins :: _
+plutusV2builtins :: Map.Map MajorProtocolVersion (Set.Set DefaultFun)
 plutusV2builtins =
   Map.fromList
   [ (vasilPV,     Set.fromList (batch1 ++ batch2))
@@ -239,7 +239,7 @@ plutusV2builtins =
       ]
 {-# OPAQUE plutusV2builtins #-}
 
-plutusV3builtins :: _
+plutusV3builtins :: Map.Map MajorProtocolVersion (Set.Set DefaultFun)
 plutusV3builtins =
   Map.fromList
   [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
