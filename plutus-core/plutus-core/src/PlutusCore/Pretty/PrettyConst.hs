@@ -18,6 +18,7 @@ import PlutusCore.Pretty.Readable
 
 import Control.Lens hiding (List)
 import Data.ByteString qualified as BS
+import Data.Char qualified as Char
 import Data.Coerce
 import Data.List.NonEmpty
 import Data.Proxy
@@ -26,7 +27,7 @@ import Data.Typeable
 import Data.Vector.Strict (Vector)
 import Data.Word (Word8)
 import Numeric (showHex)
-import Prettyprinter
+import Prettyprinter as Prettyprinter
 import Prettyprinter.Internal (Doc (Text))
 import Text.PrettyBy
 import Text.PrettyBy.Internal (DefaultPrettyBy (..))
@@ -104,9 +105,19 @@ instance Show a => DefaultPrettyBy ConstConfig (PrettyAny a) where
 prettyConst :: PrettyConst a => RenderContext -> a -> Doc ann
 prettyConst = prettyBy . ConstConfig
 
--- This instance for String quotes control characters (which is what we want)
--- but also Unicode characters (\8704 and so on).
-deriving via PrettyAny T.Text  instance NonDefaultPrettyBy ConstConfig T.Text
+-- This instance for Text quotes control characters (which is what we want)
+-- but doesn't escape Unicode characters (\8704 and so on).
+instance NonDefaultPrettyBy ConstConfig T.Text where
+    nonDefaultPrettyListBy conf = Prettyprinter.list . Prelude.map (nonDefaultPrettyBy conf)
+    nonDefaultPrettyBy _ t = pretty ("\"" <> escaped <> "\"")
+        where
+            escaped = T.concatMap prettyChar (coerce t)
+            prettyChar c
+                | c == '"' = "\\\"" -- Not handled by 'showLitChar'
+                | c == '\\' = "\\\\" -- Not handled by 'showLitChar'
+                | Char.isPrint c = T.singleton c
+                | otherwise = T.pack (Char.showLitChar c "")
+
 deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
 deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
 deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer

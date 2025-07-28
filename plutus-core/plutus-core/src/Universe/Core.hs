@@ -744,8 +744,8 @@ instance GShow uni => GShow (Kinded uni) where gshowsPrec = showsPrec
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => GShow (ValueOf uni) where
     gshowsPrec = showsPrec
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) where
-    showsPrec pr (ValueOf uni x) =
-        bring (Proxy @Show) uni $ ($(makeShowsPrec ''ValueOf)) pr (ValueOf (AG uni) x)
+    showsPrec pr (ValueOf uni x) = \s -> "aaassd"
+        -- bring (Proxy @Show) uni $ ($(makeShowsPrec ''ValueOf)) pr (ValueOf (AG uni) x)
 
 -------------------- 'Eq' / 'GEq'
 
