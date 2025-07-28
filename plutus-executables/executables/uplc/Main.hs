@@ -4,7 +4,6 @@
 
 module Main (main) where
 
-import Debug.Trace
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
 import PlutusCore.Data (Data)
@@ -16,9 +15,7 @@ import PlutusCore.Executable.AstIO (toDeBruijnTermUPLC)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
-import PlutusCore.Pretty qualified as PP
 import PlutusPrelude
-import Prettyprinter qualified as PP
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
@@ -47,9 +44,7 @@ import Text.Read (readMaybe)
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
-import Certifier
 import Data.Version.Extras (gitAwareVersionInfo)
-import Main.Utf8 (withUtf8)
 import Paths_plutus_executables qualified as Paths
 
 uplcHelpText :: String
@@ -399,8 +394,7 @@ runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
                 Left err -> hPrint stderr err
                 Right v  ->
                   case nameFormat of
-                    -- IdNames -> putStrLn $ show $ prettyPrintByMode printMode ("x ∈ ℝ ⇒ x² ≥ 0; z ∈ ℂ\\ℝ ⇒ z²" :: String) --  v
-                    IdNames -> putStrLn $ PP.render $ prettyPrintByMode printMode  v
+                    IdNames -> writeToOutput outp $ prettyPrintByMode printMode v
                     DeBruijnNames -> writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTermUPLC v
               case budgetMode of
                 Silent    -> pure ()
