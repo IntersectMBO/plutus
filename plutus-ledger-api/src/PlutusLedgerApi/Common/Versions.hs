@@ -231,11 +231,11 @@ plutusV1builtins =
 
 plutusV2builtins :: _
 plutusV2builtins =
-    Map.fromList
-      [ (vasilPV,     Set.fromList (batch1 ++ batch2))
-      , (valentinePV, Set.fromList batch3)
-      , (plominPV,    Set.fromList batch4b)
-      , (pv11PV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
+  Map.fromList
+  [ (vasilPV,     Set.fromList (batch1 ++ batch2))
+  , (valentinePV, Set.fromList batch3)
+  , (plominPV,    Set.fromList batch4b)
+  , (pv11PV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
       ]
 {-# OPAQUE plutusV2builtins #-}
 
