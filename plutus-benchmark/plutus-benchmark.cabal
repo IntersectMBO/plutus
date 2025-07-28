@@ -254,6 +254,31 @@ test-suite plutus-benchmark-lists-tests
     , tasty
     , tasty-quickcheck
 
+---------------- plc values ----------------
+
+library values-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  values/src
+  exposed-modules:
+    PlutusBenchmark.Values.FlattenedValue
+    PlutusBenchmark.Values.NestedValue
+
+  build-depends:
+    , base                     >=4.9   && <5
+    , bytestring
+    , containers
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.50
+
+benchmark values
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: values/bench
+  build-depends:
+    , base       >=4.9     && <5
+    , criterion  >=1.5.9.0
+
 ---------------- casing ----------------
 
 library casing-internal
