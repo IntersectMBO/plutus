@@ -5,7 +5,12 @@
          (\eta ->
             force
               ((\f ->
-                  (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+                  (\s ->
+                     f
+                       (\x ->
+                          f
+                            (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x)
+                            x))
                     (\s -> f (\x -> s s x)))
                  (\go arg ->
                     delay
@@ -24,7 +29,12 @@
                                                    (\x ->
                                                       f
                                                         (\x ->
-                                                           f (\x -> s s x) x)
+                                                           f
+                                                             (\x ->
+                                                                f
+                                                                  (\x -> s s x)
+                                                                  x)
+                                                             x)
                                                         x)
                                                    x))
                                            (\s -> f (\x -> s s x)))
@@ -53,7 +63,12 @@
               [])
            (force
               ((\f ->
-                  (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+                  (\s ->
+                     f
+                       (\x ->
+                          f
+                            (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x)
+                            x))
                     (\s -> f (\x -> s s x)))
                  (\go arg ->
                     delay

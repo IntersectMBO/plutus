@@ -35,7 +35,7 @@ defaultSimplifyOpts :: SimplifyOpts name a
 defaultSimplifyOpts =
   SimplifyOpts
     { _soMaxSimplifierIterations = 12
-    , _soMaxCseIterations = 4
+    , _soMaxCseIterations = 5
     , _soConservativeOpts = False
     , _soInlineHints = def
     , _soInlineConstants = True

@@ -6,7 +6,8 @@
          [ (constr 1 [])
          , (\x xs -> case xs [(constr 0 [x]), (\ds ds -> constr 1 [])]) ])
       ((\f ->
-          (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+          (\s ->
+             f (\x -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x) x))
             (\s -> f (\x -> s s x)))
          (\take arg ->
             delay
