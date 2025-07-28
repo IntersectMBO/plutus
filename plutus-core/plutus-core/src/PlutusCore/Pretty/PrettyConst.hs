@@ -109,14 +109,15 @@ prettyConst = prettyBy . ConstConfig
 -- but doesn't escape Unicode characters (\8704 and so on).
 instance NonDefaultPrettyBy ConstConfig T.Text where
     nonDefaultPrettyListBy conf = Prettyprinter.list . Prelude.map (nonDefaultPrettyBy conf)
-    nonDefaultPrettyBy _ t = pretty ("\"" <> escaped <> "\"")
+    nonDefaultPrettyBy = inContextM $ \t -> pure $ pretty $ "\"" <> escape t <> "\""
         where
-            escaped = T.concatMap prettyChar (coerce t)
-            prettyChar c
-                | c == '"' = "\\\"" -- Not handled by 'showLitChar'
-                | c == '\\' = "\\\\" -- Not handled by 'showLitChar'
-                | Char.isPrint c = T.singleton c
-                | otherwise = T.pack (Char.showLitChar c "")
+            escape t = snd $ T.foldl' prettyChar (False, "") t
+            prettyChar (needSep, acc) c
+                | c == '"' = (False, acc <> "\\\"") -- Not handled by 'showLitChar'
+                | c == '\\' = (False, acc <> "\\\\") -- Not handled by 'showLitChar'
+                | Char.isNumber c && needSep = (False, acc <> "\\&" <> T.singleton c)
+                | Char.isPrint c = (False, acc <> T.singleton c)
+                | otherwise = (True, acc <> T.pack (Char.showLitChar c ""))
 
 deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
 deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
