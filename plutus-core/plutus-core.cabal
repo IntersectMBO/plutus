@@ -348,6 +348,7 @@ library
     , th-utilities
     , time
     , transformers
+    , unicode-show
     , unordered-containers
     , vector                      ^>=0.13.2
     , witherable

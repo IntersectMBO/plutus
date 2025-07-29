@@ -18,7 +18,6 @@ import PlutusCore.Pretty.Readable
 
 import Control.Lens hiding (List)
 import Data.ByteString qualified as BS
-import Data.Char qualified as Char
 import Data.Coerce
 import Data.List.NonEmpty
 import Data.Proxy
@@ -31,6 +30,7 @@ import Prettyprinter as Prettyprinter
 import Prettyprinter.Internal (Doc (Text))
 import Text.PrettyBy
 import Text.PrettyBy.Internal (DefaultPrettyBy (..))
+import Text.Show.Unicode qualified as UnicodeShow
 import Universe
 
 {- Note [Prettyprinting built-in constants]
@@ -109,14 +109,15 @@ prettyConst = prettyBy . ConstConfig
 -- but doesn't escape Unicode characters (\8704 and so on).
 instance NonDefaultPrettyBy ConstConfig T.Text where
     nonDefaultPrettyListBy conf = Prettyprinter.list . Prelude.map (nonDefaultPrettyBy conf)
-    nonDefaultPrettyBy _ t = pretty ("\"" <> escaped <> "\"")
-        where
-            escaped = T.concatMap prettyChar (coerce t)
-            prettyChar c
-                | c == '"' = "\\\"" -- Not handled by 'showLitChar'
-                | c == '\\' = "\\\\" -- Not handled by 'showLitChar'
-                | Char.isPrint c = T.singleton c
-                | otherwise = T.pack (Char.showLitChar c "")
+    nonDefaultPrettyBy _ = pretty . UnicodeShow.ushow @T.Text . coerce
+    -- ("\"" <> escaped <> "\"")
+    --     where
+    --         escaped = T.concatMap prettyChar (coerce t)
+    --         prettyChar c
+    --             | c == '"' = "\\\"" -- Not handled by 'showLitChar'
+    --             | c == '\\' = "\\\\" -- Not handled by 'showLitChar'
+    --             | Char.isPrint c = T.singleton c
+    --             | otherwise = T.pack (Char.showLitChar c "")
 
 deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
 deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
