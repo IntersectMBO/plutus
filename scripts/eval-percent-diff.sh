@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
+# diff‑budget.sh – show percent deltas for *.eval.golden metrics
+# Usage:  diff‑budget.sh [<base‑commit>]
+
 set -euo pipefail
 
 usage() {
   cat <<EOF
 Usage: $0 [<base-commit>]
 
-If <base-commit> is provided, diffs that commit against your working tree.
-Otherwise diffs your working tree vs HEAD.
+If <base-commit> is given, diff that commit against your working tree.
+Otherwise, diff the working tree vs HEAD.
 EOF
   exit 1
 }
 
-# parse optional commit
+# --- argument parsing --------------------------------------------------------
 if [[ $# -gt 1 ]]; then
   usage
 elif [[ $# -eq 1 ]]; then
@@ -21,66 +24,50 @@ else
   GIT_DIFF_CMD=(git diff -- '*.eval.golden')
 fi
 
-# run diff and compute percentages with color & alignment
-"${GIT_DIFF_CMD[@]}" | awk '
+# --- run diff and post‑process with gawk -------------------------------------
+"${GIT_DIFF_CMD[@]}" | gawk -v ESC="$(printf '\033')" '
+###########################################################################
+# helper functions
+###########################################################################
+function strip_us(num,   t){ gsub(/_/, "", num); return num+0 }         # remove underscores → number
+function pct(old, new){ if (old==0) return "N/A";
+                        return sprintf("%+.2f%%", 100*(new-old)/old) }  # signed Δ%
 BEGIN {
-  esc   = sprintf("%c", 27)
-  red   = esc "[31m"
-  green = esc "[32m"
-  reset = esc "[0m"
+  red   = ESC "[31m";      # ↑ values (worse)   → red
+  green = ESC "[32m";      # ↓ values (better) → green
+  reset = ESC "[0m";
 }
 
-# capture filename
+###########################################################################
+# parse diff
+###########################################################################
+# diff header – remember filename
 /^--- a\/.*\.eval\.golden/ {
-  file = substr($2, 3)
+  file = substr($2, 3);          # cut leading "a/"
+  print "\n" file;               # blank line between files
+  next
 }
 
-# old values (strip underscores)
-/^-CPU:/       { oldCPU  = $2; gsub(/[_]/, "", oldCPU) }
-/^-Memory:/    { oldMem  = $2; gsub(/[_]/, "", oldMem) }
-/^-Term Size:/ { oldTerm = $3 }
-/^-Flat Size:/ { oldFlat = $3 }
+# removed line (old value)
+match($0, /^-([A-Za-z ]+):[[:space:]]+([0-9_]+)/, m) {
+  label         = m[1]
+  old[label]    = strip_us(m[2])
+  old_raw[label]= m[2]           # keep original text for pretty print
+  next
+}
 
-# new values + print on Flat Size
-/^\+CPU:/        { newCPU  = $2; gsub(/[_]/, "", newCPU) }
-/^\+Memory:/     { newMem  = $2; gsub(/[_]/, "", newMem) }
-/^\+Term Size:/  { newTerm = $3 }
-/^\+Flat Size:/ {
-  newFlat = $3
+# added line (new value) – do the math & colourise
+match($0, /^\+([A-Za-z ]+):[[:space:]]+([0-9_]+)/, m) {
+  label   = m[1]
+  new     = strip_us(m[2])
+  raw_new = m[2]
 
-  print "File:", file
-
-  # CPU
-  if (oldCPU && newCPU) {
-    pct   = (newCPU - oldCPU) / oldCPU * 100
-    color = (pct < 0 ? green : (pct > 0 ? red : reset))
-    printf("  %-11s%s%+7.2f%%%s\n", "CPU:", color, pct, reset)
+  if (label in old) {            # only if we saw the matching “‑” line
+    delta = pct(old[label], new)
+    color = (new < old[label]) ? green : red
+    printf("  %-11s %10s -> %s%10s (%s)%s\n",
+           label ":", old_raw[label], color, raw_new, delta, reset)
+    delete old[label]            # clear for safety
   }
-
-  # Memory
-  if (oldMem && newMem) {
-    pct   = (newMem - oldMem) / oldMem * 100
-    color = (pct < 0 ? green : (pct > 0 ? red : reset))
-    printf("  %-11s%s%+7.2f%%%s\n", "Memory:", color, pct, reset)
-  }
-
-  # Term Size
-  if (oldTerm && newTerm) {
-    pct   = (newTerm - oldTerm) / oldTerm * 100
-    color = (pct < 0 ? green : (pct > 0 ? red : reset))
-    printf("  %-11s%s%+7.2f%%%s\n", "Term Size:", color, pct, reset)
-  }
-
-  # Flat Size
-  if (oldFlat && newFlat) {
-    pct   = (newFlat - oldFlat) / oldFlat * 100
-    color = (pct < 0 ? green : (pct > 0 ? red : reset))
-    printf("  %-11s%s%+7.2f%%%s\n", "Flat Size:", color, pct, reset)
-  }
-
-  print ""
-
-  # clear for next hunk
-  oldCPU=newCPU=oldMem=newMem=oldTerm=newTerm=oldFlat=newFlat=""
 }
 '

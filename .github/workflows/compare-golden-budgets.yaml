@@ -13,8 +13,11 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          # We need at least one commit before master to compare against
+          fetch-depth: 5
 
       - name: Make script executable
         run: chmod +x scripts/eval-percent-diff.sh
