@@ -53,12 +53,22 @@ let
                            Bool_match
                              (case
                                 Bool
-                                (equalsData k (fstPair {data} {data} hd))
+                                (equalsData
+                                   k
+                                   (case
+                                      data
+                                      hd
+                                      [(\(l : data) (r : data) -> l)]))
                                 [False, True])
                              {all dead. list (pair data data) -> Maybe data}
                              (/\dead ->
                                 \(ds : list (pair data data)) ->
-                                  Just {data} (sndPair {data} {data} hd))
+                                  Just
+                                    {data}
+                                    (case
+                                       data
+                                       hd
+                                       [(\(l : data) (r : data) -> r)]))
                              (/\dead -> go)
                              {all dead. dead}) ]
             in
@@ -110,7 +120,12 @@ in
                               Bool_match
                                 (case
                                    Bool
-                                   (equalsData k (fstPair {data} {data} hd))
+                                   (equalsData
+                                      k
+                                      (case
+                                         data
+                                         hd
+                                         [(\(l : data) (r : data) -> l)]))
                                    [False, True])
                                 {all dead.
                                    list (pair data data) ->
@@ -140,7 +155,9 @@ in
                          Bool_match
                            (case
                               Bool
-                              (equalsData k (fstPair {data} {data} hd))
+                              (equalsData
+                                 k
+                                 (case data hd [(\(l : data) (r : data) -> l)]))
                               [False, True])
                            {all dead.
                               list (pair data data) -> list (pair data data)}

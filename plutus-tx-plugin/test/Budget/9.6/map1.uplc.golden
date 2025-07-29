@@ -20,11 +20,11 @@
                                [ (constr 1 [])
                                , (\hd ->
                                     case
-                                      (equalsData k (force (force fstPair) hd))
+                                      (equalsData k (case hd [(\l r -> l)]))
                                       [ (\x -> s s x)
                                       , (\ds ->
                                            constr 0
-                                             [(force (force sndPair) hd)]) ]) ])
+                                             [(case hd [(\l r -> r)])]) ]) ])
                           ds)
                        (`$dToData` ds))
                     [(\a -> constr 0 [(`$dUnsafeFromData` a)]), (constr 1 [])]))
@@ -36,7 +36,7 @@
                        [ []
                        , (\hd ->
                             case
-                              (equalsData k (force (force fstPair) hd))
+                              (equalsData k (case hd [(\l r -> l)]))
                               [ (\eta -> force mkCons hd (s s eta))
                               , (\x -> x) ]) ]))
                (iData (addInteger 5 n))
@@ -62,8 +62,9 @@
                                                     case
                                                       (equalsData
                                                          k
-                                                         (force (force fstPair)
-                                                            hd))
+                                                         (case
+                                                            hd
+                                                            [(\l r -> l)]))
                                                       [ (\eta ->
                                                            force mkCons
                                                              hd

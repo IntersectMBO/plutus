@@ -20,8 +20,10 @@ in
     \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
       let
         !tup : pair integer (list data) = unConstrData d
-        !index : integer = fstPair {integer} {list data} tup
-        !args : list data = sndPair {integer} {list data} tup
+        !index : integer
+          = case integer tup [(\(l : integer) (r : list data) -> l)]
+        !args : list data
+          = case (list data) tup [(\(l : integer) (r : list data) -> r)]
       in
       Bool_match
         (case Bool (equalsInteger 1 index) [False, True])
@@ -38,8 +40,10 @@ in
     (\(d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
-         !index : integer = fstPair {integer} {list data} tup
-         !args : list data = sndPair {integer} {list data} tup
+         !index : integer
+           = case integer tup [(\(l : integer) (r : list data) -> l)]
+         !args : list data
+           = case (list data) tup [(\(l : integer) (r : list data) -> r)]
        in
        Bool_match
          (case Bool (equalsInteger 0 index) [False, True])

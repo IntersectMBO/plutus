@@ -6,7 +6,9 @@ letrec
           xs
           [ 0
           , (\(hd : pair data data) (eta : list (pair data data)) ->
-               addInteger (unIData (sndPair {data} {data} hd)) (go eta)) ]
+               addInteger
+                 (unIData (case data hd [(\(l : data) (r : data) -> r)]))
+                 (go eta)) ]
 in
 let
   data Bool | Bool_match where
@@ -37,12 +39,16 @@ in
                    Bool_match
                      (case
                         Bool
-                        (equalsData k (fstPair {data} {data} hd))
+                        (equalsData
+                           k
+                           (case data hd [(\(l : data) (r : data) -> l)]))
                         [False, True])
                      {all dead. list (pair data data) -> Maybe data}
                      (/\dead ->
                         \(ds : list (pair data data)) ->
-                          Just {data} (sndPair {data} {data} hd))
+                          Just
+                            {data}
+                            (case data hd [(\(l : data) (r : data) -> r)]))
                      (/\dead -> go)
                      {all dead. dead}) ]
     in
