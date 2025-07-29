@@ -13,40 +13,31 @@ projects=(
 )
 
 tests_plutus_conformance=(
-  "cabal run haskell-conformance -- --accept"
-  "cabal run haskell-steppable-conformance -- --accept"
-  "cabal run agda-conformance -- --accept"
+  "cabal run haskell-conformance -- --accept --hide-successes"
+  "cabal run haskell-steppable-conformance -- --accept --hide-successes"
+  "cabal run agda-conformance -- --accept --hide-successes"
 )
 tests_plutus_tx_plugin=(
-  "cabal run plutus-tx-plugin-tests -- --accept"
-  "cabal run size -- --accept"
+  "cabal run plutus-tx-plugin-tests -- --accept --hide-successes"
+  "cabal run size -- --accept --hide-successes"
 )
 tests_plutus_ledger_api=(
-  "cabal run plutus-ledger-api-test -- --accept"
-  "cabal run plutus-ledger-api-plugin-test -- --accept"
+  "cabal run plutus-ledger-api-test -- --accept --hide-successes"
+  "cabal run plutus-ledger-api-plugin-test -- --accept --hide-successes"
 )
 tests_plutus_benchmark=(
-  "cabal run plutus-benchmark-nofib-tests -- --accept"
-  "cabal run plutus-benchmark-lists-tests -- --accept"
-  "cabal run ed25519-costs-test -- --accept"
-  "cabal run bls12-381-costs-test -- --accept"
-  "cabal run plutus-benchmark-script-contexts-tests -- --accept"
-  "cabal run plutus-benchmark-marlowe-tests -- --accept"
-  "cabal run bitwise-test -- --accept"
-  "cabal run coop-test -- --accept"
-  "cabal run linear-vesting-test -- --accept"
-  "cabal run cardano-loans-test -- --accept"
+  'cabal test plutus-benchmark --test-options="--accept" --test-options="--hide-successes"'
 )
 tests_cardano_constitution=(
-  "cabal run cardano-constitution-test -- --accept"
+  "cabal run cardano-constitution-test -- --accept --hide-successes"
 )
 tests_plutus_tx=(
-  "cabal run plutus-tx-test -- --accept"
+  "cabal run plutus-tx-test -- --accept --hide-successes"
 )
 tests_plutus_core=(
-  "cabal run plutus-core-test -- --accept"
-  "cabal run untyped-plutus-core-test -- --accept"
-  "cabal run plutus-ir-test -- --accept"
+  "cabal run plutus-core-test -- --accept --hide-successes"
+  "cabal run untyped-plutus-core-test -- --accept --hide-successes"
+  "cabal run plutus-ir-test -- --accept --hide-successes"
 )
 
 # Run all tests
