@@ -4,7 +4,7 @@ let
     True : Bool
     False : Bool
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !ifThenElse : all a. bool -> a -> a -> a
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger

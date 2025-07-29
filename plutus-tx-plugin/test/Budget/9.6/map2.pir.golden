@@ -13,8 +13,7 @@ letrec
         case
           (List (Tuple2 integer integer))
           xs
-          [ (Nil {Tuple2 integer integer})
-          , (\(hd : pair data data) (tl : list (pair data data)) ->
+          [ (\(hd : pair data data) (tl : list (pair data data)) ->
                Cons
                  {Tuple2 integer integer}
                  (Tuple2
@@ -22,7 +21,8 @@ letrec
                     {integer}
                     (unIData (fstPair {data} {data} hd))
                     (unIData (sndPair {data} {data} hd)))
-                 (go tl)) ]
+                 (go tl))
+          , (Nil {Tuple2 integer integer}) ]
 in
 letrec
   !go : list (pair data data) -> list (pair data data) -> list (pair data data)
@@ -30,7 +30,7 @@ letrec
         case
           (list (pair data data))
           xs
-          [acc, (\(hd : pair data data) -> go (mkCons {pair data data} hd acc))]
+          [(\(hd : pair data data) -> go (mkCons {pair data data} hd acc)), acc]
 in
 let
   data (Maybe :: * -> *) a | Maybe_match where
@@ -128,8 +128,7 @@ in
           case
             (list (pair data data))
             xs
-            [ []
-            , (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !v' : data = sndPair {data} {data} hd
                    !k' : data = fstPair {data} {data} hd
@@ -140,8 +139,7 @@ in
                          case
                            (Maybe data)
                            xs
-                           [ (Nothing {data})
-                           , (\(hd : pair data data) ->
+                           [ (\(hd : pair data data) ->
                                 Bool_match
                                   (case
                                      Bool
@@ -153,7 +151,8 @@ in
                                      \(ds : list (pair data data)) ->
                                        Just {data} (sndPair {data} {data} hd))
                                   (/\dead -> go)
-                                  {all dead. dead}) ]
+                                  {all dead. dead})
+                           , (Nothing {data}) ]
                  in
                  Maybe_match
                    {data}
@@ -169,7 +168,8 @@ in
                           (go tl))
                    (/\dead ->
                       mkCons {pair data data} (mkPairData k' v') (go tl))
-                   {all dead. dead}) ]
+                   {all dead. dead})
+            , [] ]
   in
   let
     !nt : list (pair data data)
@@ -203,8 +203,7 @@ in
           case
             (list (pair data data))
             xs
-            [ []
-            , (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !tl' : list (pair data data) = go tl
                  in
@@ -218,8 +217,7 @@ in
                            case
                              Bool
                              xs
-                             [ False
-                             , (\(hd : pair data data) ->
+                             [ (\(hd : pair data data) ->
                                   Bool_match
                                     (case
                                        Bool
@@ -229,13 +227,15 @@ in
                                     (/\dead ->
                                        \(ds : list (pair data data)) -> True)
                                     (/\dead -> go)
-                                    {all dead. dead}) ]
+                                    {all dead. dead})
+                             , False ]
                    in
                    go nt)
                    {all dead. list (pair data data)}
                    (/\dead -> tl')
                    (/\dead -> mkCons {pair data data} hd tl')
-                   {all dead. dead}) ]
+                   {all dead. dead})
+            , [] ]
   in
   let
     !nt : list (pair data data)

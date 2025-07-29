@@ -21,10 +21,10 @@
                      (\xs ->
                         case
                           xs
-                          [ (constr 0 [])
-                          , (\x xs ->
+                          [ (\x xs ->
                                case
                                  (p x)
                                  [ (force (go (delay (\x -> x))) xs)
-                                 , (constr 1 []) ]) ]))
+                                 , (constr 1 []) ])
+                          , (constr 0 []) ]))
                 (delay (\x -> x))))))

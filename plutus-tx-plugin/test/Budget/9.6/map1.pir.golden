@@ -48,8 +48,7 @@ let
                     case
                       (Maybe data)
                       xs
-                      [ (Nothing {data})
-                      , (\(hd : pair data data) ->
+                      [ (\(hd : pair data data) ->
                            Bool_match
                              (case
                                 Bool
@@ -60,7 +59,8 @@ let
                                 \(ds : list (pair data data)) ->
                                   Just {data} (sndPair {data} {data} hd))
                              (/\dead -> go)
-                             {all dead. dead}) ]
+                             {all dead. dead})
+                      , (Nothing {data}) ]
             in
             go ds)
             {all dead. Maybe a}
@@ -105,8 +105,7 @@ in
                        case
                          (list (pair data data))
                          xs
-                         [ nilCase
-                         , (\(hd : pair data data) ->
+                         [ (\(hd : pair data data) ->
                               Bool_match
                                 (case
                                    Bool
@@ -120,7 +119,8 @@ in
                                 (/\dead ->
                                    \(eta : list (pair data data)) ->
                                      mkCons {pair data data} hd (go eta))
-                                {all dead. dead}) ]
+                                {all dead. dead})
+                         , nilCase ]
                in
                go ds)
           (mkCons {pair data data} (mkPairData (iData n) (I 0)) [])
@@ -135,8 +135,7 @@ in
                   case
                     (list (pair data data))
                     xs
-                    [ []
-                    , (\(hd : pair data data) ->
+                    [ (\(hd : pair data data) ->
                          Bool_match
                            (case
                               Bool
@@ -148,7 +147,8 @@ in
                            (/\dead ->
                               \(eta : list (pair data data)) ->
                                 mkCons {pair data data} hd (go eta))
-                           {all dead. dead}) ]
+                           {all dead. dead})
+                    , [] ]
           in
           go)
           nt

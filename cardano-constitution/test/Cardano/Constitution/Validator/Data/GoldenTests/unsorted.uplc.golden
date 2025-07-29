@@ -918,8 +918,7 @@ program
                                      (\xs ->
                                         case
                                           xs
-                                          [ (constr 0 [])
-                                          , (\x xs ->
+                                          [ (\x xs ->
                                                constr 1
                                                  [ (constr 0
                                                       [ (force (force fstPair)
@@ -928,7 +927,8 @@ program
                                                            x) ])
                                                  , (force
                                                       (s s (delay (\x -> x)))
-                                                      xs) ]) ]))
+                                                      xs) ])
+                                          , (constr 0 []) ]))
                                 (delay (\x -> x))))
                           (cse (\arg_0 arg_1 -> arg_1)))
                        (cse (\arg_0 arg_1 -> arg_0)))

@@ -870,8 +870,7 @@ program
                                         (\xs ->
                                            case
                                              xs
-                                             [ (constr 0 [])
-                                             , (\x xs ->
+                                             [ (\x xs ->
                                                   constr 1
                                                     [ (constr 0
                                                          [ (force
@@ -882,7 +881,8 @@ program
                                                               x) ])
                                                     , (force
                                                          (s s (delay (\x -> x)))
-                                                         xs) ]) ]))
+                                                         xs) ])
+                                             , (constr 0 []) ]))
                                    (delay (\x -> x))))
                              ((\s -> s s)
                                 (\s ds cparams ->

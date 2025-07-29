@@ -9,9 +9,9 @@ letrec
         case
           (List bytestring)
           xs
-          [ (Nil {bytestring})
-          , (\(x : data) (xs : list data) ->
-               Cons {bytestring} (unBData x) (go xs)) ]
+          [ (\(x : data) (xs : list data) ->
+               Cons {bytestring} (unBData x) (go xs))
+          , (Nil {bytestring}) ]
 in
 let
   data Bool | Bool_match where
@@ -166,12 +166,12 @@ letrec
         case
           (List DCert)
           xs
-          [ (Nil {DCert})
-          , (\(x : data) (xs : list data) ->
+          [ (\(x : data) (xs : list data) ->
                Cons
                  {DCert}
                  (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` x)
-                 (go xs)) ]
+                 (go xs))
+          , (Nil {DCert}) ]
 in
 let
   data (Maybe :: * -> *) a | Maybe_match where
@@ -216,8 +216,7 @@ let
                   case
                     (List (Tuple2 k v))
                     xs
-                    [ (Nil {Tuple2 k v})
-                    , (\(tup : pair data data) (tups : list (pair data data)) ->
+                    [ (\(tup : pair data data) (tups : list (pair data data)) ->
                          Cons
                            {Tuple2 k v}
                            (Tuple2
@@ -225,7 +224,8 @@ let
                               {v}
                               (`$dUnsafeFromData` (fstPair {data} {data} tup))
                               (`$dUnsafeFromData` (sndPair {data} {data} tup)))
-                           (go tups)) ]
+                           (go tups))
+                    , (Nil {Tuple2 k v}) ]
           in
           \(d : data) -> go (unMapData d)
   ~`$fUnsafeFromDataValue` :
@@ -330,12 +330,12 @@ letrec
         case
           (List TxOut)
           xs
-          [ (Nil {TxOut})
-          , (\(x : data) (xs : list data) ->
+          [ (\(x : data) (xs : list data) ->
                Cons
                  {TxOut}
                  (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` x)
-                 (go xs)) ]
+                 (go xs))
+          , (Nil {TxOut}) ]
 in
 let
   !`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` : data -> bytestring
@@ -397,12 +397,12 @@ letrec
         case
           (List TxInInfo)
           xs
-          [ (Nil {TxInInfo})
-          , (\(x : data) (xs : list data) ->
+          [ (\(x : data) (xs : list data) ->
                Cons
                  {TxInInfo}
                  (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` x)
-                 (go xs)) ]
+                 (go xs))
+          , (Nil {TxInInfo}) ]
 in
 letrec
   !go : list data -> List TxInInfo
@@ -410,12 +410,12 @@ letrec
         case
           (List TxInInfo)
           xs
-          [ (Nil {TxInInfo})
-          , (\(x : data) (xs : list data) ->
+          [ (\(x : data) (xs : list data) ->
                Cons
                  {TxInInfo}
                  (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` x)
-                 (go xs)) ]
+                 (go xs))
+          , (Nil {TxInInfo}) ]
 in
 let
   !`$fEqStakingCredential_$c==` : StakingCredential -> StakingCredential -> Bool

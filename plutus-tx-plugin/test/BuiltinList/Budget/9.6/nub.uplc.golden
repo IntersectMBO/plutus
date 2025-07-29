@@ -12,8 +12,7 @@
                       (\l xs ->
                          case
                            l
-                           [ []
-                           , (\y ys ->
+                           [ (\y ys ->
                                 case
                                   (force
                                      ((\f ->
@@ -47,7 +46,8 @@
                                           (force (go (delay (\x -> x)))
                                              ys
                                              (cse xs)))
-                                       (force mkCons y)) ]) ]))
+                                       (force mkCons y)) ])
+                           , [] ]))
                  (delay (\x -> x)))
               eta
               [])
@@ -63,4 +63,4 @@
                             force mkCons x (force (go (delay (\x -> x))) xs))))
                  (delay (\x -> x)))
               xs))
-        (\z f xs -> case xs [z, f])))
+        (\z f xs -> case xs [f, z])))

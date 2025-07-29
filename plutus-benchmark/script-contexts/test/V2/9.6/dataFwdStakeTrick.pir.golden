@@ -58,14 +58,14 @@ in
                            case
                              Bool
                              xs
-                             [ False
-                             , (\(x : a) (xs : list a) ->
+                             [ (\(x : a) (xs : list a) ->
                                   Bool_match
                                     (p x)
                                     {all dead. Bool}
                                     (/\dead -> True)
                                     (/\dead -> go xs)
-                                    {all dead. dead}) ]
+                                    {all dead. dead})
+                             , False ]
                    in
                    go)
                  (\(x : pair data data) ->

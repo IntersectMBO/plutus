@@ -248,8 +248,7 @@
                   case
                     (Maybe data)
                     xs
-                    [ (Nothing {data})
-                    , (\(hd : pair data data) ->
+                    [ (\(hd : pair data data) ->
                          Bool_match
                            (case
                               Bool
@@ -260,7 +259,8 @@
                               \(ds : list (pair data data)) ->
                                 Just {data} (sndPair {data} {data} hd))
                            (/\dead -> go)
-                           {all dead. dead}) ]
+                           {all dead. dead})
+                    , (Nothing {data}) ]
           in
           \(m : list (pair data data)) -> go m
     !assetClassValueOf :
@@ -660,8 +660,7 @@
                     case
                       (Maybe a)
                       ds
-                      [ (Nothing {a})
-                      , (\(x : data) (eta : list data) ->
+                      [ (\(x : data) (eta : list data) ->
                            let
                              !h : a = `$dUnsafeFromData` x
                            in
@@ -670,7 +669,8 @@
                              {all dead. Maybe a}
                              (/\dead -> Just {a} h)
                              (/\dead -> go eta)
-                             {all dead. dead}) ]
+                             {all dead. dead})
+                      , (Nothing {a}) ]
             in
             \(eta : (\a -> list data) a) -> go eta
     !txSignedBy : data -> bytestring -> Bool
@@ -1265,8 +1265,7 @@
                                                  case
                                                    integer
                                                    ds
-                                                   [ n
-                                                   , (\(x : data)
+                                                   [ (\(x : data)
                                                        (eta : list data) ->
                                                         let
                                                           !nt :
@@ -1299,7 +1298,8 @@
                                                                   go n eta)
                                                                {all dead. dead})
                                                           (\(void : unit) ->
-                                                             go n eta)) ]
+                                                             go n eta))
+                                                   , n ]
                                          in
                                          let
                                            !ds : integer
