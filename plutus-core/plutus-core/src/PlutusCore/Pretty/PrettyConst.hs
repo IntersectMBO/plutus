@@ -111,13 +111,12 @@ instance NonDefaultPrettyBy ConstConfig T.Text where
     nonDefaultPrettyListBy conf = Prettyprinter.list . Prelude.map (nonDefaultPrettyBy conf)
     nonDefaultPrettyBy = inContextM $ \t -> pure $ pretty $ "\"" <> escape t <> "\""
         where
-            escape t = snd $ T.foldl' prettyChar (False, "") t
-            prettyChar (needSep, acc) c
-                | c == '"' = (False, acc <> "\\\"") -- Not handled by 'showLitChar'
-                | c == '\\' = (False, acc <> "\\\\") -- Not handled by 'showLitChar'
-                | Char.isNumber c && needSep = (False, acc <> "\\&" <> T.singleton c)
-                | Char.isPrint c = (False, acc <> T.singleton c)
-                | otherwise = (True, acc <> T.pack (Char.showLitChar c ""))
+            escape t = T.foldr' prettyChar "" t
+            prettyChar c acc
+                | c == '"' = "\\\"" <> acc -- Not handled by 'showLitChar'
+                | c == '\\' = "\\\\" <> acc -- Not handled by 'showLitChar'
+                | Char.isPrint c = [c] <> acc
+                | otherwise = Char.showLitChar c acc
 
 deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
 deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
