@@ -42,8 +42,13 @@ jobs:
             const scriptOutput = fs.readFileSync('output.log', 'utf8');
 
             // 3. Format the output into a collapsible markdown block
+            const headSha = context.payload.pull_request.head.sha;
+            const baseSha = context.payload.pull_request.base.sha;            
             const commentBody = `
+              ${botCommentIdentifier}            
               ## Execution budget goldens were changed
+
+              ${baseSha.substring(0, 7)} (master) vs ${headSha.substring(0, 7)}
 
               <details>
               <summary>output</summary>
