@@ -1,0 +1,69 @@
+name: Run golden budget comparison
+
+on:
+  pull_request:
+    paths:
+      - '**.eval.golden'
+
+jobs:
+  run-
+    runs-on: ubuntu-latest
+
+    permissions:
+      gists: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x scripts/runme.sh
+
+      - name: Run the bash script and capture output
+        run: ./scripts/eval-percent-diff.sh | tee output.log
+
+      - name: Create Gist and Comment on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            const scriptOutput = fs.readFileSync('output.log', 'utf8');
+            if (!scriptOutput) {
+              console.log('Script output is empty. Skipping Gist creation and comment.');
+              return;
+            }
+
+            const gistFileName = `output-pr-${{ github.event.pull_request.number }}.log`;
+
+            console.log('Creating Gist...');
+            const gist = await github.rest.gists.create({
+              description: `Output from PR #${{ github.event.pull_request.number }}`,
+              public: false, // Creates a secret Gist
+              files: {
+                [gistFileName]: {
+                  content: scriptOutput
+                }
+              }
+            });
+
+            const gistUrl = gist.data.html_url;
+            console.log(`Gist created: ${gistUrl}`);
+
+            const commentBody = `
+              diffs:
+              ${gistUrl}
+            `;
+
+            console.log('Posting comment to PR...');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody
+            });
+
+            console.log('Comment posted successfully.');
+
