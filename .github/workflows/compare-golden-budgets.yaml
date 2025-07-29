@@ -44,16 +44,14 @@ jobs:
 
             // 1. Format the output into a collapsible markdown block
             const commentBody = `
-              🤖 **Script Output**
+              ## Execution budget goldens were changed
 
               <details>
-              <summary>Click to view output</summary>
+              <summary>output</summary>
+              
+              ${scriptOutput}              
 
-              \`\`\`bash
-              ${scriptOutput}
-              \`\`\`
-
-              </details>
+              </details>              
             `;
 
             // 2. Post the comment to the Pull Request
