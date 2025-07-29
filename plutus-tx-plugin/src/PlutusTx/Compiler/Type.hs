@@ -316,7 +316,7 @@ getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIR.ManualMatche
 getMatch tc = do
   -- ensure the tycon has been compiled, which will create the matcher
   _ <- compileTyCon tc
-  maybeMatch <- PIR.lookupManualDestructor annMayInline (LexName $ GHC.getName tc)
+  maybeMatch <- PIR.lookupDestructor annMayInline (LexName $ GHC.getName tc)
   case maybeMatch of
     Just match -> pure match
     Nothing ->
@@ -326,7 +326,13 @@ getMatch tc = do
 {-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types.
 -}
-getMatchInstantiated :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIR.Term PIR.TyName PIR.Name uni fun Ann -> PIR.Type PIR.TyName uni Ann -> [PIR.Term PIR.TyName PIR.Name uni fun Ann] -> PIR.Term PIR.TyName PIR.Name uni fun Ann)
+getMatchInstantiated
+  :: (CompilingDefault uni fun m ann)
+  => GHC.Type
+  -> m (PIR.Term PIR.TyName PIR.Name uni fun Ann ->
+        PIR.Type PIR.TyName uni Ann ->
+        [PIR.Term PIR.TyName PIR.Name uni fun Ann] ->
+        PIR.Term PIR.TyName PIR.Name uni fun Ann)
 getMatchInstantiated t =
   traceCompilation 3 ("Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do

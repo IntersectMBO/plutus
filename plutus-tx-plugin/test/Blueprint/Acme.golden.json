@@ -81,7 +81,18 @@
   ],
   "definitions": {
     "Bool": {
-      "dataType": "#boolean"
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        }
+      ]
     },
     "BuiltinByteString": {
       "dataType": "bytes"

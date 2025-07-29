@@ -213,7 +213,6 @@ builtinNames =
   , -- This one is special
     'Builtins.stringToBuiltinString
   , 'Builtins.trace
-  , ''Builtins.BuiltinBool
   , 'Builtins.ifThenElse
   , ''Builtins.BuiltinUnit
   , 'Builtins.unitval

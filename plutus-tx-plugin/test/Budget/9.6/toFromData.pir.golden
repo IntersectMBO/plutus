@@ -146,39 +146,39 @@ in
                  {integer}
                  {bool}
                  (let
-                   !idx : integer
-                     = fstPair
-                         {integer}
-                         {list data}
-                         (unConstrData (headList {data} args))
+                   !tup : pair integer (list data)
+                     = unConstrData (headList {data} args)
+                   !index : integer = fstPair {integer} {list data} tup
+                   !args : list data = sndPair {integer} {list data} tup
                  in
                  case
                    (all dead. bool)
-                   (equalsInteger 0 idx)
+                   (equalsInteger 0 index)
                    [ (/\dead ->
                         case
                           (all dead. bool)
-                          (equalsInteger 1 idx)
-                          [(/\dead -> error {bool}), (/\dead -> True)]
+                          (equalsInteger 1 index)
+                          [ (/\dead -> traceError {bool} "PT1")
+                          , (/\dead -> True) ]
                           {all dead. dead})
                    , (/\dead -> False) ]
                    {all dead. dead})
                  (unIData (headList {data} l))
                  (let
-                   !idx : integer
-                     = fstPair
-                         {integer}
-                         {list data}
-                         (unConstrData (headList {data} (tailList {data} l)))
+                   !tup : pair integer (list data)
+                     = unConstrData (headList {data} (tailList {data} l))
+                   !index : integer = fstPair {integer} {list data} tup
+                   !args : list data = sndPair {integer} {list data} tup
                  in
                  case
                    (all dead. bool)
-                   (equalsInteger 0 idx)
+                   (equalsInteger 0 index)
                    [ (/\dead ->
                         case
                           (all dead. bool)
-                          (equalsInteger 1 idx)
-                          [(/\dead -> error {bool}), (/\dead -> True)]
+                          (equalsInteger 1 index)
+                          [ (/\dead -> traceError {bool} "PT1")
+                          , (/\dead -> True) ]
                           {all dead. dead})
                    , (/\dead -> False) ]
                    {all dead. dead})) ]

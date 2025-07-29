@@ -865,7 +865,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
 
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
-  builtinBoolTyCon <- lookupGhcTyCon ''BI.BuiltinBool
   builtinDataTyCon <- lookupGhcTyCon ''Builtins.BuiltinData
   builtinPairTyCon <- lookupGhcTyCon ''BI.BuiltinPair
   stringTyName <- lookupGhcName ''Builtins.BuiltinString
@@ -1033,7 +1032,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           GHC.TyConApp tyCon []
             | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
                 pure $ PLC.mkConstant annMayInline ([] @Integer)
-            | tyCon == builtinBoolTyCon -> pure $ PLC.mkConstant annMayInline ([] @Bool)
             | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
           GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
             | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->

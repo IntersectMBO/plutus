@@ -39,7 +39,6 @@ module PlutusIR.Compiler.Definitions (
   lookupOrDefineType,
   lookupConstructors,
   lookupDestructor,
-  lookupManualDestructor,
   bindings,
 ) where
 
@@ -87,6 +86,10 @@ mapDefs f = Map.map (first f)
 type TermDefWithStrictness uni fun ann =
   PLC.Def (VarDecl TyName Name uni ann) (Term TyName Name uni fun ann, Strictness)
 
+-- Ideally in the future, we make it return m (Term ...) that way matcher can be more
+-- powerful. For example, matcher will be able to independentaly determine rather to delay
+-- the branches or not. I'm not pursuing this since at the moment we don't need that extra
+-- power and complexity that will follow.
 type ManualMatcher uni fun ann =
   [Type TyName uni ann] ->
   -- ^ Type arguments of the datatype
@@ -149,25 +152,30 @@ runDefT x act = do
         terms =
           mapDefs
             ( \d ->
-                TermBind
-                  (_varDeclAnn (defVar d))
-                  (snd $ PLC.defVal d)
-                  (PLC.defVar d)
-                  (fst $ PLC.defVal d)
+                [ TermBind
+                    (_varDeclAnn (defVar d))
+                    (snd $ PLC.defVal d)
+                    (PLC.defVar d)
+                    (fst $ PLC.defVal d)
+                ]
             )
             (_termDefs defs)
         types =
           mapDefs
             ( \d ->
-                TypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVar d) (PLC.defVal d)
+                [TypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVar d) (PLC.defVal d)]
             )
             (_typeDefs defs)
         datatypes =
           mapDefs
-            (\d -> DatatypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVal d))
+            (\d -> [DatatypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVal d)])
             (_datatypeDefs defs)
+        manualDatatypes =
+          mapDefs
+            (\d -> _bindings d)
+            (_manualDatatypeDefs defs)
        in
-        terms `Map.union` types `Map.union` datatypes
+        terms `Map.union` types `Map.union` datatypes `Map.union` manualDatatypes
 
 {- | Given the definitions in the program, create a topologically ordered list of the
 SCCs using the dependency information
@@ -187,14 +195,14 @@ defSccs tds =
 wrapWithDefs ::
   (Ord key) =>
   ann ->
-  DefMap key (Binding tyname name uni fun ann) ->
+  DefMap key [Binding tyname name uni fun ann] ->
   Term tyname name uni fun ann ->
   Term tyname name uni fun ann
 wrapWithDefs x tds body =
   let toValue k = fst <$> Map.lookup k tds
       wrapDefScc acc scc =
         let bs = mapMaybe toValue (Graph.vertexList scc)
-         in mkLet x (if Graph.isAcyclic scc then NonRec else Rec) bs acc
+         in mkLet x (if Graph.isAcyclic scc then NonRec else Rec) (concat bs) acc
    in -- process from the inside out
       Foldable.foldl' wrapDefScc body (defSccs tds)
 
@@ -344,33 +352,22 @@ lookupDestructor ::
   (MonadDefs key uni fun ann m) =>
   ann ->
   key ->
-  m (Maybe (Term TyName Name uni fun ann))
-lookupDestructor x name = do
-  ds <- liftDef @key @uni @fun @ann $ DefT $ use datatypeDefs
-  pure $ case Map.lookup name ds of
-    Just (PLC.Def{PLC.defVal = (Datatype _ _ _ destr _)}, _) -> Just $ Var x destr
-    Nothing                                                  -> Nothing
-
-lookupManualDestructor ::
-  forall key uni fun ann m.
-  (MonadDefs key uni fun ann m) =>
-  ann ->
-  key ->
   m (Maybe (ManualMatcher uni fun ann))
-lookupManualDestructor x name = do
+lookupDestructor x name = do
   DefState{_datatypeDefs = ds, _manualDatatypeDefs = ms} <- liftDef $ DefT get
   pure $ case Map.lookup name ms of
     Just (mt, _) -> Just $ mt ^. matcher
     Nothing      -> case Map.lookup name ds of
       Just (PLC.Def{PLC.defVal = (Datatype _ _ _ destr _)}, _) ->
-        Just $ \tyArgs scrut resTy branches ->
-          PLC.mkIterApp
-            (tyInst x
-               (apply x
-                  (PLC.mkIterInst
-                     (Var x destr)
-                     ((x,) <$> tyArgs))
-                  scrut)
-               resTy)
-            ((x,) <$> branches)
+        Just $
+          \tyArgs scrut resTy branches ->
+             PLC.mkIterApp
+               (tyInst x
+                  (apply x
+                     (PLC.mkIterInst
+                        (Var x destr)
+                        ((x,) <$> tyArgs))
+                     scrut)
+                  resTy)
+               ((x,) <$> branches)
       Nothing                               -> Nothing
