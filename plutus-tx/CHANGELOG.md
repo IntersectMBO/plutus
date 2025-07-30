@@ -1,4 +1,12 @@
 
+<a id='changelog-1.51.0.0'></a>
+# 1.51.0.0 — 2025-07-30
+
+## Changed
+
+- Renamed `PlutusTx.Test.Util.compiledCodeToHask` to `PlutusTx.Test.Util.applyCodeN`
+- Renamed `PlutusTx.Test.Util.compiledCodeToHaskUnsafe` to `PlutusTx.Test.Util.unsafeApplyCodeN`
+
 <a id='changelog-1.50.0.0'></a>
 # 1.50.0.0 — 2025-07-22
 
