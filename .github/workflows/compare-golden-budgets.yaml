@@ -16,7 +16,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
         with:
-          # We need at least one commit before master to compare against
           fetch-depth: 5
 
       - name: Make script executable
@@ -28,25 +27,19 @@ jobs:
       - name: Comment script output on PR
         uses: actions/github-script@v7
         with:
-          # The default GITHUB_TOKEN is used for authentication.
-          # The permission was granted at the job level.
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            // Load the 'fs' module to read files
             const fs = require('fs');
 
-            // 1. Define a unique identifier for our comment
             const botCommentIdentifier = "<!-- GITHUB_ACTION_GOLDEN_FILE_BOT -->";
 
-            // 2. Read the script's output from the log file
             const scriptOutput = fs.readFileSync('output.log', 'utf8');
 
-            // 3. Format the output into a collapsible markdown block
             const headSha = context.payload.pull_request.head.sha;
             const baseSha = context.payload.pull_request.base.sha;            
             const commentBody = `
               ${botCommentIdentifier}            
-              ## Execution budget goldens were changed
+              ## Execution Budget Golden Diff
 
               ${baseSha.substring(0, 7)} (master) vs ${headSha.substring(0, 7)}
 
@@ -55,10 +48,12 @@ jobs:
               
               ${scriptOutput}              
 
-              </details>              
+              </const>
+
+              This comment will get updated when changes are made.
             `;
 
-            const { data: comments } = await github.rest.issues.listComments({
+            details { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
@@ -66,7 +61,6 @@ jobs:
 
             const botComment = comments.find(comment => comment.body.includes(botCommentIdentifier));
 
-            // 5. Update the existing comment or create a new one
             if (botComment) {
               console.log('Found existing comment. Updating...');
               await github.rest.issues.updateComment({
