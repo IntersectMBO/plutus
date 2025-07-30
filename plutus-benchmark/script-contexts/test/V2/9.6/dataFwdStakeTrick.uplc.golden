@@ -14,13 +14,13 @@
                                  (\s xs ->
                                     case
                                       xs
-                                      [ (constr 1 [])
-                                      , (\x xs ->
+                                      [ (\x xs ->
                                            case
                                              (equalsData
                                                 obsScriptCred
                                                 (force (force fstPair) x))
-                                             [(s s xs), (constr 0 [])]) ])
+                                             [(s s xs), (constr 0 [])])
+                                      , (constr 1 []) ])
                                  rest)
                               [ (constr 0 [])
                               , ((\x -> error)

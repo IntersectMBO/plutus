@@ -469,8 +469,7 @@ let
                   case
                     ((\a -> list data) a)
                     ds
-                    [ []
-                    , (\(x : data) (eta : list data) ->
+                    [ (\(x : data) (eta : list data) ->
                          let
                            !h : a = `$dUnsafeFromData` x
                          in
@@ -483,7 +482,8 @@ let
                               in
                               mkCons {data} (`$dToData` h) nt)
                            (/\dead -> go eta)
-                           {all dead. dead}) ]
+                           {all dead. dead})
+                    , [] ]
           in
           \(eta : (\a -> list data) a) -> go eta
   !member :
@@ -497,8 +497,7 @@ let
                   case
                     Bool
                     xs
-                    [ False
-                    , (\(hd : pair data data) ->
+                    [ (\(hd : pair data data) ->
                          Bool_match
                            (case
                               Bool
@@ -509,7 +508,8 @@ let
                            {all dead. list (pair data data) -> Bool}
                            (/\dead -> \(ds : list (pair data data)) -> True)
                            (/\dead -> go)
-                           {all dead. dead}) ]
+                           {all dead. dead})
+                    , False ]
           in
           \(ds : (\k a -> list (pair data data)) k a) -> go ds
   !mapMaybe :
@@ -529,8 +529,7 @@ let
                   case
                     (list (pair data data))
                     xs
-                    [ []
-                    , (\(hd : pair data data) ->
+                    [ (\(hd : pair data data) ->
                          Maybe_match
                            {b}
                            (f (`$dUnsafeFromData` (sndPair {data} {data} hd)))
@@ -546,7 +545,8 @@ let
                                        (`$dToData` v'))
                                     (go eta))
                            (/\dead -> go)
-                           {all dead. dead}) ]
+                           {all dead. dead})
+                    , [] ]
           in
           go
   !null : all a. (\a -> list data) a -> Bool

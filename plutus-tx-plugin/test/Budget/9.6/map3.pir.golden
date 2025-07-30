@@ -10,8 +10,7 @@ letrec
         case
           (list (pair data data))
           xs
-          [ xs
-          , (\(hd : pair data data) (tl : list (pair data data)) ->
+          [ (\(hd : pair data data) (tl : list (pair data data)) ->
                let
                  !v : data = sndPair {data} {data} hd
                  !k : data = fstPair {data} {data} hd
@@ -25,8 +24,7 @@ letrec
                        case
                          (list (pair data data))
                          xs
-                         [ nilCase
-                         , (\(hd : pair data data) ->
+                         [ (\(hd : pair data data) ->
                               Bool_match
                                 (case
                                    Bool
@@ -40,9 +38,11 @@ letrec
                                 (/\dead ->
                                    \(eta : list (pair data data)) ->
                                      mkCons {pair data data} hd (go eta))
-                                {all dead. dead}) ]
+                                {all dead. dead})
+                         , nilCase ]
                in
-               go eta) ]
+               go eta)
+          , xs ]
 in
 let
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
@@ -84,8 +84,7 @@ let
                 case
                   (Maybe data)
                   xs
-                  [ (Nothing {data})
-                  , (\(hd : pair data data) ->
+                  [ (\(hd : pair data data) ->
                        Bool_match
                          (case
                             Bool
@@ -96,7 +95,8 @@ let
                             \(ds : list (pair data data)) ->
                               Just {data} (sndPair {data} {data} hd))
                          (/\dead -> go)
-                         {all dead. dead}) ]
+                         {all dead. dead})
+                  , (Nothing {data}) ]
         in
         \(m : list (pair data data)) -> go m
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
@@ -195,8 +195,7 @@ in
           case
             (list (pair data data))
             xs
-            [ []
-            , (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !v : data = sndPair {data} {data} hd
                    !k : data = fstPair {data} {data} hd
@@ -234,7 +233,8 @@ in
                               `$dToData`
                               (This {integer} {integer} (unIData v))))
                         (goLeft tl))
-                   {all dead. dead}) ]
+                   {all dead. dead})
+            , [] ]
   in
   let
     !nt : list (pair data data)
@@ -268,8 +268,7 @@ in
           case
             (list (pair data data))
             xs
-            [ []
-            , (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !v : data = sndPair {data} {data} hd
                    !k : data = fstPair {data} {data} hd
@@ -307,7 +306,8 @@ in
                               `$dToData`
                               (That {integer} {integer} (unIData v))))
                         (goRight tl))
-                   {all dead. dead}) ]
+                   {all dead. dead})
+            , [] ]
   in
   let
     !nt : list (pair data data) = safeAppend (goLeft nt) (goRight nt)
@@ -362,8 +362,7 @@ in
                  case
                    (List (Tuple2 integer a))
                    xs
-                   [ (Nil {Tuple2 integer a})
-                   , (\(hd : pair data data) (tl : list (pair data data)) ->
+                   [ (\(hd : pair data data) (tl : list (pair data data)) ->
                         Cons
                           {Tuple2 integer a}
                           (Tuple2
@@ -371,7 +370,8 @@ in
                              {a}
                              (`$dUnsafeFromData` (fstPair {data} {data} hd))
                              (`$dUnsafeFromData` (sndPair {data} {data} hd)))
-                          (go tl)) ]
+                          (go tl))
+                   , (Nil {Tuple2 integer a}) ]
          in
          \(d : (\k a -> list (pair data data)) integer a) -> go d)
        unIData

@@ -9,13 +9,13 @@ letrec
         case
           Bool
           ds
-          [ False
-          , (\(x : data) (eta : list data) ->
+          [ (\(x : data) (eta : list data) ->
                Bool_match
                  (case Bool (lessThanInteger (unIData x) 8) [True, False])
                  {all dead. Bool}
                  (/\dead -> True)
                  (/\dead -> go eta)
-                 {all dead. dead}) ]
+                 {all dead. dead})
+          , False ]
 in
 \(eta : (\a -> list data) integer) -> go eta

@@ -9,13 +9,13 @@ letrec
         case
           Bool
           xs
-          [ False
-          , (\(h : data) (t : list data) ->
+          [ (\(h : data) (t : list data) ->
                Bool_match
                  (case Bool (equalsData (I 8) h) [False, True])
                  {all dead. Bool}
                  (/\dead -> True)
                  (/\dead -> go t)
-                 {all dead. dead}) ]
+                 {all dead. dead})
+          , False ]
 in
 \(eta : (\a -> list data) integer) -> go eta

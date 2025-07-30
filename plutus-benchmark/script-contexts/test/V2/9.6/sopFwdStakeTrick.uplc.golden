@@ -620,26 +620,26 @@
                                                   xs ->
                                                    case
                                                      xs
-                                                     [ (constr 0 [])
-                                                     , (\x
+                                                     [ (\x
                                                          xs ->
                                                           constr 1
                                                             [ (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                                                                  x)
-                                                            , (s s xs) ]) ])))
+                                                            , (s s xs) ])
+                                                     , (constr 0 []) ])))
                                           ((\s ->
                                               s s)
                                              (\s
                                                xs ->
                                                 case
                                                   xs
-                                                  [ (constr 0 [])
-                                                  , (\x
+                                                  [ (\x
                                                       xs ->
                                                        constr 1
                                                          [ (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                                                               x)
-                                                         , (s s xs) ]) ])))
+                                                         , (s s xs) ])
+                                                  , (constr 0 []) ])))
                                        (\d ->
                                           (\tup ->
                                              (\index ->
@@ -696,13 +696,13 @@
                                    xs ->
                                     case
                                       xs
-                                      [ (constr 0 [])
-                                      , (\x
+                                      [ (\x
                                           xs ->
                                            constr 1
                                              [ (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                                                   x)
-                                             , (s s xs) ]) ])))
+                                             , (s s xs) ])
+                                      , (constr 0 []) ])))
                            (\eta ->
                               (\tup ->
                                  (\index ->
@@ -841,8 +841,7 @@
                                 (\s xs ->
                                    case
                                      xs
-                                     [ (constr 0 [])
-                                     , (\tup tups ->
+                                     [ (\tup tups ->
                                           constr 1
                                             [ (constr 0
                                                  [ (`$dUnsafeFromData`
@@ -851,20 +850,21 @@
                                                  , (`$dUnsafeFromData`
                                                       (force (force sndPair)
                                                          tup)) ])
-                                            , (s s tups) ]) ]))))
+                                            , (s s tups) ])
+                                     , (constr 0 []) ]))))
                      ((\s ->
                          s s)
                         (\s
                           xs ->
                            case
                              xs
-                             [ (constr 0 [])
-                             , (\x
+                             [ (\x
                                  xs ->
                                   constr 1
                                     [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
                                          x)
-                                    , (s s xs) ]) ])))
+                                    , (s s xs) ])
+                             , (constr 0 []) ])))
                   (\d ->
                      (\tup ->
                         (\index ->
@@ -964,4 +964,4 @@
          (\s xs ->
             case
               xs
-              [(constr 0 []), (\x xs -> constr 1 [(unBData x), (s s xs)])]))))
+              [(\x xs -> constr 1 [(unBData x), (s s xs)]), (constr 0 [])]))))

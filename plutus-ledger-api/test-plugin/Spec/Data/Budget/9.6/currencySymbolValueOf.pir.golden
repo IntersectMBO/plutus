@@ -4,9 +4,9 @@ letrec
         case
           integer
           xs
-          [ 0
-          , (\(hd : pair data data) (eta : list (pair data data)) ->
-               addInteger (unIData (sndPair {data} {data} hd)) (go eta)) ]
+          [ (\(hd : pair data data) (eta : list (pair data data)) ->
+               addInteger (unIData (sndPair {data} {data} hd)) (go eta))
+          , 0 ]
 in
 let
   data Bool | Bool_match where
@@ -32,8 +32,7 @@ in
             case
               (Maybe data)
               xs
-              [ (Nothing {data})
-              , (\(hd : pair data data) ->
+              [ (\(hd : pair data data) ->
                    Bool_match
                      (case
                         Bool
@@ -44,7 +43,8 @@ in
                         \(ds : list (pair data data)) ->
                           Just {data} (sndPair {data} {data} hd))
                      (/\dead -> go)
-                     {all dead. dead}) ]
+                     {all dead. dead})
+              , (Nothing {data}) ]
     in
     go value)
     {integer}

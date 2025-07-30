@@ -13,7 +13,7 @@ in
               a = pair data data
             in
             /\r ->
-              \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f])
+              \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z])
             {Unit -> Unit}
             (\(ds : Unit) ->
                let
