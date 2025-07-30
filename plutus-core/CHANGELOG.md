@@ -1,4 +1,11 @@
 
+<a id='changelog-1.51.0.0'></a>
+# 1.51.0.0 — 2025-07-30
+
+## Changed
+
+- When `Case`ing on builtin list with two branches, now the "cons" branch comes first, followed by "nil" branch. Previously, it was "nil" than "cons" branch. This was changed to give better consistency against the one branch casing which will just have "cons" branch.
+
 <a id='changelog-1.50.0.0'></a>
 # 1.50.0.0 — 2025-07-22
 

@@ -1,4 +1,12 @@
 
+<a id='changelog-1.51.0.0'></a>
+# 1.51.0.0 — 2025-07-30
+
+## Changed
+
+- All built-in functions will be enabled in PlutusV1 and PlutusV2 in Protocol Version 11.
+- Plutus Core version 1.1.0, and hence sums of products (the `case` and `constr` AST nodes), will be enabled in PlutusV1 and PlutusV2 in Protocol Version 11.
+
 <a id='changelog-1.50.0.0'></a>
 # 1.50.0.0 — 2025-07-22
 
