@@ -11,7 +11,7 @@ setupInsertEnv :: IO (ByteString, ByteString, NestedValue, FlattenedValue)
 setupInsertEnv = do
     let polId = "policyId"
         tokName = "tokenName"
-        nValue = mkMockNestedValue 1000
+        nValue = mkRandomNestedValue
         fValue = mkMockFlattenedValue
     pure (polId, tokName, NestedValue.insertCoin polId tokName nValue NestedValue.empty, fValue)
 
