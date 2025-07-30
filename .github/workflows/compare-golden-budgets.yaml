@@ -1,4 +1,4 @@
-name: Run golden budget comparison
+name: "🏆 Compare Golden Budgets"
 
 on:
   pull_request:
