@@ -1268,27 +1268,35 @@
                                                                                     "Time range not Finite")
                                                                                , ((\posixTime ->
                                                                                      case
-                                                                                       ((\idx ->
-                                                                                           case
-                                                                                             (equalsInteger
-                                                                                                0
-                                                                                                idx)
-                                                                                             [ (case
-                                                                                                  (equalsInteger
-                                                                                                     1
-                                                                                                     idx)
-                                                                                                  [ error
-                                                                                                  , True ])
-                                                                                             , False ])
-                                                                                          (force
-                                                                                             (force
-                                                                                                fstPair)
-                                                                                             (unConstrData
+                                                                                       ((\tup ->
+                                                                                           (\index ->
+                                                                                              (\args ->
+                                                                                                 case
+                                                                                                   (equalsInteger
+                                                                                                      0
+                                                                                                      index)
+                                                                                                   [ (case
+                                                                                                        (equalsInteger
+                                                                                                           1
+                                                                                                           index)
+                                                                                                        [ (traceError
+                                                                                                             reconstructCaseError)
+                                                                                                        , True ])
+                                                                                                   , False ])
                                                                                                 (force
-                                                                                                   headList
                                                                                                    (force
-                                                                                                      tailList
-                                                                                                      l)))))
+                                                                                                      sndPair)
+                                                                                                   tup))
+                                                                                             (force
+                                                                                                (force
+                                                                                                   fstPair)
+                                                                                                tup))
+                                                                                          (unConstrData
+                                                                                             (force
+                                                                                                headList
+                                                                                                (force
+                                                                                                   tailList
+                                                                                                   l))))
                                                                                        [ (addInteger
                                                                                             1
                                                                                             posixTime)

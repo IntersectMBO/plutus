@@ -4,10 +4,7 @@
       case
         (force
            ((\f ->
-               (\s ->
-                  f
-                    (\x ->
-                       f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x) x))
+               (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
                  (\s -> f (\x -> s s x)))
               (\go arg ->
                  delay

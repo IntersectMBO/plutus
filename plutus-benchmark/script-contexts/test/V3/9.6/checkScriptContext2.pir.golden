@@ -981,16 +981,18 @@
     !`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` : data -> bool
       = \(d : data) ->
           let
-            !idx : integer = fstPair {integer} {list data} (unConstrData d)
+            !tup : pair integer (list data) = unConstrData d
+            !index : integer = fstPair {integer} {list data} tup
+            !args : list data = sndPair {integer} {list data} tup
           in
           case
             (all dead. bool)
-            (equalsInteger 0 idx)
+            (equalsInteger 0 index)
             [ (/\dead ->
                  case
                    (all dead. bool)
-                   (equalsInteger 1 idx)
-                   [(/\dead -> error {bool}), (/\dead -> True)]
+                   (equalsInteger 1 index)
+                   [(/\dead -> traceError {bool} "PT1"), (/\dead -> True)]
                    {all dead. dead})
             , (/\dead -> False) ]
             {all dead. dead}

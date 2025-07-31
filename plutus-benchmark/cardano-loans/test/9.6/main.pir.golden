@@ -1395,33 +1395,25 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !idx : integer = fstPair {integer} {list data} tup
-                 !ds : list data = sndPair {integer} {list data} tup
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
                in
                case
                  (all dead. Maybe bool)
-                 (equalsInteger 0 idx)
+                 (equalsInteger 0 index)
                  [ (/\dead ->
                       case
                         (all dead. Maybe bool)
-                        (equalsInteger 1 idx)
+                        (equalsInteger 1 index)
                         [ (/\dead -> Nothing {bool})
                         , (/\dead -> Just {bool} True) ]
                         {all dead. dead})
                  , (/\dead -> Just {bool} False) ]
                  {all dead. dead})
-            (\(ds : Unit) ->
-               let
-                 !ds : list (pair data data) = unMapData d
-               in
-               Nothing {bool})
-            (\(ds : Unit) ->
-               let
-                 !ds : list data = unListData d
-               in
-               Nothing {bool})
-            (\(ds : Unit) -> let !ds : integer = unIData d in Nothing {bool})
-            (\(ds : Unit) -> let !ds : bytestring = unBData d in Nothing {bool})
+            (\(ds : Unit) -> Nothing {bool})
+            (\(ds : Unit) -> Nothing {bool})
+            (\(ds : Unit) -> Nothing {bool})
+            (\(ds : Unit) -> Nothing {bool})
             Unit
     data (Extended :: * -> *) a | Extended_match where
       Finite : a -> Extended a

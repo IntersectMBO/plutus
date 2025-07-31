@@ -332,20 +332,20 @@
                  case
                    (all dead. integer)
                    (let
-                     !idx : integer
-                       = fstPair
-                           {integer}
-                           {list data}
-                           (unConstrData (headList {data} (tailList {data} l)))
+                     !tup : pair integer (list data)
+                       = unConstrData (headList {data} (tailList {data} l))
+                     !index : integer = fstPair {integer} {list data} tup
+                     !args : list data = sndPair {integer} {list data} tup
                    in
                    case
                      (all dead. bool)
-                     (equalsInteger 0 idx)
+                     (equalsInteger 0 index)
                      [ (/\dead ->
                           case
                             (all dead. bool)
-                            (equalsInteger 1 idx)
-                            [(/\dead -> error {bool}), (/\dead -> True)]
+                            (equalsInteger 1 index)
+                            [ (/\dead -> traceError {bool} reconstructCaseError)
+                            , (/\dead -> True) ]
                             {all dead. dead})
                      , (/\dead -> False) ]
                      {all dead. dead})

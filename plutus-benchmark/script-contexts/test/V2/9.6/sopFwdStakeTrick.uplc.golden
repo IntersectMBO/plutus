@@ -189,23 +189,31 @@
                                                                                                                                                                    tailList
                                                                                                                                                                    args)))) ])
                                                                                                                                                   (\d ->
-                                                                                                                                                     (\idx ->
-                                                                                                                                                        case
-                                                                                                                                                          (equalsInteger
-                                                                                                                                                             0
-                                                                                                                                                             idx)
-                                                                                                                                                          [ (case
-                                                                                                                                                               (equalsInteger
-                                                                                                                                                                  1
-                                                                                                                                                                  idx)
-                                                                                                                                                               [ error
-                                                                                                                                                               , True ])
-                                                                                                                                                          , False ])
-                                                                                                                                                       (force
+                                                                                                                                                     (\tup ->
+                                                                                                                                                        (\index ->
+                                                                                                                                                           (\args ->
+                                                                                                                                                              case
+                                                                                                                                                                (equalsInteger
+                                                                                                                                                                   0
+                                                                                                                                                                   index)
+                                                                                                                                                                [ (case
+                                                                                                                                                                     (equalsInteger
+                                                                                                                                                                        1
+                                                                                                                                                                        index)
+                                                                                                                                                                     [ (traceError
+                                                                                                                                                                          "PT1")
+                                                                                                                                                                     , True ])
+                                                                                                                                                                , False ])
+                                                                                                                                                             (force
+                                                                                                                                                                (force
+                                                                                                                                                                   sndPair)
+                                                                                                                                                                tup))
                                                                                                                                                           (force
-                                                                                                                                                             fstPair)
-                                                                                                                                                          (unConstrData
-                                                                                                                                                             d))))
+                                                                                                                                                             (force
+                                                                                                                                                                fstPair)
+                                                                                                                                                             tup))
+                                                                                                                                                       (unConstrData
+                                                                                                                                                          d)))
                                                                                                                                                (\`$dUnsafeFromData`
                                                                                                                                                  d ->
                                                                                                                                                   (\tup ->
