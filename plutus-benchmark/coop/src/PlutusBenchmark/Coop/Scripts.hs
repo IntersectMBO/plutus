@@ -13,21 +13,15 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 import Prelude ()
 
-import PlutusLedgerApi.V1.Interval (contains)
-import PlutusLedgerApi.V1.Value (AssetClass (AssetClass), isZero, unAssetClass, valueOf,
-                                 withCurrencySymbol)
-import PlutusLedgerApi.V1.Value qualified as Value
-import PlutusLedgerApi.V2 (Datum, Extended (PosInf), Interval (Interval, ivTo),
-                           LedgerBytes (getLedgerBytes), LowerBound (LowerBound),
-                           ScriptContext (ScriptContext), ScriptPurpose (Minting),
-                           TokenName (TokenName), TxId (getTxId), TxInInfo (TxInInfo),
-                           TxInfo (TxInfo, txInfoData, txInfoInputs, txInfoMint, txInfoOutputs, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange),
-                           TxOut (TxOut, txOutAddress, txOutDatum, txOutValue),
-                           TxOutRef (TxOutRef, txOutRefId, txOutRefIdx), UpperBound (UpperBound),
-                           Value (Value, getValue))
-import PlutusTx.AssocMap qualified as AssocMap
+import PlutusLedgerApi.Data.V2
+import PlutusLedgerApi.V1.Data.Interval (contains)
+import PlutusLedgerApi.V1.Data.Value (isZero, unAssetClass, valueOf, withCurrencySymbol)
+import PlutusLedgerApi.V1.Data.Value qualified as Value
+
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.List (elem, find, foldl, null)
+import PlutusTx.Data.AssocMap qualified as AssocMap
+import PlutusTx.Data.List (cons, elem, foldl, null)
+import PlutusTx.List qualified as BIList
 
 import PlutusBenchmark.Coop.Types
 import PlutusBenchmark.Coop.Utils
@@ -113,14 +107,14 @@ fsMp'
             let
               predicate (CertDatum {..}) =
                 0 < valueOf txInVal ap'authTokenCs (TokenName $ getLedgerBytes cert'id)
-            in case find predicate validCerts of
+            in case BIList.find predicate validCerts of
               Nothing -> traceError "$AUTH must be validated with a $CERT"
               Just (CertDatum {..}) ->
                 let
                   shouldbeBurned' =
                     shouldBeBurned
                     <> Value.singleton ap'authTokenCs (TokenName $ getLedgerBytes cert'id) (-1)
-                in (txIn : validAuthInputs'', shouldbeBurned')
+                in (cons txIn validAuthInputs'', shouldbeBurned')
           else acc
 
         (validAuthInputs', authTokensToBurn) = foldl go' (mempty, mempty) txInfoInputs
@@ -147,9 +141,9 @@ fsMp'
                in if (Value $ AssocMap.singleton ownCs ownCurrValue)
                      == Value.singleton ownCs fsTokenName 1
                   then (Just fsTokenName, unusedAuthInputs'')
-                  else (Nothing, authInput : unusedAuthInputs'')
+                  else (Nothing, cons authInput unusedAuthInputs'')
              matchWithAuth (myFsTn', unusedAuthInputs'') authInput =
-               (myFsTn', (authInput : unusedAuthInputs''))
+               (myFsTn', (cons authInput unusedAuthInputs''))
 
              (mayFsTn, unusedAuthInputs') = foldl matchWithAuth (Nothing, mempty) unusedAuthInputs
            in case mayFsTn of
@@ -210,7 +204,7 @@ authMp'
            "Must mint at least one $AUTH token:\n"
            <> "Must have a specified CurrencySymbol in the Value"
        Just tokenNameMap ->
-         case AssocMap.toList tokenNameMap of
+         case AssocMap.toSOPList tokenNameMap of
            [(k, v)] | k == (TokenName authId) ->
                       errorIfFalse "Must mint at least one $AUTH token" (0 < v)
            _ ->
@@ -231,7 +225,7 @@ certMp'
   let
     tnBytes =
       let
-        AssetClass (aaCs, aaTn) = cmp'authAuthorityAc
+        (aaCs, aaTn) = unAssetClass cmp'authAuthorityAc
         go acc@(aaVal, tnBytes'') (TxInInfo (TxOutRef {txOutRefId = txId, txOutRefIdx = txIdx}) (TxOut {txOutValue = txInVal})) =
           if hasCurrency aaCs txInVal
           then (aaVal + valueOf txInVal aaCs aaTn, tnBytes'' <> consByteString txIdx (getTxId txId))
@@ -280,7 +274,7 @@ certMp'
             contains
             (Interval (LowerBound certValidUntil False) (UpperBound PosInf True))
             txInfoValidRange
-          AssetClass (redeemerCs, redeemerName) = cert'redeemerAc
+          (redeemerCs, redeemerName) = unAssetClass cert'redeemerAc
           inputSum =
             foldl (\acc (TxInInfo _ (TxOut {txOutValue})) -> acc + txOutValue) mempty txInfoInputs
           !_spendAtLeast =
