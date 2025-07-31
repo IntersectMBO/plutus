@@ -501,6 +501,8 @@ runCompiler moduleName opts expr = do
         extensions
     extensionBlacklist =
       [ GADTs
+      , PolyKinds
+      , DerivingVia
       ]
     unsupportedExtensions =
       filter (`elem` extensionBlacklist) enabledExtensions
@@ -508,7 +510,7 @@ runCompiler moduleName opts expr = do
   when (not $ null unsupportedExtensions) $
     throwPlain $ UnsupportedError $
       "Following extensions are not supported: "
-      <> Text.intercalate "," (Text.pack . show <$> unsupportedExtensions)
+      <> Text.intercalate ", " (Text.pack . show <$> unsupportedExtensions)
 
   -- Plc configuration
   plcTcConfig <-
