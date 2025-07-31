@@ -48,12 +48,12 @@ jobs:
               
               ${scriptOutput}              
 
-              </const>
+              </details>
 
               This comment will get updated when changes are made.
             `;
 
-            details { data: comments } = await github.rest.issues.listComments({
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
