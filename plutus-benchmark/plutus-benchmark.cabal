@@ -298,6 +298,48 @@ benchmark validation
     , plutus-core              ^>=1.51
     , plutus-ledger-api        ^>=1.51
 
+benchmark fib-haskell
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        HaskellMain.hs
+  hs-source-dirs: fib/bench
+  other-modules:  Plinth
+  build-depends:
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , directory
+    , filepath
+    , flat                     ^>=0.6
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
+
+  ghc-options:    -O2
+
+benchmark fib-uplc
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        UplcMain.hs
+  hs-source-dirs: fib/bench
+  other-modules:  Plinth
+  build-depends:
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , directory
+    , filepath
+    , flat                     ^>=0.6
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
+
 ---------------- validation-decode ----------------
 
 benchmark validation-decode
@@ -775,7 +817,7 @@ executable gen-coop-flat
     , plutus-tx                    ^>=1.51
     , plutus-tx:plutus-tx-testlib
 
------------------- linear vesting -------------------    
+------------------ linear vesting -------------------
 
 test-suite linear-vesting-test
   import:         lang, ghc-version-support, os-support
