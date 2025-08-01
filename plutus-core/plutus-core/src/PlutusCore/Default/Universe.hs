@@ -554,7 +554,6 @@ readKnownAsInteger term =
             ]
 {-# INLINE readKnownAsInteger #-}
 
-#if WORD_SIZE_IN_BITS == 64
 -- See Note [Integral types as Integer].
 deriving via AsInteger Int instance
         KnownTypeAst tyname DefaultUni Int
@@ -573,7 +572,6 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni te
 instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word where
     readKnown term = fromIntegral @Word64 @Word <$> readKnown term
     {-# INLINE readKnown #-}
-#endif
 
 deriving via
   AsInteger Int8
