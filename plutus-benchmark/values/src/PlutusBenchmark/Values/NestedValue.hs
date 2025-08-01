@@ -1,5 +1,5 @@
 module PlutusBenchmark.Values.NestedValue (
-    Value,
+    Value (..),
     insertCoin,
     lookupCoin,
     deleteCoin,
@@ -7,8 +7,10 @@ module PlutusBenchmark.Values.NestedValue (
     valueContains,
     byPolicyId,
     byTokenName,
+    empty,
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.ByteString (ByteString)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
@@ -16,6 +18,11 @@ import Data.Map.Strict qualified as Map
 newtype Value = Value
     { getValue :: Map ByteString (Map ByteString Integer)
     }
+    deriving stock (Show, Eq)
+    deriving newtype (NFData)
+
+empty :: Value
+empty = Value Map.empty
 
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
 insertCoin currencyName coinName amount (Value m) =

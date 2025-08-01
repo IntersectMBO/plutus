@@ -267,6 +267,7 @@ library values-internal
     , base                     >=4.9   && <5
     , bytestring
     , containers
+    , deepseq
     , plutus-benchmark-common
     , plutus-core              ^>=1.50
 
@@ -276,8 +277,12 @@ benchmark values
   main-is:        Bench.hs
   hs-source-dirs: values/bench
   build-depends:
-    , base       >=4.9     && <5
-    , criterion  >=1.5.9.0
+    , base             >=4.9     && <5
+    , bytestring
+    , containers
+    , criterion        >=1.5.9.0
+    , text
+    , values-internal
 
 ---------------- casing ----------------
 
