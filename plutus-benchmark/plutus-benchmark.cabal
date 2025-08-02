@@ -277,10 +277,11 @@ benchmark values
   main-is:        Bench.hs
   hs-source-dirs: values/bench
   build-depends:
-    , base             >=4.9     && <5
+    , base                     >=4.9     && <5
     , bytestring
     , containers
-    , criterion        >=1.5.9.0
+    , criterion                >=1.5.9.0
+    , plutus-benchmark-common
     , text
     , values-internal
 
