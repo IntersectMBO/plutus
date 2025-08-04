@@ -202,6 +202,8 @@ allBuiltins = builtins1 ++ builtins2
    have the same cost in each Plutus ledger language.  That would involve having
    appropriate sets of cost model parameters to feed into the parameter update
    process though.
+
+   https://github.com/IntersectMBO/plutus-private/issues/1727
 -}
 testPermittedBuiltins :: TestTree
 testPermittedBuiltins =
