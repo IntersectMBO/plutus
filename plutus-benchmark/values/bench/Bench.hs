@@ -30,41 +30,109 @@ mkMockValues numPolicies numToksPerPolicy amounts =
         nestedValue = NestedValue.Value $ Map.fromList rawNestValue
      in (nestedValue, flattenedValue)
 
-mockNumPolicies :: Int
-mockNumPolicies = 10000
+mockNumPolicies1 :: Int
+mockNumPolicies1 = 10000
 
-mockNumTokensPerPolicy :: Int
-mockNumTokensPerPolicy = 2000
+mockNumPolicies2 :: Int
+mockNumPolicies2 = 5000
 
-mockNumTokens :: Int
-mockNumTokens = mockNumPolicies * mockNumTokensPerPolicy
+mockNumTokensPerPolicy1 :: Int
+mockNumTokensPerPolicy1 = 2000
 
-mockTokenValues :: [Integer]
-mockTokenValues = replicate mockNumTokens 200
+mockNumTokensPerPolicy2 :: Int
+mockNumTokensPerPolicy2 = 1000
 
-setupInsertEnvNested :: IO NestedValue.Value
-setupInsertEnvNested =
+mockNumTokens1 :: Int
+mockNumTokens1 = mockNumPolicies1 * mockNumTokensPerPolicy1
+
+mockNumTokens2 :: Int
+mockNumTokens2 = mockNumPolicies2 * mockNumTokensPerPolicy2
+
+mockTokenValues1 :: [Integer]
+mockTokenValues1 = replicate mockNumTokens1 200
+
+mockTokenValues2 :: [Integer]
+mockTokenValues2 = replicate mockNumTokens2 100
+
+setupEnvNested1 :: IO NestedValue.Value
+setupEnvNested1 =
     let (nValue, _) =
             mkMockValues
-                mockNumPolicies
-                mockNumTokensPerPolicy
-                mockTokenValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
      in pure nValue
 
-setupInsertEnvFlattened :: IO FlattenedValue.Value
-setupInsertEnvFlattened =
+setupEnvNested2 :: IO (NestedValue.Value, NestedValue.Value)
+setupEnvNested2 =
+    let (nValue1, _) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
+        (nValue2, _) =
+            mkMockValues
+                mockNumPolicies2
+                mockNumTokensPerPolicy2
+                mockTokenValues2
+     in pure (nValue1, nValue2)
+
+setupEnvFlattened1 :: IO FlattenedValue.Value
+setupEnvFlattened1 =
     let (_, fValue) =
             mkMockValues
-                mockNumPolicies
-                mockNumTokensPerPolicy
-                mockTokenValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
      in pure fValue
+
+setupEnvFlattened2 :: IO (FlattenedValue.Value, FlattenedValue.Value)
+setupEnvFlattened2 =
+    let (_, fValue1) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
+        (_, fValue2) =
+            mkMockValues
+                mockNumPolicies2
+                mockNumTokensPerPolicy2
+                mockTokenValues2
+     in pure (fValue1, fValue2)
+
+setupEnvNested1andInv :: IO (NestedValue.Value, NestedValue.Value)
+setupEnvNested1andInv =
+    let (nValue1, _) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
+        (nValue1Inv, _) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                (map negate mockTokenValues1)
+     in pure (nValue1, nValue1Inv)
+
+setupEnvFlattened1andInv :: IO (FlattenedValue.Value, FlattenedValue.Value)
+setupEnvFlattened1andInv =
+    let (_, fValue1) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
+        (_, fValue1Inv) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                (map negate mockTokenValues1)
+     in pure (fValue1, fValue1Inv)
 
 main :: IO ()
 main = do
-    config <- getConfig 5
+    config <- getConfig 30
     defaultMainWith config $
-        [ env setupInsertEnvNested $ \ ~nValue ->
+        [ env setupEnvNested1 $ \ ~nValue ->
             bgroup "NestedValue"
                 [ bench "insertCoin - new coin"
                     $ nf (NestedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) nValue
@@ -78,8 +146,16 @@ main = do
                     $ nf (NestedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) nValue
                 , bench "deleteCoin - existing coin"
                     $ nf (NestedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) nValue
+                , bench "byPolicyId - not found"
+                    $ nf (NestedValue.byPolicyId (encodeUtf8 "notHere")) nValue
+                , bench "byPolicyId - existing policy"
+                    $ nf (NestedValue.byPolicyId (encodeUtf8 "policy500")) nValue
+                , bench "byTokenName - not found"
+                    $ nf (NestedValue.byTokenName (encodeUtf8 "notHere")) nValue
+                , bench "byTokenName - existing token"
+                    $ nf (NestedValue.byTokenName (encodeUtf8 "token999999")) nValue
                 ]
-        , env setupInsertEnvFlattened $ \ ~fValue ->
+        , env setupEnvFlattened1 $ \ ~fValue ->
             bgroup "FlattenedValue"
                 [ bench "insertCoin - new coin"
                     $ nf (FlattenedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) fValue
@@ -93,5 +169,41 @@ main = do
                     $ nf (FlattenedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) fValue
                 , bench "deleteCoin - existing coin"
                     $ nf (FlattenedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) fValue
+                , bench "byPolicyId - not found"
+                    $ nf (FlattenedValue.byPolicyId (encodeUtf8 "notHere")) fValue
+                , bench "byPolicyId - existing policy"
+                    $ nf (FlattenedValue.byPolicyId (encodeUtf8 "policy500")) fValue
+                , bench "byTokenName - not found"
+                    $ nf (FlattenedValue.byTokenName (encodeUtf8 "notHere")) fValue
+                , bench "byTokenName - existing token"
+                    $ nf (FlattenedValue.byTokenName (encodeUtf8 "token999999")) fValue
+                ]
+        , env setupEnvNested2 $ \ ~vals ->
+            bgroup "NestedValue"
+                [ bench "union - two different values"
+                    $ nf (uncurry NestedValue.union) vals
+                , bench "valueContains - is not sub-value"
+                    $ nf (uncurry NestedValue.valueContains) vals
+                ]
+        , env setupEnvFlattened2 $ \ ~vals ->
+            bgroup "FlattenedValue"
+                [ bench "union - two different values"
+                    $ nf (uncurry FlattenedValue.union) vals
+                , bench "valueContains - is not sub-value"
+                    $ nf (uncurry FlattenedValue.valueContains) vals
+                ]
+        , env setupEnvNested1andInv $ \ ~vals ->
+            bgroup "NestedValue"
+                [ bench "union - union with inverse"
+                    $ nf (uncurry NestedValue.union) vals
+                , bench "valueContains - is sub-value"
+                    $ nf (uncurry NestedValue.valueContains) vals
+                ]
+        , env setupEnvFlattened1andInv $ \ ~vals ->
+            bgroup "FlattenedValue"
+                [ bench "union - union with inverse"
+                    $ nf (uncurry FlattenedValue.union) vals
+                , bench "valueContains - is sub-value"
+                    $ nf (uncurry FlattenedValue.valueContains) vals
                 ]
         ]
