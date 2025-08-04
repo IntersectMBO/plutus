@@ -1,7 +1,7 @@
 let
   ~`$fMkNilInteger` : (\arep -> list arep) integer = []
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
   ~foldr : all a b. (a -> b -> b) -> b -> list a -> b
     = /\a b ->
         \(f : a -> b -> b) ->

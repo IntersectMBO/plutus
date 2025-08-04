@@ -10,12 +10,12 @@
                 (\i xs ->
                    case
                      xs
-                     [ (\x xs ->
+                     [ (constr 1 [])
+                     , (\x xs ->
                           case
                             (equalsInteger x 4)
                             [ (force (go (delay (\x -> x))) (addInteger i 1) xs)
-                            , (constr 0 [i]) ])
-                     , (constr 1 []) ]))
+                            , (constr 0 [i]) ]) ]))
            (delay (\x -> x)))
         0
         xs))

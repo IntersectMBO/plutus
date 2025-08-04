@@ -4,6 +4,6 @@ letrec
         case
           integer
           xs
-          [(\(ds : data) (eta : list data) -> addInteger 1 (go eta)), 0]
+          [0, (\(ds : data) (eta : list data) -> addInteger 1 (go eta))]
 in
 \(ds : (\a -> list data) integer) -> go ds

@@ -17,14 +17,14 @@
                           (\s xs ->
                              case
                                xs
-                               [ (\hd ->
+                               [ (constr 1 [])
+                               , (\hd ->
                                     case
                                       (equalsData k (force (force fstPair) hd))
                                       [ (\x -> s s x)
                                       , (\ds ->
                                            constr 0
-                                             [(force (force sndPair) hd)]) ])
-                               , (constr 1 []) ])
+                                             [(force (force sndPair) hd)]) ]) ])
                           ds)
                        (`$dToData` ds))
                     [(\a -> constr 0 [(`$dUnsafeFromData` a)]), (constr 1 [])]))
@@ -33,11 +33,12 @@
                   (\s xs ->
                      case
                        xs
-                       [ (\hd ->
+                       [ []
+                       , (\hd ->
                             case
                               (equalsData k (force (force fstPair) hd))
-                              [(\eta -> force mkCons hd (s s eta)), (\x -> x)])
-                       , [] ]))
+                              [ (\eta -> force mkCons hd (s s eta))
+                              , (\x -> x) ]) ]))
                (iData (addInteger 5 n))
                nt))
          ((\z ->
@@ -56,7 +57,8 @@
                                           (\s xs ->
                                              case
                                                xs
-                                               [ (\hd ->
+                                               [ nilCase
+                                               , (\hd ->
                                                     case
                                                       (equalsData
                                                          k
@@ -67,8 +69,9 @@
                                                              hd
                                                              (s s eta))
                                                       , (force mkCons
-                                                           (mkPairData k a)) ])
-                                               , nilCase ])
+                                                           (mkPairData
+                                                              k
+                                                              a)) ]) ])
                                           ds)
                                        (force mkCons (mkPairData k a) []))
                                     (iData y))

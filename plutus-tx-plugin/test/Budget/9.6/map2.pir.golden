@@ -13,7 +13,8 @@ letrec
         case
           (List (Tuple2 integer integer))
           xs
-          [ (\(hd : pair data data) (tl : list (pair data data)) ->
+          [ (Nil {Tuple2 integer integer})
+          , (\(hd : pair data data) (tl : list (pair data data)) ->
                Cons
                  {Tuple2 integer integer}
                  (Tuple2
@@ -21,8 +22,7 @@ letrec
                     {integer}
                     (unIData (fstPair {data} {data} hd))
                     (unIData (sndPair {data} {data} hd)))
-                 (go tl))
-          , (Nil {Tuple2 integer integer}) ]
+                 (go tl)) ]
 in
 letrec
   !go : list (pair data data) -> list (pair data data) -> list (pair data data)
@@ -30,15 +30,12 @@ letrec
         case
           (list (pair data data))
           xs
-          [(\(hd : pair data data) -> go (mkCons {pair data data} hd acc)), acc]
+          [acc, (\(hd : pair data data) -> go (mkCons {pair data data} hd acc))]
 in
 let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 letrec
   !goList : List (Tuple2 data data) -> list (pair data data)
@@ -128,7 +125,8 @@ in
           case
             (list (pair data data))
             xs
-            [ (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ []
+            , (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !v' : data = sndPair {data} {data} hd
                    !k' : data = fstPair {data} {data} hd
@@ -139,20 +137,19 @@ in
                          case
                            (Maybe data)
                            xs
-                           [ (\(hd : pair data data) ->
-                                Bool_match
-                                  (case
-                                     Bool
-                                     (equalsData k' (fstPair {data} {data} hd))
-                                     [False, True])
-                                  {all dead.
-                                     list (pair data data) -> Maybe data}
-                                  (/\dead ->
-                                     \(ds : list (pair data data)) ->
-                                       Just {data} (sndPair {data} {data} hd))
-                                  (/\dead -> go)
-                                  {all dead. dead})
-                           , (Nothing {data}) ]
+                           [ (Nothing {data})
+                           , (\(hd : pair data data) ->
+                                case
+                                  (all dead.
+                                     list (pair data data) -> Maybe data)
+                                  (equalsData k' (fstPair {data} {data} hd))
+                                  [ (/\dead -> go)
+                                  , (/\dead ->
+                                       \(ds : list (pair data data)) ->
+                                         Just
+                                           {data}
+                                           (sndPair {data} {data} hd)) ]
+                                  {all dead. dead}) ]
                  in
                  Maybe_match
                    {data}
@@ -168,8 +165,7 @@ in
                           (go tl))
                    (/\dead ->
                       mkCons {pair data data} (mkPairData k' v') (go tl))
-                   {all dead. dead})
-            , [] ]
+                   {all dead. dead}) ]
   in
   let
     !nt : list (pair data data)
@@ -203,39 +199,36 @@ in
           case
             (list (pair data data))
             xs
-            [ (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ []
+            , (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !tl' : list (pair data data) = go tl
                  in
-                 Bool_match
+                 case
+                   (all dead. list (pair data data))
                    (let
                      !k : data = fstPair {data} {data} hd
                    in
                    letrec
-                     !go : list (pair data data) -> Bool
+                     !go : list (pair data data) -> bool
                        = \(xs : list (pair data data)) ->
                            case
-                             Bool
+                             bool
                              xs
-                             [ (\(hd : pair data data) ->
-                                  Bool_match
-                                    (case
-                                       Bool
-                                       (equalsData k (fstPair {data} {data} hd))
-                                       [False, True])
-                                    {all dead. list (pair data data) -> Bool}
-                                    (/\dead ->
-                                       \(ds : list (pair data data)) -> True)
-                                    (/\dead -> go)
-                                    {all dead. dead})
-                             , False ]
+                             [ False
+                             , (\(hd : pair data data) ->
+                                  case
+                                    (all dead. list (pair data data) -> bool)
+                                    (equalsData k (fstPair {data} {data} hd))
+                                    [ (/\dead -> go)
+                                    , (/\dead ->
+                                         \(ds : list (pair data data)) ->
+                                           True) ]
+                                    {all dead. dead}) ]
                    in
                    go nt)
-                   {all dead. list (pair data data)}
-                   (/\dead -> tl')
-                   (/\dead -> mkCons {pair data data} hd tl')
-                   {all dead. dead})
-            , [] ]
+                   [(/\dead -> mkCons {pair data data} hd tl'), (/\dead -> tl')]
+                   {all dead. dead}) ]
   in
   let
     !nt : list (pair data data)
