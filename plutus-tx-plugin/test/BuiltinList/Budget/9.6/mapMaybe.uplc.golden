@@ -10,11 +10,11 @@
                 (\xs ->
                    case
                      xs
-                     [ (\x xs ->
+                     [ []
+                     , (\x xs ->
                           case
                             (equalsInteger (modInteger x 2) 0)
                             [ (force mkCons x (force (go (delay (\x -> x))) xs))
-                            , (force (go (delay (\x -> x))) xs) ])
-                     , [] ]))
+                            , (force (go (delay (\x -> x))) xs) ]) ]))
            (delay (\x -> x)))
         xs))

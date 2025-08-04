@@ -10,8 +10,8 @@
                 (\xs ->
                    case
                      xs
-                     [ (\x xs ->
-                          force mkCons x (force (go (delay (\x -> x))) xs))
-                     , xs ]))
+                     [ xs
+                     , (\x xs ->
+                          force mkCons x (force (go (delay (\x -> x))) xs)) ]))
            (delay (\x -> x)))
         xs))

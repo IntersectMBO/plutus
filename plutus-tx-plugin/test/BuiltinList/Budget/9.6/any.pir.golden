@@ -4,21 +4,18 @@ let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-  ~any : all a. (a -> Bool) -> list a -> Bool
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+  ~any : all a. (a -> bool) -> list a -> bool
     = /\a ->
-        \(p : a -> Bool) ->
+        \(p : a -> bool) ->
           let
-            !p : a -> Bool = p
+            !p : a -> bool = p
           in
           letrec
-            ~go : list a -> Bool
+            ~go : list a -> bool
               = caseList'
                   {a}
-                  {Bool}
+                  {bool}
                   False
                   (\(x : a) ->
                      let
@@ -28,18 +25,17 @@ let
                        let
                          !xs : list a = xs
                        in
-                       Bool_match
+                       case
+                         (all dead. bool)
                          (p x)
-                         {all dead. Bool}
-                         (/\dead -> True)
-                         (/\dead -> go xs)
+                         [(/\dead -> go xs), (/\dead -> True)]
                          {all dead. dead})
           in
           go
   !ifThenElse : all a. bool -> a -> a -> a
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
-  ~greaterThanEqualsInteger : integer -> integer -> Bool
+  ~greaterThanEqualsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -48,14 +44,14 @@ let
           let
             !y : integer = y
           in
-          ifThenElse {Bool} (lessThanInteger x y) False True
+          ifThenElse {bool} (lessThanInteger x y) False True
 in
 \(xs : list integer) ->
   let
     !xs : list integer = xs
   in
   Tuple2
-    {Bool}
-    {Bool}
+    {bool}
+    {bool}
     (any {integer} (\(v : integer) -> greaterThanEqualsInteger v v) xs)
     (any {integer} (\(v : integer) -> greaterThanEqualsInteger v v) xs)

@@ -865,7 +865,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
 
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
-  builtinBoolTyCon <- lookupGhcTyCon ''BI.BuiltinBool
   builtinDataTyCon <- lookupGhcTyCon ''Builtins.BuiltinData
   builtinPairTyCon <- lookupGhcTyCon ''BI.BuiltinPair
   stringTyName <- lookupGhcName ''Builtins.BuiltinString
@@ -1033,7 +1032,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           GHC.TyConApp tyCon []
             | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
                 pure $ PLC.mkConstant annMayInline ([] @Integer)
-            | tyCon == builtinBoolTyCon -> pure $ PLC.mkConstant annMayInline ([] @Bool)
             | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
           GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
             | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
@@ -1300,7 +1298,6 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
 
         -- it's important to instantiate the match before alts compilation
         match <- getMatchInstantiated scrutineeType
-        let matched = PIR.Apply annMayInline match scrutinee'
 
         let (rest, mdef) = GHC.findDefault alts
         -- This does two things:
@@ -1341,9 +1338,8 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
         -- See Note [Scott encoding of datatypes]
         -- we're going to delay the body, so the matcher needs to be instantiated at the delayed type
         resultType <- maybeDelayType lazyCase originalResultType
-        let instantiated = PIR.TyInst annMayInline matched resultType
 
-        let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
+        let applied = match scrutinee' resultType branches
         -- See Note [Case expressions and laziness]
         mainCase <- maybeForce lazyCase applied
 
@@ -1556,7 +1552,11 @@ compileExprWithDefs
   => GHC.CoreExpr
   -> m (PIRTerm uni fun)
 compileExprWithDefs e = do
+  -- Order matters here. Generlly, Once that define types should go before anything that defines
+  -- terms. Otherwise, type definitions might get ignored if they appear in types of term definitions.
+  defineBoolType
   defineBuiltinTypes
+
   defineBuiltinTerms
   defineIntegerNegate
   defineFix

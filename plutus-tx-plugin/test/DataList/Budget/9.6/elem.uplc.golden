@@ -5,5 +5,4 @@
          (\s xs ->
             case
               xs
-              [ (\h t -> case (equalsData (I 8) h) [(s s t), (constr 0 [])])
-              , (constr 1 []) ]))))
+              [False, (\h t -> case (equalsData (I 8) h) [(s s t), True])]))))

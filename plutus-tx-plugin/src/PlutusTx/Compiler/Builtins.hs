@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -14,6 +15,7 @@ module PlutusTx.Compiler.Builtins (
   builtinNames,
   defineBuiltinTypes,
   defineBuiltinTerms,
+  defineBoolType,
   lookupBuiltinTerm,
   lookupBuiltinType,
   errorFunc,
@@ -52,6 +54,7 @@ import Control.Monad.Reader (asks)
 import Data.ByteString qualified as BS
 import Data.Functor
 import Data.Proxy
+import Data.Set qualified as Set
 import Data.Text (Text)
 import PlutusPrelude (enumerate, for_)
 
@@ -210,10 +213,7 @@ builtinNames =
   , -- This one is special
     'Builtins.stringToBuiltinString
   , 'Builtins.trace
-  , ''Builtins.BuiltinBool
   , 'Builtins.ifThenElse
-  , 'Builtins.true
-  , 'Builtins.false
   , ''Builtins.BuiltinUnit
   , 'Builtins.unitval
   , 'Builtins.chooseUnit
@@ -309,6 +309,41 @@ defineBuiltinType name ty = do
   -- these are all aliases for now
   PIR.recordAlias (LexName $ GHC.getName tc)
 
+defineBoolType :: forall uni fun m ann. (CompilingDefault uni fun m ann) => m ()
+defineBoolType = do
+  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
+
+  defineBuiltinType ''Bool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
+
+  builtinBoolName <- LexName . GHC.getName <$> lookupGhcTyCon ''Bool
+  boolTyCon <- lookupGhcTyCon ''Bool
+
+  let
+    -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
+    -- changes definintion of `Bool`, of course). Similarly, we can expect we always
+    -- get correct number of branches, two.
+    caseMatcher :: PIR.ManualMatcher uni fun Ann
+    caseMatcher _tyArgs scrut resTy branches =
+      case datatypeStyle of
+        style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+          -- For IfThenElse, true branch comes first hence we reverse brenches
+          PIR.mkIterApp
+            (PIR.tyInst annMayInline
+               (PIR.builtin annMayInline PLC.IfThenElse)
+               resTy)
+            ((annMayInline, ) <$> (scrut : reverse branches))
+        _BuiltinCasing ->
+          PIR.kase annMayInline resTy scrut branches
+
+  PIR.defineManualDatatype
+    (LexName $ GHC.getName boolTyCon)
+    (PIR.ManualDatatype
+        [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
+        caseMatcher
+        []
+    )
+    (Set.fromList [builtinBoolName])
+
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTerms = do
@@ -321,10 +356,6 @@ defineBuiltinTerms = do
 
   -- Unit constant
   defineBuiltinTerm annMayInline 'Builtins.unitval $ PIR.mkConstant annMayInline ()
-
-  -- Bool constants
-  defineBuiltinTerm annMayInline 'Builtins.true $ PIR.mkConstant annMayInline True
-  defineBuiltinTerm annMayInline 'Builtins.false $ PIR.mkConstant annMayInline False
 
   -- ByteString constant
   defineBuiltinTerm annMayInline 'Builtins.emptyByteString $ PIR.mkConstant annMayInline BS.empty
@@ -398,7 +429,7 @@ defineBuiltinTerms = do
     _BuiltinCasing ->
       -- > /\a r ->
       -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
-      -- >     (case r xs f z)
+      -- >     (case r xs z f)
       fmap (const annMayInline) . runQuote $ do
         a <- freshTyName "a"
         r <- freshTyName "r"
@@ -416,7 +447,7 @@ defineBuiltinTerms = do
             ()
             (PLC.TyVar () r)
             (PIR.var () xs)
-            [PIR.var () f, PIR.var () z]
+            [PIR.var () z, PIR.var () f]
 
 
   -- See Note [Builtin terms and values]
@@ -552,7 +583,6 @@ defineBuiltinTypes = do
     PLC.toTypeAst $
       Proxy @BS.ByteString
   defineBuiltinType ''Integer . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Integer
-  defineBuiltinType ''Builtins.BuiltinBool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
   defineBuiltinType ''Builtins.BuiltinUnit . ($> annMayInline) $ PLC.toTypeAst $ Proxy @()
   defineBuiltinType ''Builtins.BuiltinString . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Text
   defineBuiltinType ''Builtins.BuiltinData . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data

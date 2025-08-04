@@ -8,7 +8,7 @@
               [ (delay
                    (case
                       (force dropList 5 xs)
-                      [(\x xs ds _ann -> x), (\_ann -> traceError "PT22")]
+                      [(\_ann -> traceError "PT22"), (\x xs ds _ann -> x)]
                       (constr 0 [])
                       (constr 0 [])))
               , (delay (traceError "PT21")) ])

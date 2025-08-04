@@ -70,8 +70,8 @@ clearBuiltinCostModel r = r
                , paramBls12_381_finalVerify = mempty
                , paramKeccak_256 = mempty
                , paramBlake2b_224 = mempty
-               , paramIntegerToByteString = mempty
-               , paramByteStringToInteger = mempty
+               -- , paramIntegerToByteString = mempty -- Required for V2
+               -- , paramByteStringToInteger = mempty -- Required for V2
                , paramAndByteString = mempty
                , paramOrByteString = mempty
                , paramXorByteString = mempty
@@ -93,8 +93,13 @@ clearBuiltinCostModel r = r
 
 -- *** FIXME(https://github.com/IntersectMBO/plutus-private/issues/1610)!!! ***
 -- This is temporary to get the tests to pass
--- [Later: now we can get away without this because we're planning to deploy all builtins in all versions].
-clearBuiltinCostModel' ::
-  -- (m ~ MBuiltinCostModel) =>
-  m -> m
+clearBuiltinCostModel' :: (m ~ MBuiltinCostModel) => m -> m
 clearBuiltinCostModel' r = r
+               { -- , paramIntegerToByteString = mempty -- Required for V2
+                 -- , paramByteStringToInteger = mempty -- Required for V2
+                 paramExpModInteger = mempty
+               , paramDropList = mempty
+               , paramLengthOfArray = mempty
+               , paramListToArray = mempty
+               , paramIndexArray = mempty
+               }

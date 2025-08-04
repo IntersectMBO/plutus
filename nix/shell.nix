@@ -65,10 +65,10 @@ let
 
   linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
     pkgs.papi
-    pkgs.util-linux
   ];
 
   common-pkgs = [
+    pkgs.ghcid
     agda-tools.agda
     agda-tools.agda-with-stdlib
     agda-tools.agda-mode
@@ -86,7 +86,6 @@ let
     tools.hlint
     tools.cabal-fmt
 
-    pkgs.ghcid
     pkgs.texliveFull
     pkgs.jekyll
     pkgs.plantuml

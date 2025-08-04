@@ -1319,8 +1319,8 @@ test_Case =
                       kase ()
                         listElem
                         (mkConstant () scrut)
-                        [ lamAbs () x listElem $ lamAbs () xs list $ var () x
-                        , mkConstant @Integer () i
+                        [ mkConstant @Integer () i
+                        , lamAbs () x listElem $ lamAbs () xs list $ var () x
                         ]
                 in case (typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term, scrut) of
                     (Right (EvaluationSuccess res), [])    -> res == mkConstant () i

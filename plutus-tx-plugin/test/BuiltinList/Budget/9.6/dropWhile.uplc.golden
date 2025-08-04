@@ -10,10 +10,10 @@
                 (\xs ->
                    case
                      xs
-                     [ (\x xs' ->
+                     [ xs
+                     , (\x xs' ->
                           case
                             (lessThanInteger x 5)
-                            [xs, (force (go (delay (\x -> x))) xs')])
-                     , xs ]))
+                            [xs, (force (go (delay (\x -> x))) xs')]) ]))
            (delay (\x -> x)))
         xs))

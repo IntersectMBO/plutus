@@ -10,24 +10,22 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , valentinePV
     , changPV
     , plominPV
-    , pv11PV
-    , newestPV
     , knownPVs
     , futurePV
     ) where
 
 import Codec.Serialise (Serialise)
+import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import Prettyprinter
 
 {- Note [Adding new builtins: protocol versions]
 
   *** ATTENTION! ***
-  New built-in functions must initially be added under
-  `futurePV` and should only be moved to an earlier MajorProtocolVersion once
-  they have been fully implemented and costed and their release under the
-  relevant protocol version has been officially approved.  Remember to update
-  the tests in `Spec.Versions` and `Spec.Data.Versions` when this happens.
+  New built-in functions must initially be added under `futurePV` and should
+  only be moved to an earlier MajorProtocolVersion once they have been fully
+  implemented and costed and their release under the relevant protocol version
+  has been officially approved.
 -}
 
 -- | This represents the major component of the Cardano protocol version.
@@ -35,7 +33,7 @@ import Prettyprinter
 -- component, and Plutus should only need to care about the major component anyway.
 -- This relies on careful understanding between us and the ledger as to what this means.
 newtype MajorProtocolVersion = MajorProtocolVersion { getMajorProtocolVersion :: Int }
-  deriving newtype (Eq, Ord, Show, Serialise, Enum)
+  deriving newtype (Eq, Ord, Show, Serialise)
   deriving stock (Generic)
 
 instance Pretty MajorProtocolVersion where
@@ -57,8 +55,6 @@ maryPV = MajorProtocolVersion 4
 alonzoPV :: MajorProtocolVersion
 alonzoPV = MajorProtocolVersion 5
 
--- According to https://cardano.org/hardforks/, PV 6 was called "Lobster".
-
 -- | The Vasil HF introduced the Babbage era and Plutus V2
 vasilPV :: MajorProtocolVersion
 vasilPV = MajorProtocolVersion 7
@@ -72,20 +68,16 @@ valentinePV = MajorProtocolVersion 8
 changPV :: MajorProtocolVersion
 changPV = MajorProtocolVersion 9
 
--- | The Plomin HF was an intra-era HF where some new builtin functions were
--- introduced in Plutus V2 and V3.
+-- | The Plomin HF will be an intra-era HF where some new builtin functions
+-- are introduced in Plutus V2 and V3.
 plominPV :: MajorProtocolVersion
 plominPV = MajorProtocolVersion 10
 
--- | Not sure what this is going to be called yet
-pv11PV :: MajorProtocolVersion
-pv11PV = MajorProtocolVersion 11
-
 -- | The set of protocol versions that are "known", i.e. that have been released
--- and have actual differences associated with them.  This is currently only
--- used for testing, so efficiency is not parmount and a list is fine.
-knownPVs :: [MajorProtocolVersion]
+-- and have actual differences associated with them.
+knownPVs :: Set.Set MajorProtocolVersion
 knownPVs =
+  Set.fromList
     [ shelleyPV
     , allegraPV
     , maryPV
@@ -94,26 +86,16 @@ knownPVs =
     , valentinePV
     , changPV
     , plominPV
-    , pv11PV
     ]
 
--- We're sometimes in an intermediate state where we've added new builtins but
--- not yet released them (but intend to). This is used by some of the tests to
--- decide what PVs the test should include.  UPDATE THIS when we're expecting to
--- release new builtins in a forthcoming PV.
-newestPV :: MajorProtocolVersion
-newestPV = pv11PV
-
-{-| This is a placeholder for when we don't yet know what protocol version will
-  be used for something. It's a very high protocol version that should never
-  appear in reality.  New builtins should always be given this protocol version
-  until they've been finalised (at which point they should be moved to
-  the PV named in `newestPV`).
-
-We should not assign names to future protocol versions until it's
-  confirmed that they are correct, otherwise we could accidentally
-  associate something with the wrong protocol version.
--}
+-- | This is a placeholder for when we don't yet know what protocol version will
+-- be used for something. It's a very high protocol version that should never
+-- appear in reality.  New builtins should always be given this protocol version
+-- until they've been finalised.
+--
+-- We should not assign names to future protocol versions until it's
+-- confirmed that they are correct, otherwise we could accidentally
+-- associate something with the wrong protocol version.
 futurePV :: MajorProtocolVersion
 futurePV = MajorProtocolVersion maxBound
 

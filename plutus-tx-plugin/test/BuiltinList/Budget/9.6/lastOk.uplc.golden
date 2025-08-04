@@ -10,13 +10,14 @@
                  (\eta ->
                     case
                       eta
-                      [ (\x xs ds ->
+                      [ (\ds ->
+                           (\x -> error) (force trace "PT25" (constr 0 [])))
+                      , (\x xs ds ->
                            case
                              xs
-                             [ (\ds ds ->
-                                  force (force (last (delay (\x -> x)))) xs)
-                             , x ])
-                      , (\ds ->
-                           (\x -> error) (force trace "PT25" (constr 0 []))) ]
+                             [ x
+                             , (\ds ds ->
+                                  force (force (last (delay (\x -> x))))
+                                    xs) ]) ]
                       (constr 0 []))))
          (delay (\x -> x)))))
