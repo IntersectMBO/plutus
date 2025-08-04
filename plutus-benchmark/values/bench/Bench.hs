@@ -3,7 +3,6 @@
 module Main (main) where
 
 import Data.ByteString (ByteString)
-import Data.ByteString qualified as BS
 import Data.List (groupBy)
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
@@ -15,6 +14,7 @@ import PlutusBenchmark.Values.NestedValue qualified as NestedValue
 
 import Criterion.Main (bench, bgroup, defaultMainWith, env, nf)
 
+-- Has been manually tested, works as expected.
 mkMockValues :: Int -> Int -> [Integer] -> (NestedValue.Value, FlattenedValue.Value)
 mkMockValues numPolicies numToksPerPolicy amounts =
     let policies = (\i -> encodeUtf8 $ "policy" <> T.pack (show i)) <$> [1..numPolicies]
@@ -30,22 +30,35 @@ mkMockValues numPolicies numToksPerPolicy amounts =
         nestedValue = NestedValue.Value $ Map.fromList rawNestValue
      in (nestedValue, flattenedValue)
 
-setupInsertEnvNested :: IO NestedValue.Value -- (ByteString, ByteString, NestedValue.Value)
-setupInsertEnvNested = do
-    let polId = BS.empty -- encodeUtf8 "policyId"
-        tokName = BS.empty -- encodeUtf8 "tokenName"
-        (nValue, _) = mkMockValues 10000 2000 (replicate 2000000 200)
-    -- pure (polId, tokName, nValue)
-    pure nValue
+mockNumPolicies :: Int
+mockNumPolicies = 10000
 
-setupInsertEnvFlattened :: IO FlattenedValue.Value -- (ByteString, ByteString, FlattenedValue.Value)
-setupInsertEnvFlattened = do
-    let polId = BS.empty -- encodeUtf8 "policyId"
-        tokName = BS.empty -- encodeUtf8 "tokenName"
-        (_, fValue) = mkMockValues 10000 2000 (replicate 2000000 200)
-    -- pure (polId, tokName, fValue)
-    pure fValue
+mockNumTokensPerPolicy :: Int
+mockNumTokensPerPolicy = 2000
 
+mockNumTokens :: Int
+mockNumTokens = mockNumPolicies * mockNumTokensPerPolicy
+
+mockTokenValues :: [Integer]
+mockTokenValues = replicate mockNumTokens 200
+
+setupInsertEnvNested :: IO NestedValue.Value
+setupInsertEnvNested =
+    let (nValue, _) =
+            mkMockValues
+                mockNumPolicies
+                mockNumTokensPerPolicy
+                mockTokenValues
+     in pure nValue
+
+setupInsertEnvFlattened :: IO FlattenedValue.Value
+setupInsertEnvFlattened =
+    let (_, fValue) =
+            mkMockValues
+                mockNumPolicies
+                mockNumTokensPerPolicy
+                mockTokenValues
+     in pure fValue
 
 main :: IO ()
 main = do
@@ -53,16 +66,32 @@ main = do
     defaultMainWith config $
         [ env setupInsertEnvNested $ \ ~nValue ->
             bgroup "NestedValue"
-                [ bench "insertCoin"
+                [ bench "insertCoin - new coin"
                     $ nf (NestedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) nValue
-                , bench "lookupCoin"
+                , bench "insertCoin - existing coin"
+                    $ nf (NestedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999") 200) nValue
+                , bench "lookupCoin - not found"
                     $ nf (NestedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) nValue
+                , bench "lookupCoin - existing coin"
+                    $ nf (NestedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) nValue
+                , bench "deleteCoin - not found"
+                    $ nf (NestedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) nValue
+                , bench "deleteCoin - existing coin"
+                    $ nf (NestedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) nValue
                 ]
         , env setupInsertEnvFlattened $ \ ~fValue ->
             bgroup "FlattenedValue"
-                [ bench "insertCoin"
+                [ bench "insertCoin - new coin"
                     $ nf (FlattenedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) fValue
-                , bench "lookupCoin"
+                , bench "insertCoin - existing coin"
+                    $ nf (FlattenedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999") 200) fValue
+                , bench "lookupCoin - not found"
                     $ nf (FlattenedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) fValue
+                , bench "lookupCoin - existing coin"
+                    $ nf (FlattenedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) fValue
+                , bench "deleteCoin - not found"
+                    $ nf (FlattenedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) fValue
+                , bench "deleteCoin - existing coin"
+                    $ nf (FlattenedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) fValue
                 ]
         ]
