@@ -11,11 +11,12 @@
                    (\xs ->
                       case
                         xs
-                        [ False
-                        , (\x xs ->
+                        [ (\x xs ->
                              case
                                (equalsInteger 42 x)
-                               [(force (go (delay (\x -> x))) xs), True]) ]))
+                               [ (force (go (delay (\x -> x))) xs)
+                               , (constr 0 []) ])
+                        , (constr 1 []) ]))
               (delay (\x -> x)))
            xs)
-        [True, False]))
+        [(constr 1 []), (constr 0 [])]))

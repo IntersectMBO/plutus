@@ -167,16 +167,17 @@
                                                                                                                                                                      (txSignedBy
                                                                                                                                                                         txInfo
                                                                                                                                                                         ipv)
-                                                                                                                                                                     [ (traceError
-                                                                                                                                                                          "Missing beneficiary signature")
-                                                                                                                                                                     , (case
+                                                                                                                                                                     [ (case
                                                                                                                                                                           (lessThanInteger
                                                                                                                                                                              (vestingPeriodEnd
                                                                                                                                                                                 vestingDatum)
                                                                                                                                                                              ds)
                                                                                                                                                                           [ (traceError
                                                                                                                                                                                "Unlock not permitted until vestingPeriodEnd time")
-                                                                                                                                                                          , True ]) ])
+                                                                                                                                                                          , (constr 0
+                                                                                                                                                                               [  ]) ])
+                                                                                                                                                                     , (traceError
+                                                                                                                                                                          "Missing beneficiary signature") ])
                                                                                                                                                                   (getLowerInclusiveTimeRange
                                                                                                                                                                      (txInfoValidRange
                                                                                                                                                                         txInfo)))
@@ -342,12 +343,18 @@
                                                                                                                                                                                                 l)
                                                                                                                                                                                              (txOutRefId
                                                                                                                                                                                                 ipv))
-                                                                                                                                                                                          [ False
-                                                                                                                                                                                          , (equalsInteger
-                                                                                                                                                                                               (txOutRefIdx
-                                                                                                                                                                                                  l)
-                                                                                                                                                                                               (txOutRefIdx
-                                                                                                                                                                                                  ipv)) ])
+                                                                                                                                                                                          [ (constr 1
+                                                                                                                                                                                               [  ])
+                                                                                                                                                                                          , (case
+                                                                                                                                                                                               (equalsInteger
+                                                                                                                                                                                                  (txOutRefIdx
+                                                                                                                                                                                                     l)
+                                                                                                                                                                                                  (txOutRefIdx
+                                                                                                                                                                                                     ipv))
+                                                                                                                                                                                               [ (constr 1
+                                                                                                                                                                                                    [  ])
+                                                                                                                                                                                               , (constr 0
+                                                                                                                                                                                                    [  ]) ]) ])
                                                                                                                                                                                        (force
                                                                                                                                                                                           headList
                                                                                                                                                                                           (force
@@ -388,36 +395,34 @@
                                                                                                                                                                                                           (\ds ->
                                                                                                                                                                                                              (\currentTimeApproximation ->
                                                                                                                                                                                                                 (\ds ->
-                                                                                                                                                                                                                   case
-                                                                                                                                                                                                                     (txSignedBy
-                                                                                                                                                                                                                        txInfo
-                                                                                                                                                                                                                        ipv)
-                                                                                                                                                                                                                     [ (traceError
-                                                                                                                                                                                                                          "Missing beneficiary signature")
-                                                                                                                                                                                                                     , (case
-                                                                                                                                                                                                                          (lessThanInteger
-                                                                                                                                                                                                                             (case
-                                                                                                                                                                                                                                vestingDatum
-                                                                                                                                                                                                                                [ (\ds
-                                                                                                                                                                                                                                    ds
-                                                                                                                                                                                                                                    ds
-                                                                                                                                                                                                                                    ds
-                                                                                                                                                                                                                                    ds
-                                                                                                                                                                                                                                    ds
-                                                                                                                                                                                                                                    ds ->
-                                                                                                                                                                                                                                     ds) ])
-                                                                                                                                                                                                                             currentTimeApproximation)
-                                                                                                                                                                                                                          [ (traceError
-                                                                                                                                                                                                                               "Unlock not permitted until firstUnlockPossibleAfter time")
-                                                                                                                                                                                                                          , (force
-                                                                                                                                                                                                                               ((\newRemainingQty ->
-                                                                                                                                                                                                                                   case
-                                                                                                                                                                                                                                     (lessThanEqualsInteger
-                                                                                                                                                                                                                                        (force
-                                                                                                                                                                                                                                           newRemainingQty)
-                                                                                                                                                                                                                                        0)
-                                                                                                                                                                                                                                     [ (delay
-                                                                                                                                                                                                                                          (case
+                                                                                                                                                                                                                   force
+                                                                                                                                                                                                                     (case
+                                                                                                                                                                                                                        (txSignedBy
+                                                                                                                                                                                                                           txInfo
+                                                                                                                                                                                                                           ipv)
+                                                                                                                                                                                                                        [ ((\newRemainingQty ->
+                                                                                                                                                                                                                              delay
+                                                                                                                                                                                                                                (case
+                                                                                                                                                                                                                                   (lessThanInteger
+                                                                                                                                                                                                                                      (case
+                                                                                                                                                                                                                                         vestingDatum
+                                                                                                                                                                                                                                         [ (\ds
+                                                                                                                                                                                                                                             ds
+                                                                                                                                                                                                                                             ds
+                                                                                                                                                                                                                                             ds
+                                                                                                                                                                                                                                             ds
+                                                                                                                                                                                                                                             ds
+                                                                                                                                                                                                                                             ds ->
+                                                                                                                                                                                                                                              ds) ])
+                                                                                                                                                                                                                                      currentTimeApproximation)
+                                                                                                                                                                                                                                   [ (traceError
+                                                                                                                                                                                                                                        "Unlock not permitted until firstUnlockPossibleAfter time")
+                                                                                                                                                                                                                                   , (case
+                                                                                                                                                                                                                                        (lessThanEqualsInteger
+                                                                                                                                                                                                                                           (force
+                                                                                                                                                                                                                                              newRemainingQty)
+                                                                                                                                                                                                                                           0)
+                                                                                                                                                                                                                                        [ (case
                                                                                                                                                                                                                                              (lessThanInteger
                                                                                                                                                                                                                                                 (force
                                                                                                                                                                                                                                                    newRemainingQty)
@@ -457,7 +462,8 @@
                                                                                                                                                                                                                                                                                     nt)))
                                                                                                                                                                                                                                                                            [ (fail
                                                                                                                                                                                                                                                                                 ())
-                                                                                                                                                                                                                                                                           , True ])) ])
+                                                                                                                                                                                                                                                                           , (constr 0
+                                                                                                                                                                                                                                                                                [  ]) ])) ])
                                                                                                                                                                                                                                                                 ((\fail
                                                                                                                                                                                                                                                                    ds ->
                                                                                                                                                                                                                                                                     (\tup ->
@@ -480,21 +486,26 @@
                                                                                                                                                                                                                                                                                        tup))
                                                                                                                                                                                                                                                                                  [ (fail
                                                                                                                                                                                                                                                                                       ())
-                                                                                                                                                                                                                                                                                 , (equalsByteString
-                                                                                                                                                                                                                                                                                      (unBData
-                                                                                                                                                                                                                                                                                         (force
-                                                                                                                                                                                                                                                                                            headList
+                                                                                                                                                                                                                                                                                 , (case
+                                                                                                                                                                                                                                                                                      (equalsByteString
+                                                                                                                                                                                                                                                                                         (unBData
                                                                                                                                                                                                                                                                                             (force
+                                                                                                                                                                                                                                                                                               headList
                                                                                                                                                                                                                                                                                                (force
-                                                                                                                                                                                                                                                                                                  sndPair)
-                                                                                                                                                                                                                                                                                               tup)))
-                                                                                                                                                                                                                                                                                      (unBData
-                                                                                                                                                                                                                                                                                         (force
-                                                                                                                                                                                                                                                                                            headList
+                                                                                                                                                                                                                                                                                                  (force
+                                                                                                                                                                                                                                                                                                     sndPair)
+                                                                                                                                                                                                                                                                                                  tup)))
+                                                                                                                                                                                                                                                                                         (unBData
                                                                                                                                                                                                                                                                                             (force
+                                                                                                                                                                                                                                                                                               headList
                                                                                                                                                                                                                                                                                                (force
-                                                                                                                                                                                                                                                                                                  sndPair)
-                                                                                                                                                                                                                                                                                               tup)))) ])
+                                                                                                                                                                                                                                                                                                  (force
+                                                                                                                                                                                                                                                                                                     sndPair)
+                                                                                                                                                                                                                                                                                                  tup))))
+                                                                                                                                                                                                                                                                                      [ (constr 1
+                                                                                                                                                                                                                                                                                           [  ])
+                                                                                                                                                                                                                                                                                      , (constr 0
+                                                                                                                                                                                                                                                                                           [  ]) ]) ])
                                                                                                                                                                                                                                                                               (unConstrData
                                                                                                                                                                                                                                                                                  nt)) ])
                                                                                                                                                                                                                                                                       (unConstrData
@@ -508,7 +519,8 @@
                                                                                                                                                                                                                                                                                  (force
                                                                                                                                                                                                                                                                                     fstPair)
                                                                                                                                                                                                                                                                                  tup))
-                                                                                                                                                                                                                                                                           [ False
+                                                                                                                                                                                                                                                                           [ (constr 1
+                                                                                                                                                                                                                                                                                [  ])
                                                                                                                                                                                                                                                                            , ((\tup ->
                                                                                                                                                                                                                                                                                  case
                                                                                                                                                                                                                                                                                    (equalsInteger
@@ -517,29 +529,33 @@
                                                                                                                                                                                                                                                                                          (force
                                                                                                                                                                                                                                                                                             fstPair)
                                                                                                                                                                                                                                                                                          tup))
-                                                                                                                                                                                                                                                                                   [ False
-                                                                                                                                                                                                                                                                                   , (equalsData
-                                                                                                                                                                                                                                                                                        (force
-                                                                                                                                                                                                                                                                                           headList
+                                                                                                                                                                                                                                                                                   [ (constr 1
+                                                                                                                                                                                                                                                                                        [  ])
+                                                                                                                                                                                                                                                                                   , (case
+                                                                                                                                                                                                                                                                                        (equalsData
                                                                                                                                                                                                                                                                                            (force
+                                                                                                                                                                                                                                                                                              headList
                                                                                                                                                                                                                                                                                               (force
-                                                                                                                                                                                                                                                                                                 sndPair)
-                                                                                                                                                                                                                                                                                              tup))
-                                                                                                                                                                                                                                                                                        (force
-                                                                                                                                                                                                                                                                                           headList
+                                                                                                                                                                                                                                                                                                 (force
+                                                                                                                                                                                                                                                                                                    sndPair)
+                                                                                                                                                                                                                                                                                                 tup))
                                                                                                                                                                                                                                                                                            (force
+                                                                                                                                                                                                                                                                                              headList
                                                                                                                                                                                                                                                                                               (force
-                                                                                                                                                                                                                                                                                                 sndPair)
-                                                                                                                                                                                                                                                                                              tup))) ])
+                                                                                                                                                                                                                                                                                                 (force
+                                                                                                                                                                                                                                                                                                    sndPair)
+                                                                                                                                                                                                                                                                                                 tup)))
+                                                                                                                                                                                                                                                                                        [ (constr 1
+                                                                                                                                                                                                                                                                                             [  ])
+                                                                                                                                                                                                                                                                                        , (constr 0
+                                                                                                                                                                                                                                                                                             [  ]) ]) ])
                                                                                                                                                                                                                                                                                 (unConstrData
                                                                                                                                                                                                                                                                                    nt)) ])
                                                                                                                                                                                                                                                                         (unConstrData
                                                                                                                                                                                                                                                                            ds)))))
                                                                                                                                                                                                                                                           (txOutDatum
                                                                                                                                                                                                                                                              nt))
-                                                                                                                                                                                                                                                       [ (traceError
-                                                                                                                                                                                                                                                            "Datum Modification Prohibited")
-                                                                                                                                                                                                                                                       , (case
+                                                                                                                                                                                                                                                       [ (case
                                                                                                                                                                                                                                                             (equalsInteger
                                                                                                                                                                                                                                                                (go
                                                                                                                                                                                                                                                                   0
@@ -547,15 +563,20 @@
                                                                                                                                                                                                                                                                1)
                                                                                                                                                                                                                                                             [ (traceError
                                                                                                                                                                                                                                                                  "Double satisfaction")
-                                                                                                                                                                                                                                                            , True ]) ]) ]) ]))
-                                                                                                                                                                                                                                     , (delay
-                                                                                                                                                                                                                                          (traceError
-                                                                                                                                                                                                                                             "Zero remaining assets not allowed")) ])
-                                                                                                                                                                                                                                  (delay
-                                                                                                                                                                                                                                     (case
-                                                                                                                                                                                                                                        ds
-                                                                                                                                                                                                                                        [ (\newRemainingQty ->
-                                                                                                                                                                                                                                             newRemainingQty) ])))) ]) ])
+                                                                                                                                                                                                                                                            , (constr 0
+                                                                                                                                                                                                                                                                 [  ]) ])
+                                                                                                                                                                                                                                                       , (traceError
+                                                                                                                                                                                                                                                            "Datum Modification Prohibited") ]) ]) ])
+                                                                                                                                                                                                                                        , (traceError
+                                                                                                                                                                                                                                             "Zero remaining assets not allowed") ]) ]))
+                                                                                                                                                                                                                             (delay
+                                                                                                                                                                                                                                (case
+                                                                                                                                                                                                                                   ds
+                                                                                                                                                                                                                                   [ (\newRemainingQty ->
+                                                                                                                                                                                                                                        newRemainingQty) ])))
+                                                                                                                                                                                                                        , (delay
+                                                                                                                                                                                                                             (traceError
+                                                                                                                                                                                                                                "Missing beneficiary signature")) ]))
                                                                                                                                                                                                                   (divCeil
                                                                                                                                                                                                                      (multiplyInteger
                                                                                                                                                                                                                         (divCeil
@@ -602,8 +623,7 @@
                                                                                                                                                                                                                              (force
                                                                                                                                                                                                                                 headList
                                                                                                                                                                                                                                 l))
-                                                                                                                                                                                                                          [ False
-                                                                                                                                                                                                                          , (case
+                                                                                                                                                                                                                          [ (case
                                                                                                                                                                                                                                (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                                                                                                                                                                                                                   `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                                                                                                                                                                                                                                   (force
@@ -675,22 +695,32 @@
                                                                                                                                                                                                                                                                   (equalsInteger
                                                                                                                                                                                                                                                                      a
                                                                                                                                                                                                                                                                      a')
-                                                                                                                                                                                                                                                                  [ False
+                                                                                                                                                                                                                                                                  [ (constr 1
+                                                                                                                                                                                                                                                                       [  ])
                                                                                                                                                                                                                                                                   , (case
                                                                                                                                                                                                                                                                        (equalsInteger
                                                                                                                                                                                                                                                                           b
                                                                                                                                                                                                                                                                           b')
-                                                                                                                                                                                                                                                                       [ False
-                                                                                                                                                                                                                                                                       , (equalsInteger
-                                                                                                                                                                                                                                                                            c
-                                                                                                                                                                                                                                                                            c') ]) ])
+                                                                                                                                                                                                                                                                       [ (constr 1
+                                                                                                                                                                                                                                                                            [  ])
+                                                                                                                                                                                                                                                                       , (case
+                                                                                                                                                                                                                                                                            (equalsInteger
+                                                                                                                                                                                                                                                                               c
+                                                                                                                                                                                                                                                                               c')
+                                                                                                                                                                                                                                                                            [ (constr 1
+                                                                                                                                                                                                                                                                                 [  ])
+                                                                                                                                                                                                                                                                            , (constr 0
+                                                                                                                                                                                                                                                                                 [  ]) ]) ]) ])
                                                                                                                                                                                                                                                              (\void ->
-                                                                                                                                                                                                                                                                False))
+                                                                                                                                                                                                                                                                constr 1
+                                                                                                                                                                                                                                                                  [  ]))
                                                                                                                                                                                                                                                         (\void ->
-                                                                                                                                                                                                                                                           False))))
+                                                                                                                                                                                                                                                           constr 1
+                                                                                                                                                                                                                                                             [  ]))))
                                                                                                                                                                                                                                              (unConstrData
                                                                                                                                                                                                                                                 a))
-                                                                                                                                                                                                                                      , False ])
+                                                                                                                                                                                                                                      , (constr 1
+                                                                                                                                                                                                                                           [  ]) ])
                                                                                                                                                                                                                                , (case
                                                                                                                                                                                                                                     (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                                                                                                                                                                                                                        `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
@@ -700,8 +730,12 @@
                                                                                                                                                                                                                                              tailList
                                                                                                                                                                                                                                              l)))
                                                                                                                                                                                                                                     [ (\ipv ->
-                                                                                                                                                                                                                                         False)
-                                                                                                                                                                                                                                    , True ]) ]) ])
+                                                                                                                                                                                                                                         constr 1
+                                                                                                                                                                                                                                           [  ])
+                                                                                                                                                                                                                                    , (constr 0
+                                                                                                                                                                                                                                         [  ]) ]) ])
+                                                                                                                                                                                                                          , (constr 1
+                                                                                                                                                                                                                               [  ]) ])
                                                                                                                                                                                                                        (force
                                                                                                                                                                                                                           (force
                                                                                                                                                                                                                              sndPair)
@@ -755,8 +789,7 @@
                                                                                                                                                                                                      ds ->
                                                                                                                                                                                                       case
                                                                                                                                                                                                         ds
-                                                                                                                                                                                                        [ n
-                                                                                                                                                                                                        , (\x
+                                                                                                                                                                                                        [ (\x
                                                                                                                                                                                                             eta ->
                                                                                                                                                                                                              `$mScriptCredential`
                                                                                                                                                                                                                (addressCredential
@@ -779,7 +812,8 @@
                                                                                                                                                                                                                (\void ->
                                                                                                                                                                                                                   go
                                                                                                                                                                                                                     n
-                                                                                                                                                                                                                    eta)) ]))) ])
+                                                                                                                                                                                                                    eta))
+                                                                                                                                                                                                        , n ]))) ])
                                                                                                                                                                                       (txOutAddress
                                                                                                                                                                                          nt))
                                                                                                                                                                                    (txInInfoResolved
@@ -944,9 +978,9 @@
                                                                                                                                    trace
                                                                                                                                    "Parsed ScriptContext"
                                                                                                                                    ctx))
-                                                                                                                             [ (traceError
-                                                                                                                                  "PT5")
-                                                                                                                             , () ]))
+                                                                                                                             [ ()
+                                                                                                                             , (traceError
+                                                                                                                                  "PT5") ]))
                                                                                                                        (\x
                                                                                                                          y ->
                                                                                                                           addInteger
@@ -982,21 +1016,26 @@
                                                                                                                                                    tup))
                                                                                                                                              [ (fail
                                                                                                                                                   ())
-                                                                                                                                             , (equalsByteString
-                                                                                                                                                  (unBData
-                                                                                                                                                     (force
-                                                                                                                                                        headList
+                                                                                                                                             , (case
+                                                                                                                                                  (equalsByteString
+                                                                                                                                                     (unBData
                                                                                                                                                         (force
+                                                                                                                                                           headList
                                                                                                                                                            (force
-                                                                                                                                                              sndPair)
-                                                                                                                                                           tup)))
-                                                                                                                                                  (unBData
-                                                                                                                                                     (force
-                                                                                                                                                        headList
+                                                                                                                                                              (force
+                                                                                                                                                                 sndPair)
+                                                                                                                                                              tup)))
+                                                                                                                                                     (unBData
                                                                                                                                                         (force
+                                                                                                                                                           headList
                                                                                                                                                            (force
-                                                                                                                                                              sndPair)
-                                                                                                                                                           tup)))) ])
+                                                                                                                                                              (force
+                                                                                                                                                                 sndPair)
+                                                                                                                                                              tup))))
+                                                                                                                                                  [ (constr 1
+                                                                                                                                                       [  ])
+                                                                                                                                                  , (constr 0
+                                                                                                                                                       [  ]) ]) ])
                                                                                                                                           (unConstrData
                                                                                                                                              ds))) ])
                                                                                                                                (\ds ->
@@ -1008,7 +1047,8 @@
                                                                                                                                              (force
                                                                                                                                                 fstPair)
                                                                                                                                              tup))
-                                                                                                                                       [ False
+                                                                                                                                       [ (constr 1
+                                                                                                                                            [  ])
                                                                                                                                        , ((\tup ->
                                                                                                                                              case
                                                                                                                                                (equalsInteger
@@ -1017,22 +1057,28 @@
                                                                                                                                                      (force
                                                                                                                                                         fstPair)
                                                                                                                                                      tup))
-                                                                                                                                               [ False
-                                                                                                                                               , (equalsByteString
-                                                                                                                                                    (unBData
-                                                                                                                                                       (force
-                                                                                                                                                          headList
+                                                                                                                                               [ (constr 1
+                                                                                                                                                    [  ])
+                                                                                                                                               , (case
+                                                                                                                                                    (equalsByteString
+                                                                                                                                                       (unBData
                                                                                                                                                           (force
+                                                                                                                                                             headList
                                                                                                                                                              (force
-                                                                                                                                                                sndPair)
-                                                                                                                                                             tup)))
-                                                                                                                                                    (unBData
-                                                                                                                                                       (force
-                                                                                                                                                          headList
+                                                                                                                                                                (force
+                                                                                                                                                                   sndPair)
+                                                                                                                                                                tup)))
+                                                                                                                                                       (unBData
                                                                                                                                                           (force
+                                                                                                                                                             headList
                                                                                                                                                              (force
-                                                                                                                                                                sndPair)
-                                                                                                                                                             tup)))) ])
+                                                                                                                                                                (force
+                                                                                                                                                                   sndPair)
+                                                                                                                                                                tup))))
+                                                                                                                                                    [ (constr 1
+                                                                                                                                                         [  ])
+                                                                                                                                                    , (constr 0
+                                                                                                                                                         [  ]) ]) ])
                                                                                                                                             (unConstrData
                                                                                                                                                ds)) ])
                                                                                                                                     (unConstrData
@@ -1194,9 +1240,7 @@
                                                                                                 xs ->
                                                                                                  case
                                                                                                    xs
-                                                                                                   [ (constr 1
-                                                                                                        [  ])
-                                                                                                   , (\hd ->
+                                                                                                   [ (\hd ->
                                                                                                         case
                                                                                                           (equalsData
                                                                                                              k
@@ -1210,7 +1254,9 @@
                                                                                                                  [ (force
                                                                                                                       (force
                                                                                                                          sndPair)
-                                                                                                                      hd) ]) ]) ])))))
+                                                                                                                      hd) ]) ])
+                                                                                                   , (constr 1
+                                                                                                        [  ]) ])))))
                                                                                 (\ds ->
                                                                                    case
                                                                                      ds
@@ -1281,8 +1327,10 @@
                                                                                                            index)
                                                                                                         [ (traceError
                                                                                                              reconstructCaseError)
-                                                                                                        , True ])
-                                                                                                   , False ])
+                                                                                                        , (constr 0
+                                                                                                             [  ]) ])
+                                                                                                   , (constr 1
+                                                                                                        [  ]) ])
                                                                                                 (force
                                                                                                    (force
                                                                                                       sndPair)
@@ -1297,10 +1345,10 @@
                                                                                                 (force
                                                                                                    tailList
                                                                                                    l))))
-                                                                                       [ (addInteger
+                                                                                       [ posixTime
+                                                                                       , (addInteger
                                                                                             1
-                                                                                            posixTime)
-                                                                                       , posixTime ])
+                                                                                            posixTime) ])
                                                                                     (unIData
                                                                                        (force
                                                                                           headList
@@ -1461,9 +1509,14 @@
                                            case
                                              (find
                                                 unBData
-                                                (\y -> equalsByteString k y)
+                                                (\y ->
+                                                   case
+                                                     (equalsByteString k y)
+                                                     [ (constr 1 [])
+                                                     , (constr 0 []) ])
                                                 ds)
-                                             [(\ds -> True), False])
+                                             [ (\ds -> constr 0 [])
+                                             , (constr 1 []) ])
                                         (\void ->
                                            (\defaultBody ->
                                               case error [defaultBody])
@@ -1607,13 +1660,13 @@
                             (\go ds ->
                                case
                                  ds
-                                 [ (constr 1 [])
-                                 , (\x eta ->
+                                 [ (\x eta ->
                                       (\h ->
                                          case
                                            (pred' h)
-                                           [(go eta), (constr 0 [h])])
-                                        (`$dUnsafeFromData` x)) ]))))
+                                           [(constr 0 [h]), (go eta)])
+                                        (`$dUnsafeFromData` x))
+                                 , (constr 1 []) ]))))
                  (\ds -> case ds [(\ds ds ds ds ds ds ds -> ds)]))
             , (delay
                  ((\x -> error)

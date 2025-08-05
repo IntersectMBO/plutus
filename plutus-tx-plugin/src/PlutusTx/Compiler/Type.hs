@@ -223,7 +223,6 @@ clear natural ordering which we will assume GHC respects.
 -}
 
 {- Note [Ensuring compatibility with spec and stdlib types]
-TODO: ask question and update.
 Haskell's Bool has its constructors ordered with False before True, which results in the
 normal case expression having the opposite sense to the one in the spec, where
 the true branch comes first (which is more logical).
@@ -248,7 +247,7 @@ sortConstructors tc cs =
   -- note we compare on the OccName *not* the Name, as the latter compares on uniques,
   -- not the string name
   let sorted = sortBy (\dc1 dc2 -> compare (GHC.getOccName dc1) (GHC.getOccName dc2)) cs
-   in if tc == GHC.listTyCon then reverse sorted else sorted
+   in if tc == GHC.boolTyCon || tc == GHC.listTyCon then reverse sorted else sorted
 
 getDataCons :: (Compiling uni fun m ann) => GHC.TyCon -> m [GHC.DataCon]
 getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
@@ -312,7 +311,7 @@ getConstructors tc = do
         "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
-getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIR.ManualMatcher uni fun Ann)
+getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIRTerm uni fun)
 getMatch tc = do
   -- ensure the tycon has been compiled, which will create the matcher
   _ <- compileTyCon tc
@@ -326,20 +325,14 @@ getMatch tc = do
 {-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types.
 -}
-getMatchInstantiated
-  :: (CompilingDefault uni fun m ann)
-  => GHC.Type
-  -> m (PIR.Term PIR.TyName PIR.Name uni fun Ann ->
-        PIR.Type PIR.TyName uni Ann ->
-        [PIR.Term PIR.TyName PIR.Name uni fun Ann] ->
-        PIR.Term PIR.TyName PIR.Name uni fun Ann)
+getMatchInstantiated :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRTerm uni fun)
 getMatchInstantiated t =
   traceCompilation 3 ("Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
       match <- getMatch tc
       -- We drop 'RuntimeRep' arguments, see Note [Runtime reps]
       args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
-      pure $ match args'
+      pure $ PIR.mkIterInst match $ (annMayInline,) <$> args'
     -- must be a TC app
     _ ->
       throwSd CompilationError $

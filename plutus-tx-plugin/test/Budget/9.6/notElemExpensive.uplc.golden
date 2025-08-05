@@ -3,7 +3,10 @@
    ((\s ->
        s s)
       (\s ds ->
-         case ds [True, (\x xs -> case (equalsInteger 0 x) [(s s xs), False])])
+         case
+           ds
+           [ (constr 0 [])
+           , (\x xs -> case (equalsInteger 0 x) [(s s xs), (constr 1 [])]) ])
       (constr 1
          [ 1
          , (constr 1

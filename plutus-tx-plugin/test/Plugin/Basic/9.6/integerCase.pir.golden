@@ -1,22 +1,33 @@
 let
   ~ds : integer = 2
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  ~equalsInteger : integer -> integer -> bool
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) -> let !y : integer = y in equalsInteger x y
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = equalsInteger x y
+          in
+          ifThenElse {Bool} b True False
   !integerNegate : integer -> integer = \(x : integer) -> subtractInteger 0 x
 in
-case
-  (all dead. integer)
+Bool_match
   (equalsInteger ds 1)
-  [ (/\dead ->
-       case
-         (all dead. integer)
-         (equalsInteger ds 2)
-         [(/\dead -> integerNegate 1), (/\dead -> 100)]
-         {all dead. dead})
-  , (/\dead -> 42) ]
+  {all dead. integer}
+  (/\dead -> 42)
+  (/\dead ->
+     Bool_match
+       (equalsInteger ds 2)
+       {all dead. integer}
+       (/\dead -> 100)
+       (/\dead -> integerNegate 1)
+       {all dead. dead})
   {all dead. dead}

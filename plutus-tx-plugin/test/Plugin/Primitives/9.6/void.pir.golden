@@ -1,12 +1,22 @@
 let
-  ~fail : unit -> bool = \(ds : unit) -> False
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  ~fail : unit -> Bool = \(ds : unit) -> False
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  ~equalsInteger : integer -> integer -> bool
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) -> let !y : integer = y in equalsInteger x y
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = equalsInteger x y
+          in
+          ifThenElse {Bool} b True False
 in
 \(ds : integer) ->
   let
@@ -15,14 +25,18 @@ in
   \(ds : integer) ->
     let
       !ds : integer = ds
-      !x' : bool = equalsInteger ds ds
-      !y' : bool = equalsInteger ds ds
+      !x' : Bool = equalsInteger ds ds
+      !y' : Bool = equalsInteger ds ds
     in
-    case
-      (all dead. bool)
+    Bool_match
       x'
-      [ (/\dead -> fail ())
-      , (/\dead ->
-           case (all dead. bool) y' [(/\dead -> fail ()), (/\dead -> True)]
-             {all dead. dead}) ]
+      {all dead. Bool}
+      (/\dead ->
+         Bool_match
+           y'
+           {all dead. Bool}
+           (/\dead -> True)
+           (/\dead -> fail ())
+           {all dead. dead})
+      (/\dead -> fail ())
       {all dead. dead}

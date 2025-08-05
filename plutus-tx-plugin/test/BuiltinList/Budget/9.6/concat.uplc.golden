@@ -34,6 +34,6 @@
                                  (delay (\x -> x))))
                            (force (go (delay (\x -> x))) xs)
                            x))
-                   (\z f xs -> case xs [z, f])))
+                   (\z f xs -> case xs [f, z])))
            (delay (\x -> x)))
         xss))

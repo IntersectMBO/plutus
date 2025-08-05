@@ -6,13 +6,23 @@ let
           !x : integer = x
         in
         \(y : integer) -> let !y : integer = y in divideInteger x y
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  ~equalsInteger : integer -> integer -> bool
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) -> let !y : integer = y in equalsInteger x y
-  !wild : bool = equalsInteger (divideInteger 1 0) 0
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = equalsInteger x y
+          in
+          ifThenElse {Bool} b True False
+  !wild : Bool = equalsInteger (divideInteger 1 0) 0
 in
 1

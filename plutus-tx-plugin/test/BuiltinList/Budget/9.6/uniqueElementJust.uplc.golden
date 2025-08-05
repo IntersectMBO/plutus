@@ -3,8 +3,8 @@
    ((\take xs ->
        case
          (force (force take) [] 1 xs)
-         [ (constr 1 [])
-         , (\x xs -> case xs [(constr 0 [x]), (\ds ds -> constr 1 [])]) ])
+         [ (\x xs -> case xs [(\ds ds -> constr 1 []), (constr 0 [x])])
+         , (constr 1 []) ])
       ((\f ->
           (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
             (\s -> f (\x -> s s x)))
@@ -16,13 +16,13 @@
                       (lessThanEqualsInteger n 0)
                       [ (case
                            l
-                           [ `$dMkNil`
-                           , (\x xs ->
+                           [ (\x xs ->
                                 force mkCons
                                   x
                                   (force (force (take (delay (\x -> x))))
                                      `$dMkNil`
                                      (subtractInteger n 1)
-                                     xs)) ])
+                                     xs))
+                           , `$dMkNil` ])
                       , `$dMkNil` ])))
          (delay (\x -> x)))))

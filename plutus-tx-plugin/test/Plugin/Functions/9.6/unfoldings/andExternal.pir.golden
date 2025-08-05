@@ -1,14 +1,21 @@
 let
-  ~andExternal : bool -> bool -> bool
-    = \(a : bool) ->
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  ~andExternal : Bool -> Bool -> Bool
+    = \(a : Bool) ->
         let
-          !a : bool = a
+          !a : Bool = a
         in
-        \(b : bool) ->
+        \(b : Bool) ->
           let
-            !b : bool = b
+            !b : Bool = b
           in
-          case (all dead. bool) a [(/\dead -> False), (/\dead -> b)]
+          Bool_match
+            a
+            {all dead. Bool}
+            (/\dead -> b)
+            (/\dead -> False)
             {all dead. dead}
 in
 andExternal True False

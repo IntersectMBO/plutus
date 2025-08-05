@@ -1,7 +1,12 @@
 let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !verifyEd25519Signature : bytestring -> bytestring -> bytestring -> bool
     = verifyEd25519Signature
-  ~verifyEd25519Signature : bytestring -> bytestring -> bytestring -> bool
+  ~verifyEd25519Signature : bytestring -> bytestring -> bytestring -> Bool
     = \(pubKey : bytestring) ->
         let
           !pubKey : bytestring = pubKey
@@ -13,8 +18,9 @@ let
           \(signature : bytestring) ->
             let
               !signature : bytestring = signature
+              !b : bool = verifyEd25519Signature pubKey message signature
             in
-            verifyEd25519Signature pubKey message signature
+            ifThenElse {Bool} b True False
 in
 \(ds : bytestring) ->
   let

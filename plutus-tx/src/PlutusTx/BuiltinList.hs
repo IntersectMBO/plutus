@@ -175,11 +175,11 @@ length = foldr (\_ -> B.addInteger 1) 0
 {-# INLINEABLE length #-}
 
 -- | Returns the conjunction of a list of Bools.
-and :: BuiltinList Bool -> Bool
+and :: BuiltinList BuiltinBool -> Bool
 and = all (\x -> BI.ifThenElse x True False)
 
 -- | Returns the disjunction of a list of Bools.
-or :: BuiltinList Bool -> Bool
+or :: BuiltinList BuiltinBool -> Bool
 or = any (\x -> BI.ifThenElse x True False)
 {-# INLINEABLE or #-}
 

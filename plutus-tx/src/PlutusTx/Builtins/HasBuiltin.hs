@@ -83,11 +83,11 @@ instance HasFromBuiltin BuiltinUnit where
   fromBuiltin (BuiltinUnit u) = u
 
 instance HasToBuiltin Bool where
-  type ToBuiltin Bool = Bool
-  toBuiltin = useToOpaque id
-instance HasFromBuiltin Bool where
-  type FromBuiltin Bool = Bool
-  fromBuiltin = id
+  type ToBuiltin Bool = BuiltinBool
+  toBuiltin = useToOpaque BuiltinBool
+instance HasFromBuiltin BuiltinBool where
+  type FromBuiltin BuiltinBool = Bool
+  fromBuiltin (BuiltinBool b) = b
 
 instance (HasToBuiltin a) => HasToBuiltin [a] where
   type ToBuiltin [a] = BuiltinList (ToBuiltin a)

@@ -1,26 +1,32 @@
 let
   ~`$fMkNilInteger` : (\arep -> list arep) integer = []
   !equalsInteger : integer -> integer -> bool = equalsInteger
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !modInteger : integer -> integer -> integer = modInteger
-  ~even : integer -> bool
+  ~even : integer -> Bool
     = \(n : integer) ->
         let
           !n : integer = n
           !x : integer = modInteger n 2
+          !b : bool = equalsInteger x 0
         in
-        equalsInteger x 0
+        ifThenElse {Bool} b True False
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !mkCons : all a. a -> list a -> list a = mkCons
-  ~filter : all a. (\arep -> list arep) a -> (a -> bool) -> list a -> list a
+  ~filter : all a. (\arep -> list arep) a -> (a -> Bool) -> list a -> list a
     = /\a ->
         \(`$dMkNil` : (\arep -> list arep) a) ->
           let
             !acc : list a = `$dMkNil`
           in
-          \(p : a -> bool) ->
+          \(p : a -> Bool) ->
             let
-              !p : a -> bool = p
+              !p : a -> Bool = p
             in
             letrec
               ~go : list a -> list a
@@ -37,10 +43,11 @@ let
                            !xs : list a = xs
                            !xs : list a = go xs
                          in
-                         case
-                           (all dead. list a)
+                         Bool_match
                            (p x)
-                           [(/\dead -> xs), (/\dead -> mkCons {a} x xs)]
+                           {all dead. list a}
+                           (/\dead -> mkCons {a} x xs)
+                           (/\dead -> xs)
                            {all dead. dead})
             in
             go

@@ -2,8 +2,11 @@ let
   data Animal | Animal_match where
     Cat : Animal
     Dog : Animal
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   data (PersonLike :: * -> *) a | PersonLike_match where
-    CConsPersonLike : (a -> integer) -> (a -> Animal -> bool) -> PersonLike a
+    CConsPersonLike : (a -> integer) -> (a -> Animal -> Bool) -> PersonLike a
   ~age : all a. PersonLike a -> a -> integer
     = /\a ->
         \(v : PersonLike a) ->
@@ -11,45 +14,58 @@ let
             {a}
             v
             {a -> integer}
-            (\(v : a -> integer) (v : a -> Animal -> bool) -> v)
+            (\(v : a -> integer) (v : a -> Animal -> Bool) -> v)
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
-  ~lessThanInteger : integer -> integer -> bool
+  ~lessThanInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) -> let !y : integer = y in lessThanInteger x y
-  ~likesAnimal : all a. PersonLike a -> a -> Animal -> bool
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = lessThanInteger x y
+          in
+          ifThenElse {Bool} b True False
+  ~likesAnimal : all a. PersonLike a -> a -> Animal -> Bool
     = /\a ->
         \(v : PersonLike a) ->
           PersonLike_match
             {a}
             v
-            {a -> Animal -> bool}
-            (\(v : a -> integer) (v : a -> Animal -> bool) -> v)
-  ~predicate : all p. PersonLike p -> p -> bool
+            {a -> Animal -> Bool}
+            (\(v : a -> integer) (v : a -> Animal -> Bool) -> v)
+  ~predicate : all p. PersonLike p -> p -> Bool
     = /\p ->
         \(`$dPersonLike` : PersonLike p) (p : p) ->
           let
             !p : p = p
           in
-          case
-            (all dead. bool)
+          Bool_match
             (likesAnimal {p} `$dPersonLike` p Cat)
-            [ (/\dead -> False)
-            , (/\dead -> lessThanInteger (age {p} `$dPersonLike` p) 30) ]
+            {all dead. Bool}
+            (/\dead -> lessThanInteger (age {p} `$dPersonLike` p) 30)
+            (/\dead -> False)
             {all dead. dead}
   data Person | Person_match where
     Jane : Person
     Jim : Person
   ~`$cage` : Person -> integer
     = \(ds : Person) -> Person_match ds {integer} 35 30
-  ~`$clikesAnimal` : Person -> Animal -> bool
+  ~`$clikesAnimal` : Person -> Animal -> Bool
     = \(ds : Person) (ds : Animal) ->
         Person_match
           ds
-          {all dead. bool}
-          (/\dead -> Animal_match ds {bool} True False)
+          {all dead. Bool}
+          (/\dead ->
+             Animal_match
+               ds
+               {all dead. Bool}
+               (/\dead -> True)
+               (/\dead -> False)
+               {all dead. dead})
           (/\dead -> False)
           {all dead. dead}
   ~`$fPersonLikePerson` : PersonLike Person

@@ -1,3 +1,9 @@
 (program
    1.1.0
-   ((\x y -> case (lessThanInteger x 3) [False, (lessThanInteger y 3)]) 4 4))
+   ((\x y ->
+       case
+         (lessThanInteger x 3)
+         [ (constr 1 [])
+         , (case (lessThanInteger y 3) [(constr 1 []), (constr 0 [])]) ])
+      4
+      4))

@@ -32,9 +32,10 @@
            (\s l ->
               case
                 l
-                [ (\ds -> (\x -> error) (force trace "not found" (constr 0 [])))
-                , (\x xs ds ->
+                [ (\x xs ds ->
                      case
                        (equalsData r_stake_cred (force (force fstPair) x))
-                       [(s s xs), (constr 0 [])]) ]
+                       [(s s xs), (constr 0 [])])
+                , (\ds ->
+                     (\x -> error) (force trace "not found" (constr 0 []))) ]
                 (constr 0 [])))))

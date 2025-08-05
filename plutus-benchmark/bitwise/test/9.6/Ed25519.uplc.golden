@@ -1,8 +1,8 @@
 (program
    1.1.0
-   ((\goList ->
+   ((\checkValid_f ->
        (\goList ->
-          (\checkValid_f ->
+          (\even ->
              (\expModManual ->
                 (\next ->
                    (\lsig512_ ->
@@ -39,10 +39,16 @@
                                                                                             (equalsInteger
                                                                                                x
                                                                                                x)
-                                                                                            [ False
-                                                                                            , (equalsInteger
-                                                                                                 y
-                                                                                                 y) ]) ]) ])
+                                                                                            [ (constr 1
+                                                                                                 [  ])
+                                                                                            , (case
+                                                                                                 (equalsInteger
+                                                                                                    y
+                                                                                                    y)
+                                                                                                 [ (constr 1
+                                                                                                      [  ])
+                                                                                                 , (constr 0
+                                                                                                      [  ]) ]) ]) ]) ])
                                                                            (edwards
                                                                               nt
                                                                               (scalarMult
@@ -1581,13 +1587,21 @@
                                                                                               [ 7
                                                                                               , (constr 0
                                                                                                    [  ]) ]))
-                                                                                        xLSBVal)
-                                                                                     (readBit
-                                                                                        (integerToByteString
-                                                                                           False
-                                                                                           32
-                                                                                           x)
-                                                                                        248)) ])
+                                                                                        (case
+                                                                                           xLSBVal
+                                                                                           [ True
+                                                                                           , False ]))
+                                                                                     (case
+                                                                                        (readBit
+                                                                                           (integerToByteString
+                                                                                              False
+                                                                                              32
+                                                                                              x)
+                                                                                           248)
+                                                                                        [ (constr 1
+                                                                                             [  ])
+                                                                                        , (constr 0
+                                                                                             [  ]) ])) ])
                                                                            (appendByteString
                                                                               pubKey
                                                                               message))))
@@ -1620,13 +1634,9 @@
                                                   [ ((\nt ->
                                                         (\nt ->
                                                            case
-                                                             (equalsInteger
-                                                                0
-                                                                (modInteger
-                                                                   e
-                                                                   2))
-                                                             [ (edwards nt p)
-                                                             , nt ])
+                                                             (even e)
+                                                             [ nt
+                                                             , (edwards nt p) ])
                                                           (edwards nt nt))
                                                        (s
                                                           s
@@ -1704,9 +1714,7 @@
                                        (\x ->
                                           (\x_ ->
                                              case
-                                               (equalsInteger
-                                                  0
-                                                  (modInteger x 2))
+                                               (even x)
                                                [ (case
                                                     x_
                                                     [ (constr 0
@@ -1723,7 +1731,9 @@
                                                               57896044618658097711785492504343953926634992332820282019728792003956564819949
                                                               x)
                                                          , yInt ]) ]) ])
-                                            (readBit bs 7))
+                                            (case
+                                               (readBit bs 7)
+                                               [(constr 1 []), (constr 0 [])]))
                                          (xRecover yInt))
                                       (checkValid_f
                                          (writeBits
@@ -1750,9 +1760,14 @@
                                                                        x)
                                                                     xx)
                                                                  57896044618658097711785492504343953926634992332820282019728792003956564819949))
-                                                           [ (delay (`$j` True))
+                                                           [ (delay
+                                                                (`$j`
+                                                                   (constr 0
+                                                                      [])))
                                                            , (delay
-                                                                (`$j` False)) ])
+                                                                (`$j`
+                                                                   (constr 1
+                                                                      []))) ])
                                                         (\cond ->
                                                            force
                                                              ((\`$j` ->
@@ -1760,49 +1775,52 @@
                                                                    cond
                                                                    [ (delay
                                                                         (case
-                                                                           (equalsInteger
-                                                                              0
-                                                                              (modInteger
-                                                                                 x
-                                                                                 2))
+                                                                           (even
+                                                                              xA)
                                                                            [ (`$j`
-                                                                                True)
+                                                                                (constr 1
+                                                                                   [  ]))
                                                                            , (`$j`
-                                                                                False) ]))
+                                                                                (constr 0
+                                                                                   [  ])) ]))
                                                                    , (delay
                                                                         (case
-                                                                           (equalsInteger
-                                                                              0
-                                                                              (modInteger
-                                                                                 xA
-                                                                                 2))
+                                                                           (even
+                                                                              x)
                                                                            [ (`$j`
-                                                                                True)
+                                                                                (constr 1
+                                                                                   [  ]))
                                                                            , (`$j`
-                                                                                False) ])) ])
+                                                                                (constr 0
+                                                                                   [  ])) ])) ])
                                                                 (\cond ->
                                                                    case
                                                                      (case
                                                                         cond
-                                                                        [ False
-                                                                        , (case
+                                                                        [ (case
                                                                              cond
-                                                                             [ True
-                                                                             , False ]) ])
-                                                                     [ (case
+                                                                             [ (constr 1
+                                                                                  [  ])
+                                                                             , (constr 0
+                                                                                  [  ]) ])
+                                                                        , (constr 1
+                                                                             [  ]) ])
+                                                                     [ xA
+                                                                     , (case
                                                                           (case
                                                                              cond
-                                                                             [ False
-                                                                             , cond ])
-                                                                          [ (case
+                                                                             [ cond
+                                                                             , (constr 1
+                                                                                  [  ]) ])
+                                                                          [ xAB
+                                                                          , (case
                                                                                (case
                                                                                   cond
-                                                                                  [ cond
-                                                                                  , False ])
-                                                                               [ x
-                                                                               , xB ])
-                                                                          , xAB ])
-                                                                     , xA ])))))
+                                                                                  [ (constr 1
+                                                                                       [  ])
+                                                                                  , cond ])
+                                                                               [ xB
+                                                                               , x ]) ]) ])))))
                                                   (subtractInteger
                                                      57896044618658097711785492504343953926634992332820282019728792003956564819949
                                                      x))
@@ -1870,15 +1888,18 @@
                        [ ((\reduced ->
                              (\t ->
                                 case
-                                  (equalsInteger 0 (modInteger e 2))
-                                  [(modInteger (multiplyInteger t b') m), t])
+                                  (even e)
+                                  [t, (modInteger (multiplyInteger t b') m)])
                                (modInteger (multiplyInteger reduced reduced) m))
                             (s s b' (divideInteger e 2) m))
                        , 1 ])))
-            (byteStringToInteger False))
+            (\n ->
+               case
+                 (equalsInteger 0 (modInteger n 2))
+                 [(constr 1 []), (constr 0 [])]))
          ((\s -> s s)
             (\s ds -> case ds [[], (\d ds -> force mkCons d (s s ds))])))
-      ((\s -> s s) (\s ds -> case ds [[], (\d ds -> force mkCons d (s s ds))]))
+      (byteStringToInteger False)
       (B #c080c2932178c2adc2a7c3917a6009c3b37cc383245824c3a9c2a6c3aac080c286c2986c14c3b334c39915c298c2b47b244dc3a352c396c39a25c3b1c29d050e0509c298c28cc2abc3b0c38866c2b8c285c38bc3a37ac2a3c080c2b9c29b59c28bc2b2c3b902)
       (B #68656c6c6f20776f726c64)
       (B #283ac3bfc3bbc281372d5e77c3bdc2910b681bc2ab72c2bdc39f2fc395517a62c3b9c2af247ac39371c38311c386)))

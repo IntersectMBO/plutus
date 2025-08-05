@@ -23,71 +23,92 @@
       PartialUnlock : VestingRedeemer
     !`$bPubKeyCredential` : integer = 0
     !`$bScriptCredential` : integer = 1
-    !`$fEqCredential_$c==` : data -> data -> bool
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+    !`$fEqCredential_$c==` : data -> data -> Bool
       = \(ds : data) (ds : data) ->
           let
-            !fail : unit -> bool
+            !fail : unit -> Bool
               = \(ds : unit) ->
                   let
                     !tup : pair integer (list data) = unConstrData ds
                   in
-                  case
-                    (all dead. bool)
-                    (equalsInteger
-                       `$bScriptCredential`
-                       (fstPair {integer} {list data} tup))
-                    [ (/\dead -> False)
-                    , (/\dead ->
-                         let
-                           !tup : pair integer (list data) = unConstrData ds
-                         in
-                         case
-                           (all dead. bool)
-                           (equalsInteger
-                              `$bScriptCredential`
-                              (fstPair {integer} {list data} tup))
-                           [ (/\dead -> False)
-                           , (/\dead ->
-                                equalsByteString
-                                  (unBData
-                                     (headList
-                                        {data}
-                                        (sndPair {integer} {list data} tup)))
-                                  (unBData
-                                     (headList
-                                        {data}
-                                        (sndPair {integer} {list data} tup)))) ]
-                           {all dead. dead}) ]
+                  Bool_match
+                    (case
+                       Bool
+                       (equalsInteger
+                          `$bScriptCredential`
+                          (fstPair {integer} {list data} tup))
+                       [False, True])
+                    {all dead. Bool}
+                    (/\dead ->
+                       let
+                         !tup : pair integer (list data) = unConstrData ds
+                       in
+                       Bool_match
+                         (case
+                            Bool
+                            (equalsInteger
+                               `$bScriptCredential`
+                               (fstPair {integer} {list data} tup))
+                            [False, True])
+                         {all dead. Bool}
+                         (/\dead ->
+                            case
+                              Bool
+                              (equalsByteString
+                                 (unBData
+                                    (headList
+                                       {data}
+                                       (sndPair {integer} {list data} tup)))
+                                 (unBData
+                                    (headList
+                                       {data}
+                                       (sndPair {integer} {list data} tup))))
+                              [False, True])
+                         (/\dead -> False)
+                         {all dead. dead})
+                    (/\dead -> False)
                     {all dead. dead}
             !tup : pair integer (list data) = unConstrData ds
           in
-          case
-            (all dead. bool)
-            (equalsInteger
-               `$bPubKeyCredential`
-               (fstPair {integer} {list data} tup))
-            [ (/\dead -> fail ())
-            , (/\dead ->
-                 let
-                   !tup : pair integer (list data) = unConstrData ds
-                 in
-                 case
-                   (all dead. bool)
-                   (equalsInteger
-                      `$bPubKeyCredential`
-                      (fstPair {integer} {list data} tup))
-                   [ (/\dead -> fail ())
-                   , (/\dead ->
-                        equalsByteString
-                          (unBData
-                             (headList
-                                {data}
-                                (sndPair {integer} {list data} tup)))
-                          (unBData
-                             (headList
-                                {data}
-                                (sndPair {integer} {list data} tup)))) ]
-                   {all dead. dead}) ]
+          Bool_match
+            (case
+               Bool
+               (equalsInteger
+                  `$bPubKeyCredential`
+                  (fstPair {integer} {list data} tup))
+               [False, True])
+            {all dead. Bool}
+            (/\dead ->
+               let
+                 !tup : pair integer (list data) = unConstrData ds
+               in
+               Bool_match
+                 (case
+                    Bool
+                    (equalsInteger
+                       `$bPubKeyCredential`
+                       (fstPair {integer} {list data} tup))
+                    [False, True])
+                 {all dead. Bool}
+                 (/\dead ->
+                    case
+                      Bool
+                      (equalsByteString
+                         (unBData
+                            (headList
+                               {data}
+                               (sndPair {integer} {list data} tup)))
+                         (unBData
+                            (headList
+                               {data}
+                               (sndPair {integer} {list data} tup))))
+                      [False, True])
+                 (/\dead -> fail ())
+                 {all dead. dead})
+            (/\dead -> fail ())
             {all dead. dead}
     !`$mStakingPtr` :
        all r. data -> (integer -> integer -> integer -> r) -> (unit -> r) -> r
@@ -98,21 +119,24 @@
             let
               !tup : pair integer (list data) = unConstrData scrut
             in
-            case
-              (all dead. r)
-              (equalsInteger
-                 `$bScriptCredential`
-                 (fstPair {integer} {list data} tup))
-              [ (/\dead -> fail ())
-              , (/\dead ->
-                   let
-                     !l : list data = sndPair {integer} {list data} tup
-                     !l : list data = tailList {data} l
-                   in
-                   cont
-                     (unIData (headList {data} l))
-                     (unIData (headList {data} l))
-                     (unIData (headList {data} (tailList {data} l)))) ]
+            Bool_match
+              (case
+                 Bool
+                 (equalsInteger
+                    `$bScriptCredential`
+                    (fstPair {integer} {list data} tup))
+                 [False, True])
+              {all dead. r}
+              (/\dead ->
+                 let
+                   !l : list data = sndPair {integer} {list data} tup
+                   !l : list data = tailList {data} l
+                 in
+                 cont
+                   (unIData (headList {data} l))
+                   (unIData (headList {data} l))
+                   (unIData (headList {data} (tailList {data} l))))
+              (/\dead -> fail ())
               {all dead. dead}
     !`$bNoOutputDatum` : integer = 0
     !`$bOutputDatum` : integer = 2
@@ -135,18 +159,19 @@
             let
               !tup : pair integer (list data) = unConstrData scrut
             in
-            case
-              (all dead. r)
-              (equalsInteger
-                 `$bPubKeyCredential`
-                 (fstPair {integer} {list data} tup))
-              [ (/\dead -> fail ())
-              , (/\dead ->
-                   cont
-                     (unBData
-                        (headList
-                           {data}
-                           (sndPair {integer} {list data} tup)))) ]
+            Bool_match
+              (case
+                 Bool
+                 (equalsInteger
+                    `$bPubKeyCredential`
+                    (fstPair {integer} {list data} tup))
+                 [False, True])
+              {all dead. r}
+              (/\dead ->
+                 cont
+                   (unBData
+                      (headList {data} (sndPair {integer} {list data} tup))))
+              (/\dead -> fail ())
               {all dead. dead}
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
@@ -166,20 +191,18 @@
               !index : integer = fstPair {integer} {list data} tup
               !args : list data = sndPair {integer} {list data} tup
             in
-            case
-              (all dead. Maybe a)
-              (equalsInteger 1 index)
-              [ (/\dead ->
-                   case
-                     (all dead. Maybe a)
-                     (equalsInteger 0 index)
-                     [ (/\dead -> traceError {Maybe a} reconstructCaseError)
-                     , (/\dead ->
-                          Just
-                            {a}
-                            (`$dUnsafeFromData` (headList {data} args))) ]
-                     {all dead. dead})
-              , (/\dead -> Nothing {a}) ]
+            Bool_match
+              (case Bool (equalsInteger 1 index) [False, True])
+              {all dead. Maybe a}
+              (/\dead -> Nothing {a})
+              (/\dead ->
+                 Bool_match
+                   (case Bool (equalsInteger 0 index) [False, True])
+                   {all dead. Maybe a}
+                   (/\dead ->
+                      Just {a} (`$dUnsafeFromData` (headList {data} args)))
+                   (/\dead -> traceError {Maybe a} reconstructCaseError)
+                   {all dead. dead})
               {all dead. dead}
     !`$mSpendingScript` :
        all r. data -> (data -> Maybe data -> r) -> (unit -> r) -> r
@@ -188,25 +211,33 @@
             let
               !tup : pair integer (list data) = unConstrData scrut
             in
-            case
-              (all dead. r)
-              (equalsInteger 1 (fstPair {integer} {list data} tup))
-              [ (/\dead -> fail ())
-              , (/\dead ->
-                   let
-                     !l : list data = sndPair {integer} {list data} tup
-                   in
-                   cont
-                     (headList {data} l)
-                     (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                        {data}
-                        `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                        (headList {data} (tailList {data} l)))) ]
+            Bool_match
+              (case
+                 Bool
+                 (equalsInteger 1 (fstPair {integer} {list data} tup))
+                 [False, True])
+              {all dead. r}
+              (/\dead ->
+                 let
+                   !l : list data = sndPair {integer} {list data} tup
+                 in
+                 cont
+                   (headList {data} l)
+                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                      {data}
+                      `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                      (headList {data} (tailList {data} l))))
+              (/\dead -> fail ())
               {all dead. dead}
-    !`/=` : all a. (\a -> a -> a -> bool) a -> a -> a -> bool
+    !`/=` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
       = /\a ->
-          \(`$dEq` : (\a -> a -> a -> bool) a) (x : a) (y : a) ->
-            case bool (`$dEq` x y) [True, False]
+          \(`$dEq` : (\a -> a -> a -> Bool) a) (x : a) (y : a) ->
+            Bool_match
+              (`$dEq` x y)
+              {all dead. Bool}
+              (/\dead -> False)
+              (/\dead -> True)
+              {all dead. dead}
     data (Solo :: * -> *) a | Solo_match where
       MkSolo : a -> Solo a
     !lookup' : data -> list (pair data data) -> Maybe data
@@ -217,16 +248,19 @@
                   case
                     (Maybe data)
                     xs
-                    [ (Nothing {data})
-                    , (\(hd : pair data data) ->
-                         case
-                           (all dead. list (pair data data) -> Maybe data)
-                           (equalsData k (fstPair {data} {data} hd))
-                           [ (/\dead -> go)
-                           , (/\dead ->
-                                \(ds : list (pair data data)) ->
-                                  Just {data} (sndPair {data} {data} hd)) ]
-                           {all dead. dead}) ]
+                    [ (\(hd : pair data data) ->
+                         Bool_match
+                           (case
+                              Bool
+                              (equalsData k (fstPair {data} {data} hd))
+                              [False, True])
+                           {all dead. list (pair data data) -> Maybe data}
+                           (/\dead ->
+                              \(ds : list (pair data data)) ->
+                                Just {data} (sndPair {data} {data} hd))
+                           (/\dead -> go)
+                           {all dead. dead})
+                    , (Nothing {data}) ]
           in
           \(m : list (pair data data)) -> go m
     !assetClassValueOf :
@@ -290,18 +324,19 @@
             let
               !tup : pair integer (list data) = unConstrData scrut
             in
-            case
-              (all dead. r)
-              (equalsInteger
-                 `$bScriptCredential`
-                 (fstPair {integer} {list data} tup))
-              [ (/\dead -> fail ())
-              , (/\dead ->
-                   cont
-                     (unBData
-                        (headList
-                           {data}
-                           (sndPair {integer} {list data} tup)))) ]
+            Bool_match
+              (case
+                 Bool
+                 (equalsInteger
+                    `$bScriptCredential`
+                    (fstPair {integer} {list data} tup))
+                 [False, True])
+              {all dead. r}
+              (/\dead ->
+                 cont
+                   (unBData
+                      (headList {data} (sndPair {integer} {list data} tup))))
+              (/\dead -> fail ())
               {all dead. dead}
     !addressCredential : data -> data
       = \(ds : data) ->
@@ -319,42 +354,54 @@
                         (sndPair {integer} {list data} (unConstrData ds))))
             !tup : pair integer (list data) = unConstrData (headList {data} l)
           in
-          case
-            (all dead. integer)
-            (equalsInteger 1 (fstPair {integer} {list data} tup))
-            [ (/\dead -> traceError {integer} "Time range not Finite")
-            , (/\dead ->
-                 let
-                   !posixTime : integer
-                     = unIData
-                         (headList {data} (sndPair {integer} {list data} tup))
+          Bool_match
+            (case
+               Bool
+               (equalsInteger 1 (fstPair {integer} {list data} tup))
+               [False, True])
+            {all dead. integer}
+            (/\dead ->
+               let
+                 !posixTime : integer
+                   = unIData
+                       (headList {data} (sndPair {integer} {list data} tup))
+               in
+               Bool_match
+                 (let
+                   !tup : pair integer (list data)
+                     = unConstrData (headList {data} (tailList {data} l))
+                   !index : integer = fstPair {integer} {list data} tup
+                   !args : list data = sndPair {integer} {list data} tup
                  in
-                 case
-                   (all dead. integer)
-                   (let
-                     !tup : pair integer (list data)
-                       = unConstrData (headList {data} (tailList {data} l))
-                     !index : integer = fstPair {integer} {list data} tup
-                     !args : list data = sndPair {integer} {list data} tup
-                   in
-                   case
-                     (all dead. bool)
-                     (equalsInteger 0 index)
-                     [ (/\dead ->
-                          case
-                            (all dead. bool)
-                            (equalsInteger 1 index)
-                            [ (/\dead -> traceError {bool} reconstructCaseError)
-                            , (/\dead -> True) ]
-                            {all dead. dead})
-                     , (/\dead -> False) ]
-                     {all dead. dead})
-                   [(/\dead -> addInteger 1 posixTime), (/\dead -> posixTime)]
-                   {all dead. dead}) ]
+                 Bool_match
+                   (case Bool (equalsInteger 0 index) [False, True])
+                   {all dead. Bool}
+                   (/\dead -> False)
+                   (/\dead ->
+                      Bool_match
+                        (case Bool (equalsInteger 1 index) [False, True])
+                        {all dead. Bool}
+                        (/\dead -> True)
+                        (/\dead -> traceError {Bool} reconstructCaseError)
+                        {all dead. dead})
+                   {all dead. dead})
+                 {all dead. integer}
+                 (/\dead -> posixTime)
+                 (/\dead -> addInteger 1 posixTime)
+                 {all dead. dead})
+            (/\dead -> traceError {integer} "Time range not Finite")
             {all dead. dead}
-    !greaterThanEqualsInteger : integer -> integer -> bool
+    !greaterThanEqualsInteger : integer -> integer -> Bool
       = \(x : integer) (y : integer) ->
-          case bool (lessThanInteger x y) [True, False]
+          case Bool (lessThanInteger x y) [True, False]
+    !not : Bool -> Bool
+      = \(a : Bool) ->
+          Bool_match
+            a
+            {all dead. Bool}
+            (/\dead -> False)
+            (/\dead -> True)
+            {all dead. dead}
     !`$mScriptContext` :
        all r. data -> (data -> data -> data -> r) -> (unit -> r) -> r
       = /\r ->
@@ -604,31 +651,32 @@
                   (sndPair {integer} {list data} (unConstrData ds))))
     !find :
        all a.
-         (\a -> data -> a) a -> (a -> bool) -> (\a -> list data) a -> Maybe a
+         (\a -> data -> a) a -> (a -> Bool) -> (\a -> list data) a -> Maybe a
       = /\a ->
-          \(`$dUnsafeFromData` : (\a -> data -> a) a) (pred' : a -> bool) ->
+          \(`$dUnsafeFromData` : (\a -> data -> a) a) (pred' : a -> Bool) ->
             letrec
               !go : (\a -> list data) a -> Maybe a
                 = \(ds : (\a -> list data) a) ->
                     case
                       (Maybe a)
                       ds
-                      [ (Nothing {a})
-                      , (\(x : data) (eta : list data) ->
+                      [ (\(x : data) (eta : list data) ->
                            let
                              !h : a = `$dUnsafeFromData` x
                            in
-                           case
-                             (all dead. Maybe a)
+                           Bool_match
                              (pred' h)
-                             [(/\dead -> go eta), (/\dead -> Just {a} h)]
-                             {all dead. dead}) ]
+                             {all dead. Maybe a}
+                             (/\dead -> Just {a} h)
+                             (/\dead -> go eta)
+                             {all dead. dead})
+                      , (Nothing {a}) ]
             in
             \(eta : (\a -> list data) a) -> go eta
-    !txSignedBy : data -> bytestring -> bool
+    !txSignedBy : data -> bytestring -> Bool
       = \(ds : data) (k : bytestring) ->
           `$mTxInfo`
-            {bool}
+            {Bool}
             ds
             (\(ds : (\a -> list data) data)
               (ds : (\a -> list data) data)
@@ -657,16 +705,18 @@
                  (find
                     {bytestring}
                     unBData
-                    (\(y : bytestring) -> equalsByteString k y)
+                    (\(y : bytestring) ->
+                       case Bool (equalsByteString k y) [False, True])
                     ds)
-                 {bool}
-                 (\(ds : bytestring) -> True)
-                 False)
+                 {all dead. Bool}
+                 (\(ds : bytestring) -> /\dead -> True)
+                 (/\dead -> False)
+                 {all dead. dead})
             (\(void : unit) ->
                let
-                 !defaultBody : bool = error {bool}
+                 !defaultBody : Bool = error {Bool}
                in
-               Unit_match (error {Unit}) {bool} defaultBody)
+               Unit_match (error {Unit}) {Bool} defaultBody)
     !vestingPeriodEnd : VestingDatum -> integer
       = \(ds : VestingDatum) ->
           VestingDatum_match
@@ -691,13 +741,12 @@
       {all dead. unit}
       (\(ctx : data) ->
          /\dead ->
-           case
-             (all dead. unit)
+           Bool_match
              (let
                !context : data = trace {data} "Parsed ScriptContext" ctx
              in
              trace
-               {bool}
+               {Bool}
                "Validation completed"
                (VestingRedeemer_match
                   (Maybe_match
@@ -720,18 +769,20 @@
                             !args : list data
                               = sndPair {integer} {list data} tup
                           in
-                          case
-                            (all dead. Maybe VestingRedeemer)
-                            (equalsInteger 0 index)
-                            [ (/\dead ->
-                                 case
-                                   (all dead. Maybe VestingRedeemer)
-                                   (equalsInteger 1 index)
-                                   [ (/\dead -> Nothing {VestingRedeemer})
-                                   , (/\dead ->
-                                        Just {VestingRedeemer} FullUnlock) ]
-                                   {all dead. dead})
-                            , (/\dead -> Just {VestingRedeemer} PartialUnlock) ]
+                          Bool_match
+                            (case Bool (equalsInteger 0 index) [False, True])
+                            {all dead. Maybe VestingRedeemer}
+                            (/\dead -> Just {VestingRedeemer} PartialUnlock)
+                            (/\dead ->
+                               Bool_match
+                                 (case
+                                    Bool
+                                    (equalsInteger 1 index)
+                                    [False, True])
+                                 {all dead. Maybe VestingRedeemer}
+                                 (/\dead -> Just {VestingRedeemer} FullUnlock)
+                                 (/\dead -> Nothing {VestingRedeemer})
+                                 {all dead. dead})
                             {all dead. dead})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
@@ -748,7 +799,7 @@
                         in
                         error {VestingRedeemer})
                      {all dead. dead})
-                  {all dead. bool}
+                  {all dead. Bool}
                   (/\dead ->
                      let
                        !ctx : data
@@ -773,7 +824,7 @@
                               (/\dead -> fail ())
                               {all dead. dead})
                          (\(void : unit) -> fail ()))
-                       {bool}
+                       {Bool}
                        (\(ipv : data)
                          (ipv : data) ->
                           let
@@ -788,69 +839,63 @@
                                     !args : list data
                                       = sndPair {integer} {list data} tup
                                   in
-                                  case
-                                    (all dead. VestingDatum)
-                                    (equalsInteger 0 index)
-                                    [ (/\dead ->
-                                         traceError
-                                           {VestingDatum}
-                                           reconstructCaseError)
-                                    , (/\dead ->
-                                         let
-                                           !l : list data = tailList {data} args
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
+                                  Bool_match
+                                    (case
+                                       Bool
+                                       (equalsInteger 0 index)
+                                       [False, True])
+                                    {all dead. VestingDatum}
+                                    (/\dead ->
+                                       let
+                                         !l : list data = tailList {data} args
+                                         !l : list data = tailList {data} l
+                                         !l : list data = tailList {data} l
+                                         !l : list data = tailList {data} l
+                                         !l : list data = tailList {data} l
+                                       in
+                                       VestingDatum
+                                         (headList {data} args)
+                                         (let
+                                           !tup : pair integer (list data)
+                                             = unConstrData (headList {data} l)
+                                           !index : integer
+                                             = fstPair {integer} {list data} tup
+                                           !args : list data
+                                             = sndPair {integer} {list data} tup
                                          in
-                                         VestingDatum
-                                           (headList {data} args)
-                                           (let
-                                             !tup : pair integer (list data)
-                                               = unConstrData
-                                                   (headList {data} l)
-                                             !index : integer
-                                               = fstPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup
-                                             !args : list data
-                                               = sndPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup
-                                           in
-                                           case
-                                             (all dead.
-                                                Tuple2 bytestring bytestring)
-                                             (equalsInteger 0 index)
-                                             [ (/\dead ->
-                                                  traceError
-                                                    {Tuple2
-                                                       bytestring
-                                                       bytestring}
-                                                    reconstructCaseError)
-                                             , (/\dead ->
-                                                  Tuple2
-                                                    {bytestring}
-                                                    {bytestring}
-                                                    (unBData
-                                                       (headList {data} args))
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (tailList
-                                                             {data}
-                                                             args)))) ]
-                                             {all dead. dead})
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData
-                                              (headList
-                                                 {data}
-                                                 (tailList {data} l)))) ]
+                                         Bool_match
+                                           (case
+                                              Bool
+                                              (equalsInteger 0 index)
+                                              [False, True])
+                                           {all dead.
+                                              Tuple2 bytestring bytestring}
+                                           (/\dead ->
+                                              Tuple2
+                                                {bytestring}
+                                                {bytestring}
+                                                (unBData (headList {data} args))
+                                                (unBData
+                                                   (headList
+                                                      {data}
+                                                      (tailList {data} args))))
+                                           (/\dead ->
+                                              traceError
+                                                {Tuple2 bytestring bytestring}
+                                                reconstructCaseError)
+                                           {all dead. dead})
+                                         (unIData (headList {data} l))
+                                         (unIData (headList {data} l))
+                                         (unIData (headList {data} l))
+                                         (unIData (headList {data} l))
+                                         (unIData
+                                            (headList
+                                               {data}
+                                               (tailList {data} l))))
+                                    (/\dead ->
+                                       traceError
+                                         {VestingDatum}
+                                         reconstructCaseError)
                                     {all dead. dead})
                             !vestingDatum : VestingDatum
                               = Solo_match
@@ -880,7 +925,7 @@
                                    (error {Unit})
                                    {Solo bytestring}
                                    defaultBody))
-                            {bool}
+                            {Bool}
                             (\(ipv : bytestring) ->
                                let
                                  !ds : Solo data
@@ -895,28 +940,25 @@
                                    = getLowerInclusiveTimeRange
                                        (txInfoValidRange txInfo)
                                in
-                               case
-                                 (all dead. bool)
-                                 (case
-                                    bool
-                                    (txSignedBy txInfo ipv)
-                                    [True, False])
-                                 [ (/\dead ->
-                                      case
-                                        (all dead. bool)
-                                        (greaterThanEqualsInteger
-                                           (vestingPeriodEnd vestingDatum)
-                                           ds)
-                                        [ (/\dead -> True)
-                                        , (/\dead ->
-                                             traceError
-                                               {bool}
-                                               "Unlock not permitted until vestingPeriodEnd time") ]
-                                        {all dead. dead})
-                                 , (/\dead ->
-                                      traceError
-                                        {bool}
-                                        "Missing beneficiary signature") ]
+                               Bool_match
+                                 (not (txSignedBy txInfo ipv))
+                                 {all dead. Bool}
+                                 (/\dead ->
+                                    traceError
+                                      {Bool}
+                                      "Missing beneficiary signature")
+                                 (/\dead ->
+                                    Bool_match
+                                      (greaterThanEqualsInteger
+                                         (vestingPeriodEnd vestingDatum)
+                                         ds)
+                                      {all dead. Bool}
+                                      (/\dead ->
+                                         traceError
+                                           {Bool}
+                                           "Unlock not permitted until vestingPeriodEnd time")
+                                      (/\dead -> True)
+                                      {all dead. dead})
                                  {all dead. dead})))
                   (/\dead ->
                      let
@@ -942,7 +984,7 @@
                               (/\dead -> fail ())
                               {all dead. dead})
                          (\(void : unit) -> fail ()))
-                       {bool}
+                       {Bool}
                        (\(ipv : data)
                          (ipv : data) ->
                           let
@@ -957,69 +999,63 @@
                                     !args : list data
                                       = sndPair {integer} {list data} tup
                                   in
-                                  case
-                                    (all dead. VestingDatum)
-                                    (equalsInteger 0 index)
-                                    [ (/\dead ->
-                                         traceError
-                                           {VestingDatum}
-                                           reconstructCaseError)
-                                    , (/\dead ->
-                                         let
-                                           !l : list data = tailList {data} args
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
+                                  Bool_match
+                                    (case
+                                       Bool
+                                       (equalsInteger 0 index)
+                                       [False, True])
+                                    {all dead. VestingDatum}
+                                    (/\dead ->
+                                       let
+                                         !l : list data = tailList {data} args
+                                         !l : list data = tailList {data} l
+                                         !l : list data = tailList {data} l
+                                         !l : list data = tailList {data} l
+                                         !l : list data = tailList {data} l
+                                       in
+                                       VestingDatum
+                                         (headList {data} args)
+                                         (let
+                                           !tup : pair integer (list data)
+                                             = unConstrData (headList {data} l)
+                                           !index : integer
+                                             = fstPair {integer} {list data} tup
+                                           !args : list data
+                                             = sndPair {integer} {list data} tup
                                          in
-                                         VestingDatum
-                                           (headList {data} args)
-                                           (let
-                                             !tup : pair integer (list data)
-                                               = unConstrData
-                                                   (headList {data} l)
-                                             !index : integer
-                                               = fstPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup
-                                             !args : list data
-                                               = sndPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup
-                                           in
-                                           case
-                                             (all dead.
-                                                Tuple2 bytestring bytestring)
-                                             (equalsInteger 0 index)
-                                             [ (/\dead ->
-                                                  traceError
-                                                    {Tuple2
-                                                       bytestring
-                                                       bytestring}
-                                                    reconstructCaseError)
-                                             , (/\dead ->
-                                                  Tuple2
-                                                    {bytestring}
-                                                    {bytestring}
-                                                    (unBData
-                                                       (headList {data} args))
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (tailList
-                                                             {data}
-                                                             args)))) ]
-                                             {all dead. dead})
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData
-                                              (headList
-                                                 {data}
-                                                 (tailList {data} l)))) ]
+                                         Bool_match
+                                           (case
+                                              Bool
+                                              (equalsInteger 0 index)
+                                              [False, True])
+                                           {all dead.
+                                              Tuple2 bytestring bytestring}
+                                           (/\dead ->
+                                              Tuple2
+                                                {bytestring}
+                                                {bytestring}
+                                                (unBData (headList {data} args))
+                                                (unBData
+                                                   (headList
+                                                      {data}
+                                                      (tailList {data} args))))
+                                           (/\dead ->
+                                              traceError
+                                                {Tuple2 bytestring bytestring}
+                                                reconstructCaseError)
+                                           {all dead. dead})
+                                         (unIData (headList {data} l))
+                                         (unIData (headList {data} l))
+                                         (unIData (headList {data} l))
+                                         (unIData (headList {data} l))
+                                         (unIData
+                                            (headList
+                                               {data}
+                                               (tailList {data} l))))
+                                    (/\dead ->
+                                       traceError
+                                         {VestingDatum}
+                                         reconstructCaseError)
                                     {all dead. dead})
                             !vestingDatum : VestingDatum
                               = Solo_match
@@ -1086,7 +1122,7 @@
                                    (error {Unit})
                                    {Solo bytestring}
                                    defaultBody))
-                            {bool}
+                            {Bool}
                             (\(ipv : bytestring) ->
                                let
                                  !ds : Solo data
@@ -1156,16 +1192,22 @@
                                                         {list data}
                                                         (unConstrData eta))
                                              in
-                                             case
-                                               (all dead. bool)
-                                               (equalsByteString
-                                                  (txOutRefId l)
-                                                  (txOutRefId ipv))
-                                               [ (/\dead -> False)
-                                               , (/\dead ->
-                                                    equalsInteger
-                                                      (txOutRefIdx l)
-                                                      (txOutRefIdx ipv)) ]
+                                             Bool_match
+                                               (case
+                                                  Bool
+                                                  (equalsByteString
+                                                     (txOutRefId l)
+                                                     (txOutRefId ipv))
+                                                  [False, True])
+                                               {all dead. Bool}
+                                               (/\dead ->
+                                                  case
+                                                    Bool
+                                                    (equalsInteger
+                                                       (txOutRefIdx l)
+                                                       (txOutRefIdx ipv))
+                                                    [False, True])
+                                               (/\dead -> False)
                                                {all dead. dead})
                                           nt)
                                        {all dead. Solo data}
@@ -1186,7 +1228,7 @@
                                Solo_match
                                  {data}
                                  ds
-                                 {bool}
+                                 {Bool}
                                  (\(ipv : data) ->
                                     let
                                       !nt : data = txInInfoResolved ipv
@@ -1211,7 +1253,7 @@
                                              (error {Unit})
                                              {Solo bytestring}
                                              defaultBody))
-                                      {bool}
+                                      {Bool}
                                       (\(ipv : bytestring) ->
                                          letrec
                                            !go :
@@ -1223,8 +1265,7 @@
                                                  case
                                                    integer
                                                    ds
-                                                   [ n
-                                                   , (\(x : data)
+                                                   [ (\(x : data)
                                                        (eta : list data) ->
                                                         let
                                                           !nt :
@@ -1238,23 +1279,27 @@
                                                           {integer}
                                                           nt
                                                           (\(vh : bytestring) ->
-                                                             case
-                                                               (all dead.
-                                                                  integer)
-                                                               (equalsByteString
-                                                                  vh
-                                                                  ipv)
-                                                               [ (/\dead ->
-                                                                    go n eta)
-                                                               , (/\dead ->
-                                                                    go
-                                                                      (addInteger
-                                                                         1
-                                                                         n)
-                                                                      eta) ]
+                                                             Bool_match
+                                                               (case
+                                                                  Bool
+                                                                  (equalsByteString
+                                                                     vh
+                                                                     ipv)
+                                                                  [False, True])
+                                                               {all dead.
+                                                                  integer}
+                                                               (/\dead ->
+                                                                  go
+                                                                    (addInteger
+                                                                       1
+                                                                       n)
+                                                                    eta)
+                                                               (/\dead ->
+                                                                  go n eta)
                                                                {all dead. dead})
                                                           (\(void : unit) ->
-                                                             go n eta)) ]
+                                                             go n eta))
+                                                   , n ]
                                          in
                                          let
                                            !ds : integer
@@ -1283,160 +1328,25 @@
                                                                {list data}
                                                                (unConstrData nt)
                                                        in
-                                                       case
-                                                         (all dead. bool)
+                                                       Bool_match
                                                          (`$fEqCredential_$c==`
                                                             (headList {data} l)
                                                             (headList {data} l))
-                                                         [ (/\dead -> False)
-                                                         , (/\dead ->
-                                                              Maybe_match
-                                                                {data}
-                                                                (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                   {data}
-                                                                   `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                   (headList
-                                                                      {data}
-                                                                      (tailList
-                                                                         {data}
-                                                                         l)))
-                                                                {all dead. bool}
-                                                                (\(a : data) ->
-                                                                   /\dead ->
-                                                                     Maybe_match
+                                                         {all dead. Bool}
+                                                         (/\dead ->
+                                                            Maybe_match
+                                                              {data}
+                                                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                 {data}
+                                                                 `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                 (headList
+                                                                    {data}
+                                                                    (tailList
                                                                        {data}
-                                                                       (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                          {data}
-                                                                          `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                          (headList
-                                                                             {data}
-                                                                             (tailList
-                                                                                {data}
-                                                                                l)))
-                                                                       {bool}
-                                                                       (\(a :
-                                                                            data) ->
-                                                                          let
-                                                                            !fail :
-                                                                               unit ->
-                                                                               bool
-                                                                              = \(ds :
-                                                                                    unit) ->
-                                                                                  `$mStakingPtr`
-                                                                                    {bool}
-                                                                                    a
-                                                                                    (\(a :
-                                                                                         integer)
-                                                                                      (b :
-                                                                                         integer)
-                                                                                      (c :
-                                                                                         integer) ->
-                                                                                       `$mStakingPtr`
-                                                                                         {bool}
-                                                                                         a
-                                                                                         (\(a' :
-                                                                                              integer)
-                                                                                           (b' :
-                                                                                              integer)
-                                                                                           (c' :
-                                                                                              integer) ->
-                                                                                            case
-                                                                                              (all dead.
-                                                                                                 bool)
-                                                                                              (equalsInteger
-                                                                                                 a
-                                                                                                 a')
-                                                                                              [ (/\dead ->
-                                                                                                   False)
-                                                                                              , (/\dead ->
-                                                                                                   case
-                                                                                                     (all dead.
-                                                                                                        bool)
-                                                                                                     (equalsInteger
-                                                                                                        b
-                                                                                                        b')
-                                                                                                     [ (/\dead ->
-                                                                                                          False)
-                                                                                                     , (/\dead ->
-                                                                                                          equalsInteger
-                                                                                                            c
-                                                                                                            c') ]
-                                                                                                     {all dead.
-                                                                                                        dead}) ]
-                                                                                              {all dead.
-                                                                                                 dead})
-                                                                                         (\(void :
-                                                                                              unit) ->
-                                                                                            False))
-                                                                                    (\(void :
-                                                                                         unit) ->
-                                                                                       False)
-                                                                            !tup :
-                                                                               pair
-                                                                                 integer
-                                                                                 (list
-                                                                                    data)
-                                                                              = unConstrData
-                                                                                  a
-                                                                          in
-                                                                          case
-                                                                            (all dead.
-                                                                               bool)
-                                                                            (equalsInteger
-                                                                               `$bPubKeyCredential`
-                                                                               (fstPair
-                                                                                  {integer}
-                                                                                  {list
-                                                                                     data}
-                                                                                  tup))
-                                                                            [ (/\dead ->
-                                                                                 fail
-                                                                                   ())
-                                                                            , (/\dead ->
-                                                                                 let
-                                                                                   !tup :
-                                                                                      pair
-                                                                                        integer
-                                                                                        (list
-                                                                                           data)
-                                                                                     = unConstrData
-                                                                                         a
-                                                                                 in
-                                                                                 case
-                                                                                   (all dead.
-                                                                                      bool)
-                                                                                   (equalsInteger
-                                                                                      `$bPubKeyCredential`
-                                                                                      (fstPair
-                                                                                         {integer}
-                                                                                         {list
-                                                                                            data}
-                                                                                         tup))
-                                                                                   [ (/\dead ->
-                                                                                        fail
-                                                                                          ())
-                                                                                   , (/\dead ->
-                                                                                        `$fEqCredential_$c==`
-                                                                                          (headList
-                                                                                             {data}
-                                                                                             (sndPair
-                                                                                                {integer}
-                                                                                                {list
-                                                                                                   data}
-                                                                                                tup))
-                                                                                          (headList
-                                                                                             {data}
-                                                                                             (sndPair
-                                                                                                {integer}
-                                                                                                {list
-                                                                                                   data}
-                                                                                                tup))) ]
-                                                                                   {all dead.
-                                                                                      dead}) ]
-                                                                            {all dead.
-                                                                               dead})
-                                                                       False)
-                                                                (/\dead ->
+                                                                       l)))
+                                                              {all dead. Bool}
+                                                              (\(a : data) ->
+                                                                 /\dead ->
                                                                    Maybe_match
                                                                      {data}
                                                                      (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
@@ -1447,13 +1357,179 @@
                                                                            (tailList
                                                                               {data}
                                                                               l)))
-                                                                     {bool}
-                                                                     (\(ipv :
+                                                                     {all dead.
+                                                                        Bool}
+                                                                     (\(a :
                                                                           data) ->
+                                                                        let
+                                                                          !fail :
+                                                                             unit ->
+                                                                             Bool
+                                                                            = \(ds :
+                                                                                  unit) ->
+                                                                                `$mStakingPtr`
+                                                                                  {Bool}
+                                                                                  a
+                                                                                  (\(a :
+                                                                                       integer)
+                                                                                    (b :
+                                                                                       integer)
+                                                                                    (c :
+                                                                                       integer) ->
+                                                                                     `$mStakingPtr`
+                                                                                       {Bool}
+                                                                                       a
+                                                                                       (\(a' :
+                                                                                            integer)
+                                                                                         (b' :
+                                                                                            integer)
+                                                                                         (c' :
+                                                                                            integer) ->
+                                                                                          Bool_match
+                                                                                            (case
+                                                                                               Bool
+                                                                                               (equalsInteger
+                                                                                                  a
+                                                                                                  a')
+                                                                                               [ False
+                                                                                               , True ])
+                                                                                            {all dead.
+                                                                                               Bool}
+                                                                                            (/\dead ->
+                                                                                               Bool_match
+                                                                                                 (case
+                                                                                                    Bool
+                                                                                                    (equalsInteger
+                                                                                                       b
+                                                                                                       b')
+                                                                                                    [ False
+                                                                                                    , True ])
+                                                                                                 {all dead.
+                                                                                                    Bool}
+                                                                                                 (/\dead ->
+                                                                                                    case
+                                                                                                      Bool
+                                                                                                      (equalsInteger
+                                                                                                         c
+                                                                                                         c')
+                                                                                                      [ False
+                                                                                                      , True ])
+                                                                                                 (/\dead ->
+                                                                                                    False)
+                                                                                                 {all dead.
+                                                                                                    dead})
+                                                                                            (/\dead ->
+                                                                                               False)
+                                                                                            {all dead.
+                                                                                               dead})
+                                                                                       (\(void :
+                                                                                            unit) ->
+                                                                                          False))
+                                                                                  (\(void :
+                                                                                       unit) ->
+                                                                                     False)
+                                                                        in
+                                                                        /\dead ->
+                                                                          let
+                                                                            !tup :
+                                                                               pair
+                                                                                 integer
+                                                                                 (list
+                                                                                    data)
+                                                                              = unConstrData
+                                                                                  a
+                                                                          in
+                                                                          Bool_match
+                                                                            (case
+                                                                               Bool
+                                                                               (equalsInteger
+                                                                                  `$bPubKeyCredential`
+                                                                                  (fstPair
+                                                                                     {integer}
+                                                                                     {list
+                                                                                        data}
+                                                                                     tup))
+                                                                               [ False
+                                                                               , True ])
+                                                                            {all dead.
+                                                                               Bool}
+                                                                            (/\dead ->
+                                                                               let
+                                                                                 !tup :
+                                                                                    pair
+                                                                                      integer
+                                                                                      (list
+                                                                                         data)
+                                                                                   = unConstrData
+                                                                                       a
+                                                                               in
+                                                                               Bool_match
+                                                                                 (case
+                                                                                    Bool
+                                                                                    (equalsInteger
+                                                                                       `$bPubKeyCredential`
+                                                                                       (fstPair
+                                                                                          {integer}
+                                                                                          {list
+                                                                                             data}
+                                                                                          tup))
+                                                                                    [ False
+                                                                                    , True ])
+                                                                                 {all dead.
+                                                                                    Bool}
+                                                                                 (/\dead ->
+                                                                                    `$fEqCredential_$c==`
+                                                                                      (headList
+                                                                                         {data}
+                                                                                         (sndPair
+                                                                                            {integer}
+                                                                                            {list
+                                                                                               data}
+                                                                                            tup))
+                                                                                      (headList
+                                                                                         {data}
+                                                                                         (sndPair
+                                                                                            {integer}
+                                                                                            {list
+                                                                                               data}
+                                                                                            tup)))
+                                                                                 (/\dead ->
+                                                                                    fail
+                                                                                      ())
+                                                                                 {all dead.
+                                                                                    dead})
+                                                                            (/\dead ->
+                                                                               fail
+                                                                                 ())
+                                                                            {all dead.
+                                                                               dead})
+                                                                     (/\dead ->
                                                                         False)
-                                                                     True)
-                                                                {all dead.
-                                                                   dead}) ]
+                                                                     {all dead.
+                                                                        dead})
+                                                              (/\dead ->
+                                                                 Maybe_match
+                                                                   {data}
+                                                                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                      {data}
+                                                                      `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                      (headList
+                                                                         {data}
+                                                                         (tailList
+                                                                            {data}
+                                                                            l)))
+                                                                   {all dead.
+                                                                      Bool}
+                                                                   (\(ipv :
+                                                                        data) ->
+                                                                      /\dead ->
+                                                                        False)
+                                                                   (/\dead ->
+                                                                      True)
+                                                                   {all dead.
+                                                                      dead})
+                                                              {all dead. dead})
+                                                         (/\dead -> False)
                                                          {all dead. dead})
                                                     (`$mTxInfo`
                                                        {(\a -> list data) data}
@@ -1620,304 +1696,347 @@
                                                  (totalInstallments
                                                     vestingDatum)
                                          in
-                                         case
-                                           (all dead. bool)
-                                           (case
-                                              bool
-                                              (txSignedBy txInfo ipv)
-                                              [True, False])
-                                           [ (/\dead ->
-                                                case
-                                                  (all dead. bool)
-                                                  (greaterThanEqualsInteger
-                                                     (VestingDatum_match
-                                                        vestingDatum
-                                                        {integer}
-                                                        (\(ds : data)
-                                                          (ds :
-                                                             Tuple2
-                                                               bytestring
-                                                               bytestring)
-                                                          (ds : integer)
-                                                          (ds : integer)
-                                                          (ds : integer)
-                                                          (ds : integer)
-                                                          (ds : integer) ->
-                                                           ds))
-                                                     currentTimeApproximation)
-                                                  [ (/\dead ->
-                                                       case
-                                                         (all dead. bool)
-                                                         (lessThanEqualsInteger
-                                                            newRemainingQty
-                                                            0)
-                                                         [ (/\dead ->
-                                                              case
-                                                                (all dead. bool)
-                                                                (greaterThanEqualsInteger
-                                                                   newRemainingQty
-                                                                   ds)
-                                                                [ (/\dead ->
+                                         Bool_match
+                                           (not (txSignedBy txInfo ipv))
+                                           {all dead. Bool}
+                                           (/\dead ->
+                                              traceError
+                                                {Bool}
+                                                "Missing beneficiary signature")
+                                           (/\dead ->
+                                              Bool_match
+                                                (greaterThanEqualsInteger
+                                                   (VestingDatum_match
+                                                      vestingDatum
+                                                      {integer}
+                                                      (\(ds : data)
+                                                        (ds :
+                                                           Tuple2
+                                                             bytestring
+                                                             bytestring)
+                                                        (ds : integer)
+                                                        (ds : integer)
+                                                        (ds : integer)
+                                                        (ds : integer)
+                                                        (ds : integer) ->
+                                                         ds))
+                                                   currentTimeApproximation)
+                                                {all dead. Bool}
+                                                (/\dead ->
+                                                   traceError
+                                                     {Bool}
+                                                     "Unlock not permitted until firstUnlockPossibleAfter time")
+                                                (/\dead ->
+                                                   Bool_match
+                                                     (case
+                                                        Bool
+                                                        (lessThanEqualsInteger
+                                                           newRemainingQty
+                                                           0)
+                                                        [False, True])
+                                                     {all dead. Bool}
+                                                     (/\dead ->
+                                                        traceError
+                                                          {Bool}
+                                                          "Zero remaining assets not allowed")
+                                                     (/\dead ->
+                                                        Bool_match
+                                                          (greaterThanEqualsInteger
+                                                             newRemainingQty
+                                                             ds)
+                                                          {all dead. Bool}
+                                                          (/\dead ->
+                                                             traceError
+                                                               {Bool}
+                                                               "Remaining asset is not decreasing")
+                                                          (/\dead ->
+                                                             Bool_match
+                                                               (`/=`
+                                                                  {integer}
+                                                                  (\(x :
+                                                                       integer)
+                                                                    (y :
+                                                                       integer) ->
                                                                      case
-                                                                       (all dead.
-                                                                          bool)
-                                                                       (case
-                                                                          bool
-                                                                          (equalsInteger
-                                                                             ds
-                                                                             newRemainingQty)
-                                                                          [ True
-                                                                          , False ])
-                                                                       [ (/\dead ->
-                                                                            case
-                                                                              (all dead.
-                                                                                 bool)
-                                                                              (`/=`
-                                                                                 {data}
-                                                                                 (\(ds :
-                                                                                      data)
-                                                                                   (ds :
-                                                                                      data) ->
-                                                                                    let
-                                                                                      !fail :
-                                                                                         unit ->
-                                                                                         bool
-                                                                                        = \(ds :
-                                                                                              unit) ->
-                                                                                            let
-                                                                                              !tup :
-                                                                                                 pair
-                                                                                                   integer
-                                                                                                   (list
-                                                                                                      data)
-                                                                                                = unConstrData
-                                                                                                    ds
-                                                                                            in
+                                                                       Bool
+                                                                       (equalsInteger
+                                                                          x
+                                                                          y)
+                                                                       [ False
+                                                                       , True ])
+                                                                  ds
+                                                                  newRemainingQty)
+                                                               {all dead. Bool}
+                                                               (/\dead ->
+                                                                  traceError
+                                                                    {Bool}
+                                                                    "Mismatched remaining asset")
+                                                               (/\dead ->
+                                                                  Bool_match
+                                                                    (`/=`
+                                                                       {data}
+                                                                       (\(ds :
+                                                                            data)
+                                                                         (ds :
+                                                                            data) ->
+                                                                          let
+                                                                            !fail :
+                                                                               unit ->
+                                                                               Bool
+                                                                              = \(ds :
+                                                                                    unit) ->
+                                                                                  let
+                                                                                    !tup :
+                                                                                       pair
+                                                                                         integer
+                                                                                         (list
+                                                                                            data)
+                                                                                      = unConstrData
+                                                                                          ds
+                                                                                  in
+                                                                                  Bool_match
+                                                                                    (case
+                                                                                       Bool
+                                                                                       (equalsInteger
+                                                                                          `$bOutputDatum`
+                                                                                          (fstPair
+                                                                                             {integer}
+                                                                                             {list
+                                                                                                data}
+                                                                                             tup))
+                                                                                       [ False
+                                                                                       , True ])
+                                                                                    {all dead.
+                                                                                       Bool}
+                                                                                    (/\dead ->
+                                                                                       let
+                                                                                         !tup :
+                                                                                            pair
+                                                                                              integer
+                                                                                              (list
+                                                                                                 data)
+                                                                                           = unConstrData
+                                                                                               ds
+                                                                                       in
+                                                                                       Bool_match
+                                                                                         (case
+                                                                                            Bool
+                                                                                            (equalsInteger
+                                                                                               `$bOutputDatum`
+                                                                                               (fstPair
+                                                                                                  {integer}
+                                                                                                  {list
+                                                                                                     data}
+                                                                                                  tup))
+                                                                                            [ False
+                                                                                            , True ])
+                                                                                         {all dead.
+                                                                                            Bool}
+                                                                                         (/\dead ->
                                                                                             case
-                                                                                              (all dead.
-                                                                                                 bool)
-                                                                                              (equalsInteger
-                                                                                                 `$bOutputDatum`
-                                                                                                 (fstPair
-                                                                                                    {integer}
-                                                                                                    {list
-                                                                                                       data}
-                                                                                                    tup))
-                                                                                              [ (/\dead ->
-                                                                                                   False)
-                                                                                              , (/\dead ->
-                                                                                                   let
-                                                                                                     !tup :
-                                                                                                        pair
-                                                                                                          integer
-                                                                                                          (list
-                                                                                                             data)
-                                                                                                       = unConstrData
-                                                                                                           ds
-                                                                                                   in
-                                                                                                   case
-                                                                                                     (all dead.
-                                                                                                        bool)
-                                                                                                     (equalsInteger
-                                                                                                        `$bOutputDatum`
-                                                                                                        (fstPair
-                                                                                                           {integer}
-                                                                                                           {list
-                                                                                                              data}
-                                                                                                           tup))
-                                                                                                     [ (/\dead ->
-                                                                                                          False)
-                                                                                                     , (/\dead ->
-                                                                                                          equalsData
-                                                                                                            (headList
-                                                                                                               {data}
-                                                                                                               (sndPair
-                                                                                                                  {integer}
-                                                                                                                  {list
-                                                                                                                     data}
-                                                                                                                  tup))
-                                                                                                            (headList
-                                                                                                               {data}
-                                                                                                               (sndPair
-                                                                                                                  {integer}
-                                                                                                                  {list
-                                                                                                                     data}
-                                                                                                                  tup))) ]
-                                                                                                     {all dead.
-                                                                                                        dead}) ]
-                                                                                              {all dead.
-                                                                                                 dead}
-                                                                                      !fail :
-                                                                                         unit ->
-                                                                                         bool
-                                                                                        = \(ds :
-                                                                                              unit) ->
-                                                                                            let
-                                                                                              !tup :
-                                                                                                 pair
-                                                                                                   integer
-                                                                                                   (list
-                                                                                                      data)
-                                                                                                = unConstrData
-                                                                                                    ds
-                                                                                            in
+                                                                                              Bool
+                                                                                              (equalsData
+                                                                                                 (headList
+                                                                                                    {data}
+                                                                                                    (sndPair
+                                                                                                       {integer}
+                                                                                                       {list
+                                                                                                          data}
+                                                                                                       tup))
+                                                                                                 (headList
+                                                                                                    {data}
+                                                                                                    (sndPair
+                                                                                                       {integer}
+                                                                                                       {list
+                                                                                                          data}
+                                                                                                       tup)))
+                                                                                              [ False
+                                                                                              , True ])
+                                                                                         (/\dead ->
+                                                                                            False)
+                                                                                         {all dead.
+                                                                                            dead})
+                                                                                    (/\dead ->
+                                                                                       False)
+                                                                                    {all dead.
+                                                                                       dead}
+                                                                            !fail :
+                                                                               unit ->
+                                                                               Bool
+                                                                              = \(ds :
+                                                                                    unit) ->
+                                                                                  let
+                                                                                    !tup :
+                                                                                       pair
+                                                                                         integer
+                                                                                         (list
+                                                                                            data)
+                                                                                      = unConstrData
+                                                                                          ds
+                                                                                  in
+                                                                                  Bool_match
+                                                                                    (case
+                                                                                       Bool
+                                                                                       (equalsInteger
+                                                                                          `$bOutputDatumHash`
+                                                                                          (fstPair
+                                                                                             {integer}
+                                                                                             {list
+                                                                                                data}
+                                                                                             tup))
+                                                                                       [ False
+                                                                                       , True ])
+                                                                                    {all dead.
+                                                                                       Bool}
+                                                                                    (/\dead ->
+                                                                                       let
+                                                                                         !tup :
+                                                                                            pair
+                                                                                              integer
+                                                                                              (list
+                                                                                                 data)
+                                                                                           = unConstrData
+                                                                                               ds
+                                                                                       in
+                                                                                       Bool_match
+                                                                                         (case
+                                                                                            Bool
+                                                                                            (equalsInteger
+                                                                                               `$bOutputDatumHash`
+                                                                                               (fstPair
+                                                                                                  {integer}
+                                                                                                  {list
+                                                                                                     data}
+                                                                                                  tup))
+                                                                                            [ False
+                                                                                            , True ])
+                                                                                         {all dead.
+                                                                                            Bool}
+                                                                                         (/\dead ->
                                                                                             case
-                                                                                              (all dead.
-                                                                                                 bool)
-                                                                                              (equalsInteger
-                                                                                                 `$bOutputDatumHash`
-                                                                                                 (fstPair
-                                                                                                    {integer}
-                                                                                                    {list
-                                                                                                       data}
-                                                                                                    tup))
-                                                                                              [ (/\dead ->
-                                                                                                   fail
-                                                                                                     ())
-                                                                                              , (/\dead ->
-                                                                                                   let
-                                                                                                     !tup :
-                                                                                                        pair
-                                                                                                          integer
-                                                                                                          (list
-                                                                                                             data)
-                                                                                                       = unConstrData
-                                                                                                           ds
-                                                                                                   in
-                                                                                                   case
-                                                                                                     (all dead.
-                                                                                                        bool)
-                                                                                                     (equalsInteger
-                                                                                                        `$bOutputDatumHash`
-                                                                                                        (fstPair
-                                                                                                           {integer}
-                                                                                                           {list
-                                                                                                              data}
-                                                                                                           tup))
-                                                                                                     [ (/\dead ->
-                                                                                                          fail
-                                                                                                            ())
-                                                                                                     , (/\dead ->
-                                                                                                          equalsByteString
-                                                                                                            (unBData
-                                                                                                               (headList
-                                                                                                                  {data}
-                                                                                                                  (sndPair
-                                                                                                                     {integer}
-                                                                                                                     {list
-                                                                                                                        data}
-                                                                                                                     tup)))
-                                                                                                            (unBData
-                                                                                                               (headList
-                                                                                                                  {data}
-                                                                                                                  (sndPair
-                                                                                                                     {integer}
-                                                                                                                     {list
-                                                                                                                        data}
-                                                                                                                     tup)))) ]
-                                                                                                     {all dead.
-                                                                                                        dead}) ]
-                                                                                              {all dead.
-                                                                                                 dead}
-                                                                                    in
-                                                                                    case
-                                                                                      (all dead.
-                                                                                         bool)
-                                                                                      (equalsInteger
-                                                                                         `$bNoOutputDatum`
-                                                                                         (fstPair
-                                                                                            {integer}
-                                                                                            {list
-                                                                                               data}
-                                                                                            (unConstrData
-                                                                                               ds)))
-                                                                                      [ (/\dead ->
-                                                                                           fail
-                                                                                             ())
-                                                                                      , (/\dead ->
-                                                                                           case
-                                                                                             (all dead.
-                                                                                                bool)
-                                                                                             (equalsInteger
-                                                                                                `$bNoOutputDatum`
-                                                                                                (fstPair
-                                                                                                   {integer}
-                                                                                                   {list
-                                                                                                      data}
-                                                                                                   (unConstrData
-                                                                                                      ds)))
-                                                                                             [ (/\dead ->
-                                                                                                  fail
-                                                                                                    ())
-                                                                                             , (/\dead ->
-                                                                                                  True) ]
-                                                                                             {all dead.
-                                                                                                dead}) ]
-                                                                                      {all dead.
-                                                                                         dead})
-                                                                                 (txOutDatum
-                                                                                    nt)
-                                                                                 nt)
-                                                                              [ (/\dead ->
-                                                                                   case
-                                                                                     (all dead.
-                                                                                        bool)
-                                                                                     (`/=`
-                                                                                        {integer}
-                                                                                        (\(x :
-                                                                                             integer)
-                                                                                          (y :
-                                                                                             integer) ->
-                                                                                           equalsInteger
-                                                                                             x
-                                                                                             y)
-                                                                                        (go
-                                                                                           0
-                                                                                           nt)
-                                                                                        1)
-                                                                                     [ (/\dead ->
-                                                                                          True)
-                                                                                     , (/\dead ->
-                                                                                          traceError
-                                                                                            {bool}
-                                                                                            "Double satisfaction") ]
-                                                                                     {all dead.
-                                                                                        dead})
-                                                                              , (/\dead ->
-                                                                                   traceError
-                                                                                     {bool}
-                                                                                     "Datum Modification Prohibited") ]
-                                                                              {all dead.
-                                                                                 dead})
-                                                                       , (/\dead ->
+                                                                                              Bool
+                                                                                              (equalsByteString
+                                                                                                 (unBData
+                                                                                                    (headList
+                                                                                                       {data}
+                                                                                                       (sndPair
+                                                                                                          {integer}
+                                                                                                          {list
+                                                                                                             data}
+                                                                                                          tup)))
+                                                                                                 (unBData
+                                                                                                    (headList
+                                                                                                       {data}
+                                                                                                       (sndPair
+                                                                                                          {integer}
+                                                                                                          {list
+                                                                                                             data}
+                                                                                                          tup))))
+                                                                                              [ False
+                                                                                              , True ])
+                                                                                         (/\dead ->
+                                                                                            fail
+                                                                                              ())
+                                                                                         {all dead.
+                                                                                            dead})
+                                                                                    (/\dead ->
+                                                                                       fail
+                                                                                         ())
+                                                                                    {all dead.
+                                                                                       dead}
+                                                                          in
+                                                                          Bool_match
+                                                                            (case
+                                                                               Bool
+                                                                               (equalsInteger
+                                                                                  `$bNoOutputDatum`
+                                                                                  (fstPair
+                                                                                     {integer}
+                                                                                     {list
+                                                                                        data}
+                                                                                     (unConstrData
+                                                                                        ds)))
+                                                                               [ False
+                                                                               , True ])
+                                                                            {all dead.
+                                                                               Bool}
+                                                                            (/\dead ->
+                                                                               Bool_match
+                                                                                 (case
+                                                                                    Bool
+                                                                                    (equalsInteger
+                                                                                       `$bNoOutputDatum`
+                                                                                       (fstPair
+                                                                                          {integer}
+                                                                                          {list
+                                                                                             data}
+                                                                                          (unConstrData
+                                                                                             ds)))
+                                                                                    [ False
+                                                                                    , True ])
+                                                                                 {all dead.
+                                                                                    Bool}
+                                                                                 (/\dead ->
+                                                                                    True)
+                                                                                 (/\dead ->
+                                                                                    fail
+                                                                                      ())
+                                                                                 {all dead.
+                                                                                    dead})
+                                                                            (/\dead ->
+                                                                               fail
+                                                                                 ())
+                                                                            {all dead.
+                                                                               dead})
+                                                                       (txOutDatum
+                                                                          nt)
+                                                                       nt)
+                                                                    {all dead.
+                                                                       Bool}
+                                                                    (/\dead ->
+                                                                       traceError
+                                                                         {Bool}
+                                                                         "Datum Modification Prohibited")
+                                                                    (/\dead ->
+                                                                       Bool_match
+                                                                         (`/=`
+                                                                            {integer}
+                                                                            (\(x :
+                                                                                 integer)
+                                                                              (y :
+                                                                                 integer) ->
+                                                                               case
+                                                                                 Bool
+                                                                                 (equalsInteger
+                                                                                    x
+                                                                                    y)
+                                                                                 [ False
+                                                                                 , True ])
+                                                                            (go
+                                                                               0
+                                                                               nt)
+                                                                            1)
+                                                                         {all dead.
+                                                                            Bool}
+                                                                         (/\dead ->
                                                                             traceError
-                                                                              {bool}
-                                                                              "Mismatched remaining asset") ]
-                                                                       {all dead.
-                                                                          dead})
-                                                                , (/\dead ->
-                                                                     traceError
-                                                                       {bool}
-                                                                       "Remaining asset is not decreasing") ]
-                                                                {all dead.
-                                                                   dead})
-                                                         , (/\dead ->
-                                                              traceError
-                                                                {bool}
-                                                                "Zero remaining assets not allowed") ]
-                                                         {all dead. dead})
-                                                  , (/\dead ->
-                                                       traceError
-                                                         {bool}
-                                                         "Unlock not permitted until firstUnlockPossibleAfter time") ]
-                                                  {all dead. dead})
-                                           , (/\dead ->
-                                                traceError
-                                                  {bool}
-                                                  "Missing beneficiary signature") ]
+                                                                              {Bool}
+                                                                              "Double satisfaction")
+                                                                         (/\dead ->
+                                                                            True)
+                                                                         {all dead.
+                                                                            dead})
+                                                                    {all dead.
+                                                                       dead})
+                                                               {all dead. dead})
+                                                          {all dead. dead})
+                                                     {all dead. dead})
+                                                {all dead. dead})
                                            {all dead. dead})))))
                   {all dead. dead}))
-             [(/\dead -> traceError {unit} "PT5"), (/\dead -> ())]
+             {all dead. unit}
+             (/\dead -> ())
+             (/\dead -> traceError {unit} "PT5")
              {all dead. dead})
       (/\dead ->
          let

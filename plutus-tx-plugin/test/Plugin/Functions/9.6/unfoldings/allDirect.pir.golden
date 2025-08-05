@@ -1,26 +1,36 @@
 let
-  ~nandDirect : bool -> bool -> bool
-    = \(ds : bool) ->
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  ~nandDirect : Bool -> Bool -> Bool
+    = \(ds : Bool) ->
         let
-          !ds : bool = ds
+          !ds : Bool = ds
         in
-        \(ds : bool) ->
+        \(ds : Bool) ->
           let
-            !ds : bool = ds
+            !ds : Bool = ds
           in
-          case
-            (all dead. bool)
+          Bool_match
             ds
-            [(/\dead -> case bool ds [True, False]), (/\dead -> False)]
+            {all dead. Bool}
+            (/\dead -> False)
+            (/\dead ->
+               Bool_match
+                 ds
+                 {all dead. Bool}
+                 (/\dead -> False)
+                 (/\dead -> True)
+                 {all dead. dead})
             {all dead. dead}
-  ~andDirect : bool -> bool -> bool
-    = \(ds : bool) ->
+  ~andDirect : Bool -> Bool -> Bool
+    = \(ds : Bool) ->
         let
-          !ds : bool = ds
+          !ds : Bool = ds
         in
-        \(ds : bool) ->
+        \(ds : Bool) ->
           let
-            !ds : bool = ds
+            !ds : Bool = ds
           in
           nandDirect (nandDirect ds ds) (nandDirect ds ds)
 in
@@ -30,11 +40,11 @@ letrec
     Cons : a -> List a -> List a
 in
 letrec
-  ~allDirect : all a. (a -> bool) -> List a -> bool
+  ~allDirect : all a. (a -> Bool) -> List a -> Bool
     = /\a ->
-        \(p : a -> bool) ->
+        \(p : a -> Bool) ->
           let
-            !p : a -> bool = p
+            !p : a -> Bool = p
           in
           \(l : List a) ->
             let
@@ -43,22 +53,31 @@ letrec
             List_match
               {a}
               l
-              {bool}
-              True
-              (\(h : a) (t : List a) -> andDirect (p h) (allDirect {a} p t))
+              {all dead. Bool}
+              (/\dead -> True)
+              (\(h : a) (t : List a) ->
+                 /\dead -> andDirect (p h) (allDirect {a} p t))
+              {all dead. dead}
 in
 let
   ~build : all a. (all b. (a -> b -> b) -> b -> b) -> List a
     = /\a ->
         \(g : all b. (a -> b -> b) -> b -> b) ->
           g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
-  ~lessThanInteger : integer -> integer -> bool
+  ~lessThanInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) -> let !y : integer = y in lessThanInteger x y
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = lessThanInteger x y
+          in
+          ifThenElse {Bool} b True False
 in
 allDirect
   {integer}

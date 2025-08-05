@@ -1,6 +1,9 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !z : Tuple2 integer integer
     = trace
         {Tuple2 integer integer}
@@ -11,9 +14,9 @@ Tuple2_match
   {integer}
   {integer}
   (trace {Tuple2 integer integer} "zz" z)
-  {bool}
+  {Bool}
   (\(zz : integer) (ds : integer) ->
      let
        !t : integer = trace {integer} "t" zz
      in
-     equalsInteger (trace {integer} "x" 0) t)
+     case Bool (equalsInteger (trace {integer} "x" 0) t) [False, True])

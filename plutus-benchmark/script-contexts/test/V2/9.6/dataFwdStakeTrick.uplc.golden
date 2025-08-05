@@ -14,17 +14,17 @@
                                  (\s xs ->
                                     case
                                       xs
-                                      [ False
-                                      , (\x xs ->
+                                      [ (\x xs ->
                                            case
                                              (equalsData
                                                 obsScriptCred
                                                 (force (force fstPair) x))
-                                             [(s s xs), True]) ])
+                                             [(s s xs), (constr 0 [])])
+                                      , (constr 1 []) ])
                                  rest)
-                              [ ((\x -> error)
-                                   (force trace "not found" (constr 0 [])))
-                              , (constr 0 []) ])
+                              [ (constr 0 [])
+                              , ((\x -> error)
+                                   (force trace "not found" (constr 0 []))) ])
                          , (constr 0 []) ])
                     , (constr 0 []) ])
                  (force (force fstPair) (force headList rest)))

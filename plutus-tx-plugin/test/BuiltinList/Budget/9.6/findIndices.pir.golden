@@ -1,13 +1,16 @@
 let
   !addInteger : integer -> integer -> integer = addInteger
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !mkCons : all a. a -> list a -> list a = mkCons
-  ~findIndices : all a. (a -> bool) -> list a -> list integer
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  ~findIndices : all a. (a -> Bool) -> list a -> list integer
     = /\a ->
-        \(p : a -> bool) ->
+        \(p : a -> Bool) ->
           let
-            !p : a -> bool = p
+            !p : a -> Bool = p
           in
           letrec
             ~go : integer -> list a -> list integer
@@ -28,23 +31,37 @@ let
                            !xs : list a = xs
                            !indices : list integer = go (addInteger i 1) xs
                          in
-                         case
-                           (all dead. list integer)
+                         Bool_match
                            (p x)
-                           [ (/\dead -> indices)
-                           , (/\dead -> mkCons {integer} i indices) ]
+                           {all dead. list integer}
+                           (/\dead -> mkCons {integer} i indices)
+                           (/\dead -> indices)
                            {all dead. dead})
           in
           go 0
   !equalsInteger : integer -> integer -> bool = equalsInteger
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !modInteger : integer -> integer -> integer = modInteger
-  ~odd : integer -> bool
+  ~even : integer -> Bool
     = \(n : integer) ->
         let
           !n : integer = n
           !x : integer = modInteger n 2
+          !b : bool = equalsInteger x 0
         in
-        case bool (equalsInteger x 0) [True, False]
+        ifThenElse {Bool} b True False
+  ~odd : integer -> Bool
+    = \(n : integer) ->
+        let
+          !n : integer = n
+        in
+        Bool_match
+          (even n)
+          {all dead. Bool}
+          (/\dead -> False)
+          (/\dead -> True)
+          {all dead. dead}
 in
 \(xs : list integer) ->
   let

@@ -1,1 +1,3 @@
-(program 1.1.0 ((\x -> case (lessThanInteger 0 x) [False, True]) 1))
+(program
+   1.1.0
+   ((\x -> case (lessThanInteger 0 x) [(constr 1 []), (constr 0 [])]) 1))

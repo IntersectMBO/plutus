@@ -18,10 +18,10 @@ import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Base (id, ($))
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
-                                   BuiltinBLS12_381_MlResult, BuiltinByteString (..), BuiltinData,
-                                   BuiltinInteger, BuiltinList (..), BuiltinPair,
-                                   BuiltinString (..), BuiltinUnit, caseList', chooseUnit, fst,
-                                   mkCons, mkPairData, snd, unitval)
+                                   BuiltinBLS12_381_MlResult, BuiltinBool, BuiltinByteString (..),
+                                   BuiltinData, BuiltinInteger, BuiltinList (..), BuiltinPair,
+                                   BuiltinString (..), BuiltinUnit, caseList', chooseUnit, false,
+                                   fst, ifThenElse, mkCons, mkPairData, snd, true, unitval)
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
@@ -252,8 +252,12 @@ instance HasFromOpaque BuiltinUnit () where
   fromOpaque u = chooseUnit u ()
   {-# INLINEABLE fromOpaque #-}
 
-instance HasToOpaque Bool Bool
-instance HasFromOpaque Bool Bool
+instance HasToOpaque Bool BuiltinBool where
+  toOpaque b = if b then true else false
+  {-# INLINEABLE toOpaque #-}
+instance HasFromOpaque BuiltinBool Bool where
+  fromOpaque b = ifThenElse b True False
+  {-# INLINEABLE fromOpaque #-}
 
 {-| The empty list of elements of the given type that gets spotted by the plugin (grep for
 'mkNilOpaque' in the plugin code) and replaced by the actual empty list constant for types that
@@ -268,7 +272,7 @@ class MkNil arep where
   mkNil = mkNilOpaque
   {-# INLINEABLE mkNil #-}
 instance MkNil BuiltinInteger
-instance MkNil Bool
+instance MkNil BuiltinBool
 instance MkNil BuiltinData
 instance (MkNil a) => MkNil (BuiltinList a)
 instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
