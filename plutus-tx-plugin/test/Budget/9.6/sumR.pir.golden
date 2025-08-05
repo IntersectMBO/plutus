@@ -14,18 +14,20 @@ letrec
           (\(x : integer) (xs : List integer) -> /\dead -> addInteger x (go xs))
           {all dead. dead}
 in
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
 letrec
   !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
-        case
-          (all dead. List integer)
-          (case bool (lessThanEqualsInteger x lim) [True, False])
-          [ (/\dead ->
-               Cons
-                 {integer}
-                 x
-                 (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
-          , (/\dead -> Nil {integer}) ]
+        Bool_match
+          (case Bool (lessThanEqualsInteger x lim) [True, False])
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead ->
+             Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
           {all dead. dead}
 in
 let

@@ -6,13 +6,23 @@ let
           !x : integer = x
         in
         \(y : integer) -> let !y : integer = y in addInteger x y
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  ~equalsInteger : integer -> integer -> bool
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) -> let !y : integer = y in equalsInteger x y
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = equalsInteger x y
+          in
+          ifThenElse {Bool} b True False
   !subtractInteger : integer -> integer -> integer = subtractInteger
   ~subtractInteger : integer -> integer -> integer
     = \(x : integer) ->
@@ -27,20 +37,20 @@ letrec
         let
           !n : integer = n
         in
-        case
-          (all dead. integer)
+        Bool_match
           (equalsInteger n 0)
-          [ (/\dead ->
-               case
-                 (all dead. integer)
-                 (equalsInteger n 1)
-                 [ (/\dead ->
-                      addInteger
-                        (fib (subtractInteger n 1))
-                        (fib (subtractInteger n 2)))
-                 , (/\dead -> 1) ]
-                 {all dead. dead})
-          , (/\dead -> 0) ]
+          {all dead. integer}
+          (/\dead -> 0)
+          (/\dead ->
+             Bool_match
+               (equalsInteger n 1)
+               {all dead. integer}
+               (/\dead -> 1)
+               (/\dead ->
+                  addInteger
+                    (fib (subtractInteger n 1))
+                    (fib (subtractInteger n 2)))
+               {all dead. dead})
           {all dead. dead}
 in
 fib

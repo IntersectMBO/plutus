@@ -19,7 +19,7 @@ import PlutusTx.Blueprint.Schema (ListSchema (..), PairSchema (..), Schema (..),
                                   emptyIntegerSchema)
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
-import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair, BuiltinUnit)
+import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinList, BuiltinPair, BuiltinUnit)
 
 {-|
   A class of types that have a Blueprint schema definition
@@ -39,6 +39,9 @@ instance HasBlueprintSchema BuiltinData referencedTypes where
 
 instance HasBlueprintSchema BuiltinUnit referencedTypes where
   schema = SchemaBuiltInUnit emptySchemaInfo
+
+instance HasBlueprintSchema BuiltinBool referencedTypes where
+  schema = SchemaBuiltInBoolean emptySchemaInfo
 
 instance HasBlueprintSchema BuiltinString referencedTypes where
   schema = SchemaBuiltInString emptySchemaInfo

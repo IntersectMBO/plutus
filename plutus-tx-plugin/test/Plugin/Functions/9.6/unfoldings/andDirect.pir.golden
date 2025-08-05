@@ -1,26 +1,36 @@
 let
-  ~nandDirect : bool -> bool -> bool
-    = \(ds : bool) ->
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  ~nandDirect : Bool -> Bool -> Bool
+    = \(ds : Bool) ->
         let
-          !ds : bool = ds
+          !ds : Bool = ds
         in
-        \(ds : bool) ->
+        \(ds : Bool) ->
           let
-            !ds : bool = ds
+            !ds : Bool = ds
           in
-          case
-            (all dead. bool)
+          Bool_match
             ds
-            [(/\dead -> case bool ds [True, False]), (/\dead -> False)]
+            {all dead. Bool}
+            (/\dead -> False)
+            (/\dead ->
+               Bool_match
+                 ds
+                 {all dead. Bool}
+                 (/\dead -> False)
+                 (/\dead -> True)
+                 {all dead. dead})
             {all dead. dead}
-  ~andDirect : bool -> bool -> bool
-    = \(ds : bool) ->
+  ~andDirect : Bool -> Bool -> Bool
+    = \(ds : Bool) ->
         let
-          !ds : bool = ds
+          !ds : Bool = ds
         in
-        \(ds : bool) ->
+        \(ds : Bool) ->
           let
-            !ds : bool = ds
+            !ds : Bool = ds
           in
           nandDirect (nandDirect ds ds) (nandDirect ds ds)
 in

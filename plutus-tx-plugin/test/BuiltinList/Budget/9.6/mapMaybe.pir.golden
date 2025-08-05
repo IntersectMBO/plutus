@@ -4,7 +4,7 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !mkCons : all a. a -> list a -> list a = mkCons
   ~mapMaybe :
      all a b. (\arep -> list arep) b -> (a -> Maybe b) -> list a -> list b
@@ -36,15 +36,32 @@ let
                          {all dead. dead})
           in
           go
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !modInteger : integer -> integer -> integer = modInteger
-  ~odd : integer -> bool
+  ~even : integer -> Bool
     = \(n : integer) ->
         let
           !n : integer = n
           !x : integer = modInteger n 2
+          !b : bool = equalsInteger x 0
         in
-        case bool (equalsInteger x 0) [True, False]
+        ifThenElse {Bool} b True False
+  ~odd : integer -> Bool
+    = \(n : integer) ->
+        let
+          !n : integer = n
+        in
+        Bool_match
+          (even n)
+          {all dead. Bool}
+          (/\dead -> False)
+          (/\dead -> True)
+          {all dead. dead}
 in
 \(xs : list integer) ->
   let
@@ -58,9 +75,10 @@ in
        let
          !x : integer = x
        in
-       case
-         (all dead. Maybe integer)
+       Bool_match
          (odd x)
-         [(/\dead -> Nothing {integer}), (/\dead -> Just {integer} x)]
+         {all dead. Maybe integer}
+         (/\dead -> Just {integer} x)
+         (/\dead -> Nothing {integer})
          {all dead. dead})
     xs

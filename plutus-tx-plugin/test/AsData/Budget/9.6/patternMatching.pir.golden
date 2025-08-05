@@ -3,8 +3,12 @@ let
     Unit : Unit
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
-  !lessThanInteger : integer -> integer -> bool
-    = \(x : integer) (y : integer) -> lessThanInteger x y
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !lessThanInteger : integer -> integer -> Bool
+    = \(x : integer) (y : integer) ->
+        case Bool (lessThanInteger x y) [False, True]
 in
 \(d : data) ->
   let
@@ -19,13 +23,15 @@ in
   addInteger
     (addInteger
        (addInteger (addInteger (addInteger x y) z) w)
-       (case
-          (all dead. integer)
+       (Bool_match
           (lessThanInteger (addInteger y z) (addInteger x w))
-          [(/\dead -> addInteger y w), (/\dead -> addInteger x z)]
+          {all dead. integer}
+          (/\dead -> addInteger x z)
+          (/\dead -> addInteger y w)
           {all dead. dead}))
-    (case
-       (all dead. integer)
+    (Bool_match
        (lessThanInteger (addInteger z y) (addInteger w x))
-       [(/\dead -> addInteger w y), (/\dead -> addInteger z x)]
+       {all dead. integer}
+       (/\dead -> addInteger z x)
+       (/\dead -> addInteger w y)
        {all dead. dead})

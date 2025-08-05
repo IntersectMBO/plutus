@@ -4,7 +4,7 @@
        (\recursiveAll ->
           (\ls ->
              force recursiveAll
-               (\v -> case (lessThanInteger v 0) [True, False])
+               (\v -> case (lessThanInteger v 0) [(constr 0 []), (constr 1 [])])
                ls)
             (go 1000))
          ((\s -> s s)
@@ -13,11 +13,12 @@
                  (\ds ds ->
                     case
                       ds
-                      [ True
+                      [ (constr 0 [])
                       , (\x xs ->
                            case
                              (ds x)
-                             [False, (force (s s (delay (\x -> x))) ds xs)]) ]))
+                             [ (force (s s (delay (\x -> x))) ds xs)
+                             , (constr 1 []) ]) ]))
             (delay (\x -> x))))
       ((\s -> s s)
          (\s n ->

@@ -1,9 +1,14 @@
 let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   ~builtinListIndexTooLargeError : string = "PT22"
   ~builtinListNegativeIndexError : string = "PT21"
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !drop : all a. integer -> list a -> list a = dropList
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
   data Unit | Unit_match where
     Unit : Unit
@@ -27,28 +32,29 @@ let
           \(i : integer) ->
             let
               !i : integer = i
+              !b : bool = lessThanInteger i 0
             in
-            case
-              (all dead. a)
-              (lessThanInteger i 0)
-              [ (/\dead ->
-                   let
-                     !l : list a = drop {a} i xs
-                   in
-                   caseList'
-                     {a}
-                     {Unit -> Unit -> a}
-                     (\(_ann : Unit) ->
-                        traceError {Unit -> a} builtinListIndexTooLargeError)
-                     (\(x : a) ->
-                        let
-                          !x : a = x
-                        in
-                        \(xs : list a) (ds : Unit) (_ann : Unit) -> x)
-                     l
-                     Unit
-                     Unit)
-              , (/\dead -> traceError {a} builtinListNegativeIndexError) ]
+            Bool_match
+              (ifThenElse {Bool} b True False)
+              {all dead. a}
+              (/\dead -> traceError {a} builtinListNegativeIndexError)
+              (/\dead ->
+                 let
+                   !l : list a = drop {a} i xs
+                 in
+                 caseList'
+                   {a}
+                   {Unit -> Unit -> a}
+                   (\(_ann : Unit) ->
+                      traceError {Unit -> a} builtinListIndexTooLargeError)
+                   (\(x : a) ->
+                      let
+                        !x : a = x
+                      in
+                      \(xs : list a) (ds : Unit) (_ann : Unit) -> x)
+                   l
+                   Unit
+                   Unit)
               {all dead. dead}
 in
 \(xs : list integer) -> let !xs : list integer = xs in `!!` {integer} xs 5

@@ -3,14 +3,17 @@
       EQ : Ordering
       GT : Ordering
       LT : Ordering
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
     data (Ord :: * -> *) a | Ord_match where
       CConsOrd :
-        (\a -> a -> a -> bool) a ->
+        (\a -> a -> a -> Bool) a ->
         (a -> a -> Ordering) ->
-        (a -> a -> bool) ->
-        (a -> a -> bool) ->
-        (a -> a -> bool) ->
-        (a -> a -> bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
         (a -> a -> a) ->
         (a -> a -> a) ->
         Ord a
@@ -19,59 +22,66 @@
     !`$fOrdInteger` : Ord integer
       = CConsOrd
           {integer}
-          (\(x : integer) (y : integer) -> equalsInteger x y)
+          (\(x : integer) (y : integer) ->
+             case Bool (equalsInteger x y) [False, True])
           (\(eta : integer) (eta : integer) ->
-             case
-               (all dead. Ordering)
-               (equalsInteger eta eta)
-               [ (/\dead ->
-                    case
-                      (all dead. Ordering)
-                      (lessThanEqualsInteger eta eta)
-                      [(/\dead -> GT), (/\dead -> LT)]
-                      {all dead. dead})
-               , (/\dead -> EQ) ]
-               {all dead. dead})
-          (\(x : integer) (y : integer) -> lessThanInteger x y)
-          (\(x : integer) (y : integer) -> lessThanEqualsInteger x y)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanEqualsInteger x y) False True)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanInteger x y) False True)
-          (\(x : integer) (y : integer) ->
-             case
-               (all dead. integer)
-               (lessThanEqualsInteger x y)
-               [(/\dead -> x), (/\dead -> y)]
+             Bool_match
+               (case Bool (equalsInteger eta eta) [False, True])
+               {all dead. Ordering}
+               (/\dead -> EQ)
+               (/\dead ->
+                  Bool_match
+                    (case Bool (lessThanEqualsInteger eta eta) [False, True])
+                    {all dead. Ordering}
+                    (/\dead -> LT)
+                    (/\dead -> GT)
+                    {all dead. dead})
                {all dead. dead})
           (\(x : integer) (y : integer) ->
-             case
-               (all dead. integer)
-               (lessThanEqualsInteger x y)
-               [(/\dead -> y), (/\dead -> x)]
+             case Bool (lessThanInteger x y) [False, True])
+          (\(x : integer) (y : integer) ->
+             case Bool (lessThanEqualsInteger x y) [False, True])
+          (\(x : integer) (y : integer) ->
+             ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
+          (\(x : integer) (y : integer) ->
+             ifThenElse {Bool} (lessThanInteger x y) False True)
+          (\(x : integer) (y : integer) ->
+             Bool_match
+               (case Bool (lessThanEqualsInteger x y) [False, True])
+               {all dead. integer}
+               (/\dead -> y)
+               (/\dead -> x)
                {all dead. dead})
-    !`<` : all a. Ord a -> a -> a -> bool
+          (\(x : integer) (y : integer) ->
+             Bool_match
+               (case Bool (lessThanEqualsInteger x y) [False, True])
+               {all dead. integer}
+               (/\dead -> x)
+               (/\dead -> y)
+               {all dead. dead})
+    !`<` : all a. Ord a -> a -> a -> Bool
       = /\a ->
           \(v : Ord a) ->
             Ord_match
               {a}
               v
-              {a -> a -> bool}
-              (\(v : (\a -> a -> a -> bool) a)
+              {a -> a -> Bool}
+              (\(v : (\a -> a -> a -> Bool) a)
                 (v : a -> a -> Ordering)
-                (v : a -> a -> bool)
-                (v : a -> a -> bool)
-                (v : a -> a -> bool)
-                (v : a -> a -> bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
                 (v : a -> a -> a)
                 (v : a -> a -> a) ->
                  v)
   in
   \(x : integer) (y : integer) ->
-    case
-      (all dead. bool)
+    Bool_match
       (`<` {integer} `$fOrdInteger` x 3)
-      [(/\dead -> False), (/\dead -> `<` {integer} `$fOrdInteger` y 3)]
+      {all dead. Bool}
+      (/\dead -> `<` {integer} `$fOrdInteger` y 3)
+      (/\dead -> False)
       {all dead. dead})
   4
   4

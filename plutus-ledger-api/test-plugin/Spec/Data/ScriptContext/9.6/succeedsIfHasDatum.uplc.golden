@@ -7,7 +7,7 @@
               ((\tup ->
                   case
                     (equalsInteger 1 (force (force fstPair) tup))
-                    [ False
+                    [ (constr 1 [])
                     , (case
                          ((\tup ->
                              (\index ->
@@ -26,11 +26,11 @@
                                (force headList
                                   (force tailList
                                      (force (force sndPair) tup)))))
-                         [(\ds -> True), False]) ])
+                         [(\ds -> constr 0 []), (constr 1 [])]) ])
                  (unConstrData
                     (force headList
                        (force tailList
                           (force tailList
                              (force (force sndPair) (unConstrData d)))))))
-              [(delay (traceError "PT5")), (delay ())])
+              [(delay ()), (delay (traceError "PT5"))])
            (\str -> (\x -> error) (force trace str (constr 0 []))))))

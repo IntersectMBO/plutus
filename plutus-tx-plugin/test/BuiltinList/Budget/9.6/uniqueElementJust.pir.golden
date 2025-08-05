@@ -1,10 +1,15 @@
 let
   ~`$fMkNilInteger` : (\arep -> list arep) integer = []
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
   !mkCons : all a. a -> list a -> list a = mkCons
   !subtractInteger : integer -> integer -> integer = subtractInteger
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
 in
 letrec
   ~take : all a. (\arep -> list arep) a -> integer -> list a -> list a
@@ -16,29 +21,30 @@ letrec
           \(l : list a) ->
             let
               !l : list a = l
+              !b : bool = lessThanEqualsInteger n 0
             in
-            case
-              (all dead. list a)
-              (lessThanEqualsInteger n 0)
-              [ (/\dead ->
-                   caseList'
-                     {a}
-                     {list a}
-                     `$dMkNil`
-                     (\(x : a) ->
+            Bool_match
+              (ifThenElse {Bool} b True False)
+              {all dead. list a}
+              (/\dead -> `$dMkNil`)
+              (/\dead ->
+                 caseList'
+                   {a}
+                   {list a}
+                   `$dMkNil`
+                   (\(x : a) ->
+                      let
+                        !x : a = x
+                      in
+                      \(xs : list a) ->
                         let
-                          !x : a = x
+                          !xs : list a = xs
                         in
-                        \(xs : list a) ->
-                          let
-                            !xs : list a = xs
-                          in
-                          mkCons
-                            {a}
-                            x
-                            (take {a} `$dMkNil` (subtractInteger n 1) xs))
-                     l)
-              , (/\dead -> `$dMkNil`) ]
+                        mkCons
+                          {a}
+                          x
+                          (take {a} `$dMkNil` (subtractInteger n 1) xs))
+                   l)
               {all dead. dead}
 in
 let

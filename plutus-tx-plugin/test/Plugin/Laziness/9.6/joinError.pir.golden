@@ -1,27 +1,31 @@
 let
   data Unit | Unit_match where
     Unit : Unit
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
   !unitval : unit = ()
-  ~joinError : bool -> bool -> Unit
-    = \(x : bool) ->
+  ~joinError : Bool -> Bool -> Unit
+    = \(x : Bool) ->
         let
-          !x : bool = x
+          !x : Bool = x
         in
-        \(y : bool) ->
+        \(y : Bool) ->
           let
-            !y : bool = y
+            !y : Bool = y
           in
-          case
-            (all dead. Unit)
+          Bool_match
             x
-            [ (/\dead -> Unit)
-            , (/\dead ->
-                 case
-                   (all dead. Unit)
-                   y
-                   [(/\dead -> Unit), (/\dead -> error {Unit} unitval)]
-                   {all dead. dead}) ]
+            {all dead. Unit}
+            (/\dead ->
+               Bool_match
+                 y
+                 {all dead. Unit}
+                 (/\dead -> error {Unit} unitval)
+                 (/\dead -> Unit)
+                 {all dead. dead})
+            (/\dead -> Unit)
             {all dead. dead}
 in
 joinError

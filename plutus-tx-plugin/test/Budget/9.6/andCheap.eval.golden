@@ -1,6 +1,6 @@
 CPU:                   576_100
 Memory:                  3_700
 Term Size:                  42
-Flat Size:                  60
+Flat Size:                  63
 
-(con bool False)
+(constr 1)

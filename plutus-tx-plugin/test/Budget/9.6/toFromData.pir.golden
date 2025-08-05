@@ -1,6 +1,9 @@
 let
   data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
     Tuple3 : a -> b -> c -> Tuple3 a b c
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   data (Either :: * -> * -> *) a b | Either_match where
     Left : a -> Either a b
     Right : b -> Either a b
@@ -14,7 +17,7 @@ let
         \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
   !d : data
     = (let
-          b = Maybe (Tuple3 bool integer bool)
+          b = Maybe (Tuple3 Bool integer Bool)
         in
         \(`$dToData` : (\a -> a -> data) integer)
          (`$dToData` : (\a -> a -> data) b)
@@ -29,7 +32,7 @@ let
             (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) [])))
         (\(i : integer) -> iData i)
         ((let
-             a = Tuple3 bool integer bool
+             a = Tuple3 Bool integer Bool
            in
            \(`$dToData` : (\a -> a -> data) a) (ds : Maybe a) ->
              Maybe_match
@@ -40,44 +43,45 @@ let
                   /\dead -> constrData 0 (mkCons {data} (`$dToData` arg) []))
                (/\dead -> Constr 1 [])
                {all dead. dead})
-           (\(ds : Tuple3 bool integer bool) ->
+           (\(ds : Tuple3 Bool integer Bool) ->
               Tuple3_match
-                {bool}
+                {Bool}
                 {integer}
-                {bool}
+                {Bool}
                 ds
                 {data}
-                (\(arg : bool) (arg : integer) (arg : bool) ->
+                (\(arg : Bool) (arg : integer) (arg : Bool) ->
                    constrData
                      0
                      (mkCons
                         {data}
-                        (case
-                           (all dead. data)
+                        (Bool_match
                            arg
-                           [(/\dead -> Constr 0 []), (/\dead -> Constr 1 [])]
+                           {all dead. data}
+                           (/\dead -> Constr 1 [])
+                           (/\dead -> Constr 0 [])
                            {all dead. dead})
                         (mkCons
                            {data}
                            (iData arg)
                            (mkCons
                               {data}
-                              (case
-                                 (all dead. data)
+                              (Bool_match
                                  arg
-                                 [ (/\dead -> Constr 0 [])
-                                 , (/\dead -> Constr 1 []) ]
+                                 {all dead. data}
+                                 (/\dead -> Constr 1 [])
+                                 (/\dead -> Constr 0 [])
                                  {all dead. dead})
                               []))))))
         (Right
            {integer}
-           {Maybe (Tuple3 bool integer bool)}
+           {Maybe (Tuple3 Bool integer Bool)}
            (Just
-              {Tuple3 bool integer bool}
-              (Tuple3 {bool} {integer} {bool} True 1 False)))
+              {Tuple3 Bool integer Bool}
+              (Tuple3 {Bool} {integer} {Bool} True 1 False)))
 in
 (let
-    b = Maybe (Tuple3 bool integer bool)
+    b = Maybe (Tuple3 Bool integer Bool)
   in
   \(`$dUnsafeFromData` : (\a -> data -> a) integer)
    (`$dUnsafeFromData` : (\a -> data -> a) b)
@@ -87,26 +91,22 @@ in
       !index : integer = fstPair {integer} {list data} tup
       !args : list data = sndPair {integer} {list data} tup
     in
-    case
-      (all dead. Either integer b)
-      (equalsInteger 0 index)
-      [ (/\dead ->
-           case
-             (all dead. Either integer b)
-             (equalsInteger 1 index)
-             [ (/\dead -> traceError {Either integer b} "PT1")
-             , (/\dead ->
-                  Right
-                    {integer}
-                    {b}
-                    (`$dUnsafeFromData` (headList {data} args))) ]
-             {all dead. dead})
-      , (/\dead ->
-           Left {integer} {b} (`$dUnsafeFromData` (headList {data} args))) ]
+    Bool_match
+      (case Bool (equalsInteger 0 index) [False, True])
+      {all dead. Either integer b}
+      (/\dead -> Left {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
+      (/\dead ->
+         Bool_match
+           (case Bool (equalsInteger 1 index) [False, True])
+           {all dead. Either integer b}
+           (/\dead ->
+              Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
+           (/\dead -> traceError {Either integer b} "PT1")
+           {all dead. dead})
       {all dead. dead})
   unIData
   ((let
-       a = Tuple3 bool integer bool
+       a = Tuple3 Bool integer Bool
      in
      \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
        let
@@ -114,18 +114,17 @@ in
          !index : integer = fstPair {integer} {list data} tup
          !args : list data = sndPair {integer} {list data} tup
        in
-       case
-         (all dead. Maybe a)
-         (equalsInteger 1 index)
-         [ (/\dead ->
-              case
-                (all dead. Maybe a)
-                (equalsInteger 0 index)
-                [ (/\dead -> traceError {Maybe a} "PT1")
-                , (/\dead ->
-                     Just {a} (`$dUnsafeFromData` (headList {data} args))) ]
-                {all dead. dead})
-         , (/\dead -> Nothing {a}) ]
+       Bool_match
+         (case Bool (equalsInteger 1 index) [False, True])
+         {all dead. Maybe a}
+         (/\dead -> Nothing {a})
+         (/\dead ->
+            Bool_match
+              (case Bool (equalsInteger 0 index) [False, True])
+              {all dead. Maybe a}
+              (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
+              (/\dead -> traceError {Maybe a} "PT1")
+              {all dead. dead})
          {all dead. dead})
      (\(d : data) ->
         let
@@ -133,54 +132,54 @@ in
           !index : integer = fstPair {integer} {list data} tup
           !args : list data = sndPair {integer} {list data} tup
         in
-        case
-          (all dead. Tuple3 bool integer bool)
-          (equalsInteger 0 index)
-          [ (/\dead -> traceError {Tuple3 bool integer bool} "PT1")
-          , (/\dead ->
-               let
-                 !l : list data = tailList {data} args
+        Bool_match
+          (case Bool (equalsInteger 0 index) [False, True])
+          {all dead. Tuple3 Bool integer Bool}
+          (/\dead ->
+             let
+               !l : list data = tailList {data} args
+             in
+             Tuple3
+               {Bool}
+               {integer}
+               {Bool}
+               (let
+                 !tup : pair integer (list data)
+                   = unConstrData (headList {data} args)
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
                in
-               Tuple3
-                 {bool}
-                 {integer}
-                 {bool}
-                 (let
-                   !tup : pair integer (list data)
-                     = unConstrData (headList {data} args)
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
-                 in
-                 case
-                   (all dead. bool)
-                   (equalsInteger 0 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. bool)
-                          (equalsInteger 1 index)
-                          [ (/\dead -> traceError {bool} "PT1")
-                          , (/\dead -> True) ]
-                          {all dead. dead})
-                   , (/\dead -> False) ]
-                   {all dead. dead})
-                 (unIData (headList {data} l))
-                 (let
-                   !tup : pair integer (list data)
-                     = unConstrData (headList {data} (tailList {data} l))
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
-                 in
-                 case
-                   (all dead. bool)
-                   (equalsInteger 0 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. bool)
-                          (equalsInteger 1 index)
-                          [ (/\dead -> traceError {bool} "PT1")
-                          , (/\dead -> True) ]
-                          {all dead. dead})
-                   , (/\dead -> False) ]
-                   {all dead. dead})) ]
+               Bool_match
+                 (case Bool (equalsInteger 0 index) [False, True])
+                 {all dead. Bool}
+                 (/\dead -> False)
+                 (/\dead ->
+                    Bool_match
+                      (case Bool (equalsInteger 1 index) [False, True])
+                      {all dead. Bool}
+                      (/\dead -> True)
+                      (/\dead -> traceError {Bool} "PT1")
+                      {all dead. dead})
+                 {all dead. dead})
+               (unIData (headList {data} l))
+               (let
+                 !tup : pair integer (list data)
+                   = unConstrData (headList {data} (tailList {data} l))
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
+               in
+               Bool_match
+                 (case Bool (equalsInteger 0 index) [False, True])
+                 {all dead. Bool}
+                 (/\dead -> False)
+                 (/\dead ->
+                    Bool_match
+                      (case Bool (equalsInteger 1 index) [False, True])
+                      {all dead. Bool}
+                      (/\dead -> True)
+                      (/\dead -> traceError {Bool} "PT1")
+                      {all dead. dead})
+                 {all dead. dead}))
+          (/\dead -> traceError {Tuple3 Bool integer Bool} "PT1")
           {all dead. dead}))
   d

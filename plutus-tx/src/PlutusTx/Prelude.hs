@@ -119,6 +119,7 @@ module PlutusTx.Prelude (
   round,
 
   -- * Other builtin Types
+  BI.BuiltinBool,
   BuiltinData,
   BI.BuiltinList,
   BI.BuiltinPair,

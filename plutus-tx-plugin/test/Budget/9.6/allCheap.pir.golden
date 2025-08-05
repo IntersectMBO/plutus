@@ -3,20 +3,28 @@ letrec
     Nil : List a
     Cons : a -> List a -> List a
 in
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
 letrec
-  !go : List integer -> bool
+  !go : List integer -> Bool
     = \(ds : List integer) ->
         List_match
           {integer}
           ds
-          {bool}
-          True
+          {all dead. Bool}
+          (/\dead -> True)
           (\(x : integer) (xs : List integer) ->
-             case
-               (all dead. bool)
-               (case bool (lessThanEqualsInteger 1 x) [True, False])
-               [(/\dead -> False), (/\dead -> go xs)]
-               {all dead. dead})
+             /\dead ->
+               Bool_match
+                 (case Bool (lessThanEqualsInteger 1 x) [True, False])
+                 {all dead. Bool}
+                 (/\dead -> go xs)
+                 (/\dead -> False)
+                 {all dead. dead})
+          {all dead. dead}
 in
 let
   !ls : List integer

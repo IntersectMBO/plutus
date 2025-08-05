@@ -2,7 +2,13 @@
    1.1.0
    ((\go ->
        (\recursiveAll ->
-          (\ls -> force recursiveAll (\v -> lessThanEqualsInteger v 0) ls)
+          (\ls ->
+             force recursiveAll
+               (\v ->
+                  case
+                    (lessThanEqualsInteger v 0)
+                    [(constr 1 []), (constr 0 [])])
+               ls)
             (go 1000))
          ((\s -> s s)
             (\s arg ->
@@ -10,11 +16,12 @@
                  (\ds ds ->
                     case
                       ds
-                      [ True
+                      [ (constr 0 [])
                       , (\x xs ->
                            case
                              (ds x)
-                             [False, (force (s s (delay (\x -> x))) ds xs)]) ]))
+                             [ (force (s s (delay (\x -> x))) ds xs)
+                             , (constr 1 []) ]) ]))
             (delay (\x -> x))))
       ((\s -> s s)
          (\s n ->

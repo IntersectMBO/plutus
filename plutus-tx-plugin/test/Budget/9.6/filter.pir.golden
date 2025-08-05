@@ -1,3 +1,8 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
 letrec
   data (List :: * -> *) a | List_match where
     Nil : List a
@@ -16,10 +21,11 @@ letrec
                let
                  !xs : List integer = go xs
                in
-               case
-                 (all dead. List integer)
-                 (equalsInteger 0 (modInteger x 2))
-                 [(/\dead -> xs), (/\dead -> Cons {integer} x xs)]
+               Bool_match
+                 (case Bool (equalsInteger 0 (modInteger x 2)) [False, True])
+                 {all dead. List integer}
+                 (/\dead -> Cons {integer} x xs)
+                 (/\dead -> xs)
                  {all dead. dead})
           {all dead. dead}
 in
