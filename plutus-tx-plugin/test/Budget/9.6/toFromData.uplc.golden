@@ -43,10 +43,8 @@
                                                                                                 index)
                                                                                              [ (traceError
                                                                                                   "PT1")
-                                                                                             , (constr 0
-                                                                                                  [  ]) ])
-                                                                                        , (constr 1
-                                                                                             [  ]) ])
+                                                                                             , True ])
+                                                                                        , False ])
                                                                                      (force
                                                                                         (force
                                                                                            sndPair)
@@ -76,10 +74,8 @@
                                                                                                 index)
                                                                                              [ (traceError
                                                                                                   "PT1")
-                                                                                             , (constr 0
-                                                                                                  [  ]) ])
-                                                                                        , (constr 1
-                                                                                             [  ]) ])
+                                                                                             , True ])
+                                                                                        , False ])
                                                                                      (force
                                                                                         (force
                                                                                            sndPair)

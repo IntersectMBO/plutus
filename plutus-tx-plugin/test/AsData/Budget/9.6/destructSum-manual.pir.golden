@@ -27,77 +27,68 @@ let
             (unIData (headList {data} l))
             (unIData (headList {data} l))
             (unIData (headList {data} (tailList {data} l)))
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 \(d : data) ->
   let
     !tup : pair integer (list data) = unConstrData d
   in
-  Bool_match
-    (case
-       Bool
-       (equalsInteger 0 (fstPair {integer} {list data} tup))
-       [False, True])
-    {all dead. data}
-    (/\dead -> headList {data} (sndPair {integer} {list data} tup))
-    (/\dead ->
-       let
-         !tup : pair integer (list data) = unConstrData d
-       in
-       Bool_match
-         (case
-            Bool
-            (equalsInteger 0 (fstPair {integer} {list data} tup))
-            [False, True])
-         {all dead. data}
-         (/\dead -> headList {data} (sndPair {integer} {list data} tup))
-         (/\dead ->
-            let
-              !tup : pair integer (list data) = unConstrData d
-            in
-            Bool_match
-              (case
-                 Bool
-                 (equalsInteger 2 (fstPair {integer} {list data} tup))
-                 [False, True])
-              {all dead. data}
-              (/\dead ->
-                 let
-                   !args : list data = sndPair {integer} {list data} tup
-                   !y : data = headList {data} (tailList {data} args)
-                   !ds : data = headList {data} args
-                 in
-                 `$mInts`
-                   {data}
-                   ds
-                   (\(x : integer) (y : integer) (z : integer) (w : integer) ->
-                      `$mInts`
-                        {data}
-                        y
-                        (\(x : integer)
-                          (y : integer)
-                          (z : integer)
-                          (w : integer) ->
-                           constrData
-                             0
-                             (mkCons
-                                {data}
-                                (iData (addInteger x x))
-                                (mkCons
-                                   {data}
-                                   (iData (addInteger y y))
+  case
+    (all dead. data)
+    (equalsInteger 0 (fstPair {integer} {list data} tup))
+    [ (/\dead ->
+         let
+           !tup : pair integer (list data) = unConstrData d
+         in
+         case
+           (all dead. data)
+           (equalsInteger 1 (fstPair {integer} {list data} tup))
+           [ (/\dead ->
+                let
+                  !tup : pair integer (list data) = unConstrData d
+                in
+                case
+                  (all dead. data)
+                  (equalsInteger 2 (fstPair {integer} {list data} tup))
+                  [ (/\dead -> fail ())
+                  , (/\dead ->
+                       let
+                         !args : list data = sndPair {integer} {list data} tup
+                         !y : data = headList {data} (tailList {data} args)
+                         !ds : data = headList {data} args
+                       in
+                       `$mInts`
+                         {data}
+                         ds
+                         (\(x : integer)
+                           (y : integer)
+                           (z : integer)
+                           (w : integer) ->
+                            `$mInts`
+                              {data}
+                              y
+                              (\(x : integer)
+                                (y : integer)
+                                (z : integer)
+                                (w : integer) ->
+                                 constrData
+                                   0
                                    (mkCons
                                       {data}
-                                      (iData (addInteger z z))
+                                      (iData (addInteger x x))
                                       (mkCons
                                          {data}
-                                         (iData (addInteger w w))
-                                         [])))))
-                        (\(void : unit) -> fail ()))
-                   (\(void : unit) -> fail ()))
-              (/\dead -> fail ())
-              {all dead. dead})
-         {all dead. dead})
+                                         (iData (addInteger y y))
+                                         (mkCons
+                                            {data}
+                                            (iData (addInteger z z))
+                                            (mkCons
+                                               {data}
+                                               (iData (addInteger w w))
+                                               [])))))
+                              (\(void : unit) -> fail ()))
+                         (\(void : unit) -> fail ())) ]
+                  {all dead. dead})
+           , (/\dead -> headList {data} (sndPair {integer} {list data} tup)) ]
+           {all dead. dead})
+    , (/\dead -> headList {data} (sndPair {integer} {list data} tup)) ]
     {all dead. dead}

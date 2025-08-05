@@ -39,12 +39,11 @@
                                                                   [ (\x ->
                                                                        s s x)
                                                                   , (\ds ->
-                                                                       constr 0
-                                                                         []) ])
-                                                           , (constr 1 []) ])
+                                                                       True) ])
+                                                           , False ])
                                                       nt)
                                                    (force (force fstPair) hd))
-                                                [tl', (force mkCons hd tl')])
+                                                [(force mkCons hd tl'), tl'])
                                              (s s tl))
                                       , [] ])
                                  nt)))

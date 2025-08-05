@@ -33,15 +33,15 @@
                                                    [ (force
                                                         (go (delay (\x -> x)))
                                                         xs)
-                                                   , (constr 0 []) ])
-                                            , (constr 1 []) ]))
+                                                   , True ])
+                                            , False ]))
                                   (delay (\x -> x)))
                                xs)
-                            [ (force (go (delay (\x -> x))) ys xs)
-                            , ((\cse ->
+                            [ ((\cse ->
                                   cse
                                     (force (go (delay (\x -> x))) ys (cse xs)))
-                                 (force mkCons y)) ])
+                                 (force mkCons y))
+                            , (force (go (delay (\x -> x))) ys xs) ])
                      , [] ]))
            (delay (\x -> x)))
         xs

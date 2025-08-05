@@ -5,9 +5,8 @@
       (\s ds ->
          case
            ds
-           [ (constr 0 [])
-           , (\x xs ->
-                case (lessThanEqualsInteger 1 x) [(s s xs), (constr 1 [])]) ])
+           [ True
+           , (\x xs -> case (lessThanEqualsInteger 1 x) [(s s xs), False]) ])
       (constr 1
          [ 1
          , (constr 1
