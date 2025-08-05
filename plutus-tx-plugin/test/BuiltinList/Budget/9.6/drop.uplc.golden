@@ -12,11 +12,11 @@
                       (lessThanEqualsInteger n 0)
                       [ (case
                            l
-                           [ `$dMkNil`
-                           , (\ds xs ->
+                           [ (\ds xs ->
                                 force (force (drop (delay (\x -> x))))
                                   `$dMkNil`
                                   (subtractInteger n 1)
-                                  xs) ])
+                                  xs)
+                           , `$dMkNil` ])
                       , l ])))
          (delay (\x -> x)))))

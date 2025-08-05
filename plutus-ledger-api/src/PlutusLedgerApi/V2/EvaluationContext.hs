@@ -10,7 +10,6 @@ module PlutusLedgerApi.V2.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.ProtocolVersions (futurePV)
 import PlutusLedgerApi.V2.ParamName as V2
 
 import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
@@ -42,7 +41,7 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
         PlutusV2
         (\pv ->
-          if pv < futurePV
+          if pv < pv11PV
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
             else CaserBuiltin caseBuiltin)
         [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]

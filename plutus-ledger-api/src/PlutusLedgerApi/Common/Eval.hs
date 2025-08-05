@@ -155,6 +155,8 @@ data EvaluationContext = EvaluationContext
       -- doesn't depend on the 'PlutusLedgerLanguage' or the AST version: deserialisation of a 1.0.0
       -- AST fails upon encountering a 'Case' node anyway, so we can safely assume here that 'case'
       -- is available.
+      -- FIXME: do we need to test that it fails for older PVs?  We can't submit
+      -- transactions in old PVs, so maybe it doesn't matter.
     , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
       -- ^ Specifies how to get a semantics variant for this ledger language given a
       -- 'MajorProtocolVersion'.
@@ -191,7 +193,7 @@ mkDynEvaluationContext ll toCaser semVars toSemVar newCMP = do
     machPars <- mkMachineVariantParametersFor semVars newCMP
     pure $ EvaluationContext ll toCaser toSemVar machPars
 
--- FIXME: remove this function
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1726): remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModelForTesting
 

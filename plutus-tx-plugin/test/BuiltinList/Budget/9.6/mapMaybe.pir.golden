@@ -4,7 +4,7 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !mkCons : all a. a -> list a -> list a = mkCons
   ~mapMaybe :
      all a b. (\arep -> list arep) b -> (a -> Maybe b) -> list a -> list b

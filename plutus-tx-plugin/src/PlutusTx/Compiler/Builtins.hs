@@ -429,7 +429,7 @@ defineBuiltinTerms = do
     _BuiltinCasing ->
       -- > /\a r ->
       -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
-      -- >     (case r xs z f)
+      -- >     (case r xs f z)
       fmap (const annMayInline) . runQuote $ do
         a <- freshTyName "a"
         r <- freshTyName "r"
@@ -447,7 +447,7 @@ defineBuiltinTerms = do
             ()
             (PLC.TyVar () r)
             (PIR.var () xs)
-            [PIR.var () z, PIR.var () f]
+            [PIR.var () f, PIR.var () z]
 
 
   -- See Note [Builtin terms and values]
