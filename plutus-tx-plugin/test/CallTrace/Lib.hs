@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module CallTrace.Lib where
 
@@ -28,7 +29,7 @@ goldenEvalCekTraceWithEmitter emitter name compiledCode =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ do
     uplc <- toUPlc compiledCode
     let
-      (evalRes, UPLC.CountingSt budget, logOut) =
+      UPLC.CekReport (UPLC.cekResultToEither -> evalRes) (UPLC.CountingSt budget) logOut =
         UPLC.runCek
           PLC.defaultCekParametersForTesting
           UPLC.counting

@@ -15,7 +15,7 @@ module Evaluation.Builtins.Common
     , PlcType
     , PlcTerm
     , UplcTerm
-    , CekResult (..)
+    , TypeCekResult (..)
     , evalTerm
     , mkApp1
     , mkApp2
@@ -128,13 +128,13 @@ type PlcError = TypeErrorPlc TPLC.DefaultUni TPLC.DefaultFun ()
 type UplcTerm = UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 
 -- Possible CEK evluation results, flattened out
-data CekResult =
+data TypeCekResult =
     TypeCheckError PlcError
   | CekError
   | CekSuccess UplcTerm
     deriving stock (Eq, Show)
 
-evalTerm :: PlcTerm -> CekResult
+evalTerm :: PlcTerm -> TypeCekResult
 evalTerm term =
     case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
     of Left e -> TypeCheckError e
@@ -161,10 +161,10 @@ true = mkConstant () True
 false :: PlcTerm
 false = mkConstant () False
 
-cekSuccessFalse :: CekResult
+cekSuccessFalse :: TypeCekResult
 cekSuccessFalse = CekSuccess $ mkConstant () False
 
-cekSuccessTrue :: CekResult
+cekSuccessTrue :: TypeCekResult
 cekSuccessTrue = CekSuccess $ mkConstant () True
 
 mkApp1 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm
