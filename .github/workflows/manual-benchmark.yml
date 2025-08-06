@@ -123,7 +123,9 @@ jobs:
           nix develop .#${{ steps.extract-benchmark.outputs.ghc }} \
             --no-warn-dirty \
             --accept-flake-config \
-            --command bash ./scripts/ci-plutus-benchmark.sh 
+            --command taskset -c 7 bash ./scripts/ci-plutus-benchmark.sh 
+            # We use taskset to pin the benchmark to a single CPU core to improve repeatability
+
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
           PR_NUMBER: ${{ github.event.issue.number }}

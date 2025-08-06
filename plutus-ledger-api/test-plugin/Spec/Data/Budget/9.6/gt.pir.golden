@@ -4,14 +4,14 @@ letrec
         case
           bool
           xs
-          [ True
-          , (\(hd : pair data data) ->
+          [ (\(hd : pair data data) ->
                case
                  (all dead. list (pair data data) -> bool)
                  (equalsInteger 0 (unIData (sndPair {data} {data} hd)))
                  [ (/\dead -> \(ds : list (pair data data)) -> False)
                  , (/\dead -> go) ]
-                 {all dead. dead}) ]
+                 {all dead. dead})
+          , True ]
 in
 let
   !`$fToDataInteger_$ctoBuiltinData` : integer -> data
@@ -101,8 +101,7 @@ letrec
         case
           bool
           xs
-          [ True
-          , (\(hd : pair data data) ->
+          [ (\(hd : pair data data) ->
                case
                  (all dead. list (pair data data) -> bool)
                  (let
@@ -127,7 +126,8 @@ letrec
                       ifThenElse {bool} (lessThanInteger a 0) False True))
                  [ (/\dead -> \(ds : list (pair data data)) -> False)
                  , (/\dead -> go) ]
-                 {all dead. dead}) ]
+                 {all dead. dead})
+          , True ]
 in
 letrec
   !go : list (pair data data) -> bool
@@ -135,14 +135,14 @@ letrec
         case
           bool
           xs
-          [ True
-          , (\(hd : pair data data) ->
+          [ (\(hd : pair data data) ->
                case
                  (all dead. list (pair data data) -> bool)
                  (go (unMapData (sndPair {data} {data} hd)))
                  [ (/\dead -> \(ds : list (pair data data)) -> False)
                  , (/\dead -> go) ]
-                 {all dead. dead}) ]
+                 {all dead. dead})
+          , True ]
 in
 let
   !`$fToDataMap_$ctoBuiltinData` :
@@ -165,8 +165,7 @@ let
                   case
                     (list (pair data data))
                     xs
-                    [ []
-                    , (\(hd : pair data data) (eta : list (pair data data)) ->
+                    [ (\(hd : pair data data) (eta : list (pair data data)) ->
                          mkCons
                            {pair data data}
                            (mkPairData
@@ -175,7 +174,8 @@ let
                                  (f
                                     (`$dUnsafeFromData`
                                        (sndPair {data} {data} hd)))))
-                           (go eta)) ]
+                           (go eta))
+                    , [] ]
           in
           go
 in
@@ -186,8 +186,7 @@ letrec
         case
           (list (pair data data))
           xs
-          [ xs
-          , (\(hd : pair data data) (tl : list (pair data data)) ->
+          [ (\(hd : pair data data) (tl : list (pair data data)) ->
                let
                  !v : data = sndPair {data} {data} hd
                  !k : data = fstPair {data} {data} hd
@@ -201,8 +200,7 @@ letrec
                        case
                          (list (pair data data))
                          xs
-                         [ nilCase
-                         , (\(hd : pair data data) ->
+                         [ (\(hd : pair data data) ->
                               case
                                 (all dead.
                                    list (pair data data) ->
@@ -213,9 +211,11 @@ letrec
                                        mkCons {pair data data} hd (go eta))
                                 , (/\dead ->
                                      mkCons {pair data data} (mkPairData k v)) ]
-                                {all dead. dead}) ]
+                                {all dead. dead})
+                         , nilCase ]
                in
-               go eta) ]
+               go eta)
+          , xs ]
 in
 let
   data (Maybe :: * -> *) a | Maybe_match where
@@ -229,8 +229,7 @@ let
                 case
                   (Maybe data)
                   xs
-                  [ (Nothing {data})
-                  , (\(hd : pair data data) ->
+                  [ (\(hd : pair data data) ->
                        case
                          (all dead. list (pair data data) -> Maybe data)
                          (equalsData k (fstPair {data} {data} hd))
@@ -238,7 +237,8 @@ let
                          , (/\dead ->
                               \(ds : list (pair data data)) ->
                                 Just {data} (sndPair {data} {data} hd)) ]
-                         {all dead. dead}) ]
+                         {all dead. dead})
+                  , (Nothing {data}) ]
         in
         \(m : list (pair data data)) -> go m
   !union :
@@ -262,8 +262,7 @@ let
                   case
                     (list (pair data data))
                     xs
-                    [ []
-                    , (\(hd : pair data data) (tl : list (pair data data)) ->
+                    [ (\(hd : pair data data) (tl : list (pair data data)) ->
                          let
                            !v : data = sndPair {data} {data} hd
                            !k : data = fstPair {data} {data} hd
@@ -301,7 +300,8 @@ let
                                       `$dToData`
                                       (That {a} {b} (`$dUnsafeFromData` v))))
                                 (goRight tl))
-                           {all dead. dead}) ]
+                           {all dead. dead})
+                    , [] ]
           in
           \(ds : (\k a -> list (pair data data)) k b) ->
             letrec
@@ -310,8 +310,7 @@ let
                     case
                       (list (pair data data))
                       xs
-                      [ []
-                      , (\(hd : pair data data) (tl : list (pair data data)) ->
+                      [ (\(hd : pair data data) (tl : list (pair data data)) ->
                            let
                              !v : data = sndPair {data} {data} hd
                              !k : data = fstPair {data} {data} hd
@@ -349,7 +348,8 @@ let
                                         `$dToData`
                                         (This {a} {b} (`$dUnsafeFromData` v))))
                                   (goLeft tl))
-                             {all dead. dead}) ]
+                             {all dead. dead})
+                      , [] ]
             in
             safeAppend (goLeft ds) (goRight ds)
 in
@@ -360,9 +360,9 @@ letrec
           case
             (Unit -> list a)
             l
-            [ (\(ds : Unit) -> acc)
-            , (\(x : a) (xs : list a) (ds : Unit) ->
-                 rev {a} xs (mkCons {a} x acc)) ]
+            [ (\(x : a) (xs : list a) (ds : Unit) ->
+                 rev {a} xs (mkCons {a} x acc))
+            , (\(ds : Unit) -> acc) ]
             Unit
 in
 let
@@ -379,14 +379,14 @@ let
                 case
                   bool
                   xs
-                  [ True
-                  , (\(hd : pair data data) ->
+                  [ (\(hd : pair data data) ->
                        case
                          (all dead. list (pair data data) -> bool)
                          (is (sndPair {data} {data} hd))
                          [ (/\dead -> \(ds : list (pair data data)) -> False)
                          , (/\dead -> go) ]
-                         {all dead. dead}) ]
+                         {all dead. dead})
+                  , True ]
         in
         letrec
           !go : list (pair data data) -> bool
@@ -394,14 +394,14 @@ let
                 case
                   bool
                   xs
-                  [ True
-                  , (\(hd : pair data data) ->
+                  [ (\(hd : pair data data) ->
                        case
                          (all dead. list (pair data data) -> bool)
                          (is (sndPair {data} {data} hd))
                          [ (/\dead -> \(ds : list (pair data data)) -> False)
                          , (/\dead -> go) ]
-                         {all dead. dead}) ]
+                         {all dead. dead})
+                  , True ]
         in
         \(eqV : data -> data -> bool) ->
           letrec
@@ -412,17 +412,7 @@ let
                   case
                     (Unit -> bool)
                     l
-                    [ (\(ds : Unit) ->
-                         case
-                           (Unit -> bool)
-                           l
-                           [ (\(ds : Unit) -> True)
-                           , (\(x : pair data data)
-                               (xs : list (pair data data))
-                               (ds : Unit) ->
-                                go l) ]
-                           Unit)
-                    , (\(x : pair data data) ->
+                    [ (\(x : pair data data) ->
                          let
                            ~v : data = sndPair {data} {data} x
                          in
@@ -431,8 +421,7 @@ let
                            case
                              (Unit -> bool)
                              l
-                             [ (\(ds : Unit) -> go l)
-                             , (\(x : pair data data)
+                             [ (\(x : pair data data)
                                  (xs : list (pair data data))
                                  (ds : Unit) ->
                                   let
@@ -448,8 +437,7 @@ let
                                           case
                                             (Unit -> bool)
                                             l
-                                            [ (\(ds : Unit) -> False)
-                                            , (\(x : pair data data)
+                                            [ (\(x : pair data data)
                                                 (xs : list (pair data data))
                                                 (ds : Unit) ->
                                                  let
@@ -498,7 +486,8 @@ let
                                                           {all dead. dead})
                                                    , (/\dead ->
                                                         goRight acc xs) ]
-                                                   {all dead. dead}) ]
+                                                   {all dead. dead})
+                                            , (\(ds : Unit) -> False) ]
                                             Unit
                                   in
                                   case
@@ -535,8 +524,19 @@ let
                                            [ (/\dead -> False)
                                            , (/\dead -> goBoth xs xs) ]
                                            {all dead. dead}) ]
-                                    {all dead. dead}) ]
-                             Unit) ]
+                                    {all dead. dead})
+                             , (\(ds : Unit) -> go l) ]
+                             Unit)
+                    , (\(ds : Unit) ->
+                         case
+                           (Unit -> bool)
+                           l
+                           [ (\(x : pair data data)
+                               (xs : list (pair data data))
+                               (ds : Unit) ->
+                                go l)
+                           , (\(ds : Unit) -> True) ]
+                           Unit) ]
                     Unit
           in
           \(eta : list (pair data data)) (eta : list (pair data data)) ->

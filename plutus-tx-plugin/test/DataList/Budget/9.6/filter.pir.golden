@@ -5,7 +5,7 @@ letrec
             r = (\a -> list data) integer
           in
           \(z : r) (f : data -> list data -> r) (xs : list data) ->
-            case r xs [z, f])
+            case r xs [f, z])
           []
           (\(x : data) (eta : list data) ->
              let

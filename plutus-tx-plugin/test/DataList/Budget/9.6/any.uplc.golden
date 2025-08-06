@@ -5,6 +5,6 @@
          (\s ds ->
             case
               ds
-              [ False
-              , (\x eta ->
-                   case (lessThanInteger (unIData x) 8) [True, (s s eta)]) ]))))
+              [ (\x eta ->
+                   case (lessThanInteger (unIData x) 8) [True, (s s eta)])
+              , False ]))))

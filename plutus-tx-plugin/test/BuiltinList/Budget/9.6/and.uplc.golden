@@ -10,8 +10,8 @@
                 (\xs ->
                    case
                      xs
-                     [ True
-                     , (\x xs ->
-                          case x [False, (force (go (delay (\x -> x))) xs)]) ]))
+                     [ (\x xs ->
+                          case x [False, (force (go (delay (\x -> x))) xs)])
+                     , True ]))
            (delay (\x -> x)))
         xs))

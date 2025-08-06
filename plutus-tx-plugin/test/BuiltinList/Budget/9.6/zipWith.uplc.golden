@@ -10,17 +10,15 @@
                 (\xs ys ->
                    case
                      xs
-                     [ []
-                     , (\x xs' ->
+                     [ (\x xs' ->
                           case
                             ys
-                            [ []
-                            , (\y ys' ->
+                            [ (\y ys' ->
                                  force mkCons
                                    (addInteger x y)
-                                   (force (go (delay (\x -> x)))
-                                      xs'
-                                      ys')) ]) ]))
+                                   (force (go (delay (\x -> x))) xs' ys'))
+                            , [] ])
+                     , [] ]))
            (delay (\x -> x)))
         xs
         xs))

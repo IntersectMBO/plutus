@@ -54,13 +54,13 @@ in
                                case
                                  bool
                                  xs
-                                 [ False
-                                 , (\(x : a) (xs : list a) ->
+                                 [ (\(x : a) (xs : list a) ->
                                       case
                                         (all dead. bool)
                                         (p x)
                                         [(/\dead -> go xs), (/\dead -> True)]
-                                        {all dead. dead}) ]
+                                        {all dead. dead})
+                                 , False ]
                        in
                        go)
                      (\(x : pair data data) ->

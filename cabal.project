@@ -90,3 +90,7 @@ allow-newer:
   ral:QuickCheck,
   fin:QuickCheck,
   bin:QuickCheck,
+
+-- https://github.com/IntersectMBO/plutus/pull/7236
+constraints: setup.optparse-applicative >=0.19.0.0
+allow-newer: turtle:optparse-applicative
