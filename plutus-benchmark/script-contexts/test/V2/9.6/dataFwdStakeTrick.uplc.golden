@@ -14,13 +14,13 @@
                                  (\s xs ->
                                     case
                                       xs
-                                      [ False
-                                      , (\x xs ->
+                                      [ (\x xs ->
                                            case
                                              (equalsData
                                                 obsScriptCred
                                                 (force (force fstPair) x))
-                                             [(s s xs), True]) ])
+                                             [(s s xs), True])
+                                      , False ])
                                  rest)
                               [ ((\x -> error)
                                    (force trace "not found" (constr 0 [])))

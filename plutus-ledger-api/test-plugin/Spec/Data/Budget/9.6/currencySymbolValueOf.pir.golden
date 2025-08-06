@@ -4,9 +4,9 @@ letrec
         case
           integer
           xs
-          [ 0
-          , (\(hd : pair data data) (eta : list (pair data data)) ->
-               addInteger (unIData (sndPair {data} {data} hd)) (go eta)) ]
+          [ (\(hd : pair data data) (eta : list (pair data data)) ->
+               addInteger (unIData (sndPair {data} {data} hd)) (go eta))
+          , 0 ]
 in
 let
   data (Maybe :: * -> *) a | Maybe_match where
@@ -29,8 +29,7 @@ in
             case
               (Maybe data)
               xs
-              [ (Nothing {data})
-              , (\(hd : pair data data) ->
+              [ (\(hd : pair data data) ->
                    case
                      (all dead. list (pair data data) -> Maybe data)
                      (equalsData k (fstPair {data} {data} hd))
@@ -38,7 +37,8 @@ in
                      , (/\dead ->
                           \(ds : list (pair data data)) ->
                             Just {data} (sndPair {data} {data} hd)) ]
-                     {all dead. dead}) ]
+                     {all dead. dead})
+              , (Nothing {data}) ]
     in
     go value)
     {integer}
