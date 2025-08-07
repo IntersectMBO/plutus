@@ -16,8 +16,10 @@ class MyClassInOtherModule a where
   myClassFuncInOtherModule :: a -> BuiltinString
 
 instance MyClassInOtherModule Integer where
-  myClassFuncInOtherModule 8 = wraps True
-  myClassFuncInOtherModule _ = error ()
+  myClassFuncInOtherModule x
+          -- no case on integer here, because our compiler cannot manage it
+          | x == 8 = wraps True
+          | otherwise = error ()
 
 instance MyClassInOtherModule () where
   myClassFuncInOtherModule () =  error ()

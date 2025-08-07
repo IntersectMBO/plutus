@@ -296,137 +296,138 @@
               (\(x : a) (xs : List a) ->
                  /\dead ->
                    let
-                     !xs : List a
-                       = let
-                         !xs : List a
-                           = quickSort
-                               {a}
-                               `$dOrd`
-                               ((let
-                                    a = List a
-                                  in
-                                  \(c : a -> a -> a) (n : a) ->
-                                    letrec
-                                      !go : List a -> a
-                                        = \(ds : List a) ->
-                                            List_match
-                                              {a}
-                                              ds
-                                              {all dead. a}
-                                              (/\dead -> n)
-                                              (\(y : a) (ys : List a) ->
-                                                 /\dead ->
-                                                   let
-                                                     !ds : a = go ys
-                                                   in
-                                                   case
-                                                     (all dead. a)
-                                                     (Ord_match
-                                                        {a}
-                                                        `$dOrd`
-                                                        {a -> a -> bool}
-                                                        (\(v :
-                                                             (\a ->
-                                                                a -> a -> bool)
-                                                               a)
-                                                          (v :
-                                                             a -> a -> Ordering)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> a)
-                                                          (v : a -> a -> a) ->
-                                                           v)
-                                                        y
-                                                        x)
-                                                     [ (/\dead -> ds)
-                                                     , (/\dead -> c y ds) ]
-                                                     {all dead. dead})
-                                              {all dead. dead}
-                                    in
-                                    go xs)
-                                  (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                                  (Nil {a}))
-                       in
-                       (let
-                           b = List a
-                         in
-                         \(c : a -> b -> b) (n : b) -> c x n)
-                         (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                         xs
+                     !l : List a
+                       = quickSort
+                           {a}
+                           `$dOrd`
+                           ((let
+                                a = List a
+                              in
+                              \(c : a -> a -> a) (n : a) ->
+                                letrec
+                                  !go : List a -> a
+                                    = \(ds : List a) ->
+                                        List_match
+                                          {a}
+                                          ds
+                                          {all dead. a}
+                                          (/\dead -> n)
+                                          (\(y : a) (ys : List a) ->
+                                             /\dead ->
+                                               let
+                                                 !ds : a = go ys
+                                               in
+                                               case
+                                                 (all dead. a)
+                                                 (Ord_match
+                                                    {a}
+                                                    `$dOrd`
+                                                    {a -> a -> bool}
+                                                    (\(v :
+                                                         (\a -> a -> a -> bool)
+                                                           a)
+                                                      (v : a -> a -> Ordering)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> a)
+                                                      (v : a -> a -> a) ->
+                                                       v)
+                                                    y
+                                                    x)
+                                                 [ (/\dead -> ds)
+                                                 , (/\dead -> c y ds) ]
+                                                 {all dead. dead})
+                                          {all dead. dead}
+                                in
+                                go xs)
+                              (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                              (Nil {a}))
+                     !l : List a
+                       = (let
+                             a = List a
+                           in
+                           \(c : a -> a -> a) (n : a) -> c x n)
+                           (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                           (Nil {a})
+                     !r : List a
+                       = quickSort
+                           {a}
+                           `$dOrd`
+                           ((let
+                                a = List a
+                              in
+                              \(c : a -> a -> a) (n : a) ->
+                                letrec
+                                  !go : List a -> a
+                                    = \(ds : List a) ->
+                                        List_match
+                                          {a}
+                                          ds
+                                          {all dead. a}
+                                          (/\dead -> n)
+                                          (\(y : a) (ys : List a) ->
+                                             /\dead ->
+                                               let
+                                                 !ds : a = go ys
+                                               in
+                                               case
+                                                 (all dead. a)
+                                                 (Ord_match
+                                                    {a}
+                                                    `$dOrd`
+                                                    {a -> a -> bool}
+                                                    (\(v :
+                                                         (\a -> a -> a -> bool)
+                                                           a)
+                                                      (v : a -> a -> Ordering)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> bool)
+                                                      (v : a -> a -> a)
+                                                      (v : a -> a -> a) ->
+                                                       v)
+                                                    y
+                                                    x)
+                                                 [ (/\dead -> ds)
+                                                 , (/\dead -> c y ds) ]
+                                                 {all dead. dead})
+                                          {all dead. dead}
+                                in
+                                go xs)
+                              (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                              (Nil {a}))
                    in
-                   (let
-                       b = List a
-                     in
-                     \(c : a -> b -> b) (n : b) ->
-                       letrec
-                         !go : List a -> b
-                           = \(ds : List a) ->
-                               List_match
-                                 {a}
-                                 ds
-                                 {all dead. b}
-                                 (/\dead -> n)
-                                 (\(y : a) (ys : List a) ->
-                                    /\dead -> c y (go ys))
-                                 {all dead. dead}
-                       in
-                       let
-                         !eta : List a
-                           = quickSort
-                               {a}
-                               `$dOrd`
-                               ((let
-                                    a = List a
-                                  in
-                                  \(c : a -> a -> a) (n : a) ->
-                                    letrec
-                                      !go : List a -> a
-                                        = \(ds : List a) ->
-                                            List_match
-                                              {a}
-                                              ds
-                                              {all dead. a}
-                                              (/\dead -> n)
-                                              (\(y : a) (ys : List a) ->
-                                                 /\dead ->
-                                                   let
-                                                     !ds : a = go ys
-                                                   in
-                                                   case
-                                                     (all dead. a)
-                                                     (Ord_match
-                                                        {a}
-                                                        `$dOrd`
-                                                        {a -> a -> bool}
-                                                        (\(v :
-                                                             (\a ->
-                                                                a -> a -> bool)
-                                                               a)
-                                                          (v :
-                                                             a -> a -> Ordering)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> bool)
-                                                          (v : a -> a -> a)
-                                                          (v : a -> a -> a) ->
-                                                           v)
-                                                        y
-                                                        x)
-                                                     [ (/\dead -> ds)
-                                                     , (/\dead -> c y ds) ]
-                                                     {all dead. dead})
-                                              {all dead. dead}
-                                    in
-                                    go xs)
-                                  (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                                  (Nil {a}))
-                       in
-                       go eta)
-                     (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                     xs)
+                   letrec
+                     !go : List a -> List a
+                       = \(ds : List a) ->
+                           List_match
+                             {a}
+                             ds
+                             {all dead. List a}
+                             (/\dead -> r)
+                             (\(x : a) (xs : List a) ->
+                                /\dead -> Cons {a} x (go xs))
+                             {all dead. dead}
+                   in
+                   let
+                     !r : List a = go l
+                   in
+                   letrec
+                     !go : List a -> List a
+                       = \(ds : List a) ->
+                           List_match
+                             {a}
+                             ds
+                             {all dead. List a}
+                             (/\dead -> r)
+                             (\(x : a) (xs : List a) ->
+                                /\dead -> Cons {a} x (go xs))
+                             {all dead. dead}
+                   in
+                   go l)
               {all dead. dead}
   in
   let
