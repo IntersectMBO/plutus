@@ -202,6 +202,7 @@ builtinNames =
   , 'Builtins.lessThanInteger
   , 'Builtins.lessThanEqualsInteger
   , 'Builtins.equalsInteger
+  , 'Builtins.caseInteger
   , 'Builtins.error
   , ''Builtins.BuiltinString
   , 'Builtins.appendString

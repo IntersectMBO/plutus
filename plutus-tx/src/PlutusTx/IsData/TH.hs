@@ -14,6 +14,8 @@ module PlutusTx.IsData.TH (
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
   AsDataProdType (..),
+
+  fromDataClause,
 ) where
 
 import Data.Foldable as Foldable (foldl')

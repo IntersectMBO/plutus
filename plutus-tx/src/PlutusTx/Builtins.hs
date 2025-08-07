@@ -153,6 +153,11 @@ module PlutusTx.Builtins (
   rotateByteString,
   countSetBits,
   findFirstSetBit,
+
+
+  -- test
+  BI.caseInteger,
+  BI.ands
 ) where
 
 import Data.Maybe

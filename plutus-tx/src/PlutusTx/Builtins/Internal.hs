@@ -1058,3 +1058,10 @@ expModInteger b e m =
     BuiltinSuccess bs -> toInteger bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ toInteger bs
 {-# OPAQUE expModInteger #-}
+
+caseInteger :: Integer -> [a] -> a
+caseInteger i b = b !! fromIntegral i
+
+ands :: [Bool] -> Bool
+ands []     = True
+ands (x:xs) = x && ands xs

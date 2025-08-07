@@ -19,11 +19,12 @@
 module Plugin.Basic.Spec where
 
 import PlutusCore.Test (goldenUEval)
+import PlutusTx.Builtins qualified as BI
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Test (goldenPirReadable, goldenUPlc)
+import PlutusTx.Test (goldenEvalCekCatchBudget, goldenPirReadable, goldenUPlc)
 
 import Data.Proxy (Proxy (..))
 import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
@@ -50,6 +51,9 @@ basic =
       , goldenPirReadable "defaultCaseDuplicationNested" defaultCaseDuplicationNested
       , goldenPirReadable "integerPatternMatch" integerPatternMatch
       , goldenPirReadable "integerCase" integerCase
+      , goldenEvalCekCatchBudget "bbb" bbb
+      , goldenPirReadable "bbb" bbb
+      , goldenUPlc "bbb" bbb
       ]
 
 monoId :: CompiledCode (Integer -> Integer)
@@ -160,3 +164,8 @@ integerMatchFunction _ = 42
 integerPatternMatch :: CompiledCode Integer
 integerPatternMatch = plc (Proxy @"integerPatternMatch") (integerMatchFunction 2)
 
+aaa :: Integer -> (Integer -> Integer)
+aaa i = BI.caseInteger i [(P.+ 1), (P.+ 2), (P.+ 3), (P.+ 4)]
+
+bbb :: CompiledCode Integer
+bbb = plc (Proxy @"bbb") (aaa 3 7)

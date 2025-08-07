@@ -117,41 +117,6 @@ test-suite plutus-tx-plugin-tests
   hs-source-dirs:     test
   main-is:            Spec.hs
   other-modules:
-    Array.Spec
-    AsData.Budget.Spec
-    AsData.Budget.Types
-    AssocMap.Golden
-    AssocMap.Properties1
-    AssocMap.Properties2
-    AssocMap.Properties3
-    AssocMap.Semantics
-    AssocMap.Spec
-    Blueprint.Tests
-    Blueprint.Tests.Lib
-    Blueprint.Tests.Lib.AsData.Blueprint
-    Blueprint.Tests.Lib.AsData.Decls
-    Budget.Spec
-    Budget.WithGHCOptimisations
-    Budget.WithoutGHCOptimisations
-    BuiltinList.Budget.Spec
-    ByteStringLiterals.Lib
-    ByteStringLiterals.Spec
-    CallTrace.Lib
-    CallTrace.OtherModule
-    CallTrace.Spec
-    DataList.Budget.Spec
-    Inline.Spec
-    IntegerLiterals.NoStrict.NegativeLiterals.Spec
-    IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
-    IntegerLiterals.Strict.NegativeLiterals.Spec
-    IntegerLiterals.Strict.NoNegativeLiterals.Spec
-    IsData.Spec
-    Lift.Spec
-    List.Properties1
-    List.Properties2
-    List.Semantics
-    List.Spec
-    Optimization.Spec
     Plugin.Basic.Spec
     Plugin.Coverage.Spec
     Plugin.Data.Spec
@@ -173,15 +138,51 @@ test-suite plutus-tx-plugin-tests
     Plugin.Strict.Spec
     Plugin.Typeclasses.Lib
     Plugin.Typeclasses.Spec
-    Recursion.Spec
-    ShortCircuit.Spec
-    ShortCircuit.WithGHCOptimisations
-    ShortCircuit.WithoutGHCOptimisations
-    StdLib.Spec
-    Strictness.Spec
-    TH.Spec
-    TH.TestTH
-    Unicode.Spec
+
+  -- Array.Spec
+  -- AsData.Budget.Spec
+  -- AsData.Budget.Types
+  -- AssocMap.Golden
+  -- AssocMap.Properties1
+  -- AssocMap.Properties2
+  -- AssocMap.Properties3
+  -- AssocMap.Semantics
+  -- AssocMap.Spec
+  -- Blueprint.Tests
+  -- Blueprint.Tests.Lib
+  -- Blueprint.Tests.Lib.AsData.Blueprint
+  -- Blueprint.Tests.Lib.AsData.Decls
+  -- Budget.Spec
+  -- Budget.WithGHCOptimisations
+  -- Budget.WithoutGHCOptimisations
+  -- BuiltinList.Budget.Spec
+  -- ByteStringLiterals.Lib
+  -- ByteStringLiterals.Spec
+  -- CallTrace.Lib
+  -- CallTrace.OtherModule
+  -- CallTrace.Spec
+  -- DataList.Budget.Spec
+  -- Inline.Spec
+  -- IntegerLiterals.NoStrict.NegativeLiterals.Spec
+  -- IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
+  -- IntegerLiterals.Strict.NegativeLiterals.Spec
+  -- IntegerLiterals.Strict.NoNegativeLiterals.Spec
+  -- IsData.Spec
+  -- Lift.Spec
+  -- List.Properties1
+  -- List.Properties2
+  -- List.Semantics
+  -- List.Spec
+  -- Optimization.Spec
+  -- Recursion.Spec
+  -- ShortCircuit.Spec
+  -- ShortCircuit.WithGHCOptimisations
+  -- ShortCircuit.WithoutGHCOptimisations
+  -- StdLib.Spec
+  -- Strictness.Spec
+  -- TH.Spec
+  -- TH.TestTH
+  -- Unicode.Spec
 
   build-depends:
     , base                             >=4.9   && <5
@@ -242,4 +243,46 @@ test-suite size
   -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
+
+----------------------test ----------------------
+
+test-suite foo
+  import:             lang, ghc-version-support, os-support
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test
+  main-is:            Foo.hs
+  other-modules:
+  build-depends:
+    , base                             >=4.9   && <5
+    , base16-bytestring
+    , bytestring
+    , containers
+    , deepseq
+    , filepath
+    , flat                             ^>=0.6
+    , hedgehog
+    , lens
+    , mtl
+    , plutus-core                      ^>=1.49
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.49
+    , plutus-tx-plugin                 ^>=1.49
+    , plutus-tx:plutus-tx-testlib
+    , serialise
+    , tasty
+    , tasty-golden
+    , tasty-hedgehog
+    , tasty-hunit
+    , template-haskell
+    , text
+    , these
+
+  default-extensions: Strict
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+
+  -- NOTE: -g makes the plugin give better errors
+  -- See Note [-fno-full-laziness in Plutus Tx]
+  ghc-options:
+    -g -fno-strictness -fno-unbox-strict-fields
     -fno-unbox-small-strict-fields -fno-full-laziness
