@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Builtin.Constant.AtomicType</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Builtin.Constant.AtomicType</h1>
+    <section>
+      <pre class="Agda"><a id="62" class="Keyword">module</a> <a id="69" href="Builtin.Constant.AtomicType.html" class="Module">Builtin.Constant.AtomicType</a> <a id="97" class="Keyword">where</a>
+</pre>
+<h2 id="imports">Imports</h2>
+
+<pre class="Agda"><a id="124" class="Keyword">open</a> <a id="129" class="Keyword">import</a> <a id="136" href="Data.Bool.html" class="Module">Data.Bool</a> <a id="146" class="Keyword">using</a> <a id="152" class="Symbol">(</a><a id="153" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a><a id="157" class="Symbol">)</a>
+<a id="159" class="Keyword">open</a> <a id="164" class="Keyword">import</a> <a id="171" href="Data.Integer.html" class="Module">Data.Integer</a> <a id="184" class="Keyword">using</a> <a id="190" class="Symbol">(</a><a id="191" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a><a id="192" class="Symbol">)</a>
+<a id="194" class="Keyword">open</a> <a id="199" class="Keyword">import</a> <a id="206" href="Data.String.html" class="Module">Data.String</a> <a id="218" class="Keyword">using</a> <a id="224" class="Symbol">(</a><a id="225" href="Agda.Builtin.String.html#335" class="Postulate">String</a><a id="231" class="Symbol">)</a>
+<a id="233" class="Keyword">open</a> <a id="238" class="Keyword">import</a> <a id="245" href="Data.Unit.html" class="Module">Data.Unit</a> <a id="255" class="Keyword">using</a> <a id="261" class="Symbol">(</a><a id="262" href="Agda.Builtin.Unit.html#175" class="Record">⊤</a><a id="263" class="Symbol">)</a>
+<a id="265" class="Keyword">open</a> <a id="270" class="Keyword">import</a> <a id="277" href="Relation.Binary.html" class="Module">Relation.Binary</a> <a id="293" class="Keyword">using</a> <a id="299" class="Symbol">(</a><a id="300" href="Relation.Binary.Definitions.html#6834" class="Function">DecidableEquality</a><a id="317" class="Symbol">)</a>
+
+<a id="320" class="Keyword">open</a> <a id="325" class="Keyword">import</a> <a id="332" href="Utils.html" class="Module">Utils</a> <a id="338" class="Keyword">using</a> <a id="344" class="Symbol">(</a><a id="345" href="Utils.html#4582" class="Postulate">ByteString</a><a id="355" class="Symbol">;</a><a id="356" href="Utils.html#6996" class="Datatype">DATA</a><a id="360" class="Symbol">;</a><a id="361" href="Utils.html#9162" class="Postulate">Bls12-381-G1-Element</a><a id="381" class="Symbol">;</a><a id="382" href="Utils.html#9655" class="Postulate">Bls12-381-G2-Element</a><a id="402" class="Symbol">;</a><a id="403" href="Utils.html#10148" class="Postulate">Bls12-381-MlResult</a><a id="421" class="Symbol">)</a>
+<a id="423" class="Keyword">open</a> <a id="428" class="Keyword">import</a> <a id="435" href="Utils.Reflection.html" class="Module">Utils.Reflection</a> <a id="452" class="Keyword">using</a> <a id="458" class="Symbol">(</a><a id="459" href="Utils.Reflection.html#2724" class="Function">defDec</a><a id="465" class="Symbol">)</a>
+
+</pre>
+<h1 id="atomic-type-constants">Atomic Type constants</h1>
+
+<p>We have nine base types referred to as atomic type constants:</p>
+
+<pre class="Agda"><a id="565" class="Keyword">data</a> <a id="AtomicTyCon"></a><a id="570" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a> <a id="582" class="Symbol">:</a> <a id="584" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="588" class="Keyword">where</a>
+  <a id="AtomicTyCon.aInteger"></a><a id="596" href="Builtin.Constant.AtomicType.html#596" class="InductiveConstructor">aInteger</a>              <a id="618" class="Symbol">:</a> <a id="620" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aBytestring"></a><a id="634" href="Builtin.Constant.AtomicType.html#634" class="InductiveConstructor">aBytestring</a>           <a id="656" class="Symbol">:</a> <a id="658" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aString"></a><a id="672" href="Builtin.Constant.AtomicType.html#672" class="InductiveConstructor">aString</a>               <a id="694" class="Symbol">:</a> <a id="696" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aUnit"></a><a id="710" href="Builtin.Constant.AtomicType.html#710" class="InductiveConstructor">aUnit</a>                 <a id="732" class="Symbol">:</a> <a id="734" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aBool"></a><a id="748" href="Builtin.Constant.AtomicType.html#748" class="InductiveConstructor">aBool</a>                 <a id="770" class="Symbol">:</a> <a id="772" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aData"></a><a id="786" href="Builtin.Constant.AtomicType.html#786" class="InductiveConstructor">aData</a>                 <a id="808" class="Symbol">:</a> <a id="810" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aBls12-381-g1-element"></a><a id="824" href="Builtin.Constant.AtomicType.html#824" class="InductiveConstructor">aBls12-381-g1-element</a> <a id="846" class="Symbol">:</a> <a id="848" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aBls12-381-g2-element"></a><a id="862" href="Builtin.Constant.AtomicType.html#862" class="InductiveConstructor">aBls12-381-g2-element</a> <a id="884" class="Symbol">:</a> <a id="886" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+  <a id="AtomicTyCon.aBls12-381-mlresult"></a><a id="900" href="Builtin.Constant.AtomicType.html#900" class="InductiveConstructor">aBls12-381-mlresult</a>   <a id="922" class="Symbol">:</a> <a id="924" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+
+<a id="937" class="Symbol">{-#</a> <a id="941" class="Keyword">FOREIGN</a> <a id="949" class="Pragma">GHC</a> <a id="953" class="Pragma">import</a> <a id="960" class="Pragma">Raw</a> <a id="964" class="Symbol">#-}</a>
+<a id="968" class="Symbol">{-#</a> <a id="972" class="Keyword">COMPILE</a> <a id="980" class="Keyword">GHC</a> <a id="984" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a> <a id="996" class="Pragma">=</a> <a id="998" class="Pragma">data</a> <a id="1003" class="Pragma">AtomicTyCon</a> <a id="1015" class="Pragma">(ATyConInt</a> <a id="1026" class="Pragma">|</a> <a id="1028" class="Pragma">ATyConBS</a> <a id="1037" class="Pragma">|</a> <a id="1039" class="Pragma">ATyConStr</a> <a id="1049" class="Pragma">|</a> <a id="1051" class="Pragma">ATyConUnit</a> <a id="1062" class="Pragma">|</a> <a id="1064" class="Pragma">ATyConBool</a> <a id="1075" class="Pragma">|</a> <a id="1077" class="Pragma">ATyConData</a> <a id="1088" class="Pragma">|</a> <a id="1090" class="Pragma">ATyConBLS12_381_G1_Element</a> <a id="1117" class="Pragma">|</a> <a id="1119" class="Pragma">ATyConBLS12_381_G2_Element</a> <a id="1146" class="Pragma">|</a> <a id="1148" class="Pragma">ATyConBLS12_381_MlResult)</a> <a id="1174" class="Symbol">#-}</a>
+
+</pre>
+<h2 id="decidable-equality-of-atomictycon">Decidable Equality of <code class="language-plaintext highlighter-rouge">AtomicTyCon</code>.</h2>
+
+<pre class="Agda"><a id="decAtomicTyCon"></a><a id="1229" href="Builtin.Constant.AtomicType.html#1229" class="Function">decAtomicTyCon</a> <a id="1244" class="Symbol">:</a> <a id="1246" href="Relation.Binary.Definitions.html#6834" class="Function">DecidableEquality</a> <a id="1264" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a>
+<a id="1276" class="Keyword">unquoteDef</a> <a id="1287" href="Builtin.Constant.AtomicType.html#1229" class="Function">decAtomicTyCon</a> <a id="1302" class="Symbol">=</a> <a id="1304" href="Utils.Reflection.html#2724" class="Function">defDec</a> <a id="1311" class="Symbol">(</a><a id="1312" class="Keyword">quote</a> <a id="1318" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a><a id="1329" class="Symbol">)</a> <a id="1331" href="Builtin.Constant.AtomicType.html#1229" class="Function">decAtomicTyCon</a>
+</pre>
+<h2 id="meaning-of-atomic-constants">Meaning of Atomic Constants</h2>
+
+<pre class="Agda"><a id="⟦_⟧at"></a><a id="1387" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦_⟧at</a> <a id="1393" class="Symbol">:</a> <a id="1395" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a> <a id="1407" class="Symbol">→</a> <a id="1409" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1413" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1415" href="Builtin.Constant.AtomicType.html#596" class="InductiveConstructor">aInteger</a> <a id="1424" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1428" class="Symbol">=</a> <a id="1430" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a>
+<a id="1432" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1434" href="Builtin.Constant.AtomicType.html#634" class="InductiveConstructor">aBytestring</a> <a id="1446" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1450" class="Symbol">=</a> <a id="1452" href="Utils.html#4582" class="Postulate">ByteString</a>
+<a id="1463" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1465" href="Builtin.Constant.AtomicType.html#672" class="InductiveConstructor">aString</a> <a id="1473" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1477" class="Symbol">=</a> <a id="1479" href="Agda.Builtin.String.html#335" class="Postulate">String</a>
+<a id="1486" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1488" href="Builtin.Constant.AtomicType.html#710" class="InductiveConstructor">aUnit</a> <a id="1494" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1498" class="Symbol">=</a> <a id="1500" href="Agda.Builtin.Unit.html#175" class="Record">⊤</a>
+<a id="1502" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1504" href="Builtin.Constant.AtomicType.html#748" class="InductiveConstructor">aBool</a> <a id="1510" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1514" class="Symbol">=</a> <a id="1516" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a>
+<a id="1521" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1523" href="Builtin.Constant.AtomicType.html#786" class="InductiveConstructor">aData</a> <a id="1529" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1533" class="Symbol">=</a> <a id="1535" href="Utils.html#6996" class="Datatype">DATA</a>
+<a id="1540" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1542" href="Builtin.Constant.AtomicType.html#824" class="InductiveConstructor">aBls12-381-g1-element</a> <a id="1564" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1568" class="Symbol">=</a> <a id="1570" href="Utils.html#9162" class="Postulate">Bls12-381-G1-Element</a>
+<a id="1591" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1593" href="Builtin.Constant.AtomicType.html#862" class="InductiveConstructor">aBls12-381-g2-element</a> <a id="1615" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1619" class="Symbol">=</a> <a id="1621" href="Utils.html#9655" class="Postulate">Bls12-381-G2-Element</a>
+<a id="1642" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟦</a> <a id="1644" href="Builtin.Constant.AtomicType.html#900" class="InductiveConstructor">aBls12-381-mlresult</a> <a id="1664" href="Builtin.Constant.AtomicType.html#1387" class="Function Operator">⟧at</a> <a id="1668" class="Symbol">=</a> <a id="1670" href="Utils.html#10148" class="Postulate">Bls12-381-MlResult</a>
+
+</pre>
+
+    </section>
+  </body>
+</html>

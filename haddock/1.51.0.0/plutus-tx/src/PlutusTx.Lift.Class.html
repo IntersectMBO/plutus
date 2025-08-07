@@ -1,0 +1,6986 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE CPP                   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Lift.Class</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Class.html#Typeable"
+	><span class="hs-identifier"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Class.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Class.html#RTCompile"
+	><span class="hs-identifier"
+	  >RTCompile</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.Definitions.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Compiler.Definitions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.G1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html#Element"
+	><span class="hs-identifier"
+	  >Element</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.G2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html#Element"
+	><span class="hs-identifier"
+	  >Element</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.Pairing.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.Pairing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.Pairing.html#MlResult"
+	><span class="hs-identifier"
+	  >MlResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Data</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.MkPir.html"
+	><span class="hs-identifier"
+	  >PlutusIR.MkPir</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.HasBuiltin.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins.HasBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.HasBuiltin.html#FromBuiltin"
+	><span class="hs-identifier"
+	  >FromBuiltin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.HasBuiltin.html#HasFromBuiltin"
+	><span class="hs-identifier"
+	  >HasFromBuiltin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinBool"
+	><span class="hs-identifier"
+	  >BuiltinBool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinInteger"
+	><span class="hs-identifier"
+	  >BuiltinInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	><span class="hs-identifier"
+	  >BuiltinList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinPair"
+	><span class="hs-identifier"
+	  >BuiltinPair</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinUnit"
+	><span class="hs-identifier"
+	  >BuiltinUnit</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#newName"
+	><span class="hs-identifier"
+	  >newName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>GHC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html"
+	><span class="hs-identifier"
+	  >Data.Vector.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Strict</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeLits.html"
+	><span class="hs-identifier"
+	  >GHC.TypeLits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#ErrorMessage"
+	><span class="hs-identifier"
+	  >ErrorMessage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >-- We do not use qualified import because the whole module contains off-chain code</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Compiling at TH time and runtime]
+We want to reuse PIR's machinery for defining datatypes. However, one cannot
+get a PLC Type consisting of the compiled PIR type, because the compilation of the
+definitions is done by making a *term*.
+
+So we use the abstract support for handling definitions in PIR, MonadDefs. Typeable
+then has `typeRep :: Proxy a -&gt; RTCompile uni fun (Type TyName uni ())`,
+which says that you can get the type in some compilation monad (which
+you will later have to discharge yourself).
+
+This means that the TH expressions we are generating are not for `Type`s directly, but rather
+for monadic expressions that will, at runtime, compute types. We are effectively generating
+a specialized compiler.
+
+We thus have two pieces of compilation going on here:
+- At TH time, we reify information about datatypes, and construct specialized compilation expressions
+  for the various parts.
+- At runtime, we actually run these and create definitions etc.
+
+The interplay between the parts happening at TH time and the parts happening at runtime is somewhat
+awkward, but I couldn't think of a better way of doing it.
+
+A particularly awkward feature is that the typeclass constraints required by the code in each
+instance are going to be different, and so we can't use reusable functions, instead we need to
+inline all the definitions so that the overall expression can have the right constraints inferred.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="RTCompile"
+      ><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#RTCompile"
+	  ><span class="hs-identifier hs-var"
+	    >RTCompile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034906"
+      ><span class="annot"
+	><a href="#local-6989586621680034906"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034907"
+      ><span class="annot"
+	><a href="#local-6989586621680034907"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.Definitions.html#DefT"
+	><span class="hs-identifier hs-type"
+	  >DefT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Name"
+	><span class="hs-identifier hs-type"
+	  >TH.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034906"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034907"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html#Quote"
+	><span class="hs-identifier hs-type"
+	  >Quote</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Class for types which have a corresponding Plutus IR type. Instances should always be derived,
+do not write your own instance!
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="Typeable"
+      ><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-var"
+	    >Typeable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034678"
+      ><span id="local-6989586621680034680"
+	><span class="annot"
+	  ><a href="#local-6989586621680034680"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-identifier"
+	>a</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-identifier"
+	>k</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | Get the Plutus IR type corresponding to this type.</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span id="typeRep"
+      ><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-type"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034673"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	  ><span class="hs-identifier hs-type"
+	    >Proxy</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034679"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#RTCompile"
+	  ><span class="hs-identifier hs-type"
+	    >RTCompile</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034680"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034673"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	  ><span class="hs-identifier hs-type"
+	    >Type</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-type"
+	    >TyName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034680"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Class for types which can be lifted into Plutus IR. Instances should be derived, do not write
+your own instance!
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="Lift"
+      ><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-var"
+	    >Lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034797"
+      ><span class="annot"
+	><a href="#local-6989586621680034797"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034796"
+      ><span class="annot"
+	><a href="#local-6989586621680034796"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | Get a Plutus IR term corresponding to the given value.</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span id="lift"
+      ><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-type"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034794"
+      ><span class="annot"
+	><a href="#local-6989586621680034796"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#RTCompile"
+	  ><span class="hs-identifier hs-type"
+	    >RTCompile</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034797"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034794"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusIR.Core.Type.html#Term"
+	  ><span class="hs-identifier hs-type"
+	    >Term</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-type"
+	    >TyName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-type"
+	    >Name</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034797"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034794"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-comment"
+      >-- This instance ensures that we can apply typeable type constructors to typeable arguments and get</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="hs-comment"
+      >-- a typeable type. We need the kind variable, so that partial application of type constructors</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-comment"
+      >-- works.</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034681"
+      ><span id="local-6989586621680034682"
+	><span id="local-6989586621680034683"
+	  ><span id="local-6989586621680034684"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Lift.Class.html#Typeable"
+		><span class="hs-identifier hs-type"
+		  >Typeable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034682"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034683"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+		><span class="hs-identifier hs-type"
+		  >GHC.Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034681"
+		><span class="hs-identifier hs-type"
+		  >k</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Lift.Class.html#Typeable"
+		><span class="hs-identifier hs-type"
+		  >Typeable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034682"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034684"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+		><span class="hs-identifier hs-type"
+		  >GHC.Type</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Lift.Class.html#Typeable"
+		><span class="hs-identifier hs-type"
+		  >Typeable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034682"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034683"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680034684"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034929"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun. Proxy (f a) -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy (f a)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Type TyName uni () -&gt; Type TyName uni () -&gt; Type TyName uni ()
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyApp"
+	><span class="hs-identifier hs-var"
+	  >TyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName uni () -&gt; Type TyName uni () -&gt; Type TyName uni ())
+-&gt; DefT Name uni fun () Quote (Type TyName uni ())
+-&gt; DefT
+     Name uni fun () Quote (Type TyName uni () -&gt; Type TyName uni ())
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy f -&gt; DefT Name uni fun () Quote (Type TyName uni ())
+forall fun. Proxy f -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (uni :: * -&gt; *) (a :: k) fun.
+Typeable uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRep"
+	><span class="hs-identifier hs-var"
+	  >typeRep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy f
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-type"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034683"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefT
+  Name uni fun () Quote (Type TyName uni () -&gt; Type TyName uni ())
+-&gt; DefT Name uni fun () Quote (Type TyName uni ())
+-&gt; DefT Name uni fun () Quote (Type TyName uni ())
+forall a b.
+DefT Name uni fun () Quote (a -&gt; b)
+-&gt; DefT Name uni fun () Quote a -&gt; DefT Name uni fun () Quote b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy a -&gt; DefT Name uni fun () Quote (Type TyName uni ())
+forall fun. Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (uni :: * -&gt; *) (a :: k) fun.
+Typeable uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRep"
+	><span class="hs-identifier hs-var"
+	  >typeRep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy a
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-type"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034684"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Typeable instances for function types]
+Surely there is an obvious 'Typeable' instance for 'a -&gt; b': we just turn it directly
+into a 'TyFun'!
+
+However, if you write this instance, you find that it overlaps with the instance for applied
+type constructors. For is not '(-&gt;) a' an applied type constructor?
+
+Vexing. However, if we run with this, we can define a 'Typeable' instance for '(-&gt;)' directly.
+What is this? Well, it's something like '\a b . a -&gt; b' as a type function. Which is a rather
+silly thing to write, but it does work.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Typeable instances for function types]</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034714"
+      ><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034714"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034951"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun. Proxy (-&gt;) -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy (-&gt;)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621680034952"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621680034952"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote TyName -&gt; DefT Name uni fun () Quote TyName
+forall a. Quote a -&gt; DefT Name uni fun () Quote a
+forall (m :: * -&gt; *) a. MonadQuote m =&gt; Quote a -&gt; m a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#liftQuote"
+	><span class="hs-identifier hs-var"
+	  >PLC.liftQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote TyName -&gt; DefT Name uni fun () Quote TyName)
+-&gt; Quote TyName -&gt; DefT Name uni fun () Quote TyName
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Quote TyName
+forall (m :: * -&gt; *). MonadQuote m =&gt; Text -&gt; m TyName
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#freshTyName"
+	><span class="hs-identifier hs-var"
+	  >PLC.freshTyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;a&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621680034955"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621680034955"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote TyName -&gt; DefT Name uni fun () Quote TyName
+forall a. Quote a -&gt; DefT Name uni fun () Quote a
+forall (m :: * -&gt; *) a. MonadQuote m =&gt; Quote a -&gt; m a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#liftQuote"
+	><span class="hs-identifier hs-var"
+	  >PLC.liftQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote TyName -&gt; DefT Name uni fun () Quote TyName)
+-&gt; Quote TyName -&gt; DefT Name uni fun () Quote TyName
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Quote TyName
+forall (m :: * -&gt; *). MonadQuote m =&gt; Text -&gt; m TyName
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#freshTyName"
+	><span class="hs-identifier hs-var"
+	  >PLC.freshTyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;b&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034956"
+      ><span class="annot"
+	><span class="annottext"
+	  >tvda :: TyVarDecl TyName ()
+</span
+	  ><a href="#local-6989586621680034956"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tvda</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; TyName -&gt; Kind () -&gt; TyVarDecl TyName ()
+forall tyname ann.
+ann -&gt; tyname -&gt; Kind ann -&gt; TyVarDecl tyname ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-var"
+	  >TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621680034952"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Kind ()
+forall ann. ann -&gt; Kind ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-var"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621680034959"
+      ><span class="annot"
+	><span class="annottext"
+	  >tvdb :: TyVarDecl TyName ()
+</span
+	  ><a href="#local-6989586621680034959"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tvdb</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; TyName -&gt; Kind () -&gt; TyVarDecl TyName ()
+forall tyname ann.
+ann -&gt; tyname -&gt; Kind ann -&gt; TyVarDecl tyname ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-var"
+	  >TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621680034955"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Kind ()
+forall ann. ann -&gt; Kind ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-var"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni () -&gt; RTCompile uni fun (Type TyName uni ())
+forall a. a -&gt; DefT Name uni fun () Quote a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName uni () -&gt; RTCompile uni fun (Type TyName uni ()))
+-&gt; Type TyName uni () -&gt; RTCompile uni fun (Type TyName uni ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TyVarDecl TyName ()] -&gt; Type TyName uni () -&gt; Type TyName uni ()
+forall tyname ann (uni :: * -&gt; *).
+[TyVarDecl tyname ann]
+-&gt; Type tyname uni ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterTyLam"
+	><span class="hs-identifier hs-var"
+	  >mkIterTyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl TyName ()
+</span
+	><a href="#local-6989586621680034956"
+	><span class="hs-identifier hs-var"
+	  >tvda</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl TyName ()
+</span
+	><a href="#local-6989586621680034959"
+	><span class="hs-identifier hs-var"
+	  >tvdb</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName uni () -&gt; Type TyName uni ())
+-&gt; Type TyName uni () -&gt; Type TyName uni ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Type TyName uni () -&gt; Type TyName uni () -&gt; Type TyName uni ()
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyFun"
+	><span class="hs-identifier hs-var"
+	  >TyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; TyVarDecl TyName () -&gt; Type TyName uni ()
+forall ann tyname (uni :: * -&gt; *).
+ann -&gt; TyVarDecl tyname ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkTyVar"
+	><span class="hs-identifier hs-var"
+	  >mkTyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl TyName ()
+</span
+	><a href="#local-6989586621680034956"
+	><span class="hs-identifier hs-var"
+	  >tvda</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; TyVarDecl TyName () -&gt; Type TyName uni ()
+forall ann tyname (uni :: * -&gt; *).
+ann -&gt; TyVarDecl tyname ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkTyVar"
+	><span class="hs-identifier hs-var"
+	  >mkTyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl TyName ()
+</span
+	><a href="#local-6989586621680034959"
+	><span class="hs-identifier hs-var"
+	  >tvdb</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >-- Primitives</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-type"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034747"
+      ><span class="annot"
+	><a href="#local-6989586621680034747"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680034749"
+      ><span class="annot"
+	><a href="#local-6989586621680034749"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034747"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034748"
+      ><span class="annot"
+	><a href="#local-6989586621680034748"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034751"
+      ><span class="annot"
+	><a href="#local-6989586621680034751"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680034748"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	><span class="hs-operator hs-type"
+	  >`PLC.HasTypeLevel`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034749"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-type"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034749"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Class.html#RTCompile"
+	><span class="hs-identifier hs-type"
+	  >RTCompile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034748"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034751"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034748"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span id="typeRepBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRepBuiltin :: forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeRepBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-type"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034749"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ()
+-&gt; DefT Name uni fun () Quote (Type TyName uni ())
+forall a. a -&gt; DefT Name uni fun () Quote a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName uni ()
+ -&gt; DefT Name uni fun () Quote (Type TyName uni ()))
+-&gt; Type TyName uni ()
+-&gt; DefT Name uni fun () Quote (Type TyName uni ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (x :: a) (uni :: * -&gt; *) ann tyname.
+HasTypeLevel uni x =&gt;
+ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#mkTyBuiltin"
+	><span class="hs-identifier hs-var"
+	  >mkTyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680034749"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-type"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034762"
+      ><span class="annot"
+	><a href="#local-6989586621680034762"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034761"
+      ><span class="annot"
+	><a href="#local-6989586621680034761"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680034764"
+      ><span class="annot"
+	><a href="#local-6989586621680034764"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680034761"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	><span class="hs-operator hs-type"
+	  >`PLC.HasTermLevel`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034762"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034762"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Class.html#RTCompile"
+	><span class="hs-identifier hs-type"
+	  >RTCompile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034761"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034764"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034761"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680034764"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span id="liftBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >liftBuiltin :: forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >liftBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+-&gt; DefT Name uni fun () Quote (Term TyName Name uni fun ())
+forall a. a -&gt; DefT Name uni fun () Quote a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun ()
+ -&gt; DefT Name uni fun () Quote (Term TyName Name uni fun ()))
+-&gt; (a -&gt; Term TyName Name uni fun ())
+-&gt; a
+-&gt; DefT Name uni fun () Quote (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; a -&gt; Term TyName Name uni fun ()
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034788"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	  ><span class="hs-identifier hs-type"
+	    >TypeError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>'</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-string"
+	  >&quot;Int is not supported, use Integer instead&quot;</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-135"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034788"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	  ><span class="hs-identifier hs-type"
+	    >Int</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034986"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun. Proxy Int -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; Proxy Int -&gt; RTCompile uni fun (Type TyName uni ())
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >Haskell.error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;unsupported&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034798"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	  ><span class="hs-identifier hs-type"
+	    >TypeError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>'</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-string"
+	  >&quot;Int is not supported, use Integer instead&quot;</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-141"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034798"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	  ><span class="hs-identifier hs-type"
+	    >Int</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034994"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun. Int -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; Int -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >Haskell.error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;unsupported&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034802"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034802"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Integer</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034802"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinInteger"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034999"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinInteger -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinInteger -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034805"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034805"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Integer</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034805"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinInteger"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035005"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinInteger -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinInteger -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034810"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034810"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	  ><span class="hs-identifier hs-type"
+	    >BS.ByteString</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034810"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035010"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinByteString -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinByteString
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy ByteString -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034813"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034813"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	  ><span class="hs-identifier hs-type"
+	    >BS.ByteString</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034813"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035018"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinByteString
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinByteString -&gt; ByteString)
+-&gt; BuiltinByteString
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; ByteString
+BuiltinByteString -&gt; FromBuiltin BuiltinByteString
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034820"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034820"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >T.Text</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034820"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035024"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinString -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinString
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Text -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034823"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034823"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >T.Text</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034823"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035032"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinString -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinString -&gt; Text)
+-&gt; BuiltinString
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; Text
+BuiltinString -&gt; FromBuiltin BuiltinString
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034827"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034827"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034827"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinUnit"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinUnit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035037"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinUnit -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinUnit
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy () -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034830"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034830"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034830"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinUnit"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinUnit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035045"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinUnit -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(() -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinUnit -&gt; ())
+-&gt; BuiltinUnit
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinUnit -&gt; ()
+BuiltinUnit -&gt; FromBuiltin BuiltinUnit
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034834"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034834"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034834"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBool"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBool</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035050"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinBool -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinBool
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Bool -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034837"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034837"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034837"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBool"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBool</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035058"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinBool -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinBool -&gt; Bool)
+-&gt; BuiltinBool
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinBool -&gt; Bool
+BuiltinBool -&gt; FromBuiltin BuiltinBool
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034841"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034841"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034841"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035063"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinList -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinList
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy [] -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall {k} (t :: k). Proxy t
+forall (t :: * -&gt; *). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034845"
+      ><span id="local-6989586621680034846"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Builtins.HasBuiltin.html#HasFromBuiltin"
+	    ><span class="hs-identifier hs-type"
+	      >HasFromBuiltin</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034845"
+	    ><span class="hs-identifier hs-type"
+	      >arep</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034846"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	    ><span class="hs-operator hs-type"
+	      >`PLC.HasTermLevel`</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Builtins.HasBuiltin.html#FromBuiltin"
+	    ><span class="hs-identifier hs-type"
+	      >FromBuiltin</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034845"
+	    ><span class="hs-identifier hs-type"
+	      >arep</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-191"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Lift.Class.html#Lift"
+	    ><span class="hs-identifier hs-type"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034846"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinList</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034845"
+	    ><span class="hs-identifier hs-type"
+	      >arep</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035072"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinList arep -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[FromBuiltin arep]
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([FromBuiltin arep]
+ -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinList arep -&gt; [FromBuiltin arep])
+-&gt; BuiltinList arep
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList arep -&gt; [FromBuiltin arep]
+BuiltinList arep -&gt; FromBuiltin (BuiltinList arep)
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034852"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034852"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#Vector"
+	  ><span class="hs-identifier hs-type"
+	    >Strict.Vector</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034852"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinArray"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035077"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinArray -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinArray
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Vector -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall {k} (t :: k). Proxy t
+forall (t :: * -&gt; *). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#Vector"
+	><span class="hs-identifier hs-type"
+	  >Strict.Vector</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034856"
+      ><span id="local-6989586621680034857"
+	><span class="hs-special"
+	  >(</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Builtins.HasBuiltin.html#HasFromBuiltin"
+	    ><span class="hs-identifier hs-type"
+	      >HasFromBuiltin</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034856"
+	    ><span class="hs-identifier hs-type"
+	      >arep</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-202"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034857"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	    ><span class="hs-operator hs-type"
+	      >`PLC.HasTermLevel`</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#Vector"
+	    ><span class="hs-identifier hs-type"
+	      >Strict.Vector</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Builtins.HasBuiltin.html#FromBuiltin"
+	    ><span class="hs-identifier hs-type"
+	      >FromBuiltin</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034856"
+	    ><span class="hs-identifier hs-type"
+	      >arep</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-203"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-204"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Lift.Class.html#Lift"
+	    ><span class="hs-identifier hs-type"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034857"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Builtins.Internal.html#BuiltinArray"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinArray</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680034856"
+	    ><span class="hs-identifier hs-type"
+	      >arep</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035086"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinArray arep
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector (FromBuiltin arep)
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Vector (FromBuiltin arep)
+ -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinArray arep -&gt; Vector (FromBuiltin arep))
+-&gt; BuiltinArray arep
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinArray arep -&gt; Vector (FromBuiltin arep)
+BuiltinArray arep -&gt; FromBuiltin (BuiltinArray arep)
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034862"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034862"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>,</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034862"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinPair"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinPair</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035091"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinPair -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinPair
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy (,) -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall {k} (t :: k). Proxy t
+forall (t :: * -&gt; * -&gt; *). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034867"
+      ><span id="local-6989586621680034868"
+	><span id="local-6989586621680034869"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Builtins.HasBuiltin.html#HasFromBuiltin"
+	      ><span class="hs-identifier hs-type"
+		>HasFromBuiltin</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034867"
+	      ><span class="hs-identifier hs-type"
+		>arep</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-213"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Builtins.HasBuiltin.html#HasFromBuiltin"
+	      ><span class="hs-identifier hs-type"
+		>HasFromBuiltin</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034868"
+	      ><span class="hs-identifier hs-type"
+		>brep</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-214"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034869"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	      ><span class="hs-operator hs-type"
+		>`PLC.HasTermLevel`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Builtins.HasBuiltin.html#FromBuiltin"
+	      ><span class="hs-identifier hs-type"
+		>FromBuiltin</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034867"
+	      ><span class="hs-identifier hs-type"
+		>arep</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Builtins.HasBuiltin.html#FromBuiltin"
+	      ><span class="hs-identifier hs-type"
+		>FromBuiltin</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034868"
+	      ><span class="hs-identifier hs-type"
+		>brep</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-215"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-216"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Lift.Class.html#Lift"
+	      ><span class="hs-identifier hs-type"
+		>Lift</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034869"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Builtins.Internal.html#BuiltinPair"
+	      ><span class="hs-identifier hs-type"
+		>BuiltinPair</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034867"
+	      ><span class="hs-identifier hs-type"
+		>arep</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680034868"
+	      ><span class="hs-identifier hs-type"
+		>brep</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035101"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinPair arep brep
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FromBuiltin arep, FromBuiltin brep)
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((FromBuiltin arep, FromBuiltin brep)
+ -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinPair arep brep -&gt; (FromBuiltin arep, FromBuiltin brep))
+-&gt; BuiltinPair arep brep
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinPair arep brep -&gt; (FromBuiltin arep, FromBuiltin brep)
+BuiltinPair arep brep -&gt; FromBuiltin (BuiltinPair arep brep)
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034876"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034876"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	  ><span class="hs-identifier hs-type"
+	    >Data</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034876"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035106"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinData -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinData
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Data -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	><span class="hs-identifier hs-type"
+	  >Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680034879"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034879"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	  ><span class="hs-identifier hs-type"
+	    >Data</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034879"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035114"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinData -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Data -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinData -&gt; Data)
+-&gt; BuiltinData
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Data
+BuiltinData -&gt; FromBuiltin BuiltinData
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034884"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034884"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusCore.Crypto.BLS12_381.G1.Element</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-231"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034884"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBLS12_381_G1_Element"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBLS12_381_G1_Element</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035119"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinBLS12_381_G1_Element
+-&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinBLS12_381_G1_Element
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Element -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html#Element"
+	><span class="hs-identifier hs-type"
+	  >PlutusCore.Crypto.BLS12_381.G1.Element</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034887"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034887"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusCore.Crypto.BLS12_381.G1.Element</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-238"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034887"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBLS12_381_G1_Element"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBLS12_381_G1_Element</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035127"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinBLS12_381_G1_Element
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Element -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinBLS12_381_G1_Element -&gt; Element)
+-&gt; BuiltinBLS12_381_G1_Element
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinBLS12_381_G1_Element -&gt; Element
+BuiltinBLS12_381_G1_Element
+-&gt; FromBuiltin BuiltinBLS12_381_G1_Element
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034892"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034892"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusCore.Crypto.BLS12_381.G2.Element</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-245"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034892"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBLS12_381_G2_Element"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBLS12_381_G2_Element</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035132"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinBLS12_381_G2_Element
+-&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinBLS12_381_G2_Element
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Element -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html#Element"
+	><span class="hs-identifier hs-type"
+	  >PlutusCore.Crypto.BLS12_381.G2.Element</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034895"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034895"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusCore.Crypto.BLS12_381.G2.Element</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-252"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034895"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBLS12_381_G2_Element"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBLS12_381_G2_Element</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035140"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinBLS12_381_G2_Element
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Element -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinBLS12_381_G2_Element -&gt; Element)
+-&gt; BuiltinBLS12_381_G2_Element
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinBLS12_381_G2_Element -&gt; Element
+BuiltinBLS12_381_G2_Element
+-&gt; FromBuiltin BuiltinBLS12_381_G2_Element
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034900"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034900"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTypeLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.Pairing.html#MlResult"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusCore.Crypto.BLS12_381.Pairing.MlResult</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-259"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034900"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBLS12_381_MlResult"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBLS12_381_MlResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035145"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeRep :: forall fun.
+Proxy BuiltinBLS12_381_MlResult
+-&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#typeRep"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >typeRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy BuiltinBLS12_381_MlResult
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy MlResult -&gt; RTCompile uni fun (Type TyName uni ())
+forall k (a :: k) (uni :: * -&gt; *) fun.
+HasTypeLevel uni a =&gt;
+Proxy a -&gt; RTCompile uni fun (Type TyName uni ())
+</span
+	><a href="PlutusTx.Lift.Class.html#typeRepBuiltin"
+	><span class="hs-identifier hs-var"
+	  >typeRepBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.Pairing.html#MlResult"
+	><span class="hs-identifier hs-type"
+	  >PlutusCore.Crypto.BLS12_381.Pairing.MlResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-263"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lift and Typeable instances for builtins]</span
+      ><span
+      >
+</span
+      ><span id="line-264"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-265"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680034903"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680034903"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#HasTermLevel"
+	  ><span class="hs-operator hs-type"
+	    >`PLC.HasTermLevel`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.Pairing.html#MlResult"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusCore.Crypto.BLS12_381.Pairing.MlResult</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-266"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680034903"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinBLS12_381_MlResult"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinBLS12_381_MlResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-267"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-268"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680035153"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall fun.
+BuiltinBLS12_381_MlResult
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Lift.Class.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MlResult -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+HasTermLevel uni a =&gt;
+a -&gt; RTCompile uni fun (Term TyName Name uni fun ())
+</span
+	><a href="PlutusTx.Lift.Class.html#liftBuiltin"
+	><span class="hs-identifier hs-var"
+	  >liftBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(MlResult -&gt; RTCompile uni fun (Term TyName Name uni fun ()))
+-&gt; (BuiltinBLS12_381_MlResult -&gt; MlResult)
+-&gt; BuiltinBLS12_381_MlResult
+-&gt; RTCompile uni fun (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinBLS12_381_MlResult -&gt; MlResult
+BuiltinBLS12_381_MlResult -&gt; FromBuiltin BuiltinBLS12_381_MlResult
+forall arep. HasFromBuiltin arep =&gt; arep -&gt; FromBuiltin arep
+</span
+	><a href="PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier hs-var"
+	  >fromBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-269"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-270"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Lift and Typeable instances for builtins]
+We can, generally, lift builtin values. We just make a constant with the value inside.
+However, in Plutus Tx we use opaque types for most builtin types to avoid people
+trying to pattern match on them. So the types don't quite match up with what we need
+to put inside the constant.
+
+Fortunately, we have To/FromBuiltin, which happen to do what we want.
+See Note [Built-in types and their Haskell counterparts].
+This is arguably slightly an abuse: the versions of the types that we want in
+Plutus Tx source code and the versions that we use as the implementations of
+the builtin types in the universe could be different. But in practice they
+aren't. So we can write fairly straightforward instances for most types.
+
+Similarly, for Typeable we may have to use a different type from the opaque one.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-285"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

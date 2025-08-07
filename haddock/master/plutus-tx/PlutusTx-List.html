@@ -1,0 +1,1174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.List</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.List.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.List</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:uncons"
+	      >uncons</a
+	      > &#8759; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > (a, [a])</li
+	    ><li class="src short"
+	    ><a href="#v:null"
+	      >null</a
+	      > &#8759; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:length"
+	      >length</a
+	      > &#8759; [a] &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:map"
+	      >map</a
+	      > &#8759; &#8704; a b. (a &#8594; b) &#8594; [a] &#8594; [b]</li
+	    ><li class="src short"
+	    ><a href="#v:and"
+	      >and</a
+	      > &#8759; [<a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:or"
+	      >or</a
+	      > &#8759; [<a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:any"
+	      >any</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:all"
+	      >all</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:elem"
+	      >elem</a
+	      > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > a &#8658; a &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:notElem"
+	      >notElem</a
+	      > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > a &#8658; a &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:find"
+	      >find</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:filter"
+	      >filter</a
+	      > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:listToMaybe"
+	      >listToMaybe</a
+	      > &#8759; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:uniqueElement"
+	      >uniqueElement</a
+	      > &#8759; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:findIndices"
+	      >findIndices</a
+	      > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; [<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:findIndex"
+	      >findIndex</a
+	      > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:foldr"
+	      >foldr</a
+	      > &#8759; &#8704; a b. (a &#8594; b &#8594; b) &#8594; b &#8594; [a] &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:foldl"
+	      >foldl</a
+	      > &#8759; &#8704; a b. (b &#8594; a &#8594; b) &#8594; b &#8594; [a] &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:revAppend"
+	      >revAppend</a
+	      > &#8759; &#8704; a. [a] &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:reverse"
+	      >reverse</a
+	      > &#8759; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:concat"
+	      >concat</a
+	      > &#8759; [[a]] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:concatMap"
+	      >concatMap</a
+	      > &#8759; (a &#8594; [b]) &#8594; [a] &#8594; [b]</li
+	    ><li class="src short"
+	    ><a href="#v:zip"
+	      >zip</a
+	      > &#8759; &#8704; a b. [a] &#8594; [b] &#8594; [(a, b)]</li
+	    ><li class="src short"
+	    ><a href="#v:unzip"
+	      >unzip</a
+	      > &#8759; &#8704; a b. [(a, b)] &#8594; ([a], [b])</li
+	    ><li class="src short"
+	    ><a href="#v:-43--43-"
+	      >(++)</a
+	      > &#8759; [a] &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:-33--33-"
+	      >(!!)</a
+	      > &#8759; &#8704; a. [a] &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:head"
+	      >head</a
+	      > &#8759; [a] &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:last"
+	      >last</a
+	      > &#8759; [a] &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:tail"
+	      >tail</a
+	      > &#8759; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:take"
+	      >take</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:drop"
+	      >drop</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:splitAt"
+	      >splitAt</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; [a] &#8594; ([a], [a])</li
+	    ><li class="src short"
+	    ><a href="#v:nub"
+	      >nub</a
+	      > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > a &#8658; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:nubBy"
+	      >nubBy</a
+	      > &#8759; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:zipWith"
+	      >zipWith</a
+	      > &#8759; &#8704; a b c. (a &#8594; b &#8594; c) &#8594; [a] &#8594; [b] &#8594; [c]</li
+	    ><li class="src short"
+	    ><a href="#v:dropWhile"
+	      >dropWhile</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:replicate"
+	      >replicate</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; a &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:partition"
+	      >partition</a
+	      > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; [a] &#8594; ([a], [a])</li
+	    ><li class="src short"
+	    ><a href="#v:sort"
+	      >sort</a
+	      > &#8759; <a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+	      >Ord</a
+	      > a &#8658; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:sortBy"
+	      >sortBy</a
+	      > &#8759; (a &#8594; a &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+	      >Ordering</a
+	      >) &#8594; [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:elemBy"
+	      >elemBy</a
+	      > &#8759; &#8704; a. (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; a &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uncons" class="def"
+	    >uncons</a
+	    > &#8759; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > (a, [a]) <a href="src/PlutusTx.List.html#uncons" class="link"
+	    >Source</a
+	    > <a href="#v:uncons" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:uncons" title="Data.List"
+		>uncons</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:null" class="def"
+	    >null</a
+	    > &#8759; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#null" class="link"
+	    >Source</a
+	    > <a href="#v:null" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test whether a list is empty.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:length" class="def"
+	    >length</a
+	    > &#8759; [a] &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.List.html#length" class="link"
+	    >Source</a
+	    > <a href="#v:length" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:map" class="def"
+	    >map</a
+	    > &#8759; &#8704; a b. (a &#8594; b) &#8594; [a] &#8594; [b] <a href="src/PlutusTx.List.html#map" class="link"
+	    >Source</a
+	    > <a href="#v:map" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:map" title="Data.List"
+		>map</a
+		></code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>map (\i -&gt; i + 1) [1, 2, 3]
+</code
+		></strong
+	      >[2,3,4]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:and" class="def"
+	    >and</a
+	    > &#8759; [<a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#and" class="link"
+	    >Source</a
+	    > <a href="#v:and" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the conjunction of a list of Bools.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:or" class="def"
+	    >or</a
+	    > &#8759; [<a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#or" class="link"
+	    >Source</a
+	    > <a href="#v:or" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the disjunction of a list of Bools.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:any" class="def"
+	    >any</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#any" class="link"
+	    >Source</a
+	    > <a href="#v:any" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Determines whether any element of the structure satisfies the predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:all" class="def"
+	    >all</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#all" class="link"
+	    >Source</a
+	    > <a href="#v:all" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Determines whether all elements of the list satisfy the predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elem" class="def"
+	    >elem</a
+	    > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > a &#8658; a &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#elem" class="link"
+	    >Source</a
+	    > <a href="#v:elem" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Does the element occur in the list?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:notElem" class="def"
+	    >notElem</a
+	    > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > a &#8658; a &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#notElem" class="link"
+	    >Source</a
+	    > <a href="#v:notElem" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The negation of <code
+	      ><a href="PlutusTx-List.html#v:elem" title="PlutusTx.List"
+		>elem</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:find" class="def"
+	    >find</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.List.html#find" class="link"
+	    >Source</a
+	    > <a href="#v:find" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the leftmost element matching the predicate, or <code
+	      ><a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+		>Nothing</a
+		></code
+	      > if there's no such element.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:filter" class="def"
+	    >filter</a
+	    > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; [a] <a href="src/PlutusTx.List.html#filter" class="link"
+	    >Source</a
+	    > <a href="#v:filter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:filter" title="Data.List"
+		>filter</a
+		></code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>filter (&gt; 1) [1, 2, 3, 4]
+</code
+		></strong
+	      >[2,3,4]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:listToMaybe" class="def"
+	    >listToMaybe</a
+	    > &#8759; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.List.html#listToMaybe" class="link"
+	    >Source</a
+	    > <a href="#v:listToMaybe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:listToMaybe" title="Data.List"
+		>listToMaybe</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uniqueElement" class="def"
+	    >uniqueElement</a
+	    > &#8759; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.List.html#uniqueElement" class="link"
+	    >Source</a
+	    > <a href="#v:uniqueElement" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the element in the list, if there is precisely one.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:findIndices" class="def"
+	    >findIndices</a
+	    > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; [<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    >] <a href="src/PlutusTx.List.html#findIndices" class="link"
+	    >Source</a
+	    > <a href="#v:findIndices" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:findIndices" title="Data.List"
+		>findIndices</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:findIndex" class="def"
+	    >findIndex</a
+	    > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.List.html#findIndex" class="link"
+	    >Source</a
+	    > <a href="#v:findIndex" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:findIndex" title="Data.List"
+		>findIndex</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldr" class="def"
+	    >foldr</a
+	    > &#8759; &#8704; a b. (a &#8594; b &#8594; b) &#8594; b &#8594; [a] &#8594; b <a href="src/PlutusTx.List.html#foldr" class="link"
+	    >Source</a
+	    > <a href="#v:foldr" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:foldr" title="Data.List"
+		>foldr</a
+		></code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>foldr (\i s -&gt; s + i) 0 [1, 2, 3, 4]
+</code
+		></strong
+	      >10
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldl" class="def"
+	    >foldl</a
+	    > &#8759; &#8704; a b. (b &#8594; a &#8594; b) &#8594; b &#8594; [a] &#8594; b <a href="src/PlutusTx.List.html#foldl" class="link"
+	    >Source</a
+	    > <a href="#v:foldl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx velsion of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:foldl" title="Data.List"
+		>foldl</a
+		></code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>foldl (\s i -&gt; s + i) 0 [1, 2, 3, 4]
+</code
+		></strong
+	      >10
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:revAppend" class="def"
+	    >revAppend</a
+	    > &#8759; &#8704; a. [a] &#8594; [a] &#8594; [a] <a href="src/PlutusTx.List.html#revAppend" class="link"
+	    >Source</a
+	    > <a href="#v:revAppend" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Cons each element of the first list to the second one in reverse order (i.e. the last element
+of the first list is the head of the result).</p
+	    ><pre
+	    >revAppend xs ys === reverse xs ++ ys</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>revAppend &quot;abc&quot; &quot;de&quot;
+</code
+		></strong
+	      >&quot;cbade&quot;
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reverse" class="def"
+	    >reverse</a
+	    > &#8759; [a] &#8594; [a] <a href="src/PlutusTx.List.html#reverse" class="link"
+	    >Source</a
+	    > <a href="#v:reverse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:reverse" title="Data.List"
+		>reverse</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concat" class="def"
+	    >concat</a
+	    > &#8759; [[a]] &#8594; [a] <a href="src/PlutusTx.List.html#concat" class="link"
+	    >Source</a
+	    > <a href="#v:concat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:concat" title="Data.List"
+		>concat</a
+		></code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>concat [[1, 2], [3], [4, 5]]
+</code
+		></strong
+	      >[1,2,3,4,5]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concatMap" class="def"
+	    >concatMap</a
+	    > &#8759; (a &#8594; [b]) &#8594; [a] &#8594; [b] <a href="src/PlutusTx.List.html#concatMap" class="link"
+	    >Source</a
+	    > <a href="#v:concatMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:concatMap" title="Data.List"
+		>concatMap</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zip" class="def"
+	    >zip</a
+	    > &#8759; &#8704; a b. [a] &#8594; [b] &#8594; [(a, b)] <a href="src/PlutusTx.List.html#zip" class="link"
+	    >Source</a
+	    > <a href="#v:zip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:zip" title="Data.List"
+		>zip</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unzip" class="def"
+	    >unzip</a
+	    > &#8759; &#8704; a b. [(a, b)] &#8594; ([a], [b]) <a href="src/PlutusTx.List.html#unzip" class="link"
+	    >Source</a
+	    > <a href="#v:unzip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:unzip" title="Data.List"
+		>unzip</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-43--43-" class="def"
+	    >(++)</a
+	    > &#8759; [a] &#8594; [a] &#8594; [a] <span class="fixity"
+	    >infixr 5</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.List.html#%2B%2B" class="link"
+	    >Source</a
+	    > <a href="#v:-43--43-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:-43--43-" title="Data.List"
+		>(++)</a
+		></code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>[0, 1, 2] ++ [1, 2, 3, 4]
+</code
+		></strong
+	      >[0,1,2,1,2,3,4]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-33--33-" class="def"
+	    >(!!)</a
+	    > &#8759; &#8704; a. [a] &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; a <span class="fixity"
+	    >infixl 9</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.List.html#%21%21" class="link"
+	    >Source</a
+	    > <a href="#v:-33--33-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#v:-33--33-" title="GHC.List"
+		>(!!)</a
+		></code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>[10, 11, 12] !! 2
+</code
+		></strong
+	      >12
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:head" class="def"
+	    >head</a
+	    > &#8759; [a] &#8594; a <a href="src/PlutusTx.List.html#head" class="link"
+	    >Source</a
+	    > <a href="#v:head" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:head" title="Data.List"
+		>head</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:last" class="def"
+	    >last</a
+	    > &#8759; [a] &#8594; a <a href="src/PlutusTx.List.html#last" class="link"
+	    >Source</a
+	    > <a href="#v:last" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:last" title="Data.List"
+		>last</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tail" class="def"
+	    >tail</a
+	    > &#8759; [a] &#8594; [a] <a href="src/PlutusTx.List.html#tail" class="link"
+	    >Source</a
+	    > <a href="#v:tail" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:tail" title="Data.List"
+		>tail</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:take" class="def"
+	    >take</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; [a] &#8594; [a] <a href="src/PlutusTx.List.html#take" class="link"
+	    >Source</a
+	    > <a href="#v:take" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:take" title="Data.List"
+		>take</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:drop" class="def"
+	    >drop</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; [a] &#8594; [a] <a href="src/PlutusTx.List.html#drop" class="link"
+	    >Source</a
+	    > <a href="#v:drop" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:drop" title="Data.List"
+		>drop</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:splitAt" class="def"
+	    >splitAt</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; [a] &#8594; ([a], [a]) <a href="src/PlutusTx.List.html#splitAt" class="link"
+	    >Source</a
+	    > <a href="#v:splitAt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:splitAt" title="Data.List"
+		>splitAt</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nub" class="def"
+	    >nub</a
+	    > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > a &#8658; [a] &#8594; [a] <a href="src/PlutusTx.List.html#nub" class="link"
+	    >Source</a
+	    > <a href="#v:nub" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:nub" title="Data.List"
+		>nub</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nubBy" class="def"
+	    >nubBy</a
+	    > &#8759; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; [a] <a href="src/PlutusTx.List.html#nubBy" class="link"
+	    >Source</a
+	    > <a href="#v:nubBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:nubBy" title="Data.List"
+		>nubBy</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zipWith" class="def"
+	    >zipWith</a
+	    > &#8759; &#8704; a b c. (a &#8594; b &#8594; c) &#8594; [a] &#8594; [b] &#8594; [c] <a href="src/PlutusTx.List.html#zipWith" class="link"
+	    >Source</a
+	    > <a href="#v:zipWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:zipWith" title="Data.List"
+		>zipWith</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dropWhile" class="def"
+	    >dropWhile</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; [a] <a href="src/PlutusTx.List.html#dropWhile" class="link"
+	    >Source</a
+	    > <a href="#v:dropWhile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:dropWhile" title="Data.List"
+		>dropWhile</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:replicate" class="def"
+	    >replicate</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; a &#8594; [a] <a href="src/PlutusTx.List.html#replicate" class="link"
+	    >Source</a
+	    > <a href="#v:replicate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:replicate" title="Data.List"
+		>replicate</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:partition" class="def"
+	    >partition</a
+	    > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; [a] &#8594; ([a], [a]) <a href="src/PlutusTx.List.html#partition" class="link"
+	    >Source</a
+	    > <a href="#v:partition" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:partition" title="Data.List"
+		>partition</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sort" class="def"
+	    >sort</a
+	    > &#8759; <a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+	    >Ord</a
+	    > a &#8658; [a] &#8594; [a] <a href="src/PlutusTx.List.html#sort" class="link"
+	    >Source</a
+	    > <a href="#v:sort" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:sort" title="Data.List"
+		>sort</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sortBy" class="def"
+	    >sortBy</a
+	    > &#8759; (a &#8594; a &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+	    >Ordering</a
+	    >) &#8594; [a] &#8594; [a] <a href="src/PlutusTx.List.html#sortBy" class="link"
+	    >Source</a
+	    > <a href="#v:sortBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:sortBy" title="Data.List"
+		>sortBy</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elemBy" class="def"
+	    >elemBy</a
+	    > &#8759; &#8704; a. (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; a &#8594; [a] &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.List.html#elemBy" class="link"
+	    >Source</a
+	    > <a href="#v:elemBy" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

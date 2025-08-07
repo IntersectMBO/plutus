@@ -1,0 +1,875 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.RTE</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.51.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.RTE.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.RTE</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:AgdaAny" class="def"
+	    >AgdaAny</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Any" title="GHC.Exts"
+	    >Any</a
+	    > <a href="src/MAlonzo.RTE.html#AgdaAny" class="link"
+	    >Source</a
+	    > <a href="#t:AgdaAny" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coe" class="def"
+	    >coe</a
+	    > &#8759; a &#8594; b <a href="src/MAlonzo.RTE.html#coe" class="link"
+	    >Source</a
+	    > <a href="#v:coe" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:QName" class="def"
+	    >QName</a
+	    > <a href="src/MAlonzo.RTE.html#QName" class="link"
+	    >Source</a
+	    > <a href="#t:QName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:QName" class="def"
+		  >QName</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:nameId" class="def"
+			  >nameId</a
+			  >, <a id="v:moduleId" class="def"
+			  >moduleId</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:qnameString" class="def"
+			  >qnameString</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:qnameFixity" class="def"
+			  >qnameFixity</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:Fixity" title="MAlonzo.RTE"
+			  >Fixity</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:QName"
+	    >Instances</h4
+	    ><details id="i:QName" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QName:Eq:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+		      >QName</a
+		      ></span
+		    > <a href="src/MAlonzo.RTE.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:QName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QName:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="MAlonzo-RTE.html"
+			>MAlonzo.RTE</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QName:Ord:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+		      >QName</a
+		      ></span
+		    > <a href="src/MAlonzo.RTE.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:QName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QName:Ord:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="MAlonzo-RTE.html"
+			>MAlonzo.RTE</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > &#8594; <a href="MAlonzo-RTE.html#t:QName" title="MAlonzo.RTE"
+			  >QName</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Assoc" class="def"
+	    >Assoc</a
+	    > <a href="src/MAlonzo.RTE.html#Assoc" class="link"
+	    >Source</a
+	    > <a href="#t:Assoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NonAssoc" class="def"
+		  >NonAssoc</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LeftAssoc" class="def"
+		  >LeftAssoc</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:RightAssoc" class="def"
+		  >RightAssoc</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Precedence" class="def"
+	    >Precedence</a
+	    > <a href="src/MAlonzo.RTE.html#Precedence" class="link"
+	    >Source</a
+	    > <a href="#t:Precedence" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Unrelated" class="def"
+		  >Unrelated</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Related" class="def"
+		  >Related</a
+		  > <a href="MAlonzo-RTE.html#t:PrecedenceLevel" title="MAlonzo.RTE"
+		  >PrecedenceLevel</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Fixity" class="def"
+	    >Fixity</a
+	    > <a href="src/MAlonzo.RTE.html#Fixity" class="link"
+	    >Source</a
+	    > <a href="#t:Fixity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Fixity" class="def"
+		  >Fixity</a
+		  > <a href="MAlonzo-RTE.html#t:Assoc" title="MAlonzo.RTE"
+		  >Assoc</a
+		  > <a href="MAlonzo-RTE.html#t:Precedence" title="MAlonzo.RTE"
+		  >Precedence</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PrecedenceLevel" class="def"
+	    >PrecedenceLevel</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.html#PrecedenceLevel" class="link"
+	    >Source</a
+	    > <a href="#t:PrecedenceLevel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:erased" class="def"
+	    >erased</a
+	    > &#8759; a <a href="src/MAlonzo.RTE.html#erased" class="link"
+	    >Source</a
+	    > <a href="#v:erased" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mazUnreachableError" class="def"
+	    >mazUnreachableError</a
+	    > &#8759; a <a href="src/MAlonzo.RTE.html#mazUnreachableError" class="link"
+	    >Source</a
+	    > <a href="#v:mazUnreachableError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mazHole" class="def"
+	    >mazHole</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; a <a href="src/MAlonzo.RTE.html#mazHole" class="link"
+	    >Source</a
+	    > <a href="#v:mazHole" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addInt" class="def"
+	    >addInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.html#addInt" class="link"
+	    >Source</a
+	    > <a href="#v:addInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:subInt" class="def"
+	    >subInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.html#subInt" class="link"
+	    >Source</a
+	    > <a href="#v:subInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mulInt" class="def"
+	    >mulInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.html#mulInt" class="link"
+	    >Source</a
+	    > <a href="#v:mulInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:geqInt" class="def"
+	    >geqInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.html#geqInt" class="link"
+	    >Source</a
+	    > <a href="#v:geqInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ltInt" class="def"
+	    >ltInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.html#ltInt" class="link"
+	    >Source</a
+	    > <a href="#v:ltInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eqInt" class="def"
+	    >eqInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.html#eqInt" class="link"
+	    >Source</a
+	    > <a href="#v:eqInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:quotInt" class="def"
+	    >quotInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.html#quotInt" class="link"
+	    >Source</a
+	    > <a href="#v:quotInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:remInt" class="def"
+	    >remInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.html#remInt" class="link"
+	    >Source</a
+	    > <a href="#v:remInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:natToChar" class="def"
+	    >natToChar</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+	    >Char</a
+	    > <a href="src/MAlonzo.RTE.html#natToChar" class="link"
+	    >Source</a
+	    > <a href="#v:natToChar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Word64" class="def"
+	    >Word64</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.html#Word64" class="link"
+	    >Source</a
+	    > <a href="#t:Word64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:word64ToNat" class="def"
+	    >word64ToNat</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.html#word64ToNat" class="link"
+	    >Source</a
+	    > <a href="#v:word64ToNat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:word64FromNat" class="def"
+	    >word64FromNat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.html#word64FromNat" class="link"
+	    >Source</a
+	    > <a href="#v:word64FromNat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:add64" class="def"
+	    >add64</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.html#add64" class="link"
+	    >Source</a
+	    > <a href="#v:add64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sub64" class="def"
+	    >sub64</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.html#sub64" class="link"
+	    >Source</a
+	    > <a href="#v:sub64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mul64" class="def"
+	    >mul64</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.html#mul64" class="link"
+	    >Source</a
+	    > <a href="#v:mul64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:quot64" class="def"
+	    >quot64</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.html#quot64" class="link"
+	    >Source</a
+	    > <a href="#v:quot64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rem64" class="def"
+	    >rem64</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.html#rem64" class="link"
+	    >Source</a
+	    > <a href="#v:rem64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eq64" class="def"
+	    >eq64</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.html#eq64" class="link"
+	    >Source</a
+	    > <a href="#v:eq64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lt64" class="def"
+	    >lt64</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:Word64" title="MAlonzo.RTE"
+	    >Word64</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.html#lt64" class="link"
+	    >Source</a
+	    > <a href="#v:lt64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Inf" class="def"
+	    >Inf</a
+	    > a <a href="src/MAlonzo.RTE.html#Inf" class="link"
+	    >Source</a
+	    > <a href="#t:Inf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Sharp" class="def"
+		  >Sharp</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:flat" class="def"
+			  >flat</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Infinity" class="def"
+	    >Infinity</a
+	    > (level &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) a = <a href="MAlonzo-RTE.html#t:Inf" title="MAlonzo.RTE"
+	    >Inf</a
+	    > a <a href="src/MAlonzo.RTE.html#Infinity" class="link"
+	    >Source</a
+	    > <a href="#t:Infinity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,5060 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs                  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Breakpointable"
+	><span class="hs-identifier"
+	  >Breakpointable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+	><span class="hs-identifier"
+	  >CekState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	><span class="hs-identifier"
+	  >Cmd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#runDriverT"
+	><span class="hs-identifier"
+	  >runDriverT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DebugF"
+	><span class="hs-identifier"
+	  >DebugF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Reexport some functions for convenience</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#mkCekTrans"
+	><span class="hs-identifier"
+	  >mkCekTrans</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekTrans"
+	><span class="hs-identifier"
+	  >CekTrans</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Free.Class.html#MonadFree"
+	><span class="hs-identifier"
+	  >F.MonadFree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Trans.Free.html#iterM"
+	><span class="hs-identifier"
+	  >F.iterM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Trans.Free.html#iterTM"
+	><span class="hs-identifier"
+	  >F.iterTM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Trans.Free.html#partialIterT"
+	><span class="hs-identifier"
+	  >F.partialIterT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Trans.Free.html#cutoff"
+	><span class="hs-identifier"
+	  >F.cutoff</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Trans.Free.html#FreeT"
+	><span class="hs-identifier"
+	  >FreeT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Context</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier"
+	  >void</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	><span class="hs-identifier"
+	  >MonadReader</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier"
+	  >ask</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier"
+	  >local</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReaderT"
+	><span class="hs-identifier"
+	  >runReaderT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Trans.Free.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Trans.Free</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>F</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html"
+	><span class="hs-identifier"
+	  >Data.Function</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Stepping the driver]
+
+The client instructs the driver to do a single step of the Cek (`Step` Cmd) or multiple steps until
+a condition is met (`Continue`,`Next`,`Finish`). The driver upon receiving a Command (via `inputF`)
+fires a series of `stepF` actions to fulfill the command. A `stepF` action is supposed to move the
+underlying CEK machine a *single* step forward. Since the driver is written as a free monad, the
+interpretation of the `stepF` action is left open.
+
+When the driver calls `stepF state`, it yields its coroutine with the current driver/cek state
+(before the stepping interpretation). The interpreter of `stepF` receives the currentState and
+calculates a newstate from it (e.g. **actually stepping the cek machine**). The interpreter then
+resumes the driver coroutine with the new state.
+
+The sensible interpretation to this is the CEK's state transition function (`cekTrans oldState
+===&gt; newState`), but other exotic options may be: logging the before/after states, or even
+&quot;mutating&quot; the running program's variables in the environment before/after the state transition
+(similar to C debuggers). The interpreter can even supply a different state transition function
+(e.g. `id`), but we see little benefit in it at the moment. Currently all interpreters
+(brick,repl,testing) just call`cekTrans`.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-comment"
+      >-- | Leave abstract the types of annotation and breakpoints.</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- The only thing the driver requires is an inclusion relation of breakpoints into the Annotation</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="Breakpointable"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Breakpointable"
+	  ><span class="hs-identifier hs-var"
+	    >Breakpointable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681952924"
+      ><span class="annot"
+	><a href="#local-6989586621681952924"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681952925"
+      ><span class="annot"
+	><a href="#local-6989586621681952925"
+	  ><span class="hs-identifier hs-type"
+	    >bps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952924"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952925"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- MAYBE: we cannot know which breakpoint fired, return instead `Maybe Breakpoint`?</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span id="hasBreakpoints"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#hasBreakpoints"
+	  ><span class="hs-identifier hs-type"
+	    >hasBreakpoints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952924"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952925"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The commands that the driver may receive from the client (tui,cli,test,etc)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Cmd"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	  ><span class="hs-identifier hs-var"
+	    >Cmd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953047"
+      ><span class="annot"
+	><a href="#local-6989586621681953047"
+	  ><span class="hs-identifier hs-type"
+	    >bps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Step"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Step"
+	  ><span class="hs-identifier hs-var"
+	    >Step</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- ^ Instruct the driver to a *SINGLE* step.</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-comment"
+      >-- Note: No need to pass breakpoints here because the stepping granularity is *minimal*.</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Continue"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Continue"
+	  ><span class="hs-identifier hs-var"
+	    >Continue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953047"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Instruct to multi-step until end-of-program or until breakpoint reached</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Next"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Next"
+	  ><span class="hs-identifier hs-var"
+	    >Next</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953047"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Instruct to multi-step over the function call at point or until breakpoint reached</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Finish"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Finish"
+	  ><span class="hs-identifier hs-var"
+	    >Finish</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953047"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Instruct to multi-step to end of current function or until breakpoint reached</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681953054"
+      ><span id="local-6989586621681953063"
+	><span id="local-6989586621681953067"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Cmd bps -&gt; ShowS
+[Cmd bps] -&gt; ShowS
+Cmd bps -&gt; String
+(Int -&gt; Cmd bps -&gt; ShowS)
+-&gt; (Cmd bps -&gt; String) -&gt; ([Cmd bps] -&gt; ShowS) -&gt; Show (Cmd bps)
+forall bps. Show bps =&gt; Int -&gt; Cmd bps -&gt; ShowS
+forall bps. Show bps =&gt; [Cmd bps] -&gt; ShowS
+forall bps. Show bps =&gt; Cmd bps -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall bps. Show bps =&gt; Int -&gt; Cmd bps -&gt; ShowS
+showsPrec :: Int -&gt; Cmd bps -&gt; ShowS
+$cshow :: forall bps. Show bps =&gt; Cmd bps -&gt; String
+show :: Cmd bps -&gt; String
+$cshowList :: forall bps. Show bps =&gt; [Cmd bps] -&gt; ShowS
+showList :: [Cmd bps] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681953072"
+      ><span id="local-6989586621681953076"
+	><span id="local-6989586621681953079"
+	  ><span id="local-6989586621681953096"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>ReadPrec [Cmd bps]
+ReadPrec (Cmd bps)
+Int -&gt; ReadS (Cmd bps)
+ReadS [Cmd bps]
+(Int -&gt; ReadS (Cmd bps))
+-&gt; ReadS [Cmd bps]
+-&gt; ReadPrec (Cmd bps)
+-&gt; ReadPrec [Cmd bps]
+-&gt; Read (Cmd bps)
+forall bps. Read bps =&gt; ReadPrec [Cmd bps]
+forall bps. Read bps =&gt; ReadPrec (Cmd bps)
+forall bps. Read bps =&gt; Int -&gt; ReadS (Cmd bps)
+forall bps. Read bps =&gt; ReadS [Cmd bps]
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: forall bps. Read bps =&gt; Int -&gt; ReadS (Cmd bps)
+readsPrec :: Int -&gt; ReadS (Cmd bps)
+$creadList :: forall bps. Read bps =&gt; ReadS [Cmd bps]
+readList :: ReadS [Cmd bps]
+$creadPrec :: forall bps. Read bps =&gt; ReadPrec (Cmd bps)
+readPrec :: ReadPrec (Cmd bps)
+$creadListPrec :: forall bps. Read bps =&gt; ReadPrec [Cmd bps]
+readListPrec :: ReadPrec [Cmd bps]
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Read.html#Read"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Read</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The drivers's suspension functor</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="DebugF"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DebugF"
+	  ><span class="hs-identifier hs-var"
+	    >DebugF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953013"
+      ><span class="annot"
+	><a href="#local-6989586621681953013"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953014"
+      ><span class="annot"
+	><a href="#local-6989586621681953014"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953015"
+      ><span class="annot"
+	><a href="#local-6989586621681953015"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953011"
+      ><span class="annot"
+	><a href="#local-6989586621681953011"
+	  ><span class="hs-identifier hs-type"
+	    >bps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953012"
+      ><span class="annot"
+	><a href="#local-6989586621681953012"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Await for the client (e.g. TUI) to tell what to do next (Cmd).</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="InputF"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#InputF"
+	  ><span class="hs-identifier hs-var"
+	    >InputF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	><span class="hs-identifier hs-type"
+	  >Cmd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953011"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953012"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The debug driver wants to log something</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="DriverLogF"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DriverLogF"
+	  ><span class="hs-identifier hs-var"
+	    >DriverLogF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953012"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- | An enumeratee of Driver State (generator+iteratee):</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Yield a state before doing a step, then await for a state to resume after the step.</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Stepping the driver].</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="StepF"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#StepF"
+	  ><span class="hs-identifier hs-var"
+	    >StepF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+	><span class="hs-identifier hs-type"
+	  >CekState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953013"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953014"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953015"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ yield with the current driver's state before running a step</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+	><span class="hs-identifier hs-type"
+	  >CekState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953013"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953014"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953015"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953012"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- ^ resume back with a state after the step interpretation</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- | A generator of CekState to yield to client (e.g. TUI)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="UpdateClientF"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#UpdateClientF"
+	  ><span class="hs-identifier hs-var"
+	    >UpdateClientF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+	><span class="hs-identifier hs-type"
+	  >CekState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953013"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953014"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953015"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953012"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953104"
+      ><span id="local-6989586621681953106"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b.
+ (a -&gt; b) -&gt; DebugF uni fun ann bps a -&gt; DebugF uni fun ann bps b)
+-&gt; (forall a b.
+    a -&gt; DebugF uni fun ann bps b -&gt; DebugF uni fun ann bps a)
+-&gt; Functor (DebugF uni fun ann bps)
+forall a b.
+a -&gt; DebugF uni fun ann bps b -&gt; DebugF uni fun ann bps a
+forall a b.
+(a -&gt; b) -&gt; DebugF uni fun ann bps a -&gt; DebugF uni fun ann bps b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+forall (uni :: * -&gt; *) fun ann bps a b.
+a -&gt; DebugF uni fun ann bps b -&gt; DebugF uni fun ann bps a
+forall (uni :: * -&gt; *) fun ann bps a b.
+(a -&gt; b) -&gt; DebugF uni fun ann bps a -&gt; DebugF uni fun ann bps b
+$cfmap :: forall (uni :: * -&gt; *) fun ann bps a b.
+(a -&gt; b) -&gt; DebugF uni fun ann bps a -&gt; DebugF uni fun ann bps b
+fmap :: forall a b.
+(a -&gt; b) -&gt; DebugF uni fun ann bps a -&gt; DebugF uni fun ann bps b
+$c&lt;$ :: forall (uni :: * -&gt; *) fun ann bps a b.
+a -&gt; DebugF uni fun ann bps b -&gt; DebugF uni fun ann bps a
+&lt;$ :: forall a b.
+a -&gt; DebugF uni fun ann bps b -&gt; DebugF uni fun ann bps a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The monad that the driver operates in</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Driving"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Driving"
+	  ><span class="hs-identifier hs-var"
+	    >Driving</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953109"
+      ><span class="annot"
+	><a href="#local-6989586621681953109"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953110"
+      ><span class="annot"
+	><a href="#local-6989586621681953110"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953111"
+      ><span class="annot"
+	><a href="#local-6989586621681953111"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953112"
+      ><span class="annot"
+	><a href="#local-6989586621681953112"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953113"
+      ><span class="annot"
+	><a href="#local-6989586621681953113"
+	  ><span class="hs-identifier hs-type"
+	    >bps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	><span class="hs-identifier hs-type"
+	  >MonadReader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+	><span class="hs-identifier hs-type"
+	  >CekState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953110"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953111"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953112"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953109"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- the state of the debugger</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Free.Class.html#MonadFree"
+	><span class="hs-identifier hs-type"
+	  >MonadFree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DebugF"
+	><span class="hs-identifier hs-type"
+	  >DebugF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953110"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953111"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953112"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953113"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953109"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- the effects of the driver</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Breakpointable"
+	><span class="hs-identifier hs-type"
+	  >Breakpointable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953112"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953113"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Entrypoint of the driver</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#runDriverT"
+	><span class="hs-identifier hs-type"
+	  >runDriverT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681952856"
+      ><span class="annot"
+	><a href="#local-6989586621681952856"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681952857"
+      ><span class="annot"
+	><a href="#local-6989586621681952857"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681952853"
+      ><span class="annot"
+	><a href="#local-6989586621681952853"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681952854"
+      ><span class="annot"
+	><a href="#local-6989586621681952854"
+	  ><span class="hs-identifier hs-type"
+	    >bps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681952858"
+      ><span class="annot"
+	><a href="#local-6989586621681952858"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Breakpointable"
+	><span class="hs-identifier hs-type"
+	  >Breakpointable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952853"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952854"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Free.Class.html#MonadFree"
+	><span class="hs-identifier hs-type"
+	  >MonadFree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DebugF"
+	><span class="hs-identifier hs-type"
+	  >DebugF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952856"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952857"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952853"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952854"
+	><span class="hs-identifier hs-type"
+	  >bps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952858"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#NTerm"
+	><span class="hs-identifier hs-type"
+	  >NTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952856"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952857"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952853"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952858"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="runDriverT"
+      ><span class="annot"
+	><span class="annottext"
+	  >runDriverT :: forall (uni :: * -&gt; *) fun ann bps (m :: * -&gt; *).
+(Breakpointable ann bps, MonadFree (DebugF uni fun ann bps) m) =&gt;
+NTerm uni fun ann -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#runDriverT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runDriverT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m () -&gt; m ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier hs-var"
+	  >void</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m () -&gt; m ())
+-&gt; (NTerm uni fun ann -&gt; m ()) -&gt; NTerm uni fun ann -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (CekState uni fun ann) m () -&gt; CekState uni fun ann -&gt; m ()
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReaderT"
+	><span class="hs-identifier hs-var"
+	  >runReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (CekState uni fun ann) m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#driver"
+	><span class="hs-identifier hs-var"
+	  >driver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; m ())
+-&gt; (NTerm uni fun ann -&gt; CekState uni fun ann)
+-&gt; NTerm uni fun ann
+-&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NTerm uni fun ann -&gt; CekState uni fun ann
+</span
+	><a href="#local-6989586621681953133"
+	><span class="hs-identifier hs-var"
+	  >initState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621681953133"
+	><span class="hs-identifier hs-type"
+	  >initState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#NTerm"
+	><span class="hs-identifier hs-type"
+	  >NTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952856"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952857"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952853"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+	><span class="hs-identifier hs-type"
+	  >CekState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952856"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952857"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681952853"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621681953133"
+      ><span class="annot"
+	><span class="annottext"
+	  >initState :: NTerm uni fun ann -&gt; CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953133"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >initState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NTerm uni fun ann -&gt; CekState uni fun ann
+forall (uni :: * -&gt; *) fun ann.
+NTerm uni fun ann -&gt; CekState uni fun ann
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#Starting"
+	><span class="hs-identifier hs-var"
+	  >Starting</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The driver action. The driver repeatedly:</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-comment"
+      >---</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="hs-comment"
+      >-- 1) waits for a `Cmd`</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span class="hs-comment"
+      >-- 2) runs one or more CEK steps</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-comment"
+      >-- 3) informs the client for CEK updates&amp;logs</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="hs-comment"
+      >---</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="hs-comment"
+      >-- The driver computation exits when it reaches a CEK `Terminating` state.</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="local-6989586621681952889"
+      ><span id="local-6989586621681952890"
+	><span id="local-6989586621681952891"
+	  ><span id="local-6989586621681952892"
+	    ><span id="local-6989586621681952893"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#driver"
+		  ><span class="hs-identifier hs-type"
+		    >driver</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Driving"
+		  ><span class="hs-identifier hs-type"
+		    >Driving</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952889"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952890"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952891"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952892"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952893"
+		  ><span class="hs-identifier hs-type"
+		    >bps</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952889"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span id="driver"
+      ><span class="annot"
+	><span class="annottext"
+	  >driver :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#driver"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >driver</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Cmd bps)
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+m (Cmd bps)
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#inputF"
+	><span class="hs-identifier hs-var"
+	  >inputF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Cmd bps) -&gt; (Cmd bps -&gt; m ()) -&gt; m ()
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Condition immediately satisfied</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd bps
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Step"
+	><span class="hs-identifier hs-var"
+	  >Step</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bp.
+Driving m uni fun ann bp =&gt;
+(CekState uni fun ann -&gt; Bool) -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#multiStepUntil"
+	><span class="hs-identifier hs-var"
+	  >multiStepUntil</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CekState uni fun ann -&gt; Bool) -&gt; m ())
+-&gt; (CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; CekState uni fun ann -&gt; Bool
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Continue"
+	><span class="hs-identifier hs-type"
+	  >Continue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953170"
+      ><span class="annot"
+	><span class="annottext"
+	  >bps
+</span
+	  ><a href="#local-6989586621681953170"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bp.
+Driving m uni fun ann bp =&gt;
+(CekState uni fun ann -&gt; Bool) -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#multiStepUntil"
+	><span class="hs-identifier hs-var"
+	  >multiStepUntil</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CekState uni fun ann -&gt; Bool) -&gt; m ())
+-&gt; (CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; (ann -&gt; Bool) -&gt; Maybe ann -&gt; Bool
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; bps -&gt; Bool
+forall ann bps. Breakpointable ann bps =&gt; ann -&gt; bps -&gt; Bool
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#hasBreakpoints"
+	><span class="hs-operator hs-var"
+	  >`hasBreakpoints`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>bps
+</span
+	><a href="#local-6989586621681953170"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe ann -&gt; Bool)
+-&gt; (CekState uni fun ann -&gt; Maybe ann)
+-&gt; CekState uni fun ann
+-&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; Maybe ann
+forall (uni :: * -&gt; *) fun ann. CekState uni fun ann -&gt; Maybe ann
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#cekStateAnn"
+	><span class="hs-identifier hs-var"
+	  >cekStateAnn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Next"
+	><span class="hs-identifier hs-type"
+	  >Next</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953173"
+      ><span class="annot"
+	><span class="annottext"
+	  >bps
+</span
+	  ><a href="#local-6989586621681953173"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681953174"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953174"
+	  ><span class="hs-identifier hs-var"
+	    >startState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (CekState uni fun ann)
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bp.
+Driving m uni fun ann bp =&gt;
+(CekState uni fun ann -&gt; Bool) -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#multiStepUntil"
+	><span class="hs-identifier hs-var"
+	  >multiStepUntil</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CekState uni fun ann -&gt; Bool) -&gt; m ())
+-&gt; (CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681953175"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953175"
+	  ><span class="hs-identifier hs-var"
+	    >curState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; (ann -&gt; Bool) -&gt; Maybe ann -&gt; Bool
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; bps -&gt; Bool
+forall ann bps. Breakpointable ann bps =&gt; ann -&gt; bps -&gt; Bool
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#hasBreakpoints"
+	><span class="hs-operator hs-var"
+	  >`hasBreakpoints`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>bps
+</span
+	><a href="#local-6989586621681953173"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; Maybe ann
+forall (uni :: * -&gt; *) fun ann. CekState uni fun ann -&gt; Maybe ann
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#cekStateAnn"
+	><span class="hs-identifier hs-var"
+	  >cekStateAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953175"
+	><span class="hs-identifier hs-var"
+	  >curState</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- has activation record length been restored?</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681953183"
+      ><span class="annot"
+	><span class="annottext"
+	  >leCtx :: CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+</span
+	  ><a href="#local-6989586621681953183"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >leCtx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe Word -&gt; Maybe Word -&gt; Bool)
+-&gt; CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+forall state (uni :: * -&gt; *) fun ann ctxLen a.
+(state ~ CekState uni fun ann, ctxLen ~ Maybe Word) =&gt;
+(ctxLen -&gt; ctxLen -&gt; a) -&gt; state -&gt; state -&gt; a
+</span
+	><a href="#local-6989586621681953184"
+	><span class="hs-identifier hs-var"
+	  >onCtxLen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Word -&gt; Maybe Word -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >(&lt;)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953175"
+	><span class="hs-identifier hs-var"
+	  >curState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+forall {uni :: * -&gt; *} {fun} {ann}.
+CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+</span
+	><a href="#local-6989586621681953183"
+	><span class="hs-operator hs-var"
+	  >`leCtx`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953174"
+	><span class="hs-identifier hs-var"
+	  >startState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Finish"
+	><span class="hs-identifier hs-type"
+	  >Finish</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953186"
+      ><span class="annot"
+	><span class="annottext"
+	  >bps
+</span
+	  ><a href="#local-6989586621681953186"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681953187"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953187"
+	  ><span class="hs-identifier hs-var"
+	    >startState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (CekState uni fun ann)
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bp.
+Driving m uni fun ann bp =&gt;
+(CekState uni fun ann -&gt; Bool) -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#multiStepUntil"
+	><span class="hs-identifier hs-var"
+	  >multiStepUntil</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CekState uni fun ann -&gt; Bool) -&gt; m ())
+-&gt; (CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681953188"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953188"
+	  ><span class="hs-identifier hs-var"
+	    >curState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; (ann -&gt; Bool) -&gt; Maybe ann -&gt; Bool
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; bps -&gt; Bool
+forall ann bps. Breakpointable ann bps =&gt; ann -&gt; bps -&gt; Bool
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#hasBreakpoints"
+	><span class="hs-operator hs-var"
+	  >`hasBreakpoints`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>bps
+</span
+	><a href="#local-6989586621681953186"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; Maybe ann
+forall (uni :: * -&gt; *) fun ann. CekState uni fun ann -&gt; Maybe ann
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#cekStateAnn"
+	><span class="hs-identifier hs-var"
+	  >cekStateAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953188"
+	><span class="hs-identifier hs-var"
+	  >curState</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- has activation record length become smaller?</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681953193"
+      ><span class="annot"
+	><span class="annottext"
+	  >ltCtx :: CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+</span
+	  ><a href="#local-6989586621681953193"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ltCtx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe Word -&gt; Maybe Word -&gt; Bool)
+-&gt; CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+forall state (uni :: * -&gt; *) fun ann ctxLen a.
+(state ~ CekState uni fun ann, ctxLen ~ Maybe Word) =&gt;
+(ctxLen -&gt; ctxLen -&gt; a) -&gt; state -&gt; state -&gt; a
+</span
+	><a href="#local-6989586621681953184"
+	><span class="hs-identifier hs-var"
+	  >onCtxLen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Word -&gt; Maybe Word -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >(&lt;=)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953188"
+	><span class="hs-identifier hs-var"
+	  >curState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+forall {uni :: * -&gt; *} {fun} {ann}.
+CekState uni fun ann -&gt; CekState uni fun ann -&gt; Bool
+</span
+	><a href="#local-6989586621681953193"
+	><span class="hs-operator hs-var"
+	  >`ltCtx`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953187"
+	><span class="hs-identifier hs-var"
+	  >startState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- | Comparison on states' contexts</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681952934"
+      ><span id="local-6989586621681952935"
+	><span id="local-6989586621681952936"
+	  ><span id="local-6989586621681952937"
+	    ><span id="local-6989586621681952938"
+	      ><span id="local-6989586621681952939"
+		><span class="annot"
+		  ><a href="#local-6989586621681953184"
+		    ><span class="hs-identifier hs-type"
+		      >onCtxLen</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952934"
+		    ><span class="hs-identifier hs-type"
+		      >state</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		    ><span class="hs-operator hs-type"
+		      >~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+		    ><span class="hs-identifier hs-type"
+		      >CekState</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952935"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952936"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952937"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-134"
+		  ></span
+		  ><span
+		  >               </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952938"
+		    ><span class="hs-identifier hs-type"
+		      >ctxLen</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		    ><span class="hs-operator hs-type"
+		      >~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+		    ><span class="hs-identifier hs-type"
+		      >Maybe</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Word"
+		    ><span class="hs-identifier hs-type"
+		      >Word</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-comment"
+		  >-- `Maybe` because ctx can be missing if terminating</span
+		  ><span
+		  >
+</span
+		  ><span id="line-135"
+		  ></span
+		  ><span
+		  >               </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-136"
+		  ></span
+		  ><span
+		  >             </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952938"
+		    ><span class="hs-identifier hs-type"
+		      >ctxLen</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952938"
+		    ><span class="hs-identifier hs-type"
+		      >ctxLen</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952939"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-137"
+		  ></span
+		  ><span
+		  >             </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952934"
+		    ><span class="hs-identifier hs-type"
+		      >state</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952934"
+		    ><span class="hs-identifier hs-type"
+		      >state</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681952939"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681953184"
+      ><span class="annot"
+	><span class="annottext"
+	  >onCtxLen :: forall state (uni :: * -&gt; *) fun ann ctxLen a.
+(state ~ CekState uni fun ann, ctxLen ~ Maybe Word) =&gt;
+(ctxLen -&gt; ctxLen -&gt; a) -&gt; state -&gt; state -&gt; a
+</span
+	  ><a href="#local-6989586621681953184"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >onCtxLen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ctxLen -&gt; ctxLen -&gt; a) -&gt; (state -&gt; ctxLen) -&gt; state -&gt; state -&gt; a
+forall b c a. (b -&gt; b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#on"
+	><span class="hs-operator hs-var"
+	  >`on`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (First Word) (CekState uni fun ann) Word
+-&gt; CekState uni fun ann -&gt; Maybe Word
+forall s (m :: * -&gt; *) a.
+MonadReader s m =&gt;
+Getting (First a) s a -&gt; m (Maybe a)
+</span
+	><span class="hs-identifier hs-var"
+	>preview</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Context uni fun ann -&gt; Const (First Word) (Context uni fun ann))
+-&gt; CekState uni fun ann
+-&gt; Const (First Word) (CekState uni fun ann)
+forall (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Context uni fun ann -&gt; f (Context uni fun ann))
+-&gt; CekState uni fun ann -&gt; f (CekState uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#cekStateContext"
+	><span class="hs-identifier hs-var"
+	  >cekStateContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Context uni fun ann -&gt; Const (First Word) (Context uni fun ann))
+ -&gt; CekState uni fun ann
+ -&gt; Const (First Word) (CekState uni fun ann))
+-&gt; ((Word -&gt; Const (First Word) Word)
+    -&gt; Context uni fun ann -&gt; Const (First Word) (Context uni fun ann))
+-&gt; Getting (First Word) (CekState uni fun ann) Word
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Context uni fun ann -&gt; Word)
+-&gt; (Word -&gt; Const (First Word) Word)
+-&gt; Context uni fun ann
+-&gt; Const (First Word) (Context uni fun ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context uni fun ann -&gt; Word
+forall (uni :: * -&gt; *) fun ann. Context uni fun ann -&gt; Word
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#lenContext"
+	><span class="hs-identifier hs-var"
+	  >lenContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Do one or more cek steps until Terminating state is reached or condition on 'CekState' is met.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span id="local-6989586621681952912"
+      ><span id="local-6989586621681952913"
+	><span id="local-6989586621681952914"
+	  ><span id="local-6989586621681952915"
+	    ><span id="local-6989586621681952916"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#multiStepUntil"
+		  ><span class="hs-identifier hs-type"
+		    >multiStepUntil</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Driving"
+		  ><span class="hs-identifier hs-type"
+		    >Driving</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952912"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952913"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952914"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952915"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952916"
+		  ><span class="hs-identifier hs-type"
+		    >bp</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-142"
+		></span
+		><span
+		>               </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+		  ><span class="hs-identifier hs-type"
+		    >CekState</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952913"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952914"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952915"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+		  ><span class="hs-identifier hs-type"
+		    >Bool</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952912"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span id="multiStepUntil"
+      ><span class="annot"
+	><span class="annottext"
+	  >multiStepUntil :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bp.
+Driving m uni fun ann bp =&gt;
+(CekState uni fun ann -&gt; Bool) -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#multiStepUntil"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >multiStepUntil</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953247"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann -&gt; Bool
+</span
+	  ><a href="#local-6989586621681953247"
+	  ><span class="hs-identifier hs-var"
+	    >cond</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+Text -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#driverLogF"
+	><span class="hs-identifier hs-var"
+	  >driverLogF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Driver is going to do a single step&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681953249"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953249"
+	  ><span class="hs-identifier hs-var"
+	    >newState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; m (CekState uni fun ann)
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+CekState uni fun ann -&gt; m (CekState uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#stepF"
+	><span class="hs-identifier hs-var"
+	  >stepF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; m (CekState uni fun ann))
+-&gt; m (CekState uni fun ann) -&gt; m (CekState uni fun ann)
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3D%3C%3C"
+	><span class="hs-operator hs-var"
+	  >=&lt;&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (CekState uni fun ann)
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953249"
+	><span class="hs-identifier hs-var"
+	  >newState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#Terminating"
+	><span class="hs-identifier hs-type"
+	  >Terminating</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- don't recurse to driver, but EXIT the driver</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+CekState uni fun ann -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#updateClientF"
+	><span class="hs-identifier hs-var"
+	  >updateClientF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953249"
+	><span class="hs-identifier hs-var"
+	  >newState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- update state</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; CekState uni fun ann) -&gt; m () -&gt; m ()
+forall a.
+(CekState uni fun ann -&gt; CekState uni fun ann) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+-&gt; CekState uni fun ann -&gt; CekState uni fun ann
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953249"
+	><span class="hs-identifier hs-var"
+	  >newState</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m () -&gt; m ()) -&gt; m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; Bool
+</span
+	><a href="#local-6989586621681953247"
+	><span class="hs-identifier hs-var"
+	  >cond</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953249"
+	><span class="hs-identifier hs-var"
+	  >newState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+CekState uni fun ann -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#updateClientF"
+	><span class="hs-identifier hs-var"
+	  >updateClientF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953249"
+	><span class="hs-identifier hs-var"
+	  >newState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#driver"
+	><span class="hs-identifier hs-var"
+	  >driver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- tail recurse</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekState uni fun ann -&gt; Bool) -&gt; m ()
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bp.
+Driving m uni fun ann bp =&gt;
+(CekState uni fun ann -&gt; Bool) -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#multiStepUntil"
+	><span class="hs-identifier hs-var"
+	  >multiStepUntil</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; Bool
+</span
+	><a href="#local-6989586621681953247"
+	><span class="hs-identifier hs-var"
+	  >cond</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- tail recurse</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * boilerplate &quot;suspension actions&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span class="hs-comment"
+      >-- Being in 'Driving' monad here is too constraining, but it does not matter.</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span id="local-6989586621681952905"
+      ><span id="local-6989586621681952906"
+	><span id="local-6989586621681952907"
+	  ><span id="local-6989586621681952908"
+	    ><span id="local-6989586621681952909"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#inputF"
+		  ><span class="hs-identifier hs-type"
+		    >inputF</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Driving"
+		  ><span class="hs-identifier hs-type"
+		    >Driving</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952905"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952906"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952907"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952908"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952909"
+		  ><span class="hs-identifier hs-type"
+		    >bps</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952905"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+		  ><span class="hs-identifier hs-type"
+		    >Cmd</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952909"
+		  ><span class="hs-identifier hs-type"
+		    >bps</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span id="inputF"
+      ><span class="annot"
+	><span class="annottext"
+	  >inputF :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+m (Cmd bps)
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#inputF"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inputF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DebugF uni fun ann bps (Cmd bps) -&gt; m (Cmd bps)
+forall (f :: * -&gt; *) (m :: * -&gt; *) a.
+(Functor f, MonadFree f m) =&gt;
+f a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Free.Class.html#liftF"
+	><span class="hs-identifier hs-var"
+	  >liftF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DebugF uni fun ann bps (Cmd bps) -&gt; m (Cmd bps))
+-&gt; DebugF uni fun ann bps (Cmd bps) -&gt; m (Cmd bps)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Cmd bps -&gt; Cmd bps) -&gt; DebugF uni fun ann bps (Cmd bps)
+forall (uni :: * -&gt; *) fun ann bps a.
+(Cmd bps -&gt; a) -&gt; DebugF uni fun ann bps a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#InputF"
+	><span class="hs-identifier hs-var"
+	  >InputF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd bps -&gt; Cmd bps
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span id="local-6989586621681952984"
+      ><span id="local-6989586621681952985"
+	><span id="local-6989586621681952986"
+	  ><span id="local-6989586621681952987"
+	    ><span id="local-6989586621681952988"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#driverLogF"
+		  ><span class="hs-identifier hs-type"
+		    >driverLogF</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Driving"
+		  ><span class="hs-identifier hs-type"
+		    >Driving</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952984"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952985"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952986"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952987"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952988"
+		  ><span class="hs-identifier hs-type"
+		    >bps</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+		  ><span class="hs-identifier hs-type"
+		    >Text</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952984"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span id="driverLogF"
+      ><span class="annot"
+	><span class="annottext"
+	  >driverLogF :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+Text -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#driverLogF"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >driverLogF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953264"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681953264"
+	  ><span class="hs-identifier hs-var"
+	    >text</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DebugF uni fun ann bps () -&gt; m ()
+forall (f :: * -&gt; *) (m :: * -&gt; *) a.
+(Functor f, MonadFree f m) =&gt;
+f a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Free.Class.html#liftF"
+	><span class="hs-identifier hs-var"
+	  >liftF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DebugF uni fun ann bps () -&gt; m ())
+-&gt; DebugF uni fun ann bps () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; () -&gt; DebugF uni fun ann bps ()
+forall (uni :: * -&gt; *) fun ann bps a.
+Text -&gt; a -&gt; DebugF uni fun ann bps a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DriverLogF"
+	><span class="hs-identifier hs-var"
+	  >DriverLogF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681953264"
+	><span class="hs-identifier hs-var"
+	  >text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span id="local-6989586621681952997"
+      ><span id="local-6989586621681952998"
+	><span id="local-6989586621681952999"
+	  ><span id="local-6989586621681953000"
+	    ><span id="local-6989586621681953001"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#updateClientF"
+		  ><span class="hs-identifier hs-type"
+		    >updateClientF</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Driving"
+		  ><span class="hs-identifier hs-type"
+		    >Driving</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952997"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952998"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952999"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681953000"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681953001"
+		  ><span class="hs-identifier hs-type"
+		    >bps</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+		  ><span class="hs-identifier hs-type"
+		    >CekState</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952998"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952999"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681953000"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952997"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span id="updateClientF"
+      ><span class="annot"
+	><span class="annottext"
+	  >updateClientF :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+CekState uni fun ann -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#updateClientF"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >updateClientF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953269"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953269"
+	  ><span class="hs-identifier hs-var"
+	    >dState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DebugF uni fun ann bps () -&gt; m ()
+forall (f :: * -&gt; *) (m :: * -&gt; *) a.
+(Functor f, MonadFree f m) =&gt;
+f a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Free.Class.html#liftF"
+	><span class="hs-identifier hs-var"
+	  >liftF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DebugF uni fun ann bps () -&gt; m ())
+-&gt; DebugF uni fun ann bps () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; () -&gt; DebugF uni fun ann bps ()
+forall (uni :: * -&gt; *) fun ann bps a.
+CekState uni fun ann -&gt; a -&gt; DebugF uni fun ann bps a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#UpdateClientF"
+	><span class="hs-identifier hs-var"
+	  >UpdateClientF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953269"
+	><span class="hs-identifier hs-var"
+	  >dState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span id="local-6989586621681952989"
+      ><span id="local-6989586621681952990"
+	><span id="local-6989586621681952991"
+	  ><span id="local-6989586621681952992"
+	    ><span id="local-6989586621681952993"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#stepF"
+		  ><span class="hs-identifier hs-type"
+		    >stepF</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Driving"
+		  ><span class="hs-identifier hs-type"
+		    >Driving</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952989"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952990"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952991"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952992"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952993"
+		  ><span class="hs-identifier hs-type"
+		    >bps</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+		  ><span class="hs-identifier hs-type"
+		    >CekState</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952990"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952991"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952992"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952989"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekState"
+		  ><span class="hs-identifier hs-type"
+		    >CekState</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952990"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952991"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681952992"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span id="stepF"
+      ><span class="annot"
+	><span class="annottext"
+	  >stepF :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann bps.
+Driving m uni fun ann bps =&gt;
+CekState uni fun ann -&gt; m (CekState uni fun ann)
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#stepF"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >stepF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681953274"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun ann
+</span
+	  ><a href="#local-6989586621681953274"
+	  ><span class="hs-identifier hs-var"
+	    >yieldState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DebugF uni fun ann bps (CekState uni fun ann)
+-&gt; m (CekState uni fun ann)
+forall (f :: * -&gt; *) (m :: * -&gt; *) a.
+(Functor f, MonadFree f m) =&gt;
+f a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Free.Class.html#liftF"
+	><span class="hs-identifier hs-var"
+	  >liftF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DebugF uni fun ann bps (CekState uni fun ann)
+ -&gt; m (CekState uni fun ann))
+-&gt; DebugF uni fun ann bps (CekState uni fun ann)
+-&gt; m (CekState uni fun ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+-&gt; (CekState uni fun ann -&gt; CekState uni fun ann)
+-&gt; DebugF uni fun ann bps (CekState uni fun ann)
+forall (uni :: * -&gt; *) fun ann bps a.
+CekState uni fun ann
+-&gt; (CekState uni fun ann -&gt; a) -&gt; DebugF uni fun ann bps a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#StepF"
+	><span class="hs-identifier hs-var"
+	  >StepF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann
+</span
+	><a href="#local-6989586621681953274"
+	><span class="hs-identifier hs-var"
+	  >yieldState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun ann -&gt; CekState uni fun ann
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,4073 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A type for maps (key-value associations), where the key type can be
+ identified by 'Unique's. In practice, these types are usually names.
+ This approach is preferred when it is more efficient to compare the associated
+ 'Unique's instead of the underlying type.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Name.UniqueMap</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#insertByUnique"
+	><span class="hs-identifier"
+	  >insertByUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	><span class="hs-identifier"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#singletonByName"
+	><span class="hs-identifier"
+	  >singletonByName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#insertNamed"
+	><span class="hs-identifier"
+	  >insertNamed</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier"
+	  >insertByNameIndex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#fromFoldable"
+	><span class="hs-identifier"
+	  >fromFoldable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#fromUniques"
+	><span class="hs-identifier"
+	  >fromUniques</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#fromNames"
+	><span class="hs-identifier"
+	  >fromNames</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#lookupUnique"
+	><span class="hs-identifier"
+	  >lookupUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#lookupName"
+	><span class="hs-identifier"
+	  >lookupName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#restrictKeys"
+	><span class="hs-identifier"
+	  >restrictKeys</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#lookupNameIndex"
+	><span class="hs-identifier"
+	  >lookupNameIndex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>view</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens.Getter</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-operator"
+	>(^.)</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Coerce.html"
+	><span class="hs-identifier"
+	  >Data.Coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	><span class="hs-identifier"
+	  >Coercible</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier"
+	  >coerce</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.html"
+	><span class="hs-identifier"
+	  >Data.IntMap.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>IM</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.html"
+	><span class="hs-identifier"
+	  >Data.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>List</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldl%27"
+	><span class="hs-identifier"
+	  >foldl'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasText"
+	><span class="hs-identifier"
+	  >HasText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Named"
+	><span class="hs-identifier"
+	  >Named</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Named"
+	><span class="hs-identifier"
+	  >Named</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier"
+	  >foldr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A mapping from 'Unique's to arbitrary values of type @a@.
+ Since 'Unique' is equivalent to 'Int' (see &quot;PlutusCore.Name.Unique&quot;),
+ we can use an 'IntMap' representation for this type.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="UniqueMap"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	  ><span class="hs-identifier hs-var"
+	    >UniqueMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823509"
+      ><span class="annot"
+	><a href="#local-6989586621681823509"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823510"
+      ><span class="annot"
+	><a href="#local-6989586621681823510"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="UniqueMap"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	  ><span class="hs-identifier hs-var"
+	    >UniqueMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unUniqueMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall unique a. UniqueMap unique a -&gt; IntMap a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#unUniqueMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unUniqueMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#IntMap"
+	><span class="hs-identifier hs-type"
+	  >IM.IntMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823510"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681823741"
+      ><span id="local-6989586621681823747"
+	><span id="local-6989586621681823751"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; UniqueMap unique a -&gt; ShowS
+[UniqueMap unique a] -&gt; ShowS
+UniqueMap unique a -&gt; String
+(Int -&gt; UniqueMap unique a -&gt; ShowS)
+-&gt; (UniqueMap unique a -&gt; String)
+-&gt; ([UniqueMap unique a] -&gt; ShowS)
+-&gt; Show (UniqueMap unique a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall unique a. Show a =&gt; Int -&gt; UniqueMap unique a -&gt; ShowS
+forall unique a. Show a =&gt; [UniqueMap unique a] -&gt; ShowS
+forall unique a. Show a =&gt; UniqueMap unique a -&gt; String
+$cshowsPrec :: forall unique a. Show a =&gt; Int -&gt; UniqueMap unique a -&gt; ShowS
+showsPrec :: Int -&gt; UniqueMap unique a -&gt; ShowS
+$cshow :: forall unique a. Show a =&gt; UniqueMap unique a -&gt; String
+show :: UniqueMap unique a -&gt; String
+$cshowList :: forall unique a. Show a =&gt; [UniqueMap unique a] -&gt; ShowS
+showList :: [UniqueMap unique a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823756"
+      ><span id="local-6989586621681823760"
+	><span class="annot"
+	  ><span class="annottext"
+	    >UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool
+(UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool)
+-&gt; (UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool)
+-&gt; Eq (UniqueMap unique a)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall unique a.
+Eq a =&gt;
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool
+$c== :: forall unique a.
+Eq a =&gt;
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool
+== :: UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool
+$c/= :: forall unique a.
+Eq a =&gt;
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool
+/= :: UniqueMap unique a -&gt; UniqueMap unique a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681823765"
+      ><span id="local-6989586621681823770"
+	><span id="local-6989586621681823776"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty (UniqueMap unique a) -&gt; UniqueMap unique a
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+(UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; (NonEmpty (UniqueMap unique a) -&gt; UniqueMap unique a)
+-&gt; (forall b.
+    Integral b =&gt;
+    b -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; Semigroup (UniqueMap unique a)
+forall b.
+Integral b =&gt;
+b -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+forall unique a.
+NonEmpty (UniqueMap unique a) -&gt; UniqueMap unique a
+forall unique a.
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall unique a b.
+Integral b =&gt;
+b -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+$c&lt;&gt; :: forall unique a.
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+&lt;&gt; :: UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+$csconcat :: forall unique a.
+NonEmpty (UniqueMap unique a) -&gt; UniqueMap unique a
+sconcat :: NonEmpty (UniqueMap unique a) -&gt; UniqueMap unique a
+$cstimes :: forall unique a b.
+Integral b =&gt;
+b -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+stimes :: forall b.
+Integral b =&gt;
+b -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823786"
+      ><span id="local-6989586621681823791"
+	><span id="local-6989586621681823795"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup (UniqueMap unique a)
+UniqueMap unique a
+Semigroup (UniqueMap unique a) =&gt;
+UniqueMap unique a
+-&gt; (UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; ([UniqueMap unique a] -&gt; UniqueMap unique a)
+-&gt; Monoid (UniqueMap unique a)
+[UniqueMap unique a] -&gt; UniqueMap unique a
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+forall unique a. Semigroup (UniqueMap unique a)
+forall unique a. UniqueMap unique a
+forall unique a. [UniqueMap unique a] -&gt; UniqueMap unique a
+forall unique a.
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+$cmempty :: forall unique a. UniqueMap unique a
+mempty :: UniqueMap unique a
+$cmappend :: forall unique a.
+UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+mappend :: UniqueMap unique a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+$cmconcat :: forall unique a. [UniqueMap unique a] -&gt; UniqueMap unique a
+mconcat :: [UniqueMap unique a] -&gt; UniqueMap unique a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823801"
+      ><span id="local-6989586621681823806"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; UniqueMap unique a -&gt; UniqueMap unique b)
+-&gt; (forall a b. a -&gt; UniqueMap unique b -&gt; UniqueMap unique a)
+-&gt; Functor (UniqueMap unique)
+forall a b. a -&gt; UniqueMap unique b -&gt; UniqueMap unique a
+forall a b. (a -&gt; b) -&gt; UniqueMap unique a -&gt; UniqueMap unique b
+forall unique a b. a -&gt; UniqueMap unique b -&gt; UniqueMap unique a
+forall unique a b.
+(a -&gt; b) -&gt; UniqueMap unique a -&gt; UniqueMap unique b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall unique a b.
+(a -&gt; b) -&gt; UniqueMap unique a -&gt; UniqueMap unique b
+fmap :: forall a b. (a -&gt; b) -&gt; UniqueMap unique a -&gt; UniqueMap unique b
+$c&lt;$ :: forall unique a b. a -&gt; UniqueMap unique b -&gt; UniqueMap unique a
+&lt;$ :: forall a b. a -&gt; UniqueMap unique b -&gt; UniqueMap unique a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823814"
+      ><span id="local-6989586621681823823"
+	><span id="local-6989586621681823831"
+	  ><span id="local-6989586621681823837"
+	    ><span id="local-6989586621681823841"
+	      ><span id="local-6989586621681823845"
+		><span id="local-6989586621681823849"
+		  ><span id="local-6989586621681823853"
+		    ><span id="local-6989586621681823857"
+		      ><span id="local-6989586621681823861"
+			><span id="local-6989586621681823865"
+			  ><span id="local-6989586621681823869"
+			    ><span id="local-6989586621681823875"
+			      ><span id="local-6989586621681823883"
+				><span id="local-6989586621681823891"
+				  ><span id="local-6989586621681823899"
+				    ><span id="local-6989586621681823907"
+				      ><span class="annot"
+					><span class="annottext"
+					  >(forall m. Monoid m =&gt; UniqueMap unique m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a)
+-&gt; (forall a. UniqueMap unique a -&gt; [a])
+-&gt; (forall a. UniqueMap unique a -&gt; Bool)
+-&gt; (forall a. UniqueMap unique a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; UniqueMap unique a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; UniqueMap unique a -&gt; a)
+-&gt; (forall a. Ord a =&gt; UniqueMap unique a -&gt; a)
+-&gt; (forall a. Num a =&gt; UniqueMap unique a -&gt; a)
+-&gt; (forall a. Num a =&gt; UniqueMap unique a -&gt; a)
+-&gt; Foldable (UniqueMap unique)
+forall a. Eq a =&gt; a -&gt; UniqueMap unique a -&gt; Bool
+forall a. Num a =&gt; UniqueMap unique a -&gt; a
+forall a. Ord a =&gt; UniqueMap unique a -&gt; a
+forall m. Monoid m =&gt; UniqueMap unique m -&gt; m
+forall a. UniqueMap unique a -&gt; Bool
+forall a. UniqueMap unique a -&gt; Int
+forall a. UniqueMap unique a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a
+forall unique a. Eq a =&gt; a -&gt; UniqueMap unique a -&gt; Bool
+forall unique a. Num a =&gt; UniqueMap unique a -&gt; a
+forall unique a. Ord a =&gt; UniqueMap unique a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m
+forall unique m. Monoid m =&gt; UniqueMap unique m -&gt; m
+forall unique a. UniqueMap unique a -&gt; Bool
+forall unique a. UniqueMap unique a -&gt; Int
+forall unique a. UniqueMap unique a -&gt; [a]
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+forall unique a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a
+forall unique m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m
+forall unique b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+forall unique a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall unique m. Monoid m =&gt; UniqueMap unique m -&gt; m
+fold :: forall m. Monoid m =&gt; UniqueMap unique m -&gt; m
+$cfoldMap :: forall unique m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m
+$cfoldMap' :: forall unique m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; UniqueMap unique a -&gt; m
+$cfoldr :: forall unique a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+$cfoldr' :: forall unique a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+$cfoldl :: forall unique b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+$cfoldl' :: forall unique b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; UniqueMap unique a -&gt; b
+$cfoldr1 :: forall unique a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a
+$cfoldl1 :: forall unique a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; UniqueMap unique a -&gt; a
+$ctoList :: forall unique a. UniqueMap unique a -&gt; [a]
+toList :: forall a. UniqueMap unique a -&gt; [a]
+$cnull :: forall unique a. UniqueMap unique a -&gt; Bool
+null :: forall a. UniqueMap unique a -&gt; Bool
+$clength :: forall unique a. UniqueMap unique a -&gt; Int
+length :: forall a. UniqueMap unique a -&gt; Int
+$celem :: forall unique a. Eq a =&gt; a -&gt; UniqueMap unique a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; UniqueMap unique a -&gt; Bool
+$cmaximum :: forall unique a. Ord a =&gt; UniqueMap unique a -&gt; a
+maximum :: forall a. Ord a =&gt; UniqueMap unique a -&gt; a
+$cminimum :: forall unique a. Ord a =&gt; UniqueMap unique a -&gt; a
+minimum :: forall a. Ord a =&gt; UniqueMap unique a -&gt; a
+$csum :: forall unique a. Num a =&gt; UniqueMap unique a -&gt; a
+sum :: forall a. Num a =&gt; UniqueMap unique a -&gt; a
+$cproduct :: forall unique a. Num a =&gt; UniqueMap unique a -&gt; a
+product :: forall a. Num a =&gt; UniqueMap unique a -&gt; a
+</span
+					  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+					    >Foldable</span
+					    ></a
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert a value @a@ by a @unique@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="local-6989586621681823605"
+      ><span id="local-6989586621681823607"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#insertByUnique"
+	    ><span class="hs-identifier hs-type"
+	      >insertByUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  >
+</span
+	  ><span id="line-44"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	    ><span class="hs-identifier hs-type"
+	      >Coercible</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823605"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Unique"
+	    ><span class="hs-identifier hs-type"
+	      >Unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  >
+</span
+	  ><span id="line-45"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823605"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  >
+</span
+	  ><span id="line-46"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823607"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  >
+</span
+	  ><span id="line-47"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueMap</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823605"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823607"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  >
+</span
+	  ><span id="line-48"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueMap</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823605"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823607"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="insertByUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertByUnique :: forall unique a.
+Coercible unique Unique =&gt;
+unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#insertByUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertByUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823920"
+      ><span class="annot"
+	><span class="annottext"
+	  >unique
+</span
+	  ><a href="#local-6989586621681823920"
+	  ><span class="hs-identifier hs-var"
+	    >uniq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntMap a -&gt; IntMap a) -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((IntMap a -&gt; IntMap a)
+ -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; (a -&gt; IntMap a -&gt; IntMap a)
+-&gt; a
+-&gt; UniqueMap unique a
+-&gt; UniqueMap unique a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; a -&gt; IntMap a -&gt; IntMap a
+forall a. Int -&gt; a -&gt; IntMap a -&gt; IntMap a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >IM.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; Int
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique
+</span
+	><a href="#local-6989586621681823920"
+	><span class="hs-identifier hs-var"
+	  >uniq</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert a value @a@ by the @unique@ of a @name@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="local-6989586621681823614"
+      ><span id="local-6989586621681823615"
+	><span id="local-6989586621681823617"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	      ><span class="hs-identifier hs-type"
+		>insertByName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823614"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823615"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823614"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823617"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	      ><span class="hs-identifier hs-type"
+		>UniqueMap</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823615"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823617"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	      ><span class="hs-identifier hs-type"
+		>UniqueMap</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823615"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823617"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="insertByName"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertByName :: forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertByName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall unique a.
+Coercible unique Unique =&gt;
+unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByUnique"
+	><span class="hs-identifier hs-var"
+	  >insertByUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; (name -&gt; unique)
+-&gt; name
+-&gt; a
+-&gt; UniqueMap unique a
+-&gt; UniqueMap unique a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique -&gt; name -&gt; unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Create the singleton map of the @unique@ of a @name@ and a value @a@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621681823632"
+      ><span id="local-6989586621681823633"
+	><span id="local-6989586621681823634"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#singletonByName"
+	      ><span class="hs-identifier hs-type"
+		>singletonByName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823632"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823633"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823632"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823634"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	      ><span class="hs-identifier hs-type"
+		>UniqueMap</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823633"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823634"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="singletonByName"
+      ><span class="annot"
+	><span class="annottext"
+	  >singletonByName :: forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; a -&gt; UniqueMap unique a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#singletonByName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >singletonByName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823936"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681823936"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823937"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681823937"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	><span class="hs-identifier hs-var"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681823936"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681823937"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap unique a
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert a named value @a@ by the index of the @unique@ of the @name@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="local-6989586621681823638"
+      ><span id="local-6989586621681823640"
+	><span id="local-6989586621681823641"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#insertNamed"
+	      ><span class="hs-identifier hs-type"
+		>insertNamed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    >
+</span
+	    ><span id="line-61"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasText"
+	      ><span class="hs-identifier hs-type"
+		>HasText</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823638"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823638"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823640"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-62"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823638"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-63"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823641"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-64"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	      ><span class="hs-identifier hs-type"
+		>UniqueMap</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823640"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#Named"
+	      ><span class="hs-identifier hs-type"
+		>Named</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823641"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-65"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	      ><span class="hs-identifier hs-type"
+		>UniqueMap</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823640"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#Named"
+	      ><span class="hs-identifier hs-type"
+		>Named</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823641"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="insertNamed"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertNamed :: forall name unique a.
+(HasText name, HasUnique name unique) =&gt;
+name
+-&gt; a -&gt; UniqueMap unique (Named a) -&gt; UniqueMap unique (Named a)
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#insertNamed"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertNamed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823943"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681823943"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+-&gt; Named a
+-&gt; UniqueMap unique (Named a)
+-&gt; UniqueMap unique (Named a)
+forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	><span class="hs-identifier hs-var"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681823943"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Named a
+ -&gt; UniqueMap unique (Named a) -&gt; UniqueMap unique (Named a))
+-&gt; (a -&gt; Named a)
+-&gt; a
+-&gt; UniqueMap unique (Named a)
+-&gt; UniqueMap unique (Named a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; a -&gt; Named a
+forall a. Text -&gt; a -&gt; Named a
+</span
+	><a href="PlutusCore.Name.Unique.html#Named"
+	><span class="hs-identifier hs-var"
+	  >Named</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681823943"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Getting Text name Text -&gt; Text
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Text name Text
+forall a. HasText a =&gt; Lens' a Text
+Lens' name Text
+</span
+	><a href="PlutusCore.Name.Unique.html#theText"
+	><span class="hs-identifier hs-var"
+	  >theText</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Insert a value by the index of the unique of a name.
+Unlike 'insertByUnique' and 'insertByName', this function does not provide any static guarantees,
+so you can for example insert by a type-level name in a map from term-level uniques.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="local-6989586621681823651"
+      ><span id="local-6989586621681823652"
+	><span id="local-6989586621681823653"
+	  ><span id="local-6989586621681823654"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+		><span class="hs-identifier hs-type"
+		  >insertByNameIndex</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-73"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823651"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823652"
+		><span class="hs-identifier hs-type"
+		  >unique1</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+		><span class="hs-identifier hs-type"
+		  >Coercible</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823653"
+		><span class="hs-identifier hs-type"
+		  >unique2</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#Unique"
+		><span class="hs-identifier hs-type"
+		  >Unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-74"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823651"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-75"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823654"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-76"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+		><span class="hs-identifier hs-type"
+		  >UniqueMap</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823653"
+		><span class="hs-identifier hs-type"
+		  >unique2</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823654"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-77"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+		><span class="hs-identifier hs-type"
+		  >UniqueMap</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823653"
+		><span class="hs-identifier hs-type"
+		  >unique2</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823654"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="insertByNameIndex"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertByNameIndex :: forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertByNameIndex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique2 -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+forall unique a.
+Coercible unique Unique =&gt;
+unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByUnique"
+	><span class="hs-identifier hs-var"
+	  >insertByUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique2 -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a)
+-&gt; (name -&gt; unique2)
+-&gt; name
+-&gt; a
+-&gt; UniqueMap unique2 a
+-&gt; UniqueMap unique2 a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique1 -&gt; unique2
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique1 -&gt; unique2) -&gt; (name -&gt; unique1) -&gt; name -&gt; unique2
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique1 name unique1 -&gt; name -&gt; unique1
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique1 name unique1
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique1
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'Foldable' into a 'UniqueMap' using the given insertion function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="local-6989586621681823659"
+      ><span id="local-6989586621681823660"
+	><span id="local-6989586621681823661"
+	  ><span id="local-6989586621681823662"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#fromFoldable"
+		><span class="hs-identifier hs-type"
+		  >fromFoldable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-82"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+		><span class="hs-identifier hs-type"
+		  >Foldable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823659"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-83"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823660"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823661"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+		><span class="hs-identifier hs-type"
+		  >UniqueMap</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823662"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823661"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+		><span class="hs-identifier hs-type"
+		  >UniqueMap</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823662"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823661"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-84"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823659"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823660"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823661"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-85"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+		><span class="hs-identifier hs-type"
+		  >UniqueMap</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823662"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823661"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="fromFoldable"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromFoldable :: forall (f :: * -&gt; *) i a unique.
+Foldable f =&gt;
+(i -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; f (i, a) -&gt; UniqueMap unique a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#fromFoldable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromFoldable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823962"
+      ><span class="annot"
+	><span class="annottext"
+	  >i -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	  ><a href="#local-6989586621681823962"
+	  ><span class="hs-identifier hs-var"
+	    >ins</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap unique a -&gt; (i, a) -&gt; UniqueMap unique a)
+-&gt; UniqueMap unique a -&gt; f (i, a) -&gt; UniqueMap unique a
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; f a -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldl%27"
+	><span class="hs-identifier hs-var"
+	  >List.foldl'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((i, a) -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; UniqueMap unique a -&gt; (i, a) -&gt; UniqueMap unique a
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((i, a) -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+ -&gt; UniqueMap unique a -&gt; (i, a) -&gt; UniqueMap unique a)
+-&gt; ((i, a) -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; UniqueMap unique a
+-&gt; (i, a)
+-&gt; UniqueMap unique a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(i -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; (i, a) -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#uncurry"
+	><span class="hs-identifier hs-var"
+	  >uncurry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>i -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="#local-6989586621681823962"
+	><span class="hs-identifier hs-var"
+	  >ins</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap unique a
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'Foldable' with uniques into a 'UniqueMap'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="local-6989586621681823678"
+      ><span id="local-6989586621681823679"
+	><span id="local-6989586621681823680"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#fromUniques"
+	      ><span class="hs-identifier hs-type"
+		>fromUniques</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+	      ><span class="hs-identifier hs-type"
+		>Foldable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823678"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	      ><span class="hs-identifier hs-type"
+		>Coercible</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#Unique"
+	      ><span class="hs-identifier hs-type"
+		>Unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823679"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823678"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823679"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823680"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	      ><span class="hs-identifier hs-type"
+		>UniqueMap</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823679"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823680"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="fromUniques"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromUniques :: forall (f :: * -&gt; *) unique a.
+(Foldable f, Coercible Unique unique) =&gt;
+f (unique, a) -&gt; UniqueMap unique a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#fromUniques"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromUniques</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; f (unique, a) -&gt; UniqueMap unique a
+forall (f :: * -&gt; *) i a unique.
+Foldable f =&gt;
+(i -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; f (i, a) -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#fromFoldable"
+	><span class="hs-identifier hs-var"
+	  >fromFoldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall unique a.
+Coercible unique Unique =&gt;
+unique -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByUnique"
+	><span class="hs-identifier hs-var"
+	  >insertByUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'Foldable' with names into a 'UniqueMap'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="local-6989586621681823684"
+      ><span id="local-6989586621681823685"
+	><span id="local-6989586621681823686"
+	  ><span id="local-6989586621681823687"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#fromNames"
+		><span class="hs-identifier hs-type"
+		  >fromNames</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+		><span class="hs-identifier hs-type"
+		  >Foldable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823684"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823685"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823686"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823684"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823685"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823687"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+		><span class="hs-identifier hs-type"
+		  >UniqueMap</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823686"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823687"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span id="fromNames"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromNames :: forall (f :: * -&gt; *) name unique a.
+(Foldable f, HasUnique name unique) =&gt;
+f (name, a) -&gt; UniqueMap unique a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#fromNames"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromNames</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; f (name, a) -&gt; UniqueMap unique a
+forall (f :: * -&gt; *) i a unique.
+Foldable f =&gt;
+(i -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+-&gt; f (i, a) -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#fromFoldable"
+	><span class="hs-identifier hs-var"
+	  >fromFoldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	><span class="hs-identifier hs-var"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Look up a value by a unique.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="local-6989586621681823692"
+      ><span id="local-6989586621681823693"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#lookupUnique"
+	    ><span class="hs-identifier hs-type"
+	      >lookupUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	    ><span class="hs-identifier hs-type"
+	      >Coercible</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823692"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Unique"
+	    ><span class="hs-identifier hs-type"
+	      >Unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823692"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueMap</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823692"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823693"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	    ><span class="hs-identifier hs-type"
+	      >Maybe</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823693"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="lookupUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupUnique :: forall unique a.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueMap unique a -&gt; Maybe a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#lookupUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823981"
+      ><span class="annot"
+	><span class="annottext"
+	  >unique
+</span
+	  ><a href="#local-6989586621681823981"
+	  ><span class="hs-identifier hs-var"
+	    >uniq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; IntMap a -&gt; Maybe a
+forall a. Int -&gt; IntMap a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#lookup"
+	><span class="hs-identifier hs-var"
+	  >IM.lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; Int
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique
+</span
+	><a href="#local-6989586621681823981"
+	><span class="hs-identifier hs-var"
+	  >uniq</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntMap a -&gt; Maybe a)
+-&gt; (UniqueMap unique a -&gt; IntMap a)
+-&gt; UniqueMap unique a
+-&gt; Maybe a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap unique a -&gt; IntMap a
+forall unique a. UniqueMap unique a -&gt; IntMap a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#unUniqueMap"
+	><span class="hs-identifier hs-var"
+	  >unUniqueMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Look up a value by the unique of a name.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span id="local-6989586621681823697"
+      ><span id="local-6989586621681823698"
+	><span id="local-6989586621681823699"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#lookupName"
+	      ><span class="hs-identifier hs-type"
+		>lookupName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823697"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823698"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823697"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	      ><span class="hs-identifier hs-type"
+		>UniqueMap</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823698"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823699"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	      ><span class="hs-identifier hs-type"
+		>Maybe</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823699"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="lookupName"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupName :: forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; UniqueMap unique a -&gt; Maybe a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#lookupName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; UniqueMap unique a -&gt; Maybe a
+forall unique a.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueMap unique a -&gt; Maybe a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#lookupUnique"
+	><span class="hs-identifier hs-var"
+	  >lookupUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; UniqueMap unique a -&gt; Maybe a)
+-&gt; (name -&gt; unique) -&gt; name -&gt; UniqueMap unique a -&gt; Maybe a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique -&gt; name -&gt; unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span id="local-6989586621681823703"
+      ><span id="local-6989586621681823704"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#restrictKeys"
+	    ><span class="hs-identifier hs-type"
+	      >restrictKeys</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueMap</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823703"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823704"
+	    ><span class="hs-identifier hs-type"
+	      >v</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823703"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueMap</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823703"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823704"
+	    ><span class="hs-identifier hs-type"
+	      >v</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="restrictKeys"
+      ><span class="annot"
+	><span class="annottext"
+	  >restrictKeys :: forall unique v.
+UniqueMap unique v -&gt; UniqueSet unique -&gt; UniqueMap unique v
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#restrictKeys"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >restrictKeys</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier hs-type"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823989"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntMap v
+</span
+	  ><a href="#local-6989586621681823989"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-type"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823990"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntSet
+</span
+	  ><a href="#local-6989586621681823990"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap v -&gt; UniqueMap unique v
+forall unique a. IntMap a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier hs-var"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntMap v -&gt; UniqueMap unique v) -&gt; IntMap v -&gt; UniqueMap unique v
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap v -&gt; IntSet -&gt; IntMap v
+forall a. IntMap a -&gt; IntSet -&gt; IntMap a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#restrictKeys"
+	><span class="hs-identifier hs-var"
+	  >IM.restrictKeys</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap v
+</span
+	><a href="#local-6989586621681823989"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet
+</span
+	><a href="#local-6989586621681823990"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Look up a value by the index of the unique of a name.
+Unlike 'lookupUnique' and 'lookupName', this function does not provide any static guarantees,
+so you can for example look up a type-level name in a map from term-level uniques.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="local-6989586621681823710"
+      ><span id="local-6989586621681823711"
+	><span id="local-6989586621681823712"
+	  ><span id="local-6989586621681823713"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#lookupNameIndex"
+		><span class="hs-identifier hs-type"
+		  >lookupNameIndex</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-113"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823710"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823711"
+		><span class="hs-identifier hs-type"
+		  >unique1</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+		><span class="hs-identifier hs-type"
+		  >Coercible</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823712"
+		><span class="hs-identifier hs-type"
+		  >unique2</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#Unique"
+		><span class="hs-identifier hs-type"
+		  >Unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-114"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823710"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-115"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+		><span class="hs-identifier hs-type"
+		  >UniqueMap</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823712"
+		><span class="hs-identifier hs-type"
+		  >unique2</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823713"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-116"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+		><span class="hs-identifier hs-type"
+		  >Maybe</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681823713"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="lookupNameIndex"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupNameIndex :: forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; UniqueMap unique2 a -&gt; Maybe a
+</span
+	  ><a href="PlutusCore.Name.UniqueMap.html#lookupNameIndex"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupNameIndex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique2 -&gt; UniqueMap unique2 a -&gt; Maybe a
+forall unique a.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueMap unique a -&gt; Maybe a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#lookupUnique"
+	><span class="hs-identifier hs-var"
+	  >lookupUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique2 -&gt; UniqueMap unique2 a -&gt; Maybe a)
+-&gt; (name -&gt; unique2) -&gt; name -&gt; UniqueMap unique2 a -&gt; Maybe a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique1 -&gt; unique2
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique1 -&gt; unique2) -&gt; (name -&gt; unique1) -&gt; name -&gt; unique2
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique1 name unique1 -&gt; name -&gt; unique1
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique1 name unique1
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique1
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
