@@ -153,11 +153,11 @@ function _createMdxContent(props) {
       children: ["If ", (0,jsx_runtime.jsx)(_components.code, {
         children: "{type}"
       }), " is a builtin type like ", (0,jsx_runtime.jsx)(_components.code, {
-        children: "BuiltinBool"
+        children: "BuiltinInteger"
       }), ": to convert a builtin type to the corresponding Haskell type (such as ", (0,jsx_runtime.jsx)(_components.code, {
-        children: "BuiltinBool"
+        children: "BuiltinInteger"
       }), " to ", (0,jsx_runtime.jsx)(_components.code, {
-        children: "Bool"
+        children: "Integer"
       }), " or ", (0,jsx_runtime.jsx)(_components.code, {
         children: "BuiltinList"
       }), " to a Haskell list) in Plinth, you should use ", (0,jsx_runtime.jsx)(_components.code, {

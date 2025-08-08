@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://www.googletagmanager.com">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-X6364ZT8L2"></script>
 <script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-X6364ZT8L2",{anonymize_ip:!0})</script><link rel="stylesheet" href="/pr-preview/pr-7253/assets/css/styles.225deb0a.css">
-<script src="/pr-preview/pr-7253/assets/js/runtime~main.f6e75aab.js" defer="defer"></script>
+<script src="/pr-preview/pr-7253/assets/js/runtime~main.87d71122.js" defer="defer"></script>
 <script src="/pr-preview/pr-7253/assets/js/main.dae82b80.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard" data-theme="light">
@@ -30,7 +30,7 @@ See <a href="/pr-preview/pr-7253/using-plinth/lifting">Lifting Values into Compi
 <p>Alternatively, this error may happen when using GHCi, which is not fully supported by the plugin.
 Not only does GHCi often hide unfoldings from the plugin, but it may also introduce debugging information like breakpoints in GHC Core, causing the plugin to fail.</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="unsupported-feature-cannot-case-on-a-value-on-type-type">&quot;Unsupported feature: Cannot case on a value on type: {type}&quot;<a href="#unsupported-feature-cannot-case-on-a-value-on-type-type" class="hash-link" aria-label="Direct link to &quot;Unsupported feature: Cannot case on a value on type: {type}&quot;" title="Direct link to &quot;Unsupported feature: Cannot case on a value on type: {type}&quot;">​</a></h3>
-<p>If <code>{type}</code> is a builtin type like <code>BuiltinBool</code>: to convert a builtin type to the corresponding Haskell type (such as <code>BuiltinBool</code> to <code>Bool</code> or <code>BuiltinList</code> to a Haskell list) in Plinth, you should use <code>fromOpaque</code>.
+<p>If <code>{type}</code> is a builtin type like <code>BuiltinInteger</code>: to convert a builtin type to the corresponding Haskell type (such as <code>BuiltinInteger</code> to <code>Integer</code> or <code>BuiltinList</code> to a Haskell list) in Plinth, you should use <code>fromOpaque</code>.
 Pattern matching on the builtin type or using <code>fromBuiltin</code> is not permitted, and will lead to the above error.</p>
 <p>If <code>{type}</code> is a GHC type like <code>GHC.Num.Integer.Integer</code>: you may be using operations from <code>base</code> (such as <code>GHC.Classes.==</code>) on that type, or using a literal of that type in a pattern.
 An example of the latter:</p>
