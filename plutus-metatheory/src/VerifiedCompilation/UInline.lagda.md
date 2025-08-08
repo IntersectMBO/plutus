@@ -24,10 +24,12 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 import RawU
 open import Data.List using (List; []; _∷_; sum; map)
-open import Data.Nat using (ℕ; _+_)
+open import Data.Nat using (ℕ; _+_; zero; suc)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Untyped.Purity using (Pure)
-open import Untyped.Annotation using (Annotation; strip; read)
+open import Untyped.Annotation using (weakenAnnotation; Annotation; Annotation′; strip; read; ` ; ƛ; _·_; con; force; delay; constr; case)
+open import Data.Product using (_,_)
+open import Data.List.Relation.Unary.All using (All;toList)
 ```
 ## Translation Relation
 
@@ -115,88 +117,79 @@ new scope `Y`, but will only have constructors for places where this
 matches the scope of the environment.
 ```
 
-data Inlined : List (X ⊢) → Bind X → (X ⊢) → (X ⊢) → Set₁ where
+data Inlined : List (X ⊢) → Bind X → {t₂ : X ⊢} → ℕ → (t₁ : X ⊢) → Annotation ℕ t₂ → Set₁ where
   sub : {{ _ : DecEq X}} {v : X} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
+          → {a : Annotation ℕ t} {a' : Annotation ℕ t'}
           → (get b v) ≡ just t
-          → Inlined e b t t'
-          → Inlined e b (` v) t'
+          → Inlined e b 0 t' a'
+          → Inlined e b 0 (` v) a'
 
-{-
-  complete : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
-          → Inlined (v ∷ e) b t₁ t₂
-          → Inlined e b (t₁ · v) t₂
-  partial : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
-  -}
+  c· : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' v : X ⊢}
+          → {a' : Annotation′ ℕ t'}
+          → {n m : ℕ}
+          → Inlined (v ∷ e) b (suc n) t (m , a')
+          → Inlined e b n (t · v) (suc m , a')
 
   _·_ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
-          → Inlined (v₂ ∷ e) b t₁ t₂
-          → Inlined [] b v₁ v₂
-          → Inlined e b (t₁ · v₁) (t₂ · v₂)
+          → {a₂ : Annotation ℕ t₂} {av₂ : Annotation ℕ v₂}
+          → Inlined (v₂ ∷ e) b 0 t₁ a₂
+          → Inlined [] b 0 v₁ av₂
+          → Inlined e b 0 (t₁ · v₁) (0 , a₂ · av₂)
+
+  cƛ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
+          → {a₂ : Annotation ℕ t₂} {av : Annotation ℕ v}
+          → {n : ℕ}
+          → Inlined (listWeaken e) (bind b v) n t₁ (weakenAnnotation a₂)
+          → Inlined (v ∷ e) b (suc n) (ƛ t₁) a₂
 
   ƛb : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
-          → Inlined (listWeaken e) (bind b v) t₁ t₂
-          → Inlined (v ∷ e) b (ƛ t₁) (ƛ t₂)
+          → {a₂ : Annotation ℕ t₂}
+          → Inlined (listWeaken e) (bind b v) 0 t₁ a₂
+          → Inlined (v ∷ e) b 0 (ƛ t₁) (0 , (ƛ a₂))
 
   -- We can't recurse through Translation because it will become non-terminating,
   -- so traversing other AST nodes is done below.
 
+  -- Everything should have zero on the annotations - non-zero should only happen
+  -- where a LET has been removed, and this should be handled above.
+
   -- When traversing a lambda with no more applications to bind we can use the
   -- somewhat tautological (` nothing) term as the new zeroth value.
   ƛ : {{ _ : DecEq X}} {b : Bind X}{t t' : (Maybe X) ⊢}
-          → Inlined [] (b , (` nothing)) t t'
-          → Inlined [] b (ƛ t) (ƛ t')
-  -- We don't need a case for _·_ because we can always use partial
+          → {a' : Annotation ℕ t'}
+          → Inlined [] (b , (` nothing)) 0 t a'
+          → Inlined [] b 0 (ƛ t) (0 , (ƛ a'))
+  -- We don't need a case for _·_ because we can always use the one above
   -- and use the binding zero times.
   force : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
-          → Inlined e b t t'
-          → Inlined e b (force t) (force t')
+          → {a' : Annotation ℕ t'}
+          → Inlined e b 0 t a'
+          → Inlined e b 0 (force t) (0 , (force a'))
   delay : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
-          → Inlined e b t t'
-          → Inlined e b (delay t) (delay t')
-  constr : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {i : ℕ} {xs xs' : List (X ⊢)}
-          → Pointwise (Inlined e b) xs xs'
-          → Inlined e b (constr i xs) (constr i xs')
+          → {a' : Annotation ℕ t'}
+          → Inlined e b 0 t a'
+          → Inlined e b 0 (delay t) (0 , (delay a'))
+
+{-
+constr : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {i : ℕ} {xs xs' : List (X ⊢)}
+          → {a : Annotation ℕ (constr i xs)} {a' : Annotation ℕ (constr i xs')}
+          → {as : All (Annotation ℕ) xs} {as' : All (Annotation ℕ) xs'}
+          → Pointwise (Inlined e b) (toList as) (toList as')
+          → Inlined e b a a'
   case :  {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢} {ts ts' : List (X ⊢)}
           → Inlined e b t t'
           → Pointwise (Inlined e b) ts ts'
           → Inlined e b (case t ts) (case t' ts')
+-}
   refl : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t : X ⊢}
-          → Inlined e b t t
+          → {a′ : Annotation′ ℕ t}
+          → Inlined e b 0 t (0 , a′)
 
-
-Inline : {X : Set} {{ _ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
+postulate
+  Inline : {X : Set} {{ _ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
+ {-
 Inline = Translation (λ {Y} → Inlined {Y} [] □)
-```
-Separating the "clean up" step allows the Inliner to be syntax directed.
-
-ƛ (ƛ (` 1) · b) · a
-
-== inline =>
-
-ƛ (ƛ a · b) · a
-
-== dead code =>
-
-ƛ a · b
-
-
-```
-
-data Clean : (X ⊢) → (X ⊢) → Set₁ where
-  clean : {a t' : X ⊢} {t : (Maybe X) ⊢}
-    → Pure a
-    → Clean t (weaken t')
-    → Clean (ƛ t · a) t'
-  refl : {t : X ⊢}
-    → Clean t t
-  _·_ : {t t' a a' : X ⊢}
-    → Clean t t'
-    → Clean a a'
-    → Clean (t · a) (t' · a')
-  ƛ : {t t' : X ⊢}
-    → Clean t t'
-    → Clean (ƛ (weaken t)) (ƛ (weaken t'))
-
+-}
 
 ```
 # Examples
@@ -218,11 +211,13 @@ instance
 [ (\a -> a) 1 ] becomes just 1
 ```
 --simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) (con One)
+{-
 simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) ((ƛ (con One)) · (con One))
 simple = ƛb (sub refl refl) · refl
 
 simple-clean : Clean {⊥} ((ƛ (con One)) · (con One)) (con One)
 simple-clean = clean Pure.con refl
+-}
 
 ```
 
@@ -239,12 +234,13 @@ uncleanEx1 = (((ƛ (ƛ ((weaken (weaken (` a))) · (weaken (weaken (` b)))))) ·
 
 afterEx1 : Vars ⊢
 afterEx1 = ((` a) · (` b))
-
+{-
 ex1 : Inlined {X = Vars} [] □ beforeEx1 uncleanEx1
 ex1 = ((ƛb (ƛb ((sub refl refl) · (sub refl refl)))) · refl) · refl --complete (complete (ƛ+ (ƛ+ (partial (sub refl) (sub refl)))))
 
 ex1-clean : Clean uncleanEx1 afterEx1
 ex1-clean = {!!}
+-}
 ```
 Partial inlining is allowed, so  `(\a -> f (a 0 1) (a 2)) g` can become  `(\a -> f (g 0 1) (a 2)) g`
 ```
@@ -254,9 +250,10 @@ beforeEx2 = (ƛ (((` (just f)) · (((` nothing) · (con Zero)) · (con One))) ·
 afterEx2 : Vars ⊢
 afterEx2 = (ƛ (((` (just f)) · (((` (just g)) · (con Zero)) · (con One))) · ((` nothing) · (con Two)) )) · (` g)
 
+{-
 ex2 : Inlined {X = Vars} [] □ beforeEx2 afterEx2
 ex2 = {!!} -- partial (ƛb (partial (partial refl (partial (partial (sub refl) refl) refl)) refl)) refl
-
+-}
 ```
 Interleaved inlining and not inlining should also work, along with correcting the scopes
 as lambdas are removed.
@@ -269,9 +266,10 @@ beforeEx3 = (ƛ ((ƛ ((` (just nothing)) · (` nothing))) · (` (just nothing)))
 afterEx3 : Ex3Vars ⊢
 afterEx3 = (ƛ ((` (just nothing)) · (` nothing))) · (` nothing)
 
+{-
 ex3 : Inlined {X = Ex3Vars} [] □ beforeEx3 afterEx3
 ex3 = {!!} -- complete (ƛ+ (partial (ƛb (partial (sub refl) refl)) refl))
-
+-}
 ```
 The `callsiteInline` example from the test suite:
 
@@ -289,9 +287,10 @@ callsiteInlineBefore = (ƛ (((weaken (` f)) · (((` nothing) · (con Zero)) · (
 callsiteInlineAfter : Vars ⊢
 callsiteInlineAfter = (ƛ (((weaken (` f)) · (((weaken (ƛ (ƛ (((weaken (weaken (` g))) · (` (just nothing))) · (` nothing))))) · (con Zero)) · (con One))) · ((` nothing) · (con Two)))) · (ƛ (ƛ (((weaken (weaken (` g))) · (` (just nothing))) · (` nothing))))
 
+{-
 callsiteInline : Inlined [] □ callsiteInlineBefore callsiteInlineAfter
 callsiteInline = {!!} -- partial (ƛb (partial (partial refl (partial (partial (sub refl) refl) refl)) refl)) refl
-
+-}
 ```
 Continuing to inline:
 `(\a -> f ((\x y -> g x y) 0 1) (a 2)) (\x y -> g x y)`
@@ -319,11 +318,14 @@ open import Agda.Builtin.Sigma using (_,_)
 open Eq using (trans; sym; subst)
 open import Data.Maybe.Properties using (just-injective)
 
-isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Inline ast ast')
+postulate
+  isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Inline ast ast')
 
-{-# TERMINATING #-}
+--{-# TERMINATING #-}
+{-
 isIl? : {X : Set} {{_ : DecEq X}} → (e : List (X ⊢)) → (b : Bind X) → (ast ast' : X ⊢) → ProofOrCE (Inlined e b ast ast')
 isIl? e b ast ast' = {!!}
+-}
 {-
 isIl? e b ast ast' with ast ≟ ast'
 ... | yes refl = proof refl
@@ -389,7 +391,8 @@ isIl? e b (case t ts) ast' | no ast≠ast' with (isCase? isTerm? allTerms?) ast'
 ...     | proof ps = proof (case p ps)
 isIl? {X} e b (builtin b₁) ast' | no ast≠ast' = ce (λ { refl → ast≠ast' refl} ) inlineT (builtin {X} b₁) ast'
 isIl? {X} e b error ast' | no ast≠ast' = ce (λ { refl → ast≠ast' refl} ) inlineT (error {X}) ast'
--}
+
 isInline? = translation? inlineT (λ {Y} → isIl? {Y} [] □)
+-}
 
 ```
