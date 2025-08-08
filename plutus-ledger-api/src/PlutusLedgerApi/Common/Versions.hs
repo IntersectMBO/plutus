@@ -1,6 +1,6 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 {- | This module contains the code for handling the various kinds of version that we care about:
 
@@ -32,15 +32,14 @@ module PlutusLedgerApi.Common.Versions
     ) where
 
 import PlutusCore
+import PlutusLedgerApi.Common.PlutusLedgerLanguage
 import PlutusLedgerApi.Common.ProtocolVersions
 import PlutusPrelude
 
-import Codec.Serialise.Class (Serialise)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import NoThunks.Class (NoThunks)
+import Language.Haskell.TH.Syntax
 import PlutusCore.Version (plcVersion100, plcVersion110)
-import Prettyprinter
 
 {- Note [New builtins/language versions and protocol versions]
 
@@ -86,15 +85,6 @@ and the __ordering of constructors__ is essential for deriving Enum,Ord,Bounded.
 
 IMPORTANT: this is different from the Plutus Core language version, `PlutusCore.Version`
 -}
-data PlutusLedgerLanguage =
-      PlutusV1 -- ^ introduced in Alonzo HF
-    | PlutusV2 -- ^ introduced in Vasil HF
-    | PlutusV3 -- ^ introduced in Chang HF
-   deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
-   deriving anyclass (NFData, NoThunks, Serialise)
-
-instance Pretty PlutusLedgerLanguage where
-    pretty = viaShow
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.
 -}
@@ -114,16 +104,17 @@ ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLangua
 ledgerLanguagesAvailableIn searchPv =
   Set.fromList $ takeWhile (\ll -> ledgerLanguageIntroducedIn ll <= searchPv) enumerate
 
--- | Given a map from PVs to a type `a`, return a `Set a` containing all of the
--- entries with PV <= thisPv
+-- | Given a map from (LL, PV) pairs to a type `a`, return a `Set a` containing all of the
+-- entries with LL = thisLL and PV <= thisPv
 collectUpTo
   :: Ord a
-  => Map.Map MajorProtocolVersion (Set.Set a)
+  => Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set a)
+  -> PlutusLedgerLanguage
   -> MajorProtocolVersion
   -> Set.Set a
-collectUpTo m thisPv =
-  fold $  -- ie, iterated `union`
-  Map.elems $ Map.takeWhileAntitone (<= thisPv) m
+collectUpTo m thisLL thisPV =
+    fold $ Map.elems $ Map.filterWithKey (\(ll,pv) _ -> ll == thisLL && pv <= thisPV) m
+--  takeWhileAntitone doesn't work
 
 {- Batches of builtins which were introduced in the same hard fork (but perhaps
    not for all LLs): see the Plutus Core specification and
@@ -227,32 +218,25 @@ batch6 =
   where no new builtins are added.  See Note [New builtins/language versions and
   protocol versions]
 -}
-builtinsIntroducedIn :: PlutusLedgerLanguage -> Map.Map MajorProtocolVersion (Set.Set DefaultFun)
+builtinsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set DefaultFun)
 builtinsIntroducedIn =
-  \case
-    PlutusV1 ->
-      Map.fromList
-      [ (alonzoPV, Set.fromList batch1)
-      , (pv11PV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
-      ]
-    PlutusV2 ->
-      Map.fromList
-      [ (vasilPV,     Set.fromList (batch1 ++ batch2))
-      , (valentinePV, Set.fromList batch3)
-      , (plominPV,    Set.fromList batch4b)
-      , (pv11PV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
-      ]
-    PlutusV3 ->
-      Map.fromList
-      [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
-      , (plominPV, Set.fromList batch5)
-      , (pv11PV,   Set.fromList batch6)
-      ]
+  Map.fromList
+  [ ((PlutusV1, alonzoPV),    Set.fromList batch1)
+  , ((PlutusV1, pv11PV),      Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+  , ((PlutusV2, vasilPV),     Set.fromList (batch1 ++ batch2))
+  , ((PlutusV2, valentinePV), Set.fromList batch3)
+  , ((PlutusV2, plominPV),    Set.fromList batch4b)
+  , ((PlutusV2, pv11PV) ,     Set.fromList (batch4a ++ batch5 ++ batch6))
+  , ((PlutusV3, changPV),     Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
+  , ((PlutusV3, plominPV),    Set.fromList batch5)
+  , ((PlutusV3, pv11PV),      Set.fromList batch6)
+  ]
 
 {- | Return a set containing the builtins which are available in a given LL in a
 given PV.  All builtins are available in all LLs from `pv11PV` onwards. -}
 builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
-builtinsAvailableIn = collectUpTo . builtinsIntroducedIn
+builtinsAvailableIn = collectUpTo builtinsIntroducedIn
+{-# NOINLINE builtinsAvailableIn #-}
 
 
 {-| A map indicating which Plutus Core versions were introduced in which
@@ -260,25 +244,18 @@ builtinsAvailableIn = collectUpTo . builtinsIntroducedIn
 This __must__ be updated when new versions are added.
 See Note [New builtins/language versions and protocol versions]
 -}
-plcVersionsIntroducedIn :: PlutusLedgerLanguage -> Map.Map MajorProtocolVersion (Set.Set Version)
+plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
 plcVersionsIntroducedIn =
-  \case
-    PlutusV1 ->
-      Map.fromList
-      [ (alonzoPV, Set.fromList [ plcVersion100 ])
-      , (pv11PV,   Set.fromList [ plcVersion110 ])
-      ]
-    PlutusV2 ->
-      Map.fromList
-      [ (alonzoPV, Set.fromList [ plcVersion100 ])
-      , (pv11PV,   Set.fromList [ plcVersion110 ])
-      ]
-    PlutusV3 ->
-      Map.fromList
-      [(changPV, Set.fromList [ plcVersion110 ])
-      ]
+  $$(liftTyped (Map.fromList
+  [ ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ])
+  , ((PlutusV1, pv11PV),   Set.fromList [ plcVersion110 ])
+  , ((PlutusV2, alonzoPV), Set.fromList [ plcVersion100 ])
+  , ((PlutusV2, pv11PV),   Set.fromList [ plcVersion110 ])
+  , ((PlutusV3, changPV),  Set.fromList [ plcVersion110 ])
+  ]))
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
 and 'MajorProtocolVersion'? -}
-plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
-plcVersionsAvailableIn = collectUpTo . plcVersionsIntroducedIn
+plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> (Set.Set Version)
+plcVersionsAvailableIn = collectUpTo plcVersionsIntroducedIn
+{-# NOINLINE plcVersionsAvailableIn #-}
