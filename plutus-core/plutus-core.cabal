@@ -193,6 +193,7 @@ library
     PlutusCore.Subst
     PlutusCore.TypeCheck
     PlutusCore.TypeCheck.Internal
+    PlutusCore.Value
     PlutusCore.Version
     PlutusPrelude
     Prettyprinter.Custom
