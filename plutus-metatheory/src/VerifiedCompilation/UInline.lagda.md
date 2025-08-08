@@ -170,7 +170,7 @@ data Inlined : List (X ⊢) → Bind X → {t₂ : X ⊢} → ℕ → (t₁ : X 
           → Inlined e b 0 t a'
           → Inlined e b 0 (delay t) (0 , (delay a'))
 
-{-
+{- FIXME: These need fillint in but that will require some operations over list based annotations...
 constr : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {i : ℕ} {xs xs' : List (X ⊢)}
           → {a : Annotation ℕ (constr i xs)} {a' : Annotation ℕ (constr i xs')}
           → {as : All (Annotation ℕ) xs} {as' : All (Annotation ℕ) xs'}
@@ -185,11 +185,8 @@ constr : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {i : ℕ} {xs xs' : Li
           → {a′ : Annotation′ ℕ t}
           → Inlined e b 0 t (0 , a′)
 
-postulate
-  Inline : {X : Set} {{ _ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
- {-
-Inline = Translation (λ {Y} → Inlined {Y} [] □)
--}
+Inline : {X : Set} {{ _ : DecEq X}} → (X ⊢) → {t : X ⊢} → Annotation ℕ t → Set₁
+Inline t a = Inlined [] □ 0 t a
 
 ```
 # Examples
@@ -319,7 +316,7 @@ open Eq using (trans; sym; subst)
 open import Data.Maybe.Properties using (just-injective)
 
 postulate
-  isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Inline ast ast')
+  isInline? : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → {ast' : X ⊢} → (a' : Annotation ℕ ast') → ProofOrCE (Inline ast a')
 
 --{-# TERMINATING #-}
 {-
