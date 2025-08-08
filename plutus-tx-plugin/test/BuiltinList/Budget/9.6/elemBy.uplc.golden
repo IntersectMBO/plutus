@@ -13,7 +13,7 @@
                      [ (\x xs ->
                           case
                             (lessThanEqualsInteger x 0)
-                            [(force (go (delay (\x -> x))) xs), (constr 0 [])])
-                     , (constr 1 []) ]))
+                            [(force (go (delay (\x -> x))) xs), True])
+                     , False ]))
            (delay (\x -> x)))
         xs))

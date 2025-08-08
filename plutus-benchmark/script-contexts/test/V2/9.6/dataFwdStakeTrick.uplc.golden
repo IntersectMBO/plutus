@@ -19,12 +19,12 @@
                                              (equalsData
                                                 obsScriptCred
                                                 (force (force fstPair) x))
-                                             [(s s xs), (constr 0 [])])
-                                      , (constr 1 []) ])
+                                             [(s s xs), True])
+                                      , False ])
                                  rest)
-                              [ (constr 0 [])
-                              , ((\x -> error)
-                                   (force trace "not found" (constr 0 []))) ])
+                              [ ((\x -> error)
+                                   (force trace "not found" (constr 0 [])))
+                              , (constr 0 []) ])
                          , (constr 0 []) ])
                     , (constr 0 []) ])
                  (force (force fstPair) (force headList rest)))

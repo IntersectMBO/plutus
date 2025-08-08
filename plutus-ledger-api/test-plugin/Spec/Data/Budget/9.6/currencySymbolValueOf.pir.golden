@@ -9,9 +9,6 @@ letrec
           , 0 ]
 in
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -33,16 +30,13 @@ in
               (Maybe data)
               xs
               [ (\(hd : pair data data) ->
-                   Bool_match
-                     (case
-                        Bool
-                        (equalsData k (fstPair {data} {data} hd))
-                        [False, True])
-                     {all dead. list (pair data data) -> Maybe data}
-                     (/\dead ->
-                        \(ds : list (pair data data)) ->
-                          Just {data} (sndPair {data} {data} hd))
-                     (/\dead -> go)
+                   case
+                     (all dead. list (pair data data) -> Maybe data)
+                     (equalsData k (fstPair {data} {data} hd))
+                     [ (/\dead -> go)
+                     , (/\dead ->
+                          \(ds : list (pair data data)) ->
+                            Just {data} (sndPair {data} {data} hd)) ]
                      {all dead. dead})
               , (Nothing {data}) ]
     in

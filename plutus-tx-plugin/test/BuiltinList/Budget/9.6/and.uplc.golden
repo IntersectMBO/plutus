@@ -11,9 +11,7 @@
                    case
                      xs
                      [ (\x xs ->
-                          case
-                            x
-                            [(constr 1 []), (force (go (delay (\x -> x))) xs)])
-                     , (constr 0 []) ]))
+                          case x [False, (force (go (delay (\x -> x))) xs)])
+                     , True ]))
            (delay (\x -> x)))
         xs))

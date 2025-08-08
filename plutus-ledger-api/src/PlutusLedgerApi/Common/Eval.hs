@@ -193,7 +193,7 @@ mkDynEvaluationContext ll toCaser semVars toSemVar newCMP = do
     machPars <- mkMachineVariantParametersFor semVars newCMP
     pure $ EvaluationContext ll toCaser toSemVar machPars
 
--- FIXME: remove this function
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1726): remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModelForTesting
 

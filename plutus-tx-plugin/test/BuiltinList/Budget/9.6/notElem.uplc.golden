@@ -14,9 +14,8 @@
                         [ (\x xs ->
                              case
                                (equalsInteger 42 x)
-                               [ (force (go (delay (\x -> x))) xs)
-                               , (constr 0 []) ])
-                        , (constr 1 []) ]))
+                               [(force (go (delay (\x -> x))) xs), True])
+                        , False ]))
               (delay (\x -> x)))
            xs)
-        [(constr 1 []), (constr 0 [])]))
+        [True, False]))

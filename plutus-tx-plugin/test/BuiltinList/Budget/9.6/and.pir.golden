@@ -1,20 +1,17 @@
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
-  ~all : all a. (a -> Bool) -> list a -> Bool
+  ~all : all a. (a -> bool) -> list a -> bool
     = /\a ->
-        \(p : a -> Bool) ->
+        \(p : a -> bool) ->
           let
-            !p : a -> Bool = p
+            !p : a -> bool = p
           in
           letrec
-            ~go : list a -> Bool
+            ~go : list a -> bool
               = caseList'
                   {a}
-                  {Bool}
+                  {bool}
                   True
                   (\(x : a) ->
                      let
@@ -24,19 +21,18 @@ let
                        let
                          !xs : list a = xs
                        in
-                       Bool_match
+                       case
+                         (all dead. bool)
                          (p x)
-                         {all dead. Bool}
-                         (/\dead -> go xs)
-                         (/\dead -> False)
+                         [(/\dead -> False), (/\dead -> go xs)]
                          {all dead. dead})
           in
           go
   !ifThenElse : all a. bool -> a -> a -> a
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
-  ~and : list bool -> Bool
+  ~and : list bool -> bool
     = all
         {bool}
-        (\(x : bool) -> let !x : bool = x in ifThenElse {Bool} x True False)
+        (\(x : bool) -> let !x : bool = x in ifThenElse {bool} x True False)
 in
 \(xs : list bool) -> let !xs : list bool = xs in and xs

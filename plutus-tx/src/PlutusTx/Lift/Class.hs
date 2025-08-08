@@ -5,6 +5,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PolyKinds             #-}
@@ -32,8 +33,7 @@ import PlutusCore.Quote
 import PlutusIR.MkPir
 import PlutusTx.Builtins
 import PlutusTx.Builtins.HasBuiltin (FromBuiltin, HasFromBuiltin)
-import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinInteger, BuiltinList, BuiltinPair,
-                                   BuiltinUnit)
+import PlutusTx.Builtins.Internal (BuiltinInteger, BuiltinList, BuiltinPair, BuiltinUnit)
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
@@ -174,12 +174,13 @@ instance (uni `PLC.HasTermLevel` ()) => Lift uni BuiltinUnit where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` Bool) => Typeable uni BuiltinBool where
+instance (uni `PLC.HasTypeLevel` Bool) => Typeable uni Bool where
   typeRep _ = typeRepBuiltin (Proxy @Bool)
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` Bool) => Lift uni BuiltinBool where
+instance (uni `PLC.HasTermLevel` Bool) => Lift uni Bool where
   lift = liftBuiltin . fromBuiltin
+
 
 -- See Note [Lift and Typeable instances for builtins]
 instance (uni `PLC.HasTypeLevel` []) => Typeable uni BuiltinList where
