@@ -48,8 +48,6 @@ let
         `$fToDataInteger_$ctoBuiltinData`
   !ifThenElse : all a. bool -> a -> a -> a
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
-  data Unit | Unit_match where
-    Unit : Unit
   !`$fUnsafeFromDataThese_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> These a b
     = /\a b ->
@@ -62,38 +60,20 @@ let
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. These a b)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. These a b)
-                   (equalsInteger 1 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. These a b)
-                          (equalsInteger 2 index)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit = trace {Unit} "PT1" Unit
-                               in
-                               error {These a b})
-                          , (/\dead ->
-                               These
-                                 {a}
-                                 {b}
-                                 (`$dUnsafeFromData` (headList {data} args))
-                                 (`$dUnsafeFromData`
-                                    (headList {data} (tailList {data} args)))) ]
-                          {all dead. dead})
-                   , (/\dead ->
-                        That
-                          {a}
-                          {b}
-                          (`$dUnsafeFromData` (headList {data} args))) ]
-                   {all dead. dead})
-            , (/\dead ->
-                 This {a} {b} (`$dUnsafeFromData` (headList {data} args))) ]
-            {all dead. dead}
+            (list data -> These a b)
+            index
+            [ (\(ds : list data) ->
+                 This {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
+            , (\(ds : list data) ->
+                 That {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
+            , (\(ds : list data) ->
+                 These
+                   {a}
+                   {b}
+                   (`$dUnsafeFromData` (headList {data} ds))
+                   (`$dUnsafeFromData`
+                      (headList {data} (tailList {data} ds)))) ]
+            args
 in
 letrec
   !go : list (pair data data) -> bool
@@ -352,6 +332,8 @@ let
                              {all dead. dead}) ]
             in
             safeAppend (goLeft ds) (goRight ds)
+  data Unit | Unit_match where
+    Unit : Unit
 in
 letrec
   !rev : all a. list a -> list a -> list a

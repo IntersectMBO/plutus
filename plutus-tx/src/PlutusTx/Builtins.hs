@@ -43,6 +43,7 @@ module PlutusTx.Builtins (
   lessThanEqualsInteger,
   equalsInteger,
   expModInteger,
+  BI.caseInteger,
 
   -- * Error
   error,
@@ -154,10 +155,6 @@ module PlutusTx.Builtins (
   countSetBits,
   findFirstSetBit,
 
-
-  -- test
-  BI.caseInteger,
-  BI.ands
 ) where
 
 import Data.Maybe

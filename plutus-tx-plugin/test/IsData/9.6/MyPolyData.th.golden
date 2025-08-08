@@ -25,10 +25,10 @@ instance (PlutusTx.IsData.Class.UnsafeFromData a_0,
            PlutusTx.IsData.Class.unsafeFromBuiltinData d_12 = let {!tup_13 = PlutusTx.Builtins.Internal.unsafeDataAsConstr d_12;
                                                                    !index_14 = PlutusTx.Builtins.Internal.fst tup_13;
                                                                    !args_15 = PlutusTx.Builtins.Internal.snd tup_13}
-                                                               in case (index_14, args_15) of
-                                                                  {(((PlutusTx.Eq.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
-                                                                    (PlutusTx.AsData.Internal.wrapUnsafeUncons -> ((PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_16),
-                                                                                                                   (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_17))))) -> Plugin.Data.Spec.Poly1 arg_16 arg_17;
-                                                                   (((PlutusTx.Eq.==) (1 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
-                                                                    (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_18))) -> Plugin.Data.Spec.Poly2 arg_18;
-                                                                   _ -> PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}}
+                                                               in PlutusTx.Builtins.Internal.caseInteger index_14 [\case
+                                                                                                                   {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ((PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_16),
+                                                                                                                                                                   (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_17)))) -> Plugin.Data.Spec.Poly1 arg_16 arg_17;
+                                                                                                                    _ -> PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError},
+                                                                                                                   \case
+                                                                                                                   {(PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_18)) -> Plugin.Data.Spec.Poly2 arg_18;
+                                                                                                                    _ -> PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}] args_15}

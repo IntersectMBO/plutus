@@ -44,13 +44,38 @@
             (\(ds : TxOut) (xs : List TxOut) -> addInteger 1 (go xs))
   in
   let
+    !`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` : data -> Credential
+      = \(d : data) ->
+          let
+            !tup : pair integer (list data) = unConstrData d
+            !index : integer = fstPair {integer} {list data} tup
+            !args : list data = sndPair {integer} {list data} tup
+          in
+          case
+            (list data -> Credential)
+            index
+            [ (\(ds : list data) ->
+                 PubKeyCredential (unBData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 ScriptCredential (unBData (headList {data} ds))) ]
+            args
+  in
+  letrec
+    !go : list data -> List Credential
+      = \(xs : list data) ->
+          case
+            (List Credential)
+            xs
+            [ (Nil {Credential})
+            , (\(x : data) (xs : list data) ->
+                 Cons
+                   {Credential}
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` x)
+                   (go xs)) ]
+  in
+  let
     data GovernanceActionId | GovernanceActionId_match where
       GovernanceActionId : bytestring -> integer -> GovernanceActionId
-    data Unit | Unit_match where
-      Unit : Unit
-    !traceError : all a. string -> a
-      = /\a ->
-          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
     !`$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData` :
        data -> GovernanceActionId
       = \(d : data) ->
@@ -60,49 +85,13 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. GovernanceActionId)
-            (equalsInteger 0 index)
-            [ (/\dead -> traceError {GovernanceActionId} "PT1")
-            , (/\dead ->
+            (list data -> GovernanceActionId)
+            index
+            [ (\(ds : list data) ->
                  GovernanceActionId
-                   (unBData (headList {data} args))
-                   (unIData (headList {data} (tailList {data} args)))) ]
-            {all dead. dead}
-    !`$fUnsafeFromDataList_$cunsafeFromBuiltinData` :
-       all a. (\a -> data -> a) a -> data -> List a
-      = /\a ->
-          \(`$dUnsafeFromData` : (\a -> data -> a) a) ->
-            letrec
-              !go : list data -> List a
-                = \(xs : list data) ->
-                    case
-                      (List a)
-                      xs
-                      [ (Nil {a})
-                      , (\(x : data) (xs : list data) ->
-                           Cons {a} (`$dUnsafeFromData` x) (go xs)) ]
-            in
-            \(d : data) -> go (unListData d)
-    !`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` : data -> Credential
-      = \(d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
-          in
-          case
-            (all dead. Credential)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. Credential)
-                   (equalsInteger 1 index)
-                   [ (/\dead -> traceError {Credential} "PT1")
-                   , (/\dead ->
-                        ScriptCredential (unBData (headList {data} args))) ]
-                   {all dead. dead})
-            , (/\dead -> PubKeyCredential (unBData (headList {data} args))) ]
-            {all dead. dead}
+                   (unBData (headList {data} ds))
+                   (unIData (headList {data} (tailList {data} ds)))) ]
+            args
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
@@ -113,20 +102,12 @@
               !args : list data = sndPair {integer} {list data} tup
             in
             case
-              (all dead. Maybe a)
-              (equalsInteger 1 index)
-              [ (/\dead ->
-                   case
-                     (all dead. Maybe a)
-                     (equalsInteger 0 index)
-                     [ (/\dead -> traceError {Maybe a} "PT1")
-                     , (/\dead ->
-                          Just
-                            {a}
-                            (`$dUnsafeFromData` (headList {data} args))) ]
-                     {all dead. dead})
-              , (/\dead -> Nothing {a}) ]
-              {all dead. dead}
+              (list data -> Maybe a)
+              index
+              [ (\(ds : list data) ->
+                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+              , (\(ds : list data) -> Nothing {a}) ]
+              args
     !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
        all k v.
          (\a -> data -> a) k ->
@@ -192,6 +173,10 @@
             [(/\dead -> euclid y (modInteger x y)), (/\dead -> x)]
             {all dead. dead}
   in
+  let
+    data Unit | Unit_match where
+      Unit : Unit
+  in
   letrec
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
@@ -214,7 +199,11 @@
                           (subtractInteger 0 n)
                           (subtractInteger 0 d)) ]
                    {all dead. dead})
-            , (/\dead -> traceError {Rational} "PT3") ]
+            , (/\dead ->
+                 let
+                   !x : Unit = trace {Unit} "PT3" Unit
+                 in
+                 error {Rational}) ]
             {all dead. dead}
   in
   let
@@ -227,15 +216,14 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. ProposalProcedure)
-            (equalsInteger 0 index)
-            [ (/\dead -> traceError {ProposalProcedure} "PT1")
-            , (/\dead ->
+            (list data -> ProposalProcedure)
+            index
+            [ (\(ds : list data) ->
                  let
-                   !l : list data = tailList {data} args
+                   !l : list data = tailList {data} ds
                  in
                  ProposalProcedure
-                   (unIData (headList {data} args))
+                   (unIData (headList {data} ds))
                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                       (headList {data} l))
                    (let
@@ -245,257 +233,142 @@
                      !args : list data = sndPair {integer} {list data} tup
                    in
                    case
-                     (all dead. GovernanceAction)
-                     (equalsInteger 0 index)
-                     [ (/\dead ->
-                          case
-                            (all dead. GovernanceAction)
-                            (equalsInteger 1 index)
-                            [ (/\dead ->
-                                 case
-                                   (all dead. GovernanceAction)
-                                   (equalsInteger 2 index)
-                                   [ (/\dead ->
-                                        case
-                                          (all dead. GovernanceAction)
-                                          (equalsInteger 3 index)
-                                          [ (/\dead ->
-                                               case
-                                                 (all dead. GovernanceAction)
-                                                 (equalsInteger 4 index)
-                                                 [ (/\dead ->
-                                                      case
-                                                        (all dead.
-                                                           GovernanceAction)
-                                                        (equalsInteger 5 index)
-                                                        [ (/\dead ->
-                                                             case
-                                                               (all dead.
-                                                                  GovernanceAction)
-                                                               (equalsInteger
-                                                                  6
-                                                                  index)
-                                                               [ (/\dead ->
-                                                                    traceError
-                                                                      {GovernanceAction}
-                                                                      "PT1")
-                                                               , (/\dead ->
-                                                                    InfoAction) ]
-                                                               {all dead. dead})
-                                                        , (/\dead ->
-                                                             NewConstitution
-                                                               (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                  {GovernanceActionId}
-                                                                  `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                                                  (headList
-                                                                     {data}
-                                                                     args))
-                                                               (let
-                                                                 !tup :
-                                                                    pair
-                                                                      integer
-                                                                      (list
-                                                                         data)
-                                                                   = unConstrData
-                                                                       (headList
-                                                                          {data}
-                                                                          (tailList
-                                                                             {data}
-                                                                             args))
-                                                                 !index :
-                                                                    integer
-                                                                   = fstPair
-                                                                       {integer}
-                                                                       {list
-                                                                          data}
-                                                                       tup
-                                                                 !args :
-                                                                    list data
-                                                                   = sndPair
-                                                                       {integer}
-                                                                       {list
-                                                                          data}
-                                                                       tup
-                                                               in
-                                                               case
-                                                                 (all dead.
-                                                                    Maybe
-                                                                      bytestring)
-                                                                 (equalsInteger
-                                                                    0
-                                                                    index)
-                                                                 [ (/\dead ->
-                                                                      traceError
-                                                                        {Maybe
-                                                                           bytestring}
-                                                                        "PT1")
-                                                                 , (/\dead ->
-                                                                      `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                        {bytestring}
-                                                                        unBData
-                                                                        (headList
-                                                                           {data}
-                                                                           args)) ]
-                                                                 {all dead.
-                                                                    dead})) ]
-                                                        {all dead. dead})
-                                                 , (/\dead ->
-                                                      let
-                                                        !l : list data
-                                                          = tailList {data} args
-                                                        !l : list data
-                                                          = tailList {data} l
-                                                      in
-                                                      UpdateCommittee
-                                                        (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                           {GovernanceActionId}
-                                                           `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                                           (headList
-                                                              {data}
-                                                              args))
-                                                        (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
-                                                           {Credential}
-                                                           `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                           (headList {data} l))
-                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                           {Credential}
-                                                           {integer}
-                                                           `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                           unIData
-                                                           (headList {data} l))
-                                                        (let
-                                                          !x : data
-                                                            = headList
-                                                                {data}
-                                                                (tailList
-                                                                   {data}
-                                                                   l)
-                                                        in
-                                                        Tuple2_match
-                                                          {integer}
-                                                          {integer}
-                                                          (let
-                                                            !tup :
-                                                               pair
-                                                                 integer
-                                                                 (list data)
-                                                              = unConstrData x
-                                                            !index : integer
-                                                              = fstPair
-                                                                  {integer}
-                                                                  {list data}
-                                                                  tup
-                                                            !args : list data
-                                                              = sndPair
-                                                                  {integer}
-                                                                  {list data}
-                                                                  tup
-                                                          in
-                                                          case
-                                                            (all dead.
-                                                               Tuple2
-                                                                 integer
-                                                                 integer)
-                                                            (equalsInteger
-                                                               0
-                                                               index)
-                                                            [ (/\dead ->
-                                                                 traceError
-                                                                   {Tuple2
-                                                                      integer
-                                                                      integer}
-                                                                   "PT1")
-                                                            , (/\dead ->
-                                                                 Tuple2
-                                                                   {integer}
-                                                                   {integer}
-                                                                   (unIData
-                                                                      (headList
-                                                                         {data}
-                                                                         args))
-                                                                   (unIData
-                                                                      (headList
-                                                                         {data}
-                                                                         (tailList
-                                                                            {data}
-                                                                            args)))) ]
-                                                            {all dead. dead})
-                                                          {Rational}
-                                                          (\(a : integer)
-                                                            (b : integer) ->
-                                                             unsafeRatio
-                                                               a
-                                                               b))) ]
-                                                 {all dead. dead})
-                                          , (/\dead ->
-                                               NoConfidence
-                                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                    {GovernanceActionId}
-                                                    `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                                    (headList {data} args))) ]
-                                          {all dead. dead})
-                                   , (/\dead ->
-                                        TreasuryWithdrawals
-                                          (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                             {Credential}
-                                             {integer}
-                                             `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                             unIData
-                                             (headList {data} args))
-                                          (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                             {bytestring}
-                                             unBData
-                                             (headList
-                                                {data}
-                                                (tailList {data} args)))) ]
-                                   {all dead. dead})
-                            , (/\dead ->
-                                 HardForkInitiation
-                                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                      {GovernanceActionId}
-                                      `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                      (headList {data} args))
-                                   (let
-                                     !tup : pair integer (list data)
-                                       = unConstrData
-                                           (headList
-                                              {data}
-                                              (tailList {data} args))
-                                     !index : integer
-                                       = fstPair {integer} {list data} tup
-                                     !args : list data
-                                       = sndPair {integer} {list data} tup
-                                   in
-                                   case
-                                     (all dead. ProtocolVersion)
-                                     (equalsInteger 0 index)
-                                     [ (/\dead ->
-                                          traceError {ProtocolVersion} "PT1")
-                                     , (/\dead ->
-                                          ProtocolVersion
-                                            (unIData (headList {data} args))
-                                            (unIData
-                                               (headList
-                                                  {data}
-                                                  (tailList {data} args)))) ]
-                                     {all dead. dead})) ]
-                            {all dead. dead})
-                     , (/\dead ->
+                     (list data -> GovernanceAction)
+                     index
+                     [ (\(ds : list data) ->
                           let
-                            !l : list data = tailList {data} args
+                            !l : list data = tailList {data} ds
                           in
                           ParameterChange
                             (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                {GovernanceActionId}
                                `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                               (headList {data} args))
+                               (headList {data} ds))
                             (headList {data} l)
                             (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                {bytestring}
                                unBData
-                               (headList {data} (tailList {data} l)))) ]
-                     {all dead. dead})) ]
-            {all dead. dead}
+                               (headList {data} (tailList {data} l))))
+                     , (\(ds : list data) ->
+                          HardForkInitiation
+                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                               {GovernanceActionId}
+                               `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
+                               (headList {data} ds))
+                            (let
+                              !tup : pair integer (list data)
+                                = unConstrData
+                                    (headList {data} (tailList {data} ds))
+                              !index : integer
+                                = fstPair {integer} {list data} tup
+                              !args : list data
+                                = sndPair {integer} {list data} tup
+                            in
+                            case
+                              (list data -> ProtocolVersion)
+                              index
+                              [ (\(ds : list data) ->
+                                   ProtocolVersion
+                                     (unIData (headList {data} ds))
+                                     (unIData
+                                        (headList
+                                           {data}
+                                           (tailList {data} ds)))) ]
+                              args))
+                     , (\(ds : list data) ->
+                          TreasuryWithdrawals
+                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                               {Credential}
+                               {integer}
+                               `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                               unIData
+                               (headList {data} ds))
+                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                               {bytestring}
+                               unBData
+                               (headList {data} (tailList {data} ds))))
+                     , (\(ds : list data) ->
+                          NoConfidence
+                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                               {GovernanceActionId}
+                               `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
+                               (headList {data} ds)))
+                     , (\(ds : list data) ->
+                          let
+                            !l : list data = tailList {data} ds
+                            !l : list data = tailList {data} l
+                          in
+                          UpdateCommittee
+                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                               {GovernanceActionId}
+                               `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
+                               (headList {data} ds))
+                            (let
+                              !d : data = headList {data} l
+                            in
+                            go (unListData d))
+                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                               {Credential}
+                               {integer}
+                               `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                               unIData
+                               (headList {data} l))
+                            (let
+                              !x : data = headList {data} (tailList {data} l)
+                            in
+                            Tuple2_match
+                              {integer}
+                              {integer}
+                              (let
+                                !tup : pair integer (list data) = unConstrData x
+                                !index : integer
+                                  = fstPair {integer} {list data} tup
+                                !args : list data
+                                  = sndPair {integer} {list data} tup
+                              in
+                              case
+                                (list data -> Tuple2 integer integer)
+                                index
+                                [ (\(ds : list data) ->
+                                     Tuple2
+                                       {integer}
+                                       {integer}
+                                       (unIData (headList {data} ds))
+                                       (unIData
+                                          (headList
+                                             {data}
+                                             (tailList {data} ds)))) ]
+                                args)
+                              {Rational}
+                              (\(a : integer) (b : integer) ->
+                                 unsafeRatio a b)))
+                     , (\(ds : list data) ->
+                          NewConstitution
+                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                               {GovernanceActionId}
+                               `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
+                               (headList {data} ds))
+                            (let
+                              !tup : pair integer (list data)
+                                = unConstrData
+                                    (headList {data} (tailList {data} ds))
+                              !index : integer
+                                = fstPair {integer} {list data} tup
+                              !args : list data
+                                = sndPair {integer} {list data} tup
+                            in
+                            case
+                              (list data -> Maybe bytestring)
+                              index
+                              [ (\(ds : list data) ->
+                                   `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                     {bytestring}
+                                     unBData
+                                     (headList {data} ds)) ]
+                              args))
+                     , (\(ds : list data) -> InfoAction) ]
+                     args)) ]
+            args
   in
   letrec
     !go : list data -> List ProposalProcedure
@@ -511,6 +384,16 @@
                       x)
                    (go xs)) ]
   in
+  letrec
+    !go : list data -> List bytestring
+      = \(xs : list data) ->
+          case
+            (List bytestring)
+            xs
+            [ (Nil {bytestring})
+            , (\(x : data) (xs : list data) ->
+                 Cons {bytestring} (unBData x) (go xs)) ]
+  in
   let
     data DRep | DRep_match where
       DRep : Credential -> DRep
@@ -524,26 +407,15 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. DRep)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. DRep)
-                   (equalsInteger 1 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. DRep)
-                          (equalsInteger 2 index)
-                          [ (/\dead -> traceError {DRep} "PT1")
-                          , (/\dead -> DRepAlwaysNoConfidence) ]
-                          {all dead. dead})
-                   , (/\dead -> DRepAlwaysAbstain) ]
-                   {all dead. dead})
-            , (/\dead ->
+            (list data -> DRep)
+            index
+            [ (\(ds : list data) ->
                  DRep
                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                      (headList {data} args))) ]
-            {all dead. dead}
+                      (headList {data} ds)))
+            , (\(ds : list data) -> DRepAlwaysAbstain)
+            , (\(ds : list data) -> DRepAlwaysNoConfidence) ]
+            args
     data Delegatee | Delegatee_match where
       DelegStake : bytestring -> Delegatee
       DelegStakeVote : bytestring -> DRep -> Delegatee
@@ -556,30 +428,19 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. Delegatee)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. Delegatee)
-                   (equalsInteger 1 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. Delegatee)
-                          (equalsInteger 2 index)
-                          [ (/\dead -> traceError {Delegatee} "PT1")
-                          , (/\dead ->
-                               DelegStakeVote
-                                 (unBData (headList {data} args))
-                                 (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
-                                    (headList {data} (tailList {data} args)))) ]
-                          {all dead. dead})
-                   , (/\dead ->
-                        DelegVote
-                          (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
-                             (headList {data} args))) ]
-                   {all dead. dead})
-            , (/\dead -> DelegStake (unBData (headList {data} args))) ]
-            {all dead. dead}
+            (list data -> Delegatee)
+            index
+            [ (\(ds : list data) -> DelegStake (unBData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 DelegVote
+                   (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
+                      (headList {data} ds)))
+            , (\(ds : list data) ->
+                 DelegStakeVote
+                   (unBData (headList {data} ds))
+                   (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
+                      (headList {data} (tailList {data} ds)))) ]
+            args
     data TxCert | TxCert_match where
       TxCertAuthHotCommittee : Credential -> Credential -> TxCert
       TxCertDelegStaking : Credential -> Delegatee -> TxCert
@@ -592,8 +453,7 @@
       TxCertUnRegDRep : Credential -> integer -> TxCert
       TxCertUnRegStaking : Credential -> Maybe integer -> TxCert
       TxCertUpdateDRep : Credential -> TxCert
-    !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` :
-       data -> TxCert
+    !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` : data -> TxCert
       = \(eta : data) ->
           let
             !tup : pair integer (list data) = unConstrData eta
@@ -601,180 +461,73 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. TxCert)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. TxCert)
-                   (equalsInteger 1 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. TxCert)
-                          (equalsInteger 2 index)
-                          [ (/\dead ->
-                               case
-                                 (all dead. TxCert)
-                                 (equalsInteger 3 index)
-                                 [ (/\dead ->
-                                      case
-                                        (all dead. TxCert)
-                                        (equalsInteger 4 index)
-                                        [ (/\dead ->
-                                             case
-                                               (all dead. TxCert)
-                                               (equalsInteger 5 index)
-                                               [ (/\dead ->
-                                                    case
-                                                      (all dead. TxCert)
-                                                      (equalsInteger 6 index)
-                                                      [ (/\dead ->
-                                                           case
-                                                             (all dead. TxCert)
-                                                             (equalsInteger
-                                                                7
-                                                                index)
-                                                             [ (/\dead ->
-                                                                  case
-                                                                    (all dead.
-                                                                       TxCert)
-                                                                    (equalsInteger
-                                                                       8
-                                                                       index)
-                                                                    [ (/\dead ->
-                                                                         case
-                                                                           (all dead.
-                                                                              TxCert)
-                                                                           (equalsInteger
-                                                                              9
-                                                                              index)
-                                                                           [ (/\dead ->
-                                                                                case
-                                                                                  (all dead.
-                                                                                     TxCert)
-                                                                                  (equalsInteger
-                                                                                     10
-                                                                                     index)
-                                                                                  [ (/\dead ->
-                                                                                       traceError
-                                                                                         {TxCert}
-                                                                                         "PT1")
-                                                                                  , (/\dead ->
-                                                                                       TxCertResignColdCommittee
-                                                                                         (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                                                            (headList
-                                                                                               {data}
-                                                                                               args))) ]
-                                                                                  {all dead.
-                                                                                     dead})
-                                                                           , (/\dead ->
-                                                                                TxCertAuthHotCommittee
-                                                                                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                                                     (headList
-                                                                                        {data}
-                                                                                        args))
-                                                                                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                                                     (headList
-                                                                                        {data}
-                                                                                        (tailList
-                                                                                           {data}
-                                                                                           args)))) ]
-                                                                           {all dead.
-                                                                              dead})
-                                                                    , (/\dead ->
-                                                                         TxCertPoolRetire
-                                                                           (unBData
-                                                                              (headList
-                                                                                 {data}
-                                                                                 args))
-                                                                           (unIData
-                                                                              (headList
-                                                                                 {data}
-                                                                                 (tailList
-                                                                                    {data}
-                                                                                    args)))) ]
-                                                                    {all dead.
-                                                                       dead})
-                                                             , (/\dead ->
-                                                                  TxCertPoolRegister
-                                                                    (unBData
-                                                                       (headList
-                                                                          {data}
-                                                                          args))
-                                                                    (unBData
-                                                                       (headList
-                                                                          {data}
-                                                                          (tailList
-                                                                             {data}
-                                                                             args)))) ]
-                                                             {all dead. dead})
-                                                      , (/\dead ->
-                                                           TxCertUnRegDRep
-                                                             (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                                (headList
-                                                                   {data}
-                                                                   args))
-                                                             (unIData
-                                                                (headList
-                                                                   {data}
-                                                                   (tailList
-                                                                      {data}
-                                                                      args)))) ]
-                                                      {all dead. dead})
-                                               , (/\dead ->
-                                                    TxCertUpdateDRep
-                                                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                         (headList
-                                                            {data}
-                                                            args))) ]
-                                               {all dead. dead})
-                                        , (/\dead ->
-                                             TxCertRegDRep
-                                               (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                  (headList {data} args))
-                                               (unIData
-                                                  (headList
-                                                     {data}
-                                                     (tailList {data} args)))) ]
-                                        {all dead. dead})
-                                 , (/\dead ->
-                                      let
-                                        !l : list data = tailList {data} args
-                                      in
-                                      TxCertRegDeleg
-                                        (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                           (headList {data} args))
-                                        (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData`
-                                           (headList {data} l))
-                                        (unIData
-                                           (headList
-                                              {data}
-                                              (tailList {data} l)))) ]
-                                 {all dead. dead})
-                          , (/\dead ->
-                               TxCertDelegStaking
-                                 (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                    (headList {data} args))
-                                 (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData`
-                                    (headList {data} (tailList {data} args)))) ]
-                          {all dead. dead})
-                   , (/\dead ->
-                        TxCertUnRegStaking
-                          (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                             (headList {data} args))
-                          (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                             {integer}
-                             unIData
-                             (headList {data} (tailList {data} args)))) ]
-                   {all dead. dead})
-            , (/\dead ->
+            (list data -> TxCert)
+            index
+            [ (\(ds : list data) ->
                  TxCertRegStaking
                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                      (headList {data} args))
+                      (headList {data} ds))
                    (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                       {integer}
                       unIData
-                      (headList {data} (tailList {data} args)))) ]
-            {all dead. dead}
+                      (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 TxCertUnRegStaking
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds))
+                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                      {integer}
+                      unIData
+                      (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 TxCertDelegStaking
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds))
+                   (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData`
+                      (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 let
+                   !l : list data = tailList {data} ds
+                 in
+                 TxCertRegDeleg
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds))
+                   (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData`
+                      (headList {data} l))
+                   (unIData (headList {data} (tailList {data} l))))
+            , (\(ds : list data) ->
+                 TxCertRegDRep
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds))
+                   (unIData (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 TxCertUpdateDRep
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds)))
+            , (\(ds : list data) ->
+                 TxCertUnRegDRep
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds))
+                   (unIData (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 TxCertPoolRegister
+                   (unBData (headList {data} ds))
+                   (unBData (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 TxCertPoolRetire
+                   (unBData (headList {data} ds))
+                   (unIData (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 TxCertAuthHotCommittee
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds))
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} (tailList {data} ds))))
+            , (\(ds : list data) ->
+                 TxCertResignColdCommittee
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds))) ]
+            args
   in
   letrec
     !go : list data -> List TxCert
@@ -799,29 +552,27 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. TxOut)
-            (equalsInteger 0 index)
-            [ (/\dead -> traceError {TxOut} "PT1")
-            , (/\dead ->
+            (list data -> TxOut)
+            index
+            [ (\(ds : list data) ->
                  let
-                   !l : list data = tailList {data} args
+                   !l : list data = tailList {data} ds
                    !l : list data = tailList {data} l
                  in
                  TxOut
                    (let
                      !tup : pair integer (list data)
-                       = unConstrData (headList {data} args)
+                       = unConstrData (headList {data} ds)
                      !index : integer = fstPair {integer} {list data} tup
                      !args : list data = sndPair {integer} {list data} tup
                    in
                    case
-                     (all dead. Address)
-                     (equalsInteger 0 index)
-                     [ (/\dead -> traceError {Address} "PT1")
-                     , (/\dead ->
+                     (list data -> Address)
+                     index
+                     [ (\(ds : list data) ->
                           Address
                             (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                               (headList {data} args))
+                               (headList {data} ds))
                             (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                {StakingCredential}
                                (\(d : data) ->
@@ -834,37 +585,26 @@
                                       = sndPair {integer} {list data} tup
                                   in
                                   case
-                                    (all dead. StakingCredential)
-                                    (equalsInteger 0 index)
-                                    [ (/\dead ->
-                                         case
-                                           (all dead. StakingCredential)
-                                           (equalsInteger 1 index)
-                                           [ (/\dead ->
-                                                traceError
-                                                  {StakingCredential}
-                                                  "PT1")
-                                           , (/\dead ->
-                                                let
-                                                  !l : list data
-                                                    = tailList {data} args
-                                                in
-                                                StakingPtr
-                                                  (unIData
-                                                     (headList {data} args))
-                                                  (unIData (headList {data} l))
-                                                  (unIData
-                                                     (headList
-                                                        {data}
-                                                        (tailList {data} l)))) ]
-                                           {all dead. dead})
-                                    , (/\dead ->
+                                    (list data -> StakingCredential)
+                                    index
+                                    [ (\(ds : list data) ->
                                          StakingHash
                                            (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                              (headList {data} args))) ]
-                                    {all dead. dead})
-                               (headList {data} (tailList {data} args)))) ]
-                     {all dead. dead})
+                                              (headList {data} ds)))
+                                    , (\(ds : list data) ->
+                                         let
+                                           !l : list data = tailList {data} ds
+                                         in
+                                         StakingPtr
+                                           (unIData (headList {data} ds))
+                                           (unIData (headList {data} l))
+                                           (unIData
+                                              (headList
+                                                 {data}
+                                                 (tailList {data} l)))) ]
+                                    args)
+                               (headList {data} (tailList {data} ds)))) ]
+                     args)
                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                       {bytestring}
                       {(\k v -> List (Tuple2 k v)) bytestring integer}
@@ -882,31 +622,18 @@
                      !args : list data = sndPair {integer} {list data} tup
                    in
                    case
-                     (all dead. OutputDatum)
-                     (equalsInteger 0 index)
-                     [ (/\dead ->
-                          case
-                            (all dead. OutputDatum)
-                            (equalsInteger 1 index)
-                            [ (/\dead ->
-                                 case
-                                   (all dead. OutputDatum)
-                                   (equalsInteger 2 index)
-                                   [ (/\dead -> traceError {OutputDatum} "PT1")
-                                   , (/\dead ->
-                                        OutputDatum (headList {data} args)) ]
-                                   {all dead. dead})
-                            , (/\dead ->
-                                 OutputDatumHash
-                                   (unBData (headList {data} args))) ]
-                            {all dead. dead})
-                     , (/\dead -> NoOutputDatum) ]
-                     {all dead. dead})
+                     (list data -> OutputDatum)
+                     index
+                     [ (\(ds : list data) -> NoOutputDatum)
+                     , (\(ds : list data) ->
+                          OutputDatumHash (unBData (headList {data} ds)))
+                     , (\(ds : list data) -> OutputDatum (headList {data} ds)) ]
+                     args)
                    (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                       {bytestring}
                       unBData
                       (headList {data} (tailList {data} l)))) ]
-            {all dead. dead}
+            args
   in
   letrec
     !go : list data -> List TxOut
@@ -932,14 +659,13 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. TxOutRef)
-            (equalsInteger 0 index)
-            [ (/\dead -> traceError {TxOutRef} "PT1")
-            , (/\dead ->
+            (list data -> TxOutRef)
+            index
+            [ (\(ds : list data) ->
                  TxOutRef
-                   (unBData (headList {data} args))
-                   (unIData (headList {data} (tailList {data} args)))) ]
-            {all dead. dead}
+                   (unBData (headList {data} ds))
+                   (unIData (headList {data} (tailList {data} ds)))) ]
+            args
     data TxInInfo | TxInInfo_match where
       TxInInfo : TxOutRef -> TxOut -> TxInInfo
     !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` : data -> TxInInfo
@@ -950,16 +676,15 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. TxInInfo)
-            (equalsInteger 0 index)
-            [ (/\dead -> traceError {TxInInfo} "PT1")
-            , (/\dead ->
+            (list data -> TxInInfo)
+            index
+            [ (\(ds : list data) ->
                  TxInInfo
                    (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                      (headList {data} args))
+                      (headList {data} ds))
                    (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                      (headList {data} (tailList {data} args)))) ]
-            {all dead. dead}
+                      (headList {data} (tailList {data} ds)))) ]
+            args
   in
   letrec
     !go : list data -> List TxInInfo
@@ -998,16 +723,10 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. bool)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. bool)
-                   (equalsInteger 1 index)
-                   [(/\dead -> traceError {bool} "PT1"), (/\dead -> True)]
-                   {all dead. dead})
-            , (/\dead -> False) ]
-            {all dead. dead}
+            (list data -> bool)
+            index
+            [(\(ds : list data) -> False), (\(ds : list data) -> True)]
+            args
     data (Extended :: * -> *) a | Extended_match where
       Finite : a -> Extended a
       NegInf : Extended a
@@ -1022,26 +741,13 @@
               !args : list data = sndPair {integer} {list data} tup
             in
             case
-              (all dead. Extended a)
-              (equalsInteger 0 index)
-              [ (/\dead ->
-                   case
-                     (all dead. Extended a)
-                     (equalsInteger 1 index)
-                     [ (/\dead ->
-                          case
-                            (all dead. Extended a)
-                            (equalsInteger 2 index)
-                            [ (/\dead -> traceError {Extended a} "PT1")
-                            , (/\dead -> PosInf {a}) ]
-                            {all dead. dead})
-                     , (/\dead ->
-                          Finite
-                            {a}
-                            (`$dUnsafeFromData` (headList {data} args))) ]
-                     {all dead. dead})
-              , (/\dead -> NegInf {a}) ]
-              {all dead. dead}
+              (list data -> Extended a)
+              index
+              [ (\(ds : list data) -> NegInf {a})
+              , (\(ds : list data) ->
+                   Finite {a} (`$dUnsafeFromData` (headList {data} ds)))
+              , (\(ds : list data) -> PosInf {a}) ]
+              args
     data Voter | Voter_match where
       CommitteeVoter : Credential -> Voter
       DRepVoter : Credential -> Voter
@@ -1054,31 +760,19 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. Voter)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. Voter)
-                   (equalsInteger 1 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. Voter)
-                          (equalsInteger 2 index)
-                          [ (/\dead -> traceError {Voter} "PT1")
-                          , (/\dead ->
-                               StakePoolVoter
-                                 (unBData (headList {data} args))) ]
-                          {all dead. dead})
-                   , (/\dead ->
-                        DRepVoter
-                          (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                             (headList {data} args))) ]
-                   {all dead. dead})
-            , (/\dead ->
+            (list data -> Voter)
+            index
+            [ (\(ds : list data) ->
                  CommitteeVoter
                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                      (headList {data} args))) ]
-            {all dead. dead}
+                      (headList {data} ds)))
+            , (\(ds : list data) ->
+                 DRepVoter
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                      (headList {data} ds)))
+            , (\(ds : list data) ->
+                 StakePoolVoter (unBData (headList {data} ds))) ]
+            args
     data ScriptInfo | ScriptInfo_match where
       CertifyingScript : integer -> TxCert -> ScriptInfo
       MintingScript : bytestring -> ScriptInfo
@@ -1137,27 +831,25 @@
         !args : list data = sndPair {integer} {list data} tup
       in
       case
-        (all dead. ScriptContext)
-        (equalsInteger 0 index)
-        [ (/\dead -> traceError {ScriptContext} "PT1")
-        , (/\dead ->
+        (list data -> ScriptContext)
+        index
+        [ (\(ds : list data) ->
              let
-               !l : list data = tailList {data} args
+               !l : list data = tailList {data} ds
              in
              ScriptContext
                (let
                  !tup : pair integer (list data)
-                   = unConstrData (headList {data} args)
+                   = unConstrData (headList {data} ds)
                  !index : integer = fstPair {integer} {list data} tup
                  !args : list data = sndPair {integer} {list data} tup
                in
                case
-                 (all dead. TxInfo)
-                 (equalsInteger 0 index)
-                 [ (/\dead -> traceError {TxInfo} "PT1")
-                 , (/\dead ->
+                 (list data -> TxInfo)
+                 index
+                 [ (\(ds : list data) ->
                       let
-                        !l : list data = tailList {data} args
+                        !l : list data = tailList {data} ds
                         !l : list data = tailList {data} l
                         !l : list data = tailList {data} l
                         !l : list data = tailList {data} l
@@ -1174,7 +866,7 @@
                       in
                       TxInfo
                         (let
-                          !d : data = headList {data} args
+                          !d : data = headList {data} ds
                         in
                         go (unListData d))
                         (let
@@ -1213,70 +905,63 @@
                           !args : list data = sndPair {integer} {list data} tup
                         in
                         case
-                          (all dead. Interval integer)
-                          (equalsInteger 0 index)
-                          [ (/\dead -> traceError {Interval integer} "PT1")
-                          , (/\dead ->
+                          (list data -> Interval integer)
+                          index
+                          [ (\(ds : list data) ->
                                Interval
                                  {integer}
                                  (let
                                    !tup : pair integer (list data)
-                                     = unConstrData (headList {data} args)
+                                     = unConstrData (headList {data} ds)
                                    !index : integer
                                      = fstPair {integer} {list data} tup
                                    !args : list data
                                      = sndPair {integer} {list data} tup
                                  in
                                  case
-                                   (all dead. LowerBound integer)
-                                   (equalsInteger 0 index)
-                                   [ (/\dead ->
-                                        traceError {LowerBound integer} "PT1")
-                                   , (/\dead ->
+                                   (list data -> LowerBound integer)
+                                   index
+                                   [ (\(ds : list data) ->
                                         LowerBound
                                           {integer}
                                           (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
                                              {integer}
                                              unIData
-                                             (headList {data} args))
+                                             (headList {data} ds))
                                           (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
                                              (headList
                                                 {data}
-                                                (tailList {data} args)))) ]
-                                   {all dead. dead})
+                                                (tailList {data} ds)))) ]
+                                   args)
                                  (let
                                    !tup : pair integer (list data)
                                      = unConstrData
-                                         (headList
-                                            {data}
-                                            (tailList {data} args))
+                                         (headList {data} (tailList {data} ds))
                                    !index : integer
                                      = fstPair {integer} {list data} tup
                                    !args : list data
                                      = sndPair {integer} {list data} tup
                                  in
                                  case
-                                   (all dead. UpperBound integer)
-                                   (equalsInteger 0 index)
-                                   [ (/\dead ->
-                                        traceError {UpperBound integer} "PT1")
-                                   , (/\dead ->
+                                   (list data -> UpperBound integer)
+                                   index
+                                   [ (\(ds : list data) ->
                                         UpperBound
                                           {integer}
                                           (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
                                              {integer}
                                              unIData
-                                             (headList {data} args))
+                                             (headList {data} ds))
                                           (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
                                              (headList
                                                 {data}
-                                                (tailList {data} args)))) ]
-                                   {all dead. dead})) ]
-                          {all dead. dead})
-                        (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
-                           {bytestring}
-                           unBData
-                           (headList {data} l))
+                                                (tailList {data} ds)))) ]
+                                   args)) ]
+                          args)
+                        (let
+                          !d : data = headList {data} l
+                        in
+                        go (unListData d))
                         (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                            {ScriptPurpose}
                            {data}
@@ -1289,87 +974,37 @@
                                   = sndPair {integer} {list data} tup
                               in
                               case
-                                (all dead. ScriptPurpose)
-                                (equalsInteger 0 index)
-                                [ (/\dead ->
-                                     case
-                                       (all dead. ScriptPurpose)
-                                       (equalsInteger 1 index)
-                                       [ (/\dead ->
-                                            case
-                                              (all dead. ScriptPurpose)
-                                              (equalsInteger 2 index)
-                                              [ (/\dead ->
-                                                   case
-                                                     (all dead. ScriptPurpose)
-                                                     (equalsInteger 3 index)
-                                                     [ (/\dead ->
-                                                          case
-                                                            (all dead.
-                                                               ScriptPurpose)
-                                                            (equalsInteger
-                                                               4
-                                                               index)
-                                                            [ (/\dead ->
-                                                                 case
-                                                                   (all dead.
-                                                                      ScriptPurpose)
-                                                                   (equalsInteger
-                                                                      5
-                                                                      index)
-                                                                   [ (/\dead ->
-                                                                        traceError
-                                                                          {ScriptPurpose}
-                                                                          "PT1")
-                                                                   , (/\dead ->
-                                                                        Proposing
-                                                                          (unIData
-                                                                             (headList
-                                                                                {data}
-                                                                                args))
-                                                                          (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
-                                                                             (headList
-                                                                                {data}
-                                                                                (tailList
-                                                                                   {data}
-                                                                                   args)))) ]
-                                                                   {all dead.
-                                                                      dead})
-                                                            , (/\dead ->
-                                                                 Voting
-                                                                   (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                                      (headList
-                                                                         {data}
-                                                                         args))) ]
-                                                            {all dead. dead})
-                                                     , (/\dead ->
-                                                          Certifying
-                                                            (unIData
-                                                               (headList
-                                                                  {data}
-                                                                  args))
-                                                            (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                               (headList
-                                                                  {data}
-                                                                  (tailList
-                                                                     {data}
-                                                                     args)))) ]
-                                                     {all dead. dead})
-                                              , (/\dead ->
-                                                   Rewarding
-                                                     (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                        (headList
-                                                           {data}
-                                                           args))) ]
-                                              {all dead. dead})
-                                       , (/\dead ->
-                                            Spending
-                                              (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                                 (headList {data} args))) ]
-                                       {all dead. dead})
-                                , (/\dead ->
-                                     Minting (unBData (headList {data} args))) ]
-                                {all dead. dead})
+                                (list data -> ScriptPurpose)
+                                index
+                                [ (\(ds : list data) ->
+                                     Minting (unBData (headList {data} ds)))
+                                , (\(ds : list data) ->
+                                     Spending
+                                       (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                          (headList {data} ds)))
+                                , (\(ds : list data) ->
+                                     Rewarding
+                                       (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                          (headList {data} ds)))
+                                , (\(ds : list data) ->
+                                     Certifying
+                                       (unIData (headList {data} ds))
+                                       (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                          (headList
+                                             {data}
+                                             (tailList {data} ds))))
+                                , (\(ds : list data) ->
+                                     Voting
+                                       (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                          (headList {data} ds)))
+                                , (\(ds : list data) ->
+                                     Proposing
+                                       (unIData (headList {data} ds))
+                                       (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
+                                          (headList
+                                             {data}
+                                             (tailList {data} ds)))) ]
+                                args)
                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                            (headList {data} l))
                         (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
@@ -1397,24 +1032,12 @@
                                      = sndPair {integer} {list data} tup
                                  in
                                  case
-                                   (all dead. Vote)
-                                   (equalsInteger 0 index)
-                                   [ (/\dead ->
-                                        case
-                                          (all dead. Vote)
-                                          (equalsInteger 1 index)
-                                          [ (/\dead ->
-                                               case
-                                                 (all dead. Vote)
-                                                 (equalsInteger 2 index)
-                                                 [ (/\dead ->
-                                                      traceError {Vote} "PT1")
-                                                 , (/\dead -> Abstain) ]
-                                                 {all dead. dead})
-                                          , (/\dead -> VoteYes) ]
-                                          {all dead. dead})
-                                   , (/\dead -> VoteNo) ]
-                                   {all dead. dead}))
+                                   (list data -> Vote)
+                                   index
+                                   [ (\(ds : list data) -> VoteNo)
+                                   , (\(ds : list data) -> VoteYes)
+                                   , (\(ds : list data) -> Abstain) ]
+                                   args))
                            (headList {data} l))
                         (let
                           !d : data = headList {data} l
@@ -1428,7 +1051,7 @@
                            {integer}
                            unIData
                            (headList {data} (tailList {data} l)))) ]
-                 {all dead. dead})
+                 args)
                (headList {data} l)
                (let
                  !tup : pair integer (list data)
@@ -1437,77 +1060,38 @@
                  !args : list data = sndPair {integer} {list data} tup
                in
                case
-                 (all dead. ScriptInfo)
-                 (equalsInteger 0 index)
-                 [ (/\dead ->
-                      case
-                        (all dead. ScriptInfo)
-                        (equalsInteger 1 index)
-                        [ (/\dead ->
-                             case
-                               (all dead. ScriptInfo)
-                               (equalsInteger 2 index)
-                               [ (/\dead ->
-                                    case
-                                      (all dead. ScriptInfo)
-                                      (equalsInteger 3 index)
-                                      [ (/\dead ->
-                                           case
-                                             (all dead. ScriptInfo)
-                                             (equalsInteger 4 index)
-                                             [ (/\dead ->
-                                                  case
-                                                    (all dead. ScriptInfo)
-                                                    (equalsInteger 5 index)
-                                                    [ (/\dead ->
-                                                         traceError
-                                                           {ScriptInfo}
-                                                           "PT1")
-                                                    , (/\dead ->
-                                                         ProposingScript
-                                                           (unIData
-                                                              (headList
-                                                                 {data}
-                                                                 args))
-                                                           (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
-                                                              (headList
-                                                                 {data}
-                                                                 (tailList
-                                                                    {data}
-                                                                    args)))) ]
-                                                    {all dead. dead})
-                                             , (/\dead ->
-                                                  VotingScript
-                                                    (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                       (headList
-                                                          {data}
-                                                          args))) ]
-                                             {all dead. dead})
-                                      , (/\dead ->
-                                           CertifyingScript
-                                             (unIData (headList {data} args))
-                                             (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                (headList
-                                                   {data}
-                                                   (tailList {data} args)))) ]
-                                      {all dead. dead})
-                               , (/\dead ->
-                                    RewardingScript
-                                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                         (headList {data} args))) ]
-                               {all dead. dead})
-                        , (/\dead ->
-                             SpendingScript
-                               (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                  (headList {data} args))
-                               (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                  {data}
-                                  `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                  (headList {data} (tailList {data} args)))) ]
-                        {all dead. dead})
-                 , (/\dead -> MintingScript (unBData (headList {data} args))) ]
-                 {all dead. dead})) ]
-        {all dead. dead})
+                 (list data -> ScriptInfo)
+                 index
+                 [ (\(ds : list data) ->
+                      MintingScript (unBData (headList {data} ds)))
+                 , (\(ds : list data) ->
+                      SpendingScript
+                        (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                           (headList {data} ds))
+                        (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                           {data}
+                           `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                           (headList {data} (tailList {data} ds))))
+                 , (\(ds : list data) ->
+                      RewardingScript
+                        (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                           (headList {data} ds)))
+                 , (\(ds : list data) ->
+                      CertifyingScript
+                        (unIData (headList {data} ds))
+                        (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                           (headList {data} (tailList {data} ds))))
+                 , (\(ds : list data) ->
+                      VotingScript
+                        (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                           (headList {data} ds)))
+                 , (\(ds : list data) ->
+                      ProposingScript
+                        (unIData (headList {data} ds))
+                        (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
+                           (headList {data} (tailList {data} ds)))) ]
+                 args)) ]
+        args)
       {Unit}
       (\(ipv : TxInfo) (ipv : data) (ipv : ScriptInfo) ->
          case

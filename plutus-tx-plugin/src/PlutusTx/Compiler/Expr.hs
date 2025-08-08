@@ -45,6 +45,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
+import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
@@ -57,6 +58,7 @@ import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Names (safeFreshName)
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Core.Type (Term (..))
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
@@ -85,9 +87,6 @@ import Data.Text.Encoding qualified as TE
 import Data.Traversable (for)
 import Data.Tuple.Extra
 import Data.Word (Word8)
-
-import Debug.Trace qualified as DT
-import PlutusCore.Pretty
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -833,7 +832,7 @@ entryExitTracing lamName displayName e ty =
 
    The annotation `<expr evaluated to True>` is implemented by adding a `CoverBool location True`
    coverage annotation with the head function in `expr` as metadata. This means that in an
-   expression like: `haskList x < bar y && all isGood xs`
+   expression like: `foo x < bar y && all isGood xs`
 
    We will get annotations for `&&`, `<`, `all`, and `isGood` (given that `isGood` is defined in a
    module with coverage turned on).
@@ -855,19 +854,34 @@ entryExitTracing lamName displayName e ty =
    an unfolding.
 -}
 
-haskList :: (CompilingDefault uni fun m ann) => GHC.CoreExpr -> m [PIRTerm uni fun]
-haskList (GHC.Tick _ (GHC.App (GHC.App _build ty) (GHC.Lam tyArg (GHC.Lam con (GHC.Lam nil li))))) =
-  traverse compileExpr (consume li)
+takeHaskellList
+  :: forall uni fun m ann
+   . (CompilingDefault uni fun m ann)
+  => GHC.CoreExpr
+  -> m [PIRTerm uni fun]
+takeHaskellList = withOrWithoutTick buildList
   where
-    consume :: GHC.CoreExpr -> [GHC.CoreExpr]
-    consume (GHC.App (GHC.App (GHC.Var con') e) rest)
-      | con' == con = e : consume rest
-      | otherwise = error "no"
-    consume (GHC.Var nil')
-      | nil' == nil = []
-      | otherwise = error "no"
-    consume _ = error "no"
-haskList _ = error "no"
+    err =
+      throwPlain $
+        CompilationError "Unexpected expression is given where to be Haskell list constructor is expected"
+
+    withOrWithoutTick :: (GHC.CoreExpr -> a) -> GHC.CoreExpr -> a
+    withOrWithoutTick f (GHC.Tick _ e) = f e
+    withOrWithoutTick f e              = f e
+
+    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = traverse compileExpr [e]
+    buildList (GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam con (GHC.Lam nil li)))) =
+      let
+        consume :: GHC.CoreExpr -> m [GHC.CoreExpr]
+        consume (GHC.App (GHC.App (GHC.Var con') e) rest)
+          | con' == con = (e:) <$> consume rest
+          | otherwise = err
+        consume (GHC.Var nil')
+          | nil' == nil = pure []
+          | otherwise = err
+        consume _ = err
+      in consume li >>= traverse compileExpr
+    buildList _ = err
 
 compileExpr :: (CompilingDefault uni fun m ann) => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
@@ -877,6 +891,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     , ccModBreaks = maybeModBreaks
     , ccBuiltinsInfo = binfo
     , ccSafeToInline = safeToInline
+    , ccOpts = opts
     } <-
     ask
 
@@ -900,15 +915,18 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
+  listIndexId <- lookupGhcId '(PlutusTx.List.!!)
 
   case e of
     -- case integer
     GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
-      | GHC.getName var == caseIntegerName -> do
+      | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
         resTy' <- compileTypeNorm resTy
         scrut' <- compileExpr scrut
-        branches <- haskList li
+        branches <- takeHaskellList li
         pure $ PIR.kase annAlwaysInline resTy' scrut' branches
+      | GHC.getName var == caseIntegerName ->
+        compileExpr $ GHC.App (GHC.App (GHC.App (GHC.Var listIndexId) (GHC.Type resTy)) li) scrut
     {- Note [Lazy boolean operators]
       (||) and (&&) have a special treatment: we want them lazy in the second argument,
       as this is the behavior in Haskell and other PLs.
