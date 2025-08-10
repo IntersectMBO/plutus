@@ -132,7 +132,17 @@ fvTermCtx bound f = \case
      in Let a r <$> traverse (fvBindingCtx bound f) bs <*> fvTermCtx bound' f tIn
   Var a n -> Var a <$> (if USet.memberByName n bound then pure n else f n)
   LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
-  t -> (termSubterms . fvTermCtx bound) f t
+  TyAbs{} -> defRes
+  Apply{} -> defRes
+  Constant{} -> defRes
+  Builtin{} -> defRes
+  Error{} -> defRes
+  IWrap{} -> defRes
+  Unwrap{} -> defRes
+  Constr{} -> defRes
+  Case{} -> defRes
+  where
+    defRes = (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a PIR term.
 ftvTerm :: (HasUnique tyname TypeUnique) => Traversal' (Term tyname name uni fun ann) tyname
@@ -153,7 +163,18 @@ ftvTermCtx bound f = \case
      in Let a r <$> traverse (ftvBindingCtx r bound f) bs <*> ftvTermCtx bound' f tIn
   TyAbs a tn k t -> TyAbs a tn k <$> ftvTermCtx (USet.insertByName tn bound) f t
   -- sound because the subterms and subtypes are disjoint
-  t -> ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
+  Var{} -> defRes
+  LamAbs{} -> defRes
+  Apply{} -> defRes
+  Constant{} -> defRes
+  Builtin{} -> defRes
+  Error{} -> defRes
+  IWrap{} -> defRes
+  Unwrap{} -> defRes
+  Constr{} -> defRes
+  Case{} -> defRes
+  where
+    defRes = ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free variables in a PIR single let-binding.
 fvBinding :: (HasUnique name TermUnique) => Traversal' (Binding tyname name uni fun ann) name

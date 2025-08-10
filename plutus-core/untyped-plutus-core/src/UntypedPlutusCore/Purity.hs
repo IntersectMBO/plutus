@@ -76,7 +76,8 @@ instance (PrettyBy config (Term name uni fun a))
 instance Eq (Term name uni fun a) => Eq (EvalTerm name uni fun a) where
   Unknown == Unknown                         = True
   (EvalTerm p1 w1 t1) == (EvalTerm p2 w2 t2) = p1 == p2 && w1 == w2 && t1 == t2
-  _ == _                                     = False
+  Unknown == (EvalTerm _ _ _)                = False
+  (EvalTerm _ _ _) == Unknown                = False
 
 -- We use a DList here for efficient and lazy concatenation
 

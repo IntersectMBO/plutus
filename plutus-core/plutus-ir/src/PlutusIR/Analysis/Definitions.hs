@@ -89,7 +89,15 @@ handleTerm = \case
         addDef n ann TermScope
     TyAbs ann tn _ _  ->
         addDef tn ann TypeScope
-    _                  -> pure ()
+    Apply{}           -> pure ()
+    TyInst{}          -> pure ()
+    IWrap{}           -> pure ()
+    Unwrap{}          -> pure ()
+    Error{}           -> pure ()
+    Constant{}        -> pure ()
+    Builtin{}         -> pure ()
+    Constr{}          -> pure ()
+    Case{}            -> pure ()
 
 runTermDefs
     :: (Ord ann,

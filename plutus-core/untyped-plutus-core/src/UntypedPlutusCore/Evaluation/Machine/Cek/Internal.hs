@@ -559,7 +559,11 @@ dischargeCekValEnv valEnv = go 0
     Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
     Delay ann term       -> Delay ann $ go lamCnt term
     Force ann term       -> Force ann $ go lamCnt term
-    t -> t
+    t@Constant{}         -> t
+    t@Builtin{}          -> t
+    t@Error{}            -> t
+    t@Constr{}           -> t
+    t@Case{}             -> t
 
 -- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).

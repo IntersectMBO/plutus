@@ -74,10 +74,12 @@ varInfoArity vinfo vinfos = case vinfo of
   NormalVar _ _ a            -> a
   DatatypeConstructor i dtName -> case lookupTyVarInfo dtName vinfos of
     Just (DatatypeTyVar dt) -> datatypeConstructorArity i dt
-    _                       -> Nothing
+    Just NormalTyVar        -> Nothing
+    Nothing                 -> Nothing
   DatatypeMatcher dtName     -> case lookupTyVarInfo dtName vinfos of
     Just (DatatypeTyVar dt) -> Just $ datatypeMatcherArity dt
-    _                       -> Nothing
+    Just NormalTyVar        -> Nothing
+    Nothing                 -> Nothing
 
 termVarInfo ::
   (PLC.HasUnique name PLC.TermUnique

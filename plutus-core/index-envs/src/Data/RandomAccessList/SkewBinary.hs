@@ -47,8 +47,8 @@ data RAList a = BHead
              deriving (IsList) via RAL.AsRAL (RAList a)
 
 null :: RAList a -> Bool
-null Nil = True
-null _   = False
+null Nil     = True
+null BHead{} = False
 {-# INLINE null #-}
 
 {-# COMPLETE Cons, Nil #-}

@@ -49,7 +49,7 @@ substTyVarA
     -> Type tyname uni ann
     -> f (Type tyname uni ann)
 substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
-substTyVarA _       ty                  = pure ty
+substTyVarA         ty                  = pure ty
 {-# INLINE substTyVarA #-}
 
 -- | Applicatively replace a variable using the given function.
@@ -59,7 +59,6 @@ substVarA
     -> Term tyname name uni fun ann
     -> f (Term tyname name uni fun ann)
 substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
-substVarA _     t              = pure t
 
 -- | Replace a type variable using the given function.
 substTyVar
@@ -135,8 +134,13 @@ typeSubstClosedType tn0 ty0 = go where
          TyVar    a tn      -> if tn == tn0 then ty0 else TyVar a tn
          TyForall a tn k ty -> TyForall a tn k (goUnder tn ty)
          TyLam    a tn k ty -> TyLam    a tn k (goUnder tn ty)
-         ty                 -> ty & over typeSubtypes go
+         ty@TyFun{}         -> defRes ty
+         ty@TyIFix{}        -> defRes ty
+         ty@TyBuiltin{}     -> defRes ty
+         ty@TyApp{}         -> defRes ty
+         ty@TySOP{}         -> defRes ty
     goUnder tn ty = if tn == tn0 then ty else go ty
+    defRes ty = ty & over typeSubtypes go
 
 -- | Substitute the given closed 'Type' for the given type variable in the given 'Term'. Does not
 -- descend under binders that bind the same variable as the one we're substituting for (since from
@@ -148,9 +152,20 @@ termSubstClosedType
 termSubstClosedType tn0 ty0 = go where
     go = \case
          TyAbs a tn k body -> TyAbs a tn k (goUnder tn body)
-         t                 -> t & over termSubtypes goTy & over termSubterms go
+         t@Var{}           -> defRes t
+         t@LamAbs{}        -> defRes t
+         t@Apply{}         -> defRes t
+         t@TyInst{}        -> defRes t
+         t@IWrap{}         -> defRes t
+         t@Unwrap{}        -> defRes t
+         t@Constr{}        -> defRes t
+         t@Case{}          -> defRes t
+         t@Constant{}      -> defRes t
+         t@Builtin{}       -> defRes t
+         t@Error{}         -> defRes t
     goUnder tn term = if tn == tn0 then term else go term
     goTy = typeSubstClosedType tn0 ty0
+    defRes t = t & over termSubtypes goTy & over termSubterms go
 
 -- | Substitute the given closed 'Term' for the given term variable in the given 'Term'. Does not
 -- descend under binders that bind the same variable as the one we're substituting for (since from
@@ -166,8 +181,18 @@ termSubstClosedTerm varFor new = go where
     go = \case
          Var    a var         -> if var == varFor then new else Var a var
          LamAbs a var ty body -> LamAbs a var ty (goUnder var body)
-         t                    -> t & over termSubterms go
+         t@Apply{}            -> defRes t
+         t@TyAbs{}            -> defRes t
+         t@TyInst{}           -> defRes t
+         t@IWrap{}            -> defRes t
+         t@Unwrap{}           -> defRes t
+         t@Constr{}           -> defRes t
+         t@Case{}             -> defRes t
+         t@Constant{}         -> defRes t
+         t@Builtin{}          -> defRes t
+         t@Error{}            -> defRes t
     goUnder var term = if var == varFor then term else go term
+    defRes t = t & over termSubterms go
 
 -- Mapping name-modification functions over types and terms.
 
@@ -234,7 +259,18 @@ fvTermCtx
 fvTermCtx bound f = \case
     Var a n         -> Var a <$> (if USet.memberByName n bound then pure n else f n)
     LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
-    t               -> (termSubterms . fvTermCtx bound) f t
+    t@Apply{}       -> defRes t
+    t@TyAbs{}       -> defRes t
+    t@TyInst{}      -> defRes t
+    t@IWrap{}       -> defRes t
+    t@Unwrap{}      -> defRes t
+    t@Constr{}      -> defRes t
+    t@Case{}        -> defRes t
+    t@Constant{}    -> defRes t
+    t@Builtin{}     -> defRes t
+    t@Error{}       -> defRes t
+  where
+    defRes t = (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a term.
 ftvTerm :: HasUnique tyname unique => Traversal' (Term tyname name uni fun ann) tyname
@@ -247,8 +283,19 @@ ftvTermCtx
 ftvTermCtx bound f = \case
     TyAbs a ty k t -> TyAbs a ty k <$> ftvTermCtx (USet.insertByName ty bound) f t
     -- sound because the subterms and subtypes are disjoint
-    t              ->
-        ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
+    t@Var{}        -> defRes t
+    t@LamAbs{}     -> defRes t
+    t@Apply{}      -> defRes t
+    t@TyInst{}     -> defRes t
+    t@IWrap{}      -> defRes t
+    t@Unwrap{}     -> defRes t
+    t@Constr{}     -> defRes t
+    t@Case{}       -> defRes t
+    t@Constant{}   -> defRes t
+    t@Builtin{}    -> defRes t
+    t@Error{}      -> defRes t
+  where
+    defRes t = ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free type variables in a type.
 ftvTy
@@ -264,7 +311,13 @@ ftvTyCtx bound f = \case
     TyVar a ty          -> TyVar a <$> (if USet.memberByName ty bound then pure ty else f ty)
     TyForall a bnd k ty -> TyForall a bnd k <$> ftvTyCtx (USet.insertByName bnd bound) f ty
     TyLam a bnd k ty    -> TyLam a bnd k <$> ftvTyCtx (USet.insertByName bnd bound) f ty
-    t                   -> (typeSubtypes . ftvTyCtx bound) f t
+    t@TyFun{}           -> defRes t
+    t@TyIFix{}          -> defRes t
+    t@TyBuiltin{}       -> defRes t
+    t@TyApp{}           -> defRes t
+    t@TySOP{}           -> defRes t
+  where
+    defRes t = (typeSubtypes . ftvTyCtx bound) f t
 
 
 -- TODO: these could be Traversals

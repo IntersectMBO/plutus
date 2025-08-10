@@ -132,8 +132,8 @@ instance Eq a => Eq (RAList a) where
     l == l' = toList l == toList l'
 
 null :: RAList a -> Bool
-null Nil = True
-null _   = False
+null Nil    = True
+null Cons{} = False
 {-# INLINABLE null #-}
 
 {-# complete Cons, Nil #-}

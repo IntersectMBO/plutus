@@ -37,7 +37,15 @@ termConstants f term0 = case term0 of
 termBinds :: Traversal' (Term name uni fun ann) name
 termBinds f = \case
     LamAbs ann n t -> f n <&> \n' -> LamAbs ann n' t
-    x              -> pure x
+    Var{} -> pure x
+    Apply{} -> pure x
+    Delay{} -> pure x
+    Force{} -> pure x
+    Error{} -> pure x
+    Constant{} -> pure x
+    Builtin{} -> pure x
+    Constr{} -> pure x
+    Case{} -> pure x
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
 termVars :: Traversal' (Term name uni fun ann) name
@@ -50,7 +58,14 @@ termUniques :: HasUniques (Term name uni fun ann) => Traversal' (Term name uni f
 termUniques f = \case
     LamAbs ann n t -> theUnique f n <&> \n' -> LamAbs ann n' t
     Var ann n      -> theUnique f n <&> Var ann
-    x              -> pure x
+    Apply{} -> pure x
+    Delay{} -> pure x
+    Force{} -> pure x
+    Error{} -> pure x
+    Constant{} -> pure x
+    Builtin{} -> pure x
+    Constr{} -> pure x
+    Case{} -> pure x
 
 -- | Get all the direct child 'Term's of the given 'Term'.
 termSubterms :: Traversal' (Term name uni fun ann) (Term name uni fun ann)

@@ -49,5 +49,9 @@ checkScope = go 0
         Apply _ t1 t2 -> go lvl t1 >> go lvl t2
         Force _ t     -> go lvl t
         Delay _ t     -> go lvl t
-        _             -> pure ()
+        Constant{} -> pure ()
+        Builtin{} -> pure ()
+        Error{} -> pure ()
+        Constr{} -> pure ()
+        Case{} -> pure ()
 {-# INLINE checkScope #-}

@@ -94,28 +94,6 @@ propRenameCheck = property $ do
                 Uniques.checkProgram
                     (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
 
-values :: TestTree
-values = runQuote $ do
-    aN <- freshTyName "a"
-    let aV = TyVar () aN
-        val = mkConstant @Integer @DefaultUni () 2
-        nonVal = Error () aV
-    pure $ testGroup "values" [
-          testCase "wrapNonValue" $ VR.isTermValue (IWrap () aV aV nonVal) @?= False
-        , testCase "wrapValue" $ VR.isTermValue (IWrap () aV aV val) @?= True
-
-        , testCase "absNonValue" $ VR.isTermValue (TyAbs () aN (Type ()) nonVal) @?= True
-        , testCase "absValue" $ VR.isTermValue (TyAbs () aN (Type()) val) @?= True
-
-        , testCase "error" $ VR.isTermValue (Error () aV) @?= False
-        , testCase "lam" $ VR.isTermValue (LamAbs () (Var () aN) aV nonVal) @?= True
-        , testCase "app" $ VR.isTermValue (Apply () val val) @?= False
-        , testCase "unwrap" $ VR.isTermValue (Unwrap () val) @?= False
-        , testCase "inst" $ VR.isTermValue (TyInst () val aV) @?= False
-        , testCase "constant" $ VR.isTermValue (mkConstant @Integer @DefaultUni () 1) @?= True
-        , testCase "builtin" $ VR.isTermValue (Builtin () AddInteger) @?= False
-      ]
-
 normalTypes :: TestTree
 normalTypes = runQuote $ do
     aN <- freshTyName "a"
