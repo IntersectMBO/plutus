@@ -53,7 +53,7 @@ valueContains (Value m1) (Value m2) =
 
 byPolicyId :: ByteString -> Value -> Map ByteString Integer
 byPolicyId policyId (Value m) =
-    Map.foldrWithKey
+    Map.foldrWithKey'
         (\(pId, tn) amount acc ->
             if pId == policyId
                 then Map.insert tn amount acc
@@ -64,7 +64,7 @@ byPolicyId policyId (Value m) =
 
 byTokenName :: ByteString -> Value -> Map ByteString Integer
 byTokenName tokenName (Value m) =
-    Map.foldrWithKey
+    Map.foldrWithKey'
         (\(pId, tn) amount acc ->
             if tn == tokenName
                 then Map.insert pId amount acc

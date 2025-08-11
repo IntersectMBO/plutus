@@ -73,7 +73,7 @@ byPolicyId policyId (Value m) =
 
 byTokenName :: ByteString -> Value -> Map ByteString Integer
 byTokenName tokenName (Value m) =
-    Map.foldrWithKey
+    Map.foldrWithKey'
         (\policyId innerMap acc ->
             case Map.lookup tokenName innerMap of
                 Just amount -> Map.insert policyId amount acc

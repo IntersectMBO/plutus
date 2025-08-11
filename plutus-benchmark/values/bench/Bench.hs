@@ -5,17 +5,20 @@ module Main (main) where
 import Data.ByteString (ByteString)
 import Data.List (groupBy)
 import Data.Map.Strict qualified as Map
+import Data.Monoid (Sum (..))
+import Data.MonoidMap qualified as MM
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 
 import PlutusBenchmark.Common (getConfig)
 import PlutusBenchmark.Values.FlattenedValue qualified as FlattenedValue
+import PlutusBenchmark.Values.MMValue qualified as MMValue
 import PlutusBenchmark.Values.NestedValue qualified as NestedValue
 
 import Criterion.Main (bench, bgroup, defaultMainWith, env, nf)
 
 -- Has been manually tested, works as expected.
-mkMockValues :: Int -> Int -> [Integer] -> (NestedValue.Value, FlattenedValue.Value)
+mkMockValues :: Int -> Int -> [Integer] -> (NestedValue.Value, FlattenedValue.Value, MMValue.Value)
 mkMockValues numPolicies numToksPerPolicy amounts =
     let policies = (\i -> encodeUtf8 $ "policy" <> T.pack (show i)) <$> [1..numPolicies]
         numTokens = numPolicies * numToksPerPolicy
@@ -27,8 +30,12 @@ mkMockValues numPolicies numToksPerPolicy amounts =
         rawNestValue =
             let x = groupBy (\((p1, _), _) ((p2, _), _) -> p1 == p2) rawFlatValue
              in [ (p, tkMap) | l <- x, let p = (fst . fst) (head l), let tkMap = Map.fromList $ map (\((_, tk), am) -> (tk, am)) l ]
+        rawMMValue =
+            let x = groupBy (\((p1, _), _) ((p2, _), _) -> p1 == p2) rawFlatValue
+             in [ (p, tkMap) | l <- x, let p = (fst . fst) (head l), let tkMap = MM.fromList $ map (\((_, tk), am) -> (tk, Sum am)) l ]
         nestedValue = NestedValue.Value $ Map.fromList rawNestValue
-     in (nestedValue, flattenedValue)
+        mmValue = MMValue.Value $ MM.fromList rawMMValue
+     in (nestedValue, flattenedValue, mmValue)
 
 mockNumPolicies1 :: Int
 mockNumPolicies1 = 10000
@@ -56,7 +63,7 @@ mockTokenValues2 = replicate mockNumTokens2 100
 
 setupEnvNested1 :: IO NestedValue.Value
 setupEnvNested1 =
-    let (nValue, _) =
+    let (nValue, _, _) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
@@ -65,12 +72,12 @@ setupEnvNested1 =
 
 setupEnvNested2 :: IO (NestedValue.Value, NestedValue.Value)
 setupEnvNested2 =
-    let (nValue1, _) =
+    let (nValue1, _, _) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
                 mockTokenValues1
-        (nValue2, _) =
+        (nValue2, _, _) =
             mkMockValues
                 mockNumPolicies2
                 mockNumTokensPerPolicy2
@@ -79,7 +86,7 @@ setupEnvNested2 =
 
 setupEnvFlattened1 :: IO FlattenedValue.Value
 setupEnvFlattened1 =
-    let (_, fValue) =
+    let (_, fValue, _) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
@@ -88,26 +95,49 @@ setupEnvFlattened1 =
 
 setupEnvFlattened2 :: IO (FlattenedValue.Value, FlattenedValue.Value)
 setupEnvFlattened2 =
-    let (_, fValue1) =
+    let (_, fValue1, _) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
                 mockTokenValues1
-        (_, fValue2) =
+        (_, fValue2, _) =
             mkMockValues
                 mockNumPolicies2
                 mockNumTokensPerPolicy2
                 mockTokenValues2
      in pure (fValue1, fValue2)
 
-setupEnvNested1andInv :: IO (NestedValue.Value, NestedValue.Value)
-setupEnvNested1andInv =
-    let (nValue1, _) =
+setupEnvMM1 :: IO MMValue.Value
+setupEnvMM1 =
+    let (_, _, mmValue) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
                 mockTokenValues1
-        (nValue1Inv, _) =
+     in pure mmValue
+
+setupEnvMM2 :: IO (MMValue.Value, MMValue.Value)
+setupEnvMM2 =
+    let (_, _, mmValue1) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
+        (_, _, mmValue2) =
+            mkMockValues
+                mockNumPolicies2
+                mockNumTokensPerPolicy2
+                mockTokenValues2
+     in pure (mmValue1, mmValue2)
+
+setupEnvNested1andInv :: IO (NestedValue.Value, NestedValue.Value)
+setupEnvNested1andInv =
+    let (nValue1, _, _) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
+        (nValue1Inv, _, _) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
@@ -116,17 +146,31 @@ setupEnvNested1andInv =
 
 setupEnvFlattened1andInv :: IO (FlattenedValue.Value, FlattenedValue.Value)
 setupEnvFlattened1andInv =
-    let (_, fValue1) =
+    let (_, fValue1, _) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
                 mockTokenValues1
-        (_, fValue1Inv) =
+        (_, fValue1Inv, _) =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
                 (map negate mockTokenValues1)
      in pure (fValue1, fValue1Inv)
+
+setupEnvMM1andInv :: IO (MMValue.Value, MMValue.Value)
+setupEnvMM1andInv =
+    let (_, _, mmValue1) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                mockTokenValues1
+        (_, _, mmValue1Inv) =
+            mkMockValues
+                mockNumPolicies1
+                mockNumTokensPerPolicy1
+                (map negate mockTokenValues1)
+     in pure (mmValue1, mmValue1Inv)
 
 main :: IO ()
 main = do
@@ -178,6 +222,29 @@ main = do
                 , bench "byTokenName - existing token"
                     $ nf (FlattenedValue.byTokenName (encodeUtf8 "token999999")) fValue
                 ]
+        , env setupEnvMM1 $ \ ~mmValue ->
+            bgroup "MMValue"
+                [ bench "insertCoin - new coin"
+                    $ nf (MMValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) mmValue
+                , bench "insertCoin - existing coin"
+                    $ nf (MMValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999") 200) mmValue
+                , bench "lookupCoin - not found"
+                    $ nf (MMValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) mmValue
+                , bench "lookupCoin - existing coin"
+                    $ nf (MMValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) mmValue
+                , bench "deleteCoin - not found"
+                    $ nf (MMValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) mmValue
+                , bench "deleteCoin - existing coin"
+                    $ nf (MMValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) mmValue
+                , bench "byPolicyId - not found"
+                    $ nf (MMValue.byPolicyId (encodeUtf8 "notHere")) mmValue
+                , bench "byPolicyId - existing policy"
+                    $ nf (MMValue.byPolicyId (encodeUtf8 "policy500")) mmValue
+                , bench "byTokenName - not found"
+                    $ nf (MMValue.byTokenName (encodeUtf8 "notHere")) mmValue
+                , bench "byTokenName - existing token"
+                    $ nf (MMValue.byTokenName (encodeUtf8 "token999999")) mmValue
+                ]
         , env setupEnvNested2 $ \ ~vals ->
             bgroup "NestedValue"
                 [ bench "union - two different values"
@@ -192,6 +259,13 @@ main = do
                 , bench "valueContains - is not sub-value"
                     $ nf (uncurry FlattenedValue.valueContains) vals
                 ]
+        , env setupEnvMM2 $ \ ~vals ->
+            bgroup "MMValue"
+                [ bench "union - two different values"
+                    $ nf (uncurry MMValue.union) vals
+                , bench "valueContains - is not sub-value"
+                    $ nf (uncurry MMValue.valueContains) vals
+                ]
         , env setupEnvNested1andInv $ \ ~vals ->
             bgroup "NestedValue"
                 [ bench "union - union with inverse"
@@ -205,5 +279,12 @@ main = do
                     $ nf (uncurry FlattenedValue.union) vals
                 , bench "valueContains - is sub-value"
                     $ nf (uncurry FlattenedValue.valueContains) vals
+                ]
+        , env setupEnvMM1andInv $ \ ~vals ->
+            bgroup "MMValue"
+                [ bench "union - union with inverse"
+                    $ nf (uncurry MMValue.union) vals
+                , bench "valueContains - is sub-value"
+                    $ nf (uncurry MMValue.valueContains) vals
                 ]
         ]

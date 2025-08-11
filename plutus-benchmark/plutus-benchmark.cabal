@@ -261,6 +261,7 @@ library values-internal
   hs-source-dirs:  values/src
   exposed-modules:
     PlutusBenchmark.Values.FlattenedValue
+    PlutusBenchmark.Values.MMValue
     PlutusBenchmark.Values.NestedValue
 
   build-depends:
@@ -268,6 +269,7 @@ library values-internal
     , bytestring
     , containers
     , deepseq
+    , monoidmap
     , plutus-benchmark-common
     , plutus-core              ^>=1.50
 
@@ -281,6 +283,7 @@ benchmark values
     , bytestring
     , containers
     , criterion                >=1.5.9.0
+    , monoidmap
     , plutus-benchmark-common
     , text
     , values-internal
