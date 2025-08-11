@@ -262,16 +262,16 @@ library values-internal
   exposed-modules:
     PlutusBenchmark.Values.FlattenedValue
     PlutusBenchmark.Values.MMValue
+    PlutusBenchmark.Values.MockValues
     PlutusBenchmark.Values.NestedValue
 
   build-depends:
-    , base                     >=4.9   && <5
+    , base        >=4.9 && <5
     , bytestring
     , containers
     , deepseq
     , monoidmap
-    , plutus-benchmark-common
-    , plutus-core              ^>=1.50
+    , text
 
 benchmark values
   import:         lang, ghc-version-support, os-support
@@ -280,12 +280,21 @@ benchmark values
   hs-source-dirs: values/bench
   build-depends:
     , base                     >=4.9     && <5
-    , bytestring
-    , containers
     , criterion                >=1.5.9.0
-    , monoidmap
     , plutus-benchmark-common
     , text
+    , values-internal
+
+test-suite plutus-benchmark-values-tests
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs: values/test
+  build-depends:
+    , base              >=4.9 && <5
+    , tasty
+    , tasty-quickcheck
     , values-internal
 
 ---------------- casing ----------------
