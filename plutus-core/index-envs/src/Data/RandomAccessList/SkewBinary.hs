@@ -105,9 +105,9 @@ contIndexZero z f = findTree where
 
     indexTree :: Word64 -> Word64 -> Tree a -> b
     -- See Note [Optimizations of contIndexZero].
-    indexTree !w 0 t = case t of
+    indexTree _ 0 t = case t of
         Node x _ _ -> f x
-        Leaf x     -> if w == 1 then f x else z
+        Leaf x     -> f x
     indexTree _ _ (Leaf _) = z
     indexTree treeSize offset (Node _ t1 t2) =
         let halfSize = unsafeShiftR treeSize 1 -- probably faster than `div w 2`
