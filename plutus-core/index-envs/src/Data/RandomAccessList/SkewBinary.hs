@@ -105,7 +105,7 @@ contIndexZero z f = findTree where
 
     indexTree :: Word64 -> Word64 -> Tree a -> b
     -- See Note [Optimizations of contIndexZero].
-    indexTree _ 0 t = case t of
+    indexTree !_ 0 t = case t of
         Node x _ _ -> f x
         Leaf x     -> f x
     indexTree _ _ (Leaf _) = z
