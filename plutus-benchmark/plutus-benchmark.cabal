@@ -294,7 +294,9 @@ test-suite plutus-benchmark-values-tests
   build-depends:
     , base              >=4.9 && <5
     , tasty
+    , tasty-hunit
     , tasty-quickcheck
+    , text
     , values-internal
 
 ---------------- casing ----------------

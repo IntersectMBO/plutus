@@ -8,6 +8,7 @@ module PlutusBenchmark.Values.NestedValue (
     byPolicyId,
     byTokenName,
     empty,
+    toHMap,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -20,6 +21,9 @@ newtype Value = Value
     }
     deriving stock (Show, Eq)
     deriving newtype (NFData)
+
+toHMap :: Value -> Map ByteString (Map ByteString Integer)
+toHMap = getValue
 
 empty :: Value
 empty = Value Map.empty

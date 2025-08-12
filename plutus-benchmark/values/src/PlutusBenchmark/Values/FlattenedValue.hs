@@ -8,6 +8,7 @@ module PlutusBenchmark.Values.FlattenedValue (
     byPolicyId,
     byTokenName,
     empty,
+    toHMap,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -20,6 +21,9 @@ newtype Value = Value
     }
     deriving stock (Show, Eq)
     deriving newtype (NFData)
+
+toHMap :: Value -> Map ByteString (Map ByteString Integer)
+toHMap = Map.foldrWithKey' (\(p, t) i acc -> Map.insertWith Map.union p (Map.singleton t i) acc) Map.empty . getValue
 
 empty :: Value
 empty = Value Map.empty

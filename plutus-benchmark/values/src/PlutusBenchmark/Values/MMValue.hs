@@ -1,7 +1,21 @@
-module PlutusBenchmark.Values.MMValue where
+module PlutusBenchmark.Values.MMValue (
+    Value (..),
+    insertCoin,
+    lookupCoin,
+    deleteCoin,
+    union,
+    valueContains,
+    byPolicyId,
+    byTokenName,
+    empty,
+    toHMap,
+) where
 
 import Control.DeepSeq (NFData)
 import Data.ByteString (ByteString)
+import Data.Function (on)
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as HM
 import Data.Monoid (Sum (..))
 import Data.MonoidMap (MonoidMap)
 import Data.MonoidMap qualified as MM
@@ -12,6 +26,9 @@ newtype Value = Value
     deriving stock (Show, Eq)
     deriving newtype (Semigroup, Monoid)
     deriving newtype (NFData)
+
+toHMap :: Value -> Map ByteString (Map ByteString Integer)
+toHMap = MM.toMap . MM.map (HM.map getSum . MM.toMap) . getValue
 
 empty :: Value
 empty = mempty
@@ -39,7 +56,7 @@ union = (<>)
 
 valueContains :: Value -> Value -> Bool
 valueContains (Value m1) (Value m2) =
-    MM.isSubmapOf m2 m1
+    MM.isSubmapOfBy (MM.isSubmapOfBy ((<=) `on` getSum)) m2 m1
 
 byPolicyId :: ByteString -> Value -> MonoidMap ByteString (Sum Integer)
 byPolicyId policyId (Value m) =
@@ -51,17 +68,3 @@ byTokenName tokenName (Value m) =
         MM.singleton policyId (MM.get tokenName innerMM)
         )
         m
-
-type Test = MonoidMap String (Sum Integer)
-
-ex1 :: Test
-ex1 = mempty
-
-ex2 :: Test
-ex2 = MM.set "foo" 1 ex1
-
-ex3 :: Test
-ex3 = MM.set "foo" 100 ex2
-
-ex4 :: Test
-ex4 = MM.append ex2 ex3
