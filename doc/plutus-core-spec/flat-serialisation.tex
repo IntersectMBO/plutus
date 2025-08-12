@@ -194,19 +194,33 @@ The concatenation of the decoded block $[x_1, \ldots, x_k]$ with the recursively
 decoded list $l$ (from the remainder $s^{(k)}$) forms the final result.
 
 \subsection{Natural numbers}
-We encode natural numbers by splitting their binary representations into
-sequences of 7-bit blocks, then emitting all but last chunks as a list with
-the \textbf{least significant block first}. The last chunk(most significant chunk)
-will be encoded as regular 7-bit block and appended right after the list of chunks.
+Every natural number $n$ of arbirary size can be uniquely written in the following form:
 
 $$
-\E_{\N} (s, \sum_{i=0}^{n-1}k_i2^{7i}) = \E_7(\Elist_7(s, [k_0, \ldots, k_{n-2}]), k_{n-1})
+n = \sum_{i=0}^{n}k_i2^{7i} \text{ with } k_n \ne 0 \text{ and } n \geq 0
 $$
-\noindent(where $k_i \in \Z$ and $0 \leq k_i \leq 127$).
+
+\noindent Here, each $k_i$ is 7 bit binary block; $k_0$ being the least significant block.
+
+$$
+\E_{\N} (s, \sum_{i=0}^{n}k_i2^{7i}) =
+\begin{cases}
+  \E_7(\Elist_7(s, []), k_{0}) & \text{if } n = 0 \\
+  \E_7(\Elist_7(s, [k_0, \ldots, k_{n-1}]), k_{n}) & \text{if } n \ne 0
+\end{cases}
+$$
+
 \noindent The decoder is
 $$
-\D_{\N}(s) = (s'', \sum_{i=0}^{n-1}k_i2^{7i}) \quad \text{if $\Dlist_7(s) = (s', [k_0, \ldots, k_{n-2}])$ and $\D_7(s') = (s'', k_{n-1})$}.
+\D_{\N}(s) =
+\begin{cases}
+  \text{let } \Dlist_7(s) = (s', ks) \\
+  D_7(s') & \text{if } ks = [] \\
+  (s'', \sum_{i=0}^{n}k_i2^{7i}) & \text{if } ks = [k_0, \ldots, k_{n-1}] \text{ and } \D_7(s') = (s'', k_{n})
+\end{cases}
 $$
+
+Intuitively, every 7 bit blocks except the last block are prefixed by 1 and the last block is prefixed by 0.
 
 \subsection{Integers}
 Signed integers are encoded by converting them to natural numbers using the
