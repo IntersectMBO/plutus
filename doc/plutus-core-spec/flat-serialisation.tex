@@ -197,7 +197,7 @@ decoded list $l$ (from the remainder $s^{(k)}$) forms the final result.
 Every natural number $n$ of arbirary size can be uniquely written in the following form:
 
 $$
-n = \sum_{i=0}^{n}k_i2^{7i} \text{ with } k_n \ne 0 \text{ and } n \geq 0
+n = \sum_{i=0}^{n}k_i2^{7i} \text{ where for any $i$ with } 0 \leq i \leq n \text{, } 0 \leq k_i \leq 127  \text{ and } k_n \ne 0
 $$
 
 \noindent Here, each $k_i$ is 7 bit binary block; $k_0$ being the least significant block.
