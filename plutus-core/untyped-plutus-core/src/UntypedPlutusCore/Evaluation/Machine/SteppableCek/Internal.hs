@@ -59,6 +59,7 @@ import Control.Monad
 import Control.Monad.Primitive
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
+import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
@@ -437,10 +438,11 @@ lookupVarName
        ThrowableBuiltins uni fun
     => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.indexOne` coerce varIx of
-        Nothing  ->
-          throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) (Var () varName)
-        Just val -> pure val
+    Env.contIndexOne
+        (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
+        pure
+        varEnv
+        (coerce varIx)
 
 -- | Take a possibly partial builtin application and
 --
