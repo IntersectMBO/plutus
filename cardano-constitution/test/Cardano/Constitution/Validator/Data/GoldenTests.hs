@@ -93,4 +93,4 @@ runForBudget v ctx =
                 -- Here, we guard against the case that a ConstitutionValidator **FAILS EARLY** (for some reason),
                 -- resulting in misleading low budget costs.
                 UPLC.CekReport (UPLC.CekSuccessConstant (UPLC.Some (UPLC.ValueOf UPLC.DefaultUniUnit ()))) (UPLC.CountingSt budget) _ -> budget
-                _ -> error "For safety, we only compare budget of succesful executions."
+                _ -> error "For safety, we only compare budgets of successful executions."
