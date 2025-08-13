@@ -376,23 +376,6 @@ defineBuiltinTerms = do
   defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compressed_zero $
     PIR.mkConstant annMayInline BLS12_381.G2.compressed_zero
 
-  -- defineBuiltinTerm annMayInline 'Builtins.caseInt $ fmap (const annMayInline) . runQuote $ do
-  --   a <- freshTyName "a"
-  --   let
-  --     listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
-  --     ite
-  --   dead <- freshTyName "dead"
-  --   i <- freshName "i"
-  --   xs <- freshName "xs"
-
-  --   pure
-  --     $ PIR.tyAbs () a (PLC.Type ())
-  --     $ PIR.lamAbs () i (PLC.mkTyBuiltin @_ @Integer ())
-  --     $ PIR.lamAbs () xs listA
-  --     $ (PIR.tyInst () (PIR.builtin () ifThenElse) $ PLC.TyForall () dead (PLC.Type ()) $ PLC.TyVar () a)
-
-
-
   defineBuiltinTerm annMayInline 'Builtins.caseList' $ case datatypeStyle of
     style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
       -- > /\a r ->

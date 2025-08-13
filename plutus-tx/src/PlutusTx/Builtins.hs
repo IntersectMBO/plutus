@@ -154,7 +154,6 @@ module PlutusTx.Builtins (
   rotateByteString,
   countSetBits,
   findFirstSetBit,
-
 ) where
 
 import Data.Maybe
