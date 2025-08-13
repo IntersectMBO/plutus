@@ -2,8 +2,6 @@
 
 module Main (main) where
 
-import Data.Text.Encoding (encodeUtf8)
-
 import PlutusBenchmark.Common (getConfig)
 import PlutusBenchmark.Values.FlattenedValue qualified as FlattenedValue
 import PlutusBenchmark.Values.MMValue qualified as MMValue
@@ -130,71 +128,71 @@ main = do
         [ env setupEnvNested1 $ \ ~nValue ->
             bgroup "NestedValue"
                 [ bench "insertCoin - new coin"
-                    $ nf (NestedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) nValue
+                    $ nf (NestedValue.insertCoin polId500 tokN10000 200) nValue
                 , bench "insertCoin - existing coin"
-                    $ nf (NestedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999") 200) nValue
+                    $ nf (NestedValue.insertCoin polId500 tokN999999 200) nValue
                 , bench "lookupCoin - not found"
-                    $ nf (NestedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) nValue
+                    $ nf (NestedValue.lookupCoin polId500 tokN10000) nValue
                 , bench "lookupCoin - existing coin"
-                    $ nf (NestedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) nValue
+                    $ nf (NestedValue.lookupCoin polId500 tokN999999) nValue
                 , bench "deleteCoin - not found"
-                    $ nf (NestedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) nValue
+                    $ nf (NestedValue.deleteCoin polId500 tokN10000) nValue
                 , bench "deleteCoin - existing coin"
-                    $ nf (NestedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) nValue
+                    $ nf (NestedValue.deleteCoin polId500 tokN999999) nValue
                 , bench "byPolicyId - not found"
-                    $ nf (NestedValue.byPolicyId (encodeUtf8 "notHere")) nValue
+                    $ nf (NestedValue.byPolicyId polIdNotHere) nValue
                 , bench "byPolicyId - existing policy"
-                    $ nf (NestedValue.byPolicyId (encodeUtf8 "policy500")) nValue
+                    $ nf (NestedValue.byPolicyId polId500) nValue
                 , bench "byTokenName - not found"
-                    $ nf (NestedValue.byTokenName (encodeUtf8 "notHere")) nValue
+                    $ nf (NestedValue.byTokenName polIdNotHere) nValue
                 , bench "byTokenName - existing token"
-                    $ nf (NestedValue.byTokenName (encodeUtf8 "token999999")) nValue
+                    $ nf (NestedValue.byTokenName tokN999999) nValue
                 ]
         , env setupEnvFlattened1 $ \ ~fValue ->
             bgroup "FlattenedValue"
                 [ bench "insertCoin - new coin"
-                    $ nf (FlattenedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) fValue
+                    $ nf (FlattenedValue.insertCoin polId500 tokN10000 200) fValue
                 , bench "insertCoin - existing coin"
-                    $ nf (FlattenedValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999") 200) fValue
+                    $ nf (FlattenedValue.insertCoin polId500 tokN999999 200) fValue
                 , bench "lookupCoin - not found"
-                    $ nf (FlattenedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) fValue
+                    $ nf (FlattenedValue.lookupCoin polId500 tokN10000) fValue
                 , bench "lookupCoin - existing coin"
-                    $ nf (FlattenedValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) fValue
+                    $ nf (FlattenedValue.lookupCoin polId500 tokN999999) fValue
                 , bench "deleteCoin - not found"
-                    $ nf (FlattenedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) fValue
+                    $ nf (FlattenedValue.deleteCoin polId500 tokN10000) fValue
                 , bench "deleteCoin - existing coin"
-                    $ nf (FlattenedValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) fValue
+                    $ nf (FlattenedValue.deleteCoin polId500 tokN999999) fValue
                 , bench "byPolicyId - not found"
-                    $ nf (FlattenedValue.byPolicyId (encodeUtf8 "notHere")) fValue
+                    $ nf (FlattenedValue.byPolicyId polIdNotHere) fValue
                 , bench "byPolicyId - existing policy"
-                    $ nf (FlattenedValue.byPolicyId (encodeUtf8 "policy500")) fValue
+                    $ nf (FlattenedValue.byPolicyId polId500) fValue
                 , bench "byTokenName - not found"
-                    $ nf (FlattenedValue.byTokenName (encodeUtf8 "notHere")) fValue
+                    $ nf (FlattenedValue.byTokenName polIdNotHere) fValue
                 , bench "byTokenName - existing token"
-                    $ nf (FlattenedValue.byTokenName (encodeUtf8 "token999999")) fValue
+                    $ nf (FlattenedValue.byTokenName tokN999999) fValue
                 ]
         , env setupEnvMM1 $ \ ~mmValue ->
             bgroup "MMValue"
                 [ bench "insertCoin - new coin"
-                    $ nf (MMValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000") 200) mmValue
+                    $ nf (MMValue.insertCoin polId500 tokN10000 200) mmValue
                 , bench "insertCoin - existing coin"
-                    $ nf (MMValue.insertCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999") 200) mmValue
+                    $ nf (MMValue.insertCoin polId500 tokN999999 200) mmValue
                 , bench "lookupCoin - not found"
-                    $ nf (MMValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) mmValue
+                    $ nf (MMValue.lookupCoin polId500 tokN10000) mmValue
                 , bench "lookupCoin - existing coin"
-                    $ nf (MMValue.lookupCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) mmValue
+                    $ nf (MMValue.lookupCoin polId500 tokN999999) mmValue
                 , bench "deleteCoin - not found"
-                    $ nf (MMValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token10000")) mmValue
+                    $ nf (MMValue.deleteCoin polId500 tokN10000) mmValue
                 , bench "deleteCoin - existing coin"
-                    $ nf (MMValue.deleteCoin (encodeUtf8 "policy500") (encodeUtf8 "token999999")) mmValue
+                    $ nf (MMValue.deleteCoin polId500 tokN999999) mmValue
                 , bench "byPolicyId - not found"
-                    $ nf (MMValue.byPolicyId (encodeUtf8 "notHere")) mmValue
+                    $ nf (MMValue.byPolicyId polIdNotHere) mmValue
                 , bench "byPolicyId - existing policy"
-                    $ nf (MMValue.byPolicyId (encodeUtf8 "policy500")) mmValue
+                    $ nf (MMValue.byPolicyId polId500) mmValue
                 , bench "byTokenName - not found"
-                    $ nf (MMValue.byTokenName (encodeUtf8 "notHere")) mmValue
+                    $ nf (MMValue.byTokenName polIdNotHere) mmValue
                 , bench "byTokenName - existing token"
-                    $ nf (MMValue.byTokenName (encodeUtf8 "token999999")) mmValue
+                    $ nf (MMValue.byTokenName tokN999999) mmValue
                 ]
         , env setupEnvNested2 $ \ ~vals ->
             bgroup "NestedValue"

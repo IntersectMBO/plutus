@@ -54,9 +54,11 @@ mockTokenValues1 = replicate mockNumTokens1 200
 mockTokenValues2 :: [Integer]
 mockTokenValues2 = replicate mockNumTokens2 100
 
-polId500, tokN999999 :: ByteString
+polId500, tokN999999, tokN10000, polIdNotHere :: ByteString
 polId500 = encodeUtf8 "policy500"
 tokN999999 = encodeUtf8 "token999999"
+tokN10000 = encodeUtf8 "token10000"
+polIdNotHere = encodeUtf8 "notHere"
 
 mkMockValues :: Int -> Int -> [Integer] -> (NestedValue.Value, FlattenedValue.Value, MMValue.Value)
 mkMockValues numPolicies numToksPerPolicy amounts =

@@ -34,15 +34,16 @@ insertCoin currencyName coinName amount (Value m) =
   where
     insertCoin' =
         Value
-        $ Map.insertWith
-            (Map.unionWith (+))
+        $ Map.adjust
+            (Map.insert coinName amount)
             currencyName
-            (Map.singleton coinName amount)
             m
 
-lookupCoin :: ByteString -> ByteString -> Value -> Maybe Integer
-lookupCoin currencyName coinName (Value m) =
-    Map.lookup currencyName m >>= Map.lookup coinName
+lookupCoin :: ByteString -> ByteString -> Value -> Integer
+lookupCoin currencyName coinName  =
+    Map.findWithDefault 0 coinName
+    . Map.findWithDefault Map.empty currencyName
+    . getValue
 
 deleteCoin :: ByteString -> ByteString -> Value -> Value
 deleteCoin currencyName coinName (Value m) =

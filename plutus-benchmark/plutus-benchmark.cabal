@@ -282,7 +282,6 @@ benchmark values
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
     , plutus-benchmark-common
-    , text
     , values-internal
 
 test-suite plutus-benchmark-values-tests
@@ -292,11 +291,9 @@ test-suite plutus-benchmark-values-tests
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: values/test
   build-depends:
-    , base              >=4.9 && <5
+    , base             >=4.9 && <5
     , tasty
     , tasty-hunit
-    , tasty-quickcheck
-    , text
     , values-internal
 
 ---------------- casing ----------------

@@ -36,7 +36,7 @@ empty = mempty
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
 insertCoin currencyName coinName amount =
     Value
-    . MM.append (MM.singleton currencyName (MM.singleton coinName (Sum amount)))
+    . MM.adjust (MM.set coinName (Sum amount)) currencyName
     . getValue
 
 lookupCoin :: ByteString -> ByteString -> Value -> Sum Integer
