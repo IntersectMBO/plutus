@@ -208,7 +208,8 @@ evaluateWithCek
   -> UPLC.EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
 evaluateWithCek =
   UPLC.unsafeSplitStructuralOperational
-  . (\(fstT,_,_) -> fstT)
+  . UPLC.cekResultToEither
+  . UPLC._cekReportResult
   . UPLC.runCekDeBruijn PLC.defaultCekParametersForTesting UPLC.restrictingEnormous UPLC.noEmitter
 
 writeFlatNamed :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()

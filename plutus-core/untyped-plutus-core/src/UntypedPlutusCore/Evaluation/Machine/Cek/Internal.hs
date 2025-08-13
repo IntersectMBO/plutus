@@ -590,6 +590,9 @@ deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Closed uni)
 deriving stock instance (GEq uni, Everywhere uni Eq, Eq fun, Closed uni)
     => Eq (DischargeResult uni fun)
 
+instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (DischargeResult uni fun) where
+    prettyBy cfg = prettyBy cfg . dischargeResultToTerm
+
 dischargeResultToTerm :: DischargeResult uni fun -> NTerm uni fun ()
 dischargeResultToTerm (DischargeConstant val)     = Constant () val
 dischargeResultToTerm (DischargeNonConstant term) = term
@@ -604,7 +607,7 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
         VCon val -> Constant () val
         VDelay body env -> Delay () $ goValEnv env 0 body
         VLamAbs (NamedDeBruijn n _ix) body env ->
-            -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
+            -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
             LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
         -- We only return a discharged builtin application when (a) it's being returned by the
         -- machine, or (b) it's needed for an error message.
@@ -613,7 +616,7 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
         VConstr ind args -> Constr () ind . map goValue $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
-    -- Mutually recursive with dischargeCekVal.
+    -- Mutually recursive with @goValue@.
     goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
     goValEnv env = go where
         -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
