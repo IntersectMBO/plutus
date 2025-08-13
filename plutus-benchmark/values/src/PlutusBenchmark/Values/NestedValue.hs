@@ -13,6 +13,7 @@ module PlutusBenchmark.Values.NestedValue (
 
 import Control.DeepSeq (NFData)
 import Data.ByteString (ByteString)
+import Data.Map.Merge.Strict qualified as Map
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 
@@ -29,15 +30,20 @@ empty :: Value
 empty = Value Map.empty
 
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
-insertCoin currencyName coinName amount (Value m) =
-    normalize insertCoin'
-  where
-    insertCoin' =
-        Value
-        $ Map.adjust
-            (Map.insert coinName amount)
-            currencyName
-            m
+insertCoin currencyName coinName amount =
+    Value
+    . Map.update
+        (\innerMap ->
+            let newInner =
+                    if amount == 0
+                    then Map.delete coinName innerMap
+                    else Map.insert coinName amount innerMap
+             in if Map.null newInner
+                then Nothing
+                else Just newInner
+        )
+        currencyName
+    . getValue
 
 lookupCoin :: ByteString -> ByteString -> Value -> Integer
 lookupCoin currencyName coinName  =
@@ -59,14 +65,33 @@ deleteCoin currencyName coinName (Value m) =
         m
 
 union :: Value -> Value -> Value
-union (Value m1) (Value m2) = normalize union'
-  where
-    union' =
-        Value
-        $ Map.unionWith
-            (Map.unionWith (+))
-            m1
-            m2
+union (Value m1) (Value m2) =
+    Value
+    $ Map.merge
+        Map.preserveMissing
+        Map.preserveMissing
+        (Map.zipWithMaybeMatched
+            (\_ innerMap1 innerMap2 ->
+                let mergedInner =
+                        Map.merge
+                            Map.preserveMissing
+                            Map.preserveMissing
+                            (Map.zipWithMaybeMatched
+                                (\_ v1 v2 ->
+                                    if v1 + v2 == 0
+                                    then Nothing
+                                    else Just (v1 + v2)
+                                )
+                            )
+                            innerMap1
+                            innerMap2
+                 in if Map.null mergedInner
+                    then Nothing
+                    else Just mergedInner
+            )
+        )
+        m1
+        m2
 
 valueContains :: Value -> Value -> Bool
 valueContains (Value m1) (Value m2) =
@@ -86,9 +111,3 @@ byTokenName tokenName (Value m) =
         )
         Map.empty
         m
-
-normalize :: Value -> Value
-normalize (Value m) =
-    Value
-    $ Map.filter (not . Map.null)
-    $ Map.map (Map.filter (/= 0)) m
