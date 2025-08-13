@@ -119,10 +119,10 @@ evaluateCekLikeInProd
     -> Either
             (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
             (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
-evaluateCekLikeInProd evalCtx term = do
+evaluateCekLikeInProd evalCtx term =
     let -- The validation benchmarks were all created from PlutusV1 scripts
         pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
-    Cek.cekResultToEither . Cek._cekReportResult $
+    in Cek.cekResultToEither . Cek._cekReportResult $
         LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
 
 -- | Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
