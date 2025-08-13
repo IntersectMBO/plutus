@@ -4,7 +4,7 @@
           case
             integer
             xs
-            [0, (\(ds : data) (eta : list data) -> addInteger 1 (go eta))]
+            [(\(ds : data) (eta : list data) -> addInteger 1 (go eta)), 0]
   in
   let
     data (Maybe :: * -> *) a | Maybe_match where

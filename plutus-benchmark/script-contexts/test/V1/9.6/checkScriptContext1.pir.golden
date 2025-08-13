@@ -68,8 +68,7 @@
           case
             (List (Tuple2 bytestring data))
             xs
-            [ (Nil {Tuple2 bytestring data})
-            , (\(x : data) (xs : list data) ->
+            [ (\(x : data) (xs : list data) ->
                  Cons
                    {Tuple2 bytestring data}
                    (`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData`
@@ -78,7 +77,8 @@
                       unBData
                       (\(d : data) -> d)
                       x)
-                   (go xs)) ]
+                   (go xs))
+            , (Nil {Tuple2 bytestring data}) ]
   in
   letrec
     !go : list data -> List bytestring
@@ -86,9 +86,9 @@
           case
             (List bytestring)
             xs
-            [ (Nil {bytestring})
-            , (\(x : data) (xs : list data) ->
-                 Cons {bytestring} (unBData x) (go xs)) ]
+            [ (\(x : data) (xs : list data) ->
+                 Cons {bytestring} (unBData x) (go xs))
+            , (Nil {bytestring}) ]
   in
   let
     !`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` : data -> Credential
@@ -138,8 +138,7 @@
           case
             (List (Tuple2 StakingCredential integer))
             xs
-            [ (Nil {Tuple2 StakingCredential integer})
-            , (\(x : data)
+            [ (\(x : data)
                 (xs : list data) ->
                  Cons
                    {Tuple2 StakingCredential integer}
@@ -149,7 +148,8 @@
                       `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
                       unIData
                       x)
-                   (go xs)) ]
+                   (go xs))
+            , (Nil {Tuple2 StakingCredential integer}) ]
   in
   let
     data DCert | DCert_match where
@@ -201,12 +201,12 @@
           case
             (List DCert)
             xs
-            [ (Nil {DCert})
-            , (\(x : data) (xs : list data) ->
+            [ (\(x : data) (xs : list data) ->
                  Cons
                    {DCert}
                    (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` x)
-                   (go xs)) ]
+                   (go xs))
+            , (Nil {DCert}) ]
   in
   let
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
@@ -240,8 +240,7 @@
                     case
                       (List (Tuple2 k v))
                       xs
-                      [ (Nil {Tuple2 k v})
-                      , (\(tup : pair data data)
+                      [ (\(tup : pair data data)
                           (tups : list (pair data data)) ->
                            Cons
                              {Tuple2 k v}
@@ -251,7 +250,8 @@
                                 (`$dUnsafeFromData` (fstPair {data} {data} tup))
                                 (`$dUnsafeFromData`
                                    (sndPair {data} {data} tup)))
-                             (go tups)) ]
+                             (go tups))
+                      , (Nil {Tuple2 k v}) ]
             in
             \(d : data) -> go (unMapData d)
     ~`$fUnsafeFromDataValue` :
@@ -313,12 +313,12 @@
           case
             (List TxOut)
             xs
-            [ (Nil {TxOut})
-            , (\(x : data) (xs : list data) ->
+            [ (\(x : data) (xs : list data) ->
                  Cons
                    {TxOut}
                    (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` x)
-                   (go xs)) ]
+                   (go xs))
+            , (Nil {TxOut}) ]
   in
   let
     !`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` : data -> bytestring
@@ -360,8 +360,7 @@
           case
             (List TxInInfo)
             xs
-            [ (Nil {TxInInfo})
-            , (\(x : data) (xs : list data) ->
+            [ (\(x : data) (xs : list data) ->
                  Cons
                    {TxInInfo}
                    (let
@@ -379,7 +378,8 @@
                             (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                                (headList {data} (tailList {data} ds)))) ]
                      args)
-                   (go xs)) ]
+                   (go xs))
+            , (Nil {TxInInfo}) ]
   in
   let
     !`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` : data -> bool

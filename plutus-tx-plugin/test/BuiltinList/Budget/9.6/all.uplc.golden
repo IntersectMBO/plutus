@@ -15,9 +15,9 @@
                      (\xs ->
                         case
                           xs
-                          [ True
-                          , (\x xs ->
+                          [ (\x xs ->
                                case
                                  (p x)
-                                 [False, (force (go (delay (\x -> x))) xs)]) ]))
+                                 [False, (force (go (delay (\x -> x))) xs)])
+                          , True ]))
                 (delay (\x -> x))))))

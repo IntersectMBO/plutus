@@ -8,7 +8,7 @@ let
         in
         \(y : integer) -> let !y : integer = y in lessThanEqualsInteger x y
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   ~elemBy : all a. (a -> a -> bool) -> a -> list a -> bool
     = /\a ->
         \(eq : a -> a -> bool) ->

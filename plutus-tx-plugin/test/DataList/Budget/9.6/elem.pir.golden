@@ -4,12 +4,12 @@ letrec
         case
           bool
           xs
-          [ False
-          , (\(h : data) (t : list data) ->
+          [ (\(h : data) (t : list data) ->
                case
                  (all dead. bool)
                  (equalsData (I 8) h)
                  [(/\dead -> go t), (/\dead -> True)]
-                 {all dead. dead}) ]
+                 {all dead. dead})
+          , False ]
 in
 \(eta : (\a -> list data) integer) -> go eta

@@ -4,7 +4,7 @@
 
 module Main where
 
-import Prelude ((<>))
+import Prelude (fmap, (<>))
 import Prelude qualified as Hs
 
 import Control.Lens hiding (argument)
@@ -35,7 +35,8 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Pretty (prettyPlcClassicSimple)
+import PlutusCore.Pretty (prettyPlc)
+import PlutusPrelude (unsafeFromRight)
 import PlutusTx (getPlcNoAnn)
 import PlutusTx.Code (CompiledCode, countAstNodes)
 import PlutusTx.List
@@ -175,7 +176,7 @@ options :: Parser Options
 options = hsubparser
   (  command "run"
      (info (RunPLC <$> progAndArgs)
-      (progDesc "same as runPLC"))
+      (progDesc "same as run-plc"))
   <> command "run-plc"
      (info (RunPLC <$> progAndArgs)
       (progDesc "compile the program to Plutus Core and evaluate it using the CEK machine"))
@@ -312,7 +313,7 @@ main :: IO ()
 main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
     RunPLC pa ->
-        print . prettyPlcClassicSimple . evaluateWithCek . getTerm $ pa
+        print . prettyPlc . fmap fromNamedDeBruijnUPLC . evaluateWithCek . getTerm $ pa
     RunHaskell pa ->
         case pa of
           Clausify formula        -> print $ Clausify.runClausify formula
@@ -320,11 +321,15 @@ main = do
           LastPiece               -> print $ LastPiece.runLastPiece
           Queens boardSize alg    -> print $ Queens.runQueens boardSize alg
           Prime input             -> print $ Prime.runFixedPrimalityTest input
-          Primetest n             -> if n<0 then Hs.error "Positive number expected"
+          Primetest n             -> if n < 0
+                                     then Hs.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa ->
-        traverse_ putStrLn $ unindent . prettyPlcClassicSimple . UPLC.Program () PLC.latestVersion . getTerm $ pa
-            where unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
+        traverse_ putStrLn
+        $ unindent . prettyPlc
+        . UPLC.Program () PLC.latestVersion . fromNamedDeBruijnUPLC . getTerm $ pa
+      -- These are big programs and with indentation the output is > 90% whitespace
+      where unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
     DumpFlatNamed pa ->
         writeFlatNamed . UPLC.Program () PLC.latestVersion . getTerm $ pa
     DumpFlatDeBruijn pa ->
@@ -342,3 +347,9 @@ main = do
                Prime input             -> Prime.mkPrimalityBenchTerm input
                Primetest n             -> if n<0 then Hs.error "Positive number expected"
                                           else Prime.mkPrimalityTestTerm n
+          fromNamedDeBruijnUPLC
+            :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+            -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+          fromNamedDeBruijnUPLC =
+            unsafeFromRight @PLC.FreeVariableError
+            . PLC.runQuoteT . UPLC.unDeBruijnTerm

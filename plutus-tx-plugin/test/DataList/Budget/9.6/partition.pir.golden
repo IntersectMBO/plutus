@@ -9,7 +9,7 @@ in
             r = Tuple2 (list data) (list data)
           in
           \(z : r) (f : data -> list data -> r) (xs : list data) ->
-            case r xs [z, f])
+            case r xs [f, z])
           (Tuple2 {list data} {list data} [] [])
           (\(h : data) (t : list data) ->
              Tuple2_match

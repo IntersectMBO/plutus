@@ -2,7 +2,7 @@ let
   ~builtinListIndexTooLargeError : string = "PT22"
   ~builtinListNegativeIndexError : string = "PT21"
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !drop : all a. integer -> list a -> list a = dropList
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
   data Unit | Unit_match where

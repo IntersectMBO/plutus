@@ -507,7 +507,7 @@ program
             a = pair data data
           in
           /\r ->
-            \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f])
+            \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z])
           {List (Tuple2 data data)}
           (Nil {Tuple2 data data})
           (\(x : pair data data) (xs : list (pair data data)) ->

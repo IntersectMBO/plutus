@@ -1,7 +1,7 @@
 let
   ~v : integer = 5
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   ~dropWhile : all a. (a -> bool) -> list a -> list a
     = /\a ->
         \(p : a -> bool) ->

@@ -10,9 +10,9 @@
                  (\l r ->
                     case
                       l
-                      [ r
-                      , (\x xs ->
+                      [ (\x xs ->
                            force (force (revAppend (delay (\x -> x))))
                              xs
-                             (force mkCons x r)) ])))
+                             (force mkCons x r))
+                      , r ])))
          (delay (\x -> x)))))

@@ -10,11 +10,11 @@
                 (\acc xs ->
                    case
                      xs
-                     [ acc
-                     , (\x xs ->
+                     [ (\x xs ->
                           force (go (delay (\x -> x)))
                             (multiplyInteger acc x)
-                            xs) ]))
+                            xs)
+                     , acc ]))
            (delay (\x -> x)))
         1
         xs))

@@ -7,7 +7,7 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   ~find : all a. (a -> bool) -> list a -> Maybe a
     = /\a ->
         \(p : a -> bool) ->

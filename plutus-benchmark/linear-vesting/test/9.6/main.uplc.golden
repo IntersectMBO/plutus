@@ -750,8 +750,7 @@
                                                                                                                                                                                                   ds ->
                                                                                                                                                                                                    case
                                                                                                                                                                                                      ds
-                                                                                                                                                                                                     [ n
-                                                                                                                                                                                                     , (\x
+                                                                                                                                                                                                     [ (\x
                                                                                                                                                                                                          eta ->
                                                                                                                                                                                                           `$mScriptCredential`
                                                                                                                                                                                                             (addressCredential
@@ -774,7 +773,8 @@
                                                                                                                                                                                                             (\void ->
                                                                                                                                                                                                                go
                                                                                                                                                                                                                  n
-                                                                                                                                                                                                                 eta)) ]))) ])
+                                                                                                                                                                                                                 eta))
+                                                                                                                                                                                                     , n ]))) ])
                                                                                                                                                                                    (txOutAddress
                                                                                                                                                                                       nt))
                                                                                                                                                                                 (txInInfoResolved
@@ -1185,9 +1185,7 @@
                                                                                              xs ->
                                                                                               case
                                                                                                 xs
-                                                                                                [ (constr 1
-                                                                                                     [  ])
-                                                                                                , (\hd ->
+                                                                                                [ (\hd ->
                                                                                                      case
                                                                                                        (equalsData
                                                                                                           k
@@ -1201,7 +1199,9 @@
                                                                                                               [ (force
                                                                                                                    (force
                                                                                                                       sndPair)
-                                                                                                                   hd) ]) ]) ])))))
+                                                                                                                   hd) ]) ])
+                                                                                                , (constr 1
+                                                                                                     [  ]) ])))))
                                                                              (\ds ->
                                                                                 case
                                                                                   ds
@@ -1571,13 +1571,13 @@
                             (\go ds ->
                                case
                                  ds
-                                 [ (constr 1 [])
-                                 , (\x eta ->
+                                 [ (\x eta ->
                                       (\h ->
                                          case
                                            (pred' h)
                                            [(go eta), (constr 0 [h])])
-                                        (`$dUnsafeFromData` x)) ]))))
+                                        (`$dUnsafeFromData` x))
+                                 , (constr 1 []) ]))))
                  (\ds -> case ds [(\ds ds ds ds ds ds ds -> ds)]))
             , (delay
                  ((\x -> error)
