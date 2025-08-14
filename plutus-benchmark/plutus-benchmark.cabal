@@ -54,7 +54,6 @@ common lang
     DeriveLift
     DeriveTraversable
     DerivingStrategies
-    DerivingVia
     ExplicitForAll
     FlexibleContexts
     GeneralizedNewtypeDeriving
