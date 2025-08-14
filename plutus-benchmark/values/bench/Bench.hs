@@ -8,7 +8,7 @@ import PlutusBenchmark.Values.MMValue qualified as MMValue
 import PlutusBenchmark.Values.MockValues
 import PlutusBenchmark.Values.NestedValue qualified as NestedValue
 
-import Criterion.Main (bench, bgroup, defaultMainWith, env, nf)
+import Criterion.Main (bench, bgroup, defaultMainWith, env, whnf)
 
 setupEnvNested1 :: IO NestedValue.Value
 setupEnvNested1 =
@@ -128,112 +128,112 @@ main = do
         [ env setupEnvNested1 $ \ ~nValue ->
             bgroup "NestedValue"
                 [ bench "insertCoin - new coin"
-                    $ nf (NestedValue.insertCoin polId500 tokN10000 200) nValue
+                    $ whnf (NestedValue.insertCoin polId500 tokN10000 200) nValue
                 , bench "insertCoin - existing coin"
-                    $ nf (NestedValue.insertCoin polId500 tokN999999 200) nValue
+                    $ whnf (NestedValue.insertCoin polId500 tokN999999 200) nValue
                 , bench "lookupCoin - not found"
-                    $ nf (NestedValue.lookupCoin polId500 tokN10000) nValue
+                    $ whnf (NestedValue.lookupCoin polId500 tokN10000) nValue
                 , bench "lookupCoin - existing coin"
-                    $ nf (NestedValue.lookupCoin polId500 tokN999999) nValue
+                    $ whnf (NestedValue.lookupCoin polId500 tokN999999) nValue
                 , bench "deleteCoin - not found"
-                    $ nf (NestedValue.deleteCoin polId500 tokN10000) nValue
+                    $ whnf (NestedValue.deleteCoin polId500 tokN10000) nValue
                 , bench "deleteCoin - existing coin"
-                    $ nf (NestedValue.deleteCoin polId500 tokN999999) nValue
+                    $ whnf (NestedValue.deleteCoin polId500 tokN999999) nValue
                 , bench "byPolicyId - not found"
-                    $ nf (NestedValue.byPolicyId polIdNotHere) nValue
+                    $ whnf (NestedValue.byPolicyId polIdNotHere) nValue
                 , bench "byPolicyId - existing policy"
-                    $ nf (NestedValue.byPolicyId polId500) nValue
+                    $ whnf (NestedValue.byPolicyId polId500) nValue
                 , bench "byTokenName - not found"
-                    $ nf (NestedValue.byTokenName polIdNotHere) nValue
+                    $ whnf (NestedValue.byTokenName polIdNotHere) nValue
                 , bench "byTokenName - existing token"
-                    $ nf (NestedValue.byTokenName tokN999999) nValue
+                    $ whnf (NestedValue.byTokenName tokN999999) nValue
                 ]
         , env setupEnvFlattened1 $ \ ~fValue ->
             bgroup "FlattenedValue"
                 [ bench "insertCoin - new coin"
-                    $ nf (FlattenedValue.insertCoin polId500 tokN10000 200) fValue
+                    $ whnf (FlattenedValue.insertCoin polId500 tokN10000 200) fValue
                 , bench "insertCoin - existing coin"
-                    $ nf (FlattenedValue.insertCoin polId500 tokN999999 200) fValue
+                    $ whnf (FlattenedValue.insertCoin polId500 tokN999999 200) fValue
                 , bench "lookupCoin - not found"
-                    $ nf (FlattenedValue.lookupCoin polId500 tokN10000) fValue
+                    $ whnf (FlattenedValue.lookupCoin polId500 tokN10000) fValue
                 , bench "lookupCoin - existing coin"
-                    $ nf (FlattenedValue.lookupCoin polId500 tokN999999) fValue
+                    $ whnf (FlattenedValue.lookupCoin polId500 tokN999999) fValue
                 , bench "deleteCoin - not found"
-                    $ nf (FlattenedValue.deleteCoin polId500 tokN10000) fValue
+                    $ whnf (FlattenedValue.deleteCoin polId500 tokN10000) fValue
                 , bench "deleteCoin - existing coin"
-                    $ nf (FlattenedValue.deleteCoin polId500 tokN999999) fValue
+                    $ whnf (FlattenedValue.deleteCoin polId500 tokN999999) fValue
                 , bench "byPolicyId - not found"
-                    $ nf (FlattenedValue.byPolicyId polIdNotHere) fValue
+                    $ whnf (FlattenedValue.byPolicyId polIdNotHere) fValue
                 , bench "byPolicyId - existing policy"
-                    $ nf (FlattenedValue.byPolicyId polId500) fValue
+                    $ whnf (FlattenedValue.byPolicyId polId500) fValue
                 , bench "byTokenName - not found"
-                    $ nf (FlattenedValue.byTokenName polIdNotHere) fValue
+                    $ whnf (FlattenedValue.byTokenName polIdNotHere) fValue
                 , bench "byTokenName - existing token"
-                    $ nf (FlattenedValue.byTokenName tokN999999) fValue
+                    $ whnf (FlattenedValue.byTokenName tokN999999) fValue
                 ]
         , env setupEnvMM1 $ \ ~mmValue ->
             bgroup "MMValue"
                 [ bench "insertCoin - new coin"
-                    $ nf (MMValue.insertCoin polId500 tokN10000 200) mmValue
+                    $ whnf (MMValue.insertCoin polId500 tokN10000 200) mmValue
                 , bench "insertCoin - existing coin"
-                    $ nf (MMValue.insertCoin polId500 tokN999999 200) mmValue
+                    $ whnf (MMValue.insertCoin polId500 tokN999999 200) mmValue
                 , bench "lookupCoin - not found"
-                    $ nf (MMValue.lookupCoin polId500 tokN10000) mmValue
+                    $ whnf (MMValue.lookupCoin polId500 tokN10000) mmValue
                 , bench "lookupCoin - existing coin"
-                    $ nf (MMValue.lookupCoin polId500 tokN999999) mmValue
+                    $ whnf (MMValue.lookupCoin polId500 tokN999999) mmValue
                 , bench "deleteCoin - not found"
-                    $ nf (MMValue.deleteCoin polId500 tokN10000) mmValue
+                    $ whnf (MMValue.deleteCoin polId500 tokN10000) mmValue
                 , bench "deleteCoin - existing coin"
-                    $ nf (MMValue.deleteCoin polId500 tokN999999) mmValue
+                    $ whnf (MMValue.deleteCoin polId500 tokN999999) mmValue
                 , bench "byPolicyId - not found"
-                    $ nf (MMValue.byPolicyId polIdNotHere) mmValue
+                    $ whnf (MMValue.byPolicyId polIdNotHere) mmValue
                 , bench "byPolicyId - existing policy"
-                    $ nf (MMValue.byPolicyId polId500) mmValue
+                    $ whnf (MMValue.byPolicyId polId500) mmValue
                 , bench "byTokenName - not found"
-                    $ nf (MMValue.byTokenName polIdNotHere) mmValue
+                    $ whnf (MMValue.byTokenName polIdNotHere) mmValue
                 , bench "byTokenName - existing token"
-                    $ nf (MMValue.byTokenName tokN999999) mmValue
+                    $ whnf (MMValue.byTokenName tokN999999) mmValue
                 ]
         , env setupEnvNested2 $ \ ~vals ->
             bgroup "NestedValue"
                 [ bench "union - two different values"
-                    $ nf (uncurry NestedValue.union) vals
+                    $ whnf (uncurry NestedValue.union) vals
                 , bench "valueContains - is not sub-value"
-                    $ nf (uncurry NestedValue.valueContains) vals
+                    $ whnf (uncurry NestedValue.valueContains) vals
                 ]
         , env setupEnvFlattened2 $ \ ~vals ->
             bgroup "FlattenedValue"
                 [ bench "union - two different values"
-                    $ nf (uncurry FlattenedValue.union) vals
+                    $ whnf (uncurry FlattenedValue.union) vals
                 , bench "valueContains - is not sub-value"
-                    $ nf (uncurry FlattenedValue.valueContains) vals
+                    $ whnf (uncurry FlattenedValue.valueContains) vals
                 ]
         , env setupEnvMM2 $ \ ~vals ->
             bgroup "MMValue"
                 [ bench "union - two different values"
-                    $ nf (uncurry MMValue.union) vals
+                    $ whnf (uncurry MMValue.union) vals
                 , bench "valueContains - is not sub-value"
-                    $ nf (uncurry MMValue.valueContains) vals
+                    $ whnf (uncurry MMValue.valueContains) vals
                 ]
         , env setupEnvNested1andInv $ \ ~vals ->
             bgroup "NestedValue"
                 [ bench "union - union with inverse"
-                    $ nf (uncurry NestedValue.union) vals
+                    $ whnf (uncurry NestedValue.union) vals
                 , bench "valueContains - is sub-value"
-                    $ nf (uncurry NestedValue.valueContains) vals
+                    $ whnf (uncurry NestedValue.valueContains) vals
                 ]
         , env setupEnvFlattened1andInv $ \ ~vals ->
             bgroup "FlattenedValue"
                 [ bench "union - union with inverse"
-                    $ nf (uncurry FlattenedValue.union) vals
+                    $ whnf (uncurry FlattenedValue.union) vals
                 , bench "valueContains - is sub-value"
-                    $ nf (uncurry FlattenedValue.valueContains) vals
+                    $ whnf (uncurry FlattenedValue.valueContains) vals
                 ]
         , env setupEnvMM1andInv $ \ ~vals ->
             bgroup "MMValue"
                 [ bench "union - union with inverse"
-                    $ nf (uncurry MMValue.union) vals
+                    $ whnf (uncurry MMValue.union) vals
                 , bench "valueContains - is sub-value"
-                    $ nf (uncurry MMValue.valueContains) vals
+                    $ whnf (uncurry MMValue.valueContains) vals
                 ]
         ]
