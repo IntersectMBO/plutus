@@ -1,4 +1,11 @@
 
+<a id='changelog-1.52.0.0'></a>
+# 1.52.0.0 — 2025-08-14
+
+## Changed
+
+- In #7272 made the CEK machine return a `CekReport` and fixed a bug with `dischargeCekValue` not dicharging under `Constr` and `Case`.
+
 <a id='changelog-1.51.0.0'></a>
 # 1.51.0.0 — 2025-07-30
 
