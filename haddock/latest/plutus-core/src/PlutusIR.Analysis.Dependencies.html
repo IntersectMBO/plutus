@@ -1,0 +1,6915 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Functions for computing the dependency graph of variables within a term or type.
+A &quot;dependency&quot; between two nodes &quot;A depends on B&quot; means that B cannot be removed
+from the program without also removing A.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Analysis.Dependencies</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	><span class="hs-identifier"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+	><span class="hs-identifier"
+	  >DepGraph</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#runTermDeps"
+	><span class="hs-identifier"
+	  >runTermDeps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Usages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Usages</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Purity.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Purity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Strict</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html"
+	><span class="hs-identifier"
+	  >Algebra.Graph.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>G</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html"
+	><span class="hs-identifier"
+	  >Data.List.NonEmpty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>NE</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Builtins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.VarInfo.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.VarInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
+node indicating the root of the graph. We need the root node because when computing the
+dependency graph of, say, a term, there will not be a binding for the term itself which
+we can use to represent it in the graph.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Node"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	  ><span class="hs-identifier hs-var"
+	    >Node</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Variable"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Dependencies.html#Variable"
+	  ><span class="hs-identifier hs-var"
+	    >Variable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >PLC.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Root"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Dependencies.html#Root"
+	  ><span class="hs-identifier hs-var"
+	    >Root</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679473276"
+      ><span id="local-6989586621679473282"
+	><span id="local-6989586621679473286"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Node -&gt; ShowS
+[Node] -&gt; ShowS
+Node -&gt; String
+(Int -&gt; Node -&gt; ShowS)
+-&gt; (Node -&gt; String) -&gt; ([Node] -&gt; ShowS) -&gt; Show Node
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Node -&gt; ShowS
+showsPrec :: Int -&gt; Node -&gt; ShowS
+$cshow :: Node -&gt; String
+show :: Node -&gt; String
+$cshowList :: [Node] -&gt; ShowS
+showList :: [Node] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473290"
+      ><span id="local-6989586621679473294"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Node -&gt; Node -&gt; Bool
+(Node -&gt; Node -&gt; Bool) -&gt; (Node -&gt; Node -&gt; Bool) -&gt; Eq Node
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Node -&gt; Node -&gt; Bool
+== :: Node -&gt; Node -&gt; Bool
+$c/= :: Node -&gt; Node -&gt; Bool
+/= :: Node -&gt; Node -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473301"
+      ><span id="local-6989586621679473305"
+	><span id="local-6989586621679473308"
+	  ><span id="local-6989586621679473312"
+	    ><span id="local-6989586621679473315"
+	      ><span id="local-6989586621679473318"
+		><span id="local-6989586621679473321"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Node
+Eq Node =&gt;
+(Node -&gt; Node -&gt; Ordering)
+-&gt; (Node -&gt; Node -&gt; Bool)
+-&gt; (Node -&gt; Node -&gt; Bool)
+-&gt; (Node -&gt; Node -&gt; Bool)
+-&gt; (Node -&gt; Node -&gt; Bool)
+-&gt; (Node -&gt; Node -&gt; Node)
+-&gt; (Node -&gt; Node -&gt; Node)
+-&gt; Ord Node
+Node -&gt; Node -&gt; Bool
+Node -&gt; Node -&gt; Ordering
+Node -&gt; Node -&gt; Node
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Node -&gt; Node -&gt; Ordering
+compare :: Node -&gt; Node -&gt; Ordering
+$c&lt; :: Node -&gt; Node -&gt; Bool
+&lt; :: Node -&gt; Node -&gt; Bool
+$c&lt;= :: Node -&gt; Node -&gt; Bool
+&lt;= :: Node -&gt; Node -&gt; Bool
+$c&gt; :: Node -&gt; Node -&gt; Bool
+&gt; :: Node -&gt; Node -&gt; Bool
+$c&gt;= :: Node -&gt; Node -&gt; Bool
+&gt;= :: Node -&gt; Node -&gt; Bool
+$cmax :: Node -&gt; Node -&gt; Node
+max :: Node -&gt; Node -&gt; Node
+$cmin :: Node -&gt; Node -&gt; Node
+min :: Node -&gt; Node -&gt; Node
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="DepCtx"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+	  ><span class="hs-identifier hs-var"
+	    >DepCtx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679472995"
+      ><span class="annot"
+	><a href="#local-6989586621679472995"
+	  ><span class="hs-identifier hs-type"
+	    >tyname</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679472996"
+      ><span class="annot"
+	><a href="#local-6989586621679472996"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679472997"
+      ><span class="annot"
+	><a href="#local-6989586621679472997"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679472998"
+      ><span class="annot"
+	><a href="#local-6989586621679472998"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679472999"
+      ><span class="annot"
+	><a href="#local-6989586621679472999"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="DepCtx"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+	  ><span class="hs-identifier hs-var"
+	    >DepCtx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_depNode"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall tyname name (uni :: * -&gt; *) fun a.
+DepCtx tyname name uni fun a -&gt; Node
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#_depNode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_depNode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	><span class="hs-identifier hs-type"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_depBuiltinsInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall tyname name (uni :: * -&gt; *) fun a.
+DepCtx tyname name uni fun a -&gt; BuiltinsInfo uni fun
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#_depBuiltinsInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_depBuiltinsInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679472997"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679472998"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_depVarInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall tyname name (uni :: * -&gt; *) fun a.
+DepCtx tyname name uni fun a -&gt; VarsInfo tyname name uni a
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#_depVarInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_depVarInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.VarInfo.html#VarsInfo"
+	><span class="hs-identifier hs-type"
+	  >VarsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679472995"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679472996"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679472997"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679472999"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="local-6989586621679472995"
+      ><span id="local-6989586621679472996"
+	><span id="local-6989586621679472997"
+	  ><span id="local-6989586621679472998"
+	    ><span id="local-6989586621679472999"
+	      ><span id="local-6989586621679473019"
+		><span id="local-6989586621679473020"
+		  ><span id="local-6989586621679473021"
+		    ><span id="local-6989586621679473022"
+		      ><span id="depBuiltinsInfo"
+			><span id="depNode"
+			  ><span id="depVarInfo"
+			    ><span class="hs-identifier"
+			      >makeLenses</span
+			      ><span
+			      > </span
+			      ><span class="hs-special"
+			      >''</span
+			      ><span class="hs-identifier"
+			      >DepCtx</span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from
+it), whose vertices are 'Node's.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="DepGraph"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+	  ><span class="hs-identifier hs-var"
+	    >DepGraph</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473353"
+      ><span class="annot"
+	><a href="#local-6989586621679473353"
+	  ><span class="hs-identifier hs-type"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#Graph"
+	><span class="hs-identifier hs-type"
+	  >G.Graph</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679473353"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#Vertex"
+	><span class="hs-identifier hs-type"
+	  >G.Vertex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679473353"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	><span class="hs-identifier hs-type"
+	  >Node</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Compute the dependency graph of a 'Term'. The 'Root' node will correspond to the term itself.
+
+For example, the graph of @[(let (nonrec) (vardecl x t) y) [x z]]@ is
+@
+    ROOT -&gt; x
+    ROOT -&gt; z
+    x -&gt; y
+    x -&gt; t
+@
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="local-6989586621679473048"
+      ><span id="local-6989586621679473050"
+	><span id="local-6989586621679473053"
+	  ><span id="local-6989586621679473055"
+	    ><span id="local-6989586621679473056"
+	      ><span id="local-6989586621679473058"
+		><span class="annot"
+		  ><a href="PlutusIR.Analysis.Dependencies.html#runTermDeps"
+		    ><span class="hs-identifier hs-type"
+		      >runTermDeps</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  >
+</span
+		  ><span id="line-67"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+		    ><span class="hs-identifier hs-type"
+		      >DepGraph</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473048"
+		    ><span class="hs-identifier hs-type"
+		      >g</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-68"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473050"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.TypeUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-69"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473053"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.TermUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-70"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.ToBuiltinMeaning</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473055"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473056"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-71"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  >
+</span
+		  ><span id="line-72"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="annot"
+		  ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+		    ><span class="hs-identifier hs-type"
+		      >BuiltinsInfo</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473055"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473056"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  >
+</span
+		  ><span id="line-73"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="annot"
+		  ><a href="PlutusIR.Analysis.VarInfo.html#VarsInfo"
+		    ><span class="hs-identifier hs-type"
+		      >VarsInfo</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473050"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473053"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473055"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473058"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  >
+</span
+		  ><span id="line-74"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="annot"
+		  ><a href="PlutusIR.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473050"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473053"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473055"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473056"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473058"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  >
+</span
+		  ><span id="line-75"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679473048"
+		    ><span class="hs-identifier hs-type"
+		      >g</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="runTermDeps"
+      ><span class="annot"
+	><span class="annottext"
+	  >runTermDeps :: forall g tyname name (uni :: * -&gt; *) fun a.
+(DepGraph g, HasUnique tyname TypeUnique,
+ HasUnique name TermUnique, ToBuiltinMeaning uni fun) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a -&gt; Term tyname name uni fun a -&gt; g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#runTermDeps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runTermDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473369"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679473369"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473370"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarsInfo tyname name uni a
+</span
+	  ><a href="#local-6989586621679473370"
+	  ><span class="hs-identifier hs-var"
+	    >vinfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473371"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679473371"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Reader (DepCtx tyname name uni fun a) g
+ -&gt; DepCtx tyname name uni fun a -&gt; g)
+-&gt; DepCtx tyname name uni fun a
+-&gt; Reader (DepCtx tyname name uni fun a) g
+-&gt; g
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Reader (DepCtx tyname name uni fun a) g
+-&gt; DepCtx tyname name uni fun a -&gt; g
+forall r a. Reader r a -&gt; r -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReader"
+	><span class="hs-identifier hs-var"
+	  >runReader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Node
+-&gt; BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a
+-&gt; DepCtx tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+Node
+-&gt; BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a
+-&gt; DepCtx tyname name uni fun a
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+	><span class="hs-identifier hs-var"
+	  >DepCtx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Node
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#Root"
+	><span class="hs-identifier hs-var"
+	  >Root</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679473369"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname name uni a
+</span
+	><a href="#local-6989586621679473370"
+	><span class="hs-identifier hs-var"
+	  >vinfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Reader (DepCtx tyname name uni fun a) g -&gt; g)
+-&gt; Reader (DepCtx tyname name uni fun a) g -&gt; g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+-&gt; Reader (DepCtx tyname name uni fun a) g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+Term tyname name uni fun a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#termDeps"
+	><span class="hs-identifier hs-var"
+	  >termDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679473371"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Record some dependencies on the current node.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span id="local-6989586621679473092"
+      ><span id="local-6989586621679473093"
+	><span id="local-6989586621679473094"
+	  ><span id="local-6989586621679473095"
+	    ><span id="local-6989586621679473096"
+	      ><span id="local-6989586621679473097"
+		><span id="local-6989586621679473098"
+		  ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#currentDependsOn"
+		      ><span class="hs-identifier hs-type"
+			>currentDependsOn</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >::</span
+		    ><span
+		    >
+</span
+		    ><span id="line-80"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+		      ><span class="hs-identifier hs-type"
+			>DepGraph</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473092"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		      ><span class="hs-identifier hs-type"
+			>MonadReader</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+		      ><span class="hs-identifier hs-type"
+			>DepCtx</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473093"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473094"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473095"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473096"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473097"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473098"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-81"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >[</span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.Unique</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >]</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-82"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473098"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473092"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="currentDependsOn"
+      ><span class="annot"
+	><span class="annottext"
+	  >currentDependsOn :: forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+[Unique] -&gt; m g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#currentDependsOn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >currentDependsOn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473395"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Unique]
+</span
+	  ><a href="#local-6989586621679473395"
+	  ><span class="hs-identifier hs-var"
+	    >us</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679473396"
+      ><span class="annot"
+	><span class="annottext"
+	  >Node
+</span
+	  ><a href="#local-6989586621679473396"
+	  ><span class="hs-identifier hs-var"
+	    >current</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Node (DepCtx tyname name uni fun a) Node -&gt; m Node
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Node (DepCtx tyname name uni fun a) Node
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Functor f =&gt;
+(Node -&gt; f Node)
+-&gt; DepCtx tyname name uni fun a -&gt; f (DepCtx tyname name uni fun a)
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#depNode"
+	><span class="hs-identifier hs-var"
+	  >depNode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(g -&gt; m g) -&gt; g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; g -&gt; g
+forall g. Graph g =&gt; g -&gt; g -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#connect"
+	><span class="hs-identifier hs-var"
+	  >G.connect</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Vertex g] -&gt; g
+forall g. Graph g =&gt; [Vertex g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#vertices"
+	><span class="hs-identifier hs-var"
+	  >G.vertices</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vertex g
+Node
+</span
+	><a href="#local-6989586621679473396"
+	><span class="hs-identifier hs-var"
+	  >current</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Vertex g] -&gt; g
+forall g. Graph g =&gt; [Vertex g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#vertices"
+	><span class="hs-identifier hs-var"
+	  >G.vertices</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Node) -&gt; [Unique] -&gt; [Node]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Node
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#Variable"
+	><span class="hs-identifier hs-var"
+	  >Variable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Unique]
+</span
+	><a href="#local-6989586621679473395"
+	><span class="hs-identifier hs-var"
+	  >us</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Process the given action with the given name as the current node.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="local-6989586621679473119"
+      ><span id="local-6989586621679473120"
+	><span id="local-6989586621679473121"
+	  ><span id="local-6989586621679473122"
+	    ><span id="local-6989586621679473123"
+	      ><span id="local-6989586621679473124"
+		><span id="local-6989586621679473125"
+		  ><span id="local-6989586621679473126"
+		    ><span id="local-6989586621679473127"
+		      ><span class="annot"
+			><a href="PlutusIR.Analysis.Dependencies.html#withCurrent"
+			  ><span class="hs-identifier hs-type"
+			    >withCurrent</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="hs-glyph"
+			>::</span
+			><span
+			>
+</span
+			><span id="line-89"
+			></span
+			><span
+			>  </span
+			><span class="hs-special"
+			>(</span
+			><span class="annot"
+			><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+			  ><span class="hs-identifier hs-type"
+			    >MonadReader</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="hs-special"
+			>(</span
+			><span class="annot"
+			><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+			  ><span class="hs-identifier hs-type"
+			    >DepCtx</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473119"
+			  ><span class="hs-identifier hs-type"
+			    >tyname</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473120"
+			  ><span class="hs-identifier hs-type"
+			    >name</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473121"
+			  ><span class="hs-identifier hs-type"
+			    >uni</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473122"
+			  ><span class="hs-identifier hs-type"
+			    >fun</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473123"
+			  ><span class="hs-identifier hs-type"
+			    >a</span
+			    ></a
+			  ></span
+			><span class="hs-special"
+			>)</span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473124"
+			  ><span class="hs-identifier hs-type"
+			    >m</span
+			    ></a
+			  ></span
+			><span class="hs-special"
+			>,</span
+			><span
+			> </span
+			><span class="annot"
+			><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+			  ><span class="hs-identifier hs-type"
+			    >PLC.HasUnique</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473125"
+			  ><span class="hs-identifier hs-type"
+			    >n</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473126"
+			  ><span class="hs-identifier hs-type"
+			    >u</span
+			    ></a
+			  ></span
+			><span class="hs-special"
+			>)</span
+			><span
+			> </span
+			><span class="hs-glyph"
+			>=&gt;</span
+			><span
+			>
+</span
+			><span id="line-90"
+			></span
+			><span
+			>  </span
+			><span class="annot"
+			><a href="#local-6989586621679473125"
+			  ><span class="hs-identifier hs-type"
+			    >n</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="hs-glyph"
+			>-&gt;</span
+			><span
+			>
+</span
+			><span id="line-91"
+			></span
+			><span
+			>  </span
+			><span class="annot"
+			><a href="#local-6989586621679473124"
+			  ><span class="hs-identifier hs-type"
+			    >m</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473127"
+			  ><span class="hs-identifier hs-type"
+			    >g</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="hs-glyph"
+			>-&gt;</span
+			><span
+			>
+</span
+			><span id="line-92"
+			></span
+			><span
+			>  </span
+			><span class="annot"
+			><a href="#local-6989586621679473124"
+			  ><span class="hs-identifier hs-type"
+			    >m</span
+			    ></a
+			  ></span
+			><span
+			> </span
+			><span class="annot"
+			><a href="#local-6989586621679473127"
+			  ><span class="hs-identifier hs-type"
+			    >g</span
+			    ></a
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="withCurrent"
+      ><span class="annot"
+	><span class="annottext"
+	  >withCurrent :: forall tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *) n u g.
+(MonadReader (DepCtx tyname name uni fun a) m, HasUnique n u) =&gt;
+n -&gt; m g -&gt; m g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#withCurrent"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withCurrent</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473408"
+      ><span class="annot"
+	><span class="annottext"
+	  >n
+</span
+	  ><a href="#local-6989586621679473408"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DepCtx tyname name uni fun a -&gt; DepCtx tyname name uni fun a)
+-&gt; m g -&gt; m g
+forall a.
+(DepCtx tyname name uni fun a -&gt; DepCtx tyname name uni fun a)
+-&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((DepCtx tyname name uni fun a -&gt; DepCtx tyname name uni fun a)
+ -&gt; m g -&gt; m g)
+-&gt; (DepCtx tyname name uni fun a -&gt; DepCtx tyname name uni fun a)
+-&gt; m g
+-&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (DepCtx tyname name uni fun a)
+  (DepCtx tyname name uni fun a)
+  Node
+  Node
+-&gt; Node
+-&gt; DepCtx tyname name uni fun a
+-&gt; DepCtx tyname name uni fun a
+forall s t a b. ASetter s t a b -&gt; b -&gt; s -&gt; t
+</span
+	><span class="hs-identifier hs-var"
+	>set</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (DepCtx tyname name uni fun a)
+  (DepCtx tyname name uni fun a)
+  Node
+  Node
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Functor f =&gt;
+(Node -&gt; f Node)
+-&gt; DepCtx tyname name uni fun a -&gt; f (DepCtx tyname name uni fun a)
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#depNode"
+	><span class="hs-identifier hs-var"
+	  >depNode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Node
+ -&gt; DepCtx tyname name uni fun a -&gt; DepCtx tyname name uni fun a)
+-&gt; Node
+-&gt; DepCtx tyname name uni fun a
+-&gt; DepCtx tyname name uni fun a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Node
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#Variable"
+	><span class="hs-identifier hs-var"
+	  >Variable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Node) -&gt; Unique -&gt; Node
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621679473408"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; Getting Unique n Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique n Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' n Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >PLC.theUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Strict term bindings and dependencies]
+A node inside a strict let binding can incur a dependency on it even if the defined variable
+is unused.
+
+Consider:
+
+let strict x = error in y
+
+This evaluates to error, because the RHS of a strict binding is evaluated when we evaluate
+the let-term.
+
+We only care about this for its *effects*: the variable itself is still unused. So we only need to
+worry in the case where the RHS is not a value. If it *is* a value, then evaluating it is a noop,
+so there can be no effects that we're missing. Essentially we are using &quot;is a value&quot; as an
+under-approximation of &quot;is pure&quot;.
+
+From the point of view of our algorithm, we handle the dependency by treating it as though
+there was an reference to the newly bound variable alongside the binding, but only in the
+cases where it matters.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Dependencies for datatype bindings, and pruning them]
+At face value, all the names introduced by datatype bindings should depend on each other.
+Given our meaning of &quot;A depends on B&quot;, since we cannot remove any part of the datatype
+binding without removing the whole thing, they all depend on each other
+
+However, there are some circumstances in which we *can* prune datatype bindings.
+
+In particular, if the datatype is only used at the type-level (i.e. all the term-level parts
+(constructors and destructor) are dead), then we are free to completely replace the binding
+with one for a trivial type with the same kind.
+
+This is because there are *no* term-level effects, and types are erased in the end, so
+in this case rest of the datatype binding really is superfluous.
+
+But how do we represent this in the dependency graph? We still need to have proper dependencies
+so that we don't make the wrong decisions wrt transitively used values, e.g.
+
+let U :: * = ...
+let datatype T = T1 | T2 U
+in T1
+
+Here we need to not delete U, even though T2 is &quot;dead&quot;!
+
+The solution is to focus on the meaning of &quot;dependency&quot;: with the pruning that we can do, we *can*
+remove all the term level bits en masse, but only en-mass. So we need to make *them* into a circuit,
+so that this is visible to the dependency analysis.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span id="local-6989586621679473148"
+      ><span id="local-6989586621679473149"
+	><span id="local-6989586621679473150"
+	  ><span id="local-6989586621679473151"
+	    ><span id="local-6989586621679473152"
+	      ><span id="local-6989586621679473153"
+		><span id="local-6989586621679473154"
+		  ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#bindingDeps"
+		      ><span class="hs-identifier hs-type"
+			>bindingDeps</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >::</span
+		    ><span
+		    >
+</span
+		    ><span id="line-145"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+		      ><span class="hs-identifier hs-type"
+			>DepGraph</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473148"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-146"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		      ><span class="hs-identifier hs-type"
+			>MonadReader</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+		      ><span class="hs-identifier hs-type"
+			>DepCtx</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473149"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473150"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473151"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473152"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473153"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473154"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-147"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.HasUnique</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473149"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.TypeUnique</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-148"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.HasUnique</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473150"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.TermUnique</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-149"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		      ><span class="hs-identifier hs-type"
+			>PLC.ToBuiltinMeaning</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473151"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473152"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-150"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-151"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Core.Type.html#Binding"
+		      ><span class="hs-identifier hs-type"
+			>Binding</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473149"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473150"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473151"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473152"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473153"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-152"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473154"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473148"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span id="bindingDeps"
+      ><span class="annot"
+	><span class="annottext"
+	  >bindingDeps :: forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+Binding tyname name uni fun a -&gt; m g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#bindingDeps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >bindingDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473504"
+      ><span class="annot"
+	><span class="annottext"
+	  >Binding tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679473504"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a
+</span
+	><a href="#local-6989586621679473504"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-type"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473506"
+      ><span class="annot"
+	><span class="annottext"
+	  >Strictness
+</span
+	  ><a href="#local-6989586621679473506"
+	  ><span class="hs-identifier hs-var"
+	    >strictness</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473507"
+      ><span class="annot"
+	><span class="annottext"
+	  >d :: VarDecl tyname name uni a
+</span
+	  ><a href="#local-6989586621679473507"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-type"
+	  >VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473509"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679473509"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473510"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679473510"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473511"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473511"
+	  ><span class="hs-identifier hs-var"
+	    >vDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+VarDecl tyname name uni a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#varDeclDeps"
+	><span class="hs-identifier hs-var"
+	  >varDeclDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a
+</span
+	><a href="#local-6989586621679473507"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473513"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473513"
+	  ><span class="hs-identifier hs-var"
+	    >tDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; m g -&gt; m g
+forall tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *) n u g.
+(MonadReader (DepCtx tyname name uni fun a) m, HasUnique n u) =&gt;
+n -&gt; m g -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#withCurrent"
+	><span class="hs-identifier hs-var"
+	  >withCurrent</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679473509"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m g -&gt; m g) -&gt; m g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+Term tyname name uni fun a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#termDeps"
+	><span class="hs-identifier hs-var"
+	  >termDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679473510"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473514"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679473514"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (BuiltinsInfo uni fun)
+  (DepCtx tyname name uni fun a)
+  (BuiltinsInfo uni fun)
+-&gt; m (BuiltinsInfo uni fun)
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (BuiltinsInfo uni fun)
+  (DepCtx tyname name uni fun a)
+  (BuiltinsInfo uni fun)
+forall tyname name (uni :: * -&gt; *) fun a fun (f :: * -&gt; *).
+Functor f =&gt;
+(BuiltinsInfo uni fun -&gt; f (BuiltinsInfo uni fun))
+-&gt; DepCtx tyname name uni fun a -&gt; f (DepCtx tyname name uni fun a)
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#depBuiltinsInfo"
+	><span class="hs-identifier hs-var"
+	  >depBuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Strict term bindings and dependencies]</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473515"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarsInfo tyname name uni a
+</span
+	  ><a href="#local-6989586621679473515"
+	  ><span class="hs-identifier hs-var"
+	    >vinfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (VarsInfo tyname name uni a)
+  (DepCtx tyname name uni fun a)
+  (VarsInfo tyname name uni a)
+-&gt; m (VarsInfo tyname name uni a)
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (VarsInfo tyname name uni a)
+  (DepCtx tyname name uni fun a)
+  (VarsInfo tyname name uni a)
+forall tyname name (uni :: * -&gt; *) fun a tyname name a
+       (f :: * -&gt; *).
+Functor f =&gt;
+(VarsInfo tyname name uni a -&gt; f (VarsInfo tyname name uni a))
+-&gt; DepCtx tyname name uni fun a -&gt; f (DepCtx tyname name uni fun a)
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#depVarInfo"
+	><span class="hs-identifier hs-var"
+	  >depVarInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473516"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473516"
+	  ><span class="hs-identifier hs-var"
+	    >evalDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="#local-6989586621679473506"
+	><span class="hs-identifier hs-var"
+	  >strictness</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="PlutusIR.Core.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a -&gt; Term tyname name uni fun a -&gt; Bool
+forall (uni :: * -&gt; *) fun name tyname a.
+(ToBuiltinMeaning uni fun, HasUnique name TermUnique) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a -&gt; Term tyname name uni fun a -&gt; Bool
+</span
+	><a href="PlutusIR.Purity.html#isPure"
+	><span class="hs-identifier hs-var"
+	  >isPure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679473514"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname name uni a
+</span
+	><a href="#local-6989586621679473515"
+	><span class="hs-identifier hs-var"
+	  >vinfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679473510"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Unique] -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+[Unique] -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#currentDependsOn"
+	><span class="hs-identifier hs-var"
+	  >currentDependsOn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679473509"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Getting Unique name Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >PLC.theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                                     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+forall g. Graph g =&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#empty"
+	><span class="hs-identifier hs-var"
+	  >G.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(g -&gt; m g) -&gt; g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; g
+forall g. Graph g =&gt; [g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#overlays"
+	><span class="hs-identifier hs-var"
+	  >G.overlays</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473511"
+	><span class="hs-identifier hs-var"
+	  >vDeps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473513"
+	><span class="hs-identifier hs-var"
+	  >tDeps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473516"
+	><span class="hs-identifier hs-var"
+	  >evalDeps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TypeBind"
+	><span class="hs-identifier hs-type"
+	  >TypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473523"
+      ><span class="annot"
+	><span class="annottext"
+	  >d :: TyVarDecl tyname a
+</span
+	  ><a href="#local-6989586621679473523"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-type"
+	  >TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473525"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621679473525"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473526"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni a
+</span
+	  ><a href="#local-6989586621679473526"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473527"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473527"
+	  ><span class="hs-identifier hs-var"
+	    >vDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(Graph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+TyVarDecl tyname a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#tyVarDeclDeps"
+	><span class="hs-identifier hs-var"
+	  >tyVarDeclDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname a
+</span
+	><a href="#local-6989586621679473523"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473529"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473529"
+	  ><span class="hs-identifier hs-var"
+	    >tDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; m g -&gt; m g
+forall tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *) n u g.
+(MonadReader (DepCtx tyname name uni fun a) m, HasUnique n u) =&gt;
+n -&gt; m g -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#withCurrent"
+	><span class="hs-identifier hs-var"
+	  >withCurrent</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621679473525"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m g -&gt; m g) -&gt; m g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique) =&gt;
+Type tyname uni a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#typeDeps"
+	><span class="hs-identifier hs-var"
+	  >typeDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+</span
+	><a href="#local-6989586621679473526"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(g -&gt; m g) -&gt; g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; g -&gt; g
+forall g. Graph g =&gt; g -&gt; g -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#overlay"
+	><span class="hs-identifier hs-var"
+	  >G.overlay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473527"
+	><span class="hs-identifier hs-var"
+	  >vDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473529"
+	><span class="hs-identifier hs-var"
+	  >tDeps</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#DatatypeBind"
+	><span class="hs-identifier hs-type"
+	  >DatatypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Datatype"
+	><span class="hs-identifier hs-type"
+	  >Datatype</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473534"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname a
+</span
+	  ><a href="#local-6989586621679473534"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473535"
+      ><span class="annot"
+	><span class="annottext"
+	  >[TyVarDecl tyname a]
+</span
+	  ><a href="#local-6989586621679473535"
+	  ><span class="hs-identifier hs-var"
+	    >tvs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473536"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679473536"
+	  ><span class="hs-identifier hs-var"
+	    >destr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473537"
+      ><span class="annot"
+	><span class="annottext"
+	  >[VarDecl tyname name uni a]
+</span
+	  ><a href="#local-6989586621679473537"
+	  ><span class="hs-identifier hs-var"
+	    >constrs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Dependencies for datatype bindings, and pruning them]</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473538"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473538"
+	  ><span class="hs-identifier hs-var"
+	    >vDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(Graph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+TyVarDecl tyname a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#tyVarDeclDeps"
+	><span class="hs-identifier hs-var"
+	  >tyVarDeclDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname a
+</span
+	><a href="#local-6989586621679473534"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473539"
+      ><span class="annot"
+	><span class="annottext"
+	  >[g]
+</span
+	  ><a href="#local-6989586621679473539"
+	  ><span class="hs-identifier hs-var"
+	    >tvDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TyVarDecl tyname a -&gt; m g) -&gt; [TyVarDecl tyname a] -&gt; m [g]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(Graph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+TyVarDecl tyname a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#tyVarDeclDeps"
+	><span class="hs-identifier hs-var"
+	  >tyVarDeclDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TyVarDecl tyname a]
+</span
+	><a href="#local-6989586621679473535"
+	><span class="hs-identifier hs-var"
+	  >tvs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473541"
+      ><span class="annot"
+	><span class="annottext"
+	  >[g]
+</span
+	  ><a href="#local-6989586621679473541"
+	  ><span class="hs-identifier hs-var"
+	    >cstrDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(VarDecl tyname name uni a -&gt; m g)
+-&gt; [VarDecl tyname name uni a] -&gt; m [g]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+VarDecl tyname name uni a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#varDeclDeps"
+	><span class="hs-identifier hs-var"
+	  >varDeclDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[VarDecl tyname name uni a]
+</span
+	><a href="#local-6989586621679473537"
+	><span class="hs-identifier hs-var"
+	  >constrs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Destructors depend on the datatype and the argument types of all the constructors,</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- because e.g. a destructor for Maybe looks like:</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- forall a . Maybe a -&gt; (a -&gt; r) -&gt; r -&gt; r</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- i.e. the argument type of the Just constructor appears as the argument to the branch.</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- We can get the effect of that by having it depend on all the constructor types</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- (which also include the datatype).</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- This is more diligent than currently necessary since we're going to make all the</span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- term-level parts depend on each other later, but it's good practice and will be</span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- useful if we ever stop doing that.</span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473542"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473542"
+	  ><span class="hs-identifier hs-var"
+	    >destrDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; g
+forall g. Graph g =&gt; [g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#overlays"
+	><span class="hs-identifier hs-var"
+	  >G.overlays</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([g] -&gt; g) -&gt; m [g] -&gt; m g
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; m [g] -&gt; m [g]
+forall tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *) n u g.
+(MonadReader (DepCtx tyname name uni fun a) m, HasUnique n u) =&gt;
+n -&gt; m g -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#withCurrent"
+	><span class="hs-identifier hs-var"
+	  >withCurrent</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679473536"
+	><span class="hs-identifier hs-var"
+	  >destr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m [g] -&gt; m [g]) -&gt; m [g] -&gt; m [g]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(VarDecl tyname name uni a -&gt; m g)
+-&gt; [VarDecl tyname name uni a] -&gt; m [g]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique) =&gt;
+Type tyname uni a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#typeDeps"
+	><span class="hs-identifier hs-var"
+	  >typeDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni a -&gt; m g)
+-&gt; (VarDecl tyname name uni a -&gt; Type tyname uni a)
+-&gt; VarDecl tyname name uni a
+-&gt; m g
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a -&gt; Type tyname uni a
+forall tyname name (uni :: * -&gt; *) ann.
+VarDecl tyname name uni ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#_varDeclType"
+	><span class="hs-identifier hs-var"
+	  >_varDeclType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[VarDecl tyname name uni a]
+</span
+	><a href="#local-6989586621679473537"
+	><span class="hs-identifier hs-var"
+	  >constrs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473546"
+      ><span class="annot"
+	><span class="annottext"
+	  >tus :: [Unique]
+</span
+	  ><a href="#local-6989586621679473546"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tus</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(name -&gt; Unique) -&gt; [name] -&gt; [Unique]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique -&gt; name -&gt; Unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >PLC.theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679473536"
+	><span class="hs-identifier hs-var"
+	  >destr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; [name] -&gt; [name]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(VarDecl tyname name uni a -&gt; name)
+-&gt; [VarDecl tyname name uni a] -&gt; [name]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a -&gt; name
+forall tyname name (uni :: * -&gt; *) ann.
+VarDecl tyname name uni ann -&gt; name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#_varDeclName"
+	><span class="hs-identifier hs-var"
+	  >_varDeclName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[VarDecl tyname name uni a]
+</span
+	><a href="#local-6989586621679473537"
+	><span class="hs-identifier hs-var"
+	  >constrs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Dependencies for datatype bindings, and pruning them]</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473548"
+      ><span class="annot"
+	><span class="annottext"
+	  >nonDatatypeCircuit :: g
+</span
+	  ><a href="#local-6989586621679473548"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >nonDatatypeCircuit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Vertex g] -&gt; g
+forall g. Graph g =&gt; [Vertex g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#circuit"
+	><span class="hs-identifier hs-var"
+	  >G.circuit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Node) -&gt; [Unique] -&gt; [Node]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Node
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#Variable"
+	><span class="hs-identifier hs-var"
+	  >Variable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Unique]
+</span
+	><a href="#local-6989586621679473546"
+	><span class="hs-identifier hs-var"
+	  >tus</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(g -&gt; m g) -&gt; g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; g
+forall g. Graph g =&gt; [g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#overlays"
+	><span class="hs-identifier hs-var"
+	  >G.overlays</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([g] -&gt; g) -&gt; [g] -&gt; g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473538"
+	><span class="hs-identifier hs-var"
+	  >vDeps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; [g] -&gt; [g]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g]
+</span
+	><a href="#local-6989586621679473539"
+	><span class="hs-identifier hs-var"
+	  >tvDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; [g] -&gt; [g]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g]
+</span
+	><a href="#local-6989586621679473541"
+	><span class="hs-identifier hs-var"
+	  >cstrDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; [g] -&gt; [g]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473542"
+	><span class="hs-identifier hs-var"
+	  >destrDeps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; [g] -&gt; [g]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473548"
+	><span class="hs-identifier hs-var"
+	  >nonDatatypeCircuit</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span id="local-6989586621679473167"
+      ><span id="local-6989586621679473168"
+	><span id="local-6989586621679473169"
+	  ><span id="local-6989586621679473170"
+	    ><span id="local-6989586621679473171"
+	      ><span id="local-6989586621679473172"
+		><span id="local-6989586621679473173"
+		  ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#varDeclDeps"
+		      ><span class="hs-identifier hs-type"
+			>varDeclDeps</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >::</span
+		    ><span
+		    >
+</span
+		    ><span id="line-194"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+		      ><span class="hs-identifier hs-type"
+			>DepGraph</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473167"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-195"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		      ><span class="hs-identifier hs-type"
+			>MonadReader</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+		      ><span class="hs-identifier hs-type"
+			>DepCtx</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473168"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473169"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473170"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473171"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473172"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473173"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-196"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.HasUnique</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473168"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.TypeUnique</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-197"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.HasUnique</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473169"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.TermUnique</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-198"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-199"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+		      ><span class="hs-identifier hs-type"
+			>VarDecl</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473168"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473169"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473170"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473172"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-200"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473173"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473167"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span id="varDeclDeps"
+      ><span class="annot"
+	><span class="annottext"
+	  >varDeclDeps :: forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+VarDecl tyname name uni a -&gt; m g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#varDeclDeps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >varDeclDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-type"
+	  >VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473562"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679473562"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473563"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni a
+</span
+	  ><a href="#local-6989586621679473563"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; m g -&gt; m g
+forall tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *) n u g.
+(MonadReader (DepCtx tyname name uni fun a) m, HasUnique n u) =&gt;
+n -&gt; m g -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#withCurrent"
+	><span class="hs-identifier hs-var"
+	  >withCurrent</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679473562"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m g -&gt; m g) -&gt; m g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique) =&gt;
+Type tyname uni a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#typeDeps"
+	><span class="hs-identifier hs-var"
+	  >typeDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+</span
+	><a href="#local-6989586621679473563"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span class="hs-comment"
+      >-- Here for completeness, but doesn't do much</span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span id="local-6989586621679473182"
+      ><span id="local-6989586621679473183"
+	><span id="local-6989586621679473184"
+	  ><span id="local-6989586621679473185"
+	    ><span id="local-6989586621679473186"
+	      ><span id="local-6989586621679473187"
+		><span id="local-6989586621679473188"
+		  ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#tyVarDeclDeps"
+		      ><span class="hs-identifier hs-type"
+			>tyVarDeclDeps</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >::</span
+		    ><span
+		    >
+</span
+		    ><span id="line-205"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#Graph"
+		      ><span class="hs-identifier hs-type"
+			>G.Graph</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473182"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		      ><span class="hs-identifier hs-type"
+			>MonadReader</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+		      ><span class="hs-identifier hs-type"
+			>DepCtx</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473183"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473184"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473185"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473186"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473187"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473188"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-206"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+		      ><span class="hs-identifier hs-type"
+			>TyVarDecl</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473183"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473187"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-207"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473188"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473182"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span id="tyVarDeclDeps"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyVarDeclDeps :: forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(Graph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+TyVarDecl tyname a -&gt; m g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#tyVarDeclDeps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tyVarDeclDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+forall g. Graph g =&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#empty"
+	><span class="hs-identifier hs-var"
+	  >G.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Compute the dependency graph of a term. Takes an initial 'Node' indicating what the
+term itself depends on (usually 'Root' if it is the real term you are interested in).
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span id="local-6989586621679473085"
+      ><span id="local-6989586621679473086"
+	><span id="local-6989586621679473087"
+	  ><span id="local-6989586621679473088"
+	    ><span id="local-6989586621679473089"
+	      ><span id="local-6989586621679473090"
+		><span id="local-6989586621679473091"
+		  ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#termDeps"
+		      ><span class="hs-identifier hs-type"
+			>termDeps</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >::</span
+		    ><span
+		    >
+</span
+		    ><span id="line-214"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+		      ><span class="hs-identifier hs-type"
+			>DepGraph</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473085"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-215"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		      ><span class="hs-identifier hs-type"
+			>MonadReader</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+		      ><span class="hs-identifier hs-type"
+			>DepCtx</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473086"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473087"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473088"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473089"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473090"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473091"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-216"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.HasUnique</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473086"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.TypeUnique</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-217"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.HasUnique</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473087"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.TermUnique</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-218"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		      ><span class="hs-identifier hs-type"
+			>PLC.ToBuiltinMeaning</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473088"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473089"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-219"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-220"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Core.Type.html#Term"
+		      ><span class="hs-identifier hs-type"
+			>Term</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473086"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473087"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473088"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473089"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473090"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-221"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473091"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473085"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span id="termDeps"
+      ><span class="annot"
+	><span class="annottext"
+	  >termDeps :: forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+Term tyname name uni fun a -&gt; m g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#termDeps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Let"
+	><span class="hs-identifier hs-type"
+	  >Let</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473625"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty (Binding tyname name uni fun a)
+</span
+	  ><a href="#local-6989586621679473625"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473626"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679473626"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473627"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty g
+</span
+	  ><a href="#local-6989586621679473627"
+	  ><span class="hs-identifier hs-var"
+	    >bGraphs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Binding tyname name uni fun a -&gt; m g)
+-&gt; NonEmpty (Binding tyname name uni fun a) -&gt; m (NonEmpty g)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; NonEmpty a -&gt; f (NonEmpty b)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+Binding tyname name uni fun a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#bindingDeps"
+	><span class="hs-identifier hs-var"
+	  >bindingDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (Binding tyname name uni fun a)
+</span
+	><a href="#local-6989586621679473625"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473628"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679473628"
+	  ><span class="hs-identifier hs-var"
+	    >bodyGraph</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+Term tyname name uni fun a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#termDeps"
+	><span class="hs-identifier hs-var"
+	  >termDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679473626"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(g -&gt; m g) -&gt; (NonEmpty g -&gt; g) -&gt; NonEmpty g -&gt; m g
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; g
+forall g. Graph g =&gt; [g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#overlays"
+	><span class="hs-identifier hs-var"
+	  >G.overlays</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([g] -&gt; g) -&gt; (NonEmpty g -&gt; [g]) -&gt; NonEmpty g -&gt; g
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty g -&gt; [g]
+forall a. NonEmpty a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html#toList"
+	><span class="hs-identifier hs-var"
+	  >NE.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NonEmpty g -&gt; m g) -&gt; NonEmpty g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679473628"
+	><span class="hs-identifier hs-var"
+	  >bodyGraph</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; NonEmpty g -&gt; NonEmpty g
+forall a. a -&gt; NonEmpty a -&gt; NonEmpty a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html#%3C%7C"
+	><span class="hs-operator hs-var"
+	  >NE.&lt;|</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty g
+</span
+	><a href="#local-6989586621679473627"
+	><span class="hs-identifier hs-var"
+	  >bGraphs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473632"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679473632"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Unique] -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+[Unique] -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#currentDependsOn"
+	><span class="hs-identifier hs-var"
+	  >currentDependsOn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679473632"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Getting Unique name Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >PLC.theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679473633"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679473633"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473634"
+      ><span class="annot"
+	><span class="annottext"
+	  >[g]
+</span
+	  ><a href="#local-6989586621679473634"
+	  ><span class="hs-identifier hs-var"
+	    >tds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun a -&gt; m g)
+-&gt; [Term tyname name uni fun a] -&gt; m [g]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+Term tyname name uni fun a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#termDeps"
+	><span class="hs-identifier hs-var"
+	  >termDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679473633"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+-&gt; Getting
+     (Endo [Term tyname name uni fun a])
+     (Term tyname name uni fun a)
+     (Term tyname name uni fun a)
+-&gt; [Term tyname name uni fun a]
+forall s a. s -&gt; Getting (Endo [a]) s a -&gt; [a]
+</span
+	><span class="hs-operator hs-var"
+	>^..</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Endo [Term tyname name uni fun a])
+  (Term tyname name uni fun a)
+  (Term tyname name uni fun a)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473637"
+      ><span class="annot"
+	><span class="annottext"
+	  >[g]
+</span
+	  ><a href="#local-6989586621679473637"
+	  ><span class="hs-identifier hs-var"
+	    >tyds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni a -&gt; m g) -&gt; [Type tyname uni a] -&gt; m [g]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique) =&gt;
+Type tyname uni a -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#typeDeps"
+	><span class="hs-identifier hs-var"
+	  >typeDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679473633"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+-&gt; Getting
+     (Endo [Type tyname uni a])
+     (Term tyname name uni fun a)
+     (Type tyname uni a)
+-&gt; [Type tyname uni a]
+forall s a. s -&gt; Getting (Endo [a]) s a -&gt; [a]
+</span
+	><span class="hs-operator hs-var"
+	>^..</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Endo [Type tyname uni a])
+  (Term tyname name uni fun a)
+  (Type tyname uni a)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Type tyname uni a -&gt; f (Type tyname uni a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubtypes"
+	><span class="hs-identifier hs-var"
+	  >termSubtypes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; m g
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(g -&gt; m g) -&gt; g -&gt; m g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; g
+forall g. Graph g =&gt; [g] -&gt; g
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.Class.html#overlays"
+	><span class="hs-identifier hs-var"
+	  >G.overlays</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([g] -&gt; g) -&gt; [g] -&gt; g
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g]
+</span
+	><a href="#local-6989586621679473634"
+	><span class="hs-identifier hs-var"
+	  >tds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g] -&gt; [g] -&gt; [g]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[g]
+</span
+	><a href="#local-6989586621679473637"
+	><span class="hs-identifier hs-var"
+	  >tyds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Compute the dependency graph of a type. Takes an initial 'Node' indicating what
+the type itself depends on (usually 'Root' if it is the real type you are interested in).
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span id="local-6989586621679473189"
+      ><span id="local-6989586621679473190"
+	><span id="local-6989586621679473191"
+	  ><span id="local-6989586621679473192"
+	    ><span id="local-6989586621679473193"
+	      ><span id="local-6989586621679473194"
+		><span id="local-6989586621679473195"
+		  ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#typeDeps"
+		      ><span class="hs-identifier hs-type"
+			>typeDeps</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >::</span
+		    ><span
+		    >
+</span
+		    ><span id="line-237"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepGraph"
+		      ><span class="hs-identifier hs-type"
+			>DepGraph</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473189"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		      ><span class="hs-identifier hs-type"
+			>MonadReader</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusIR.Analysis.Dependencies.html#DepCtx"
+		      ><span class="hs-identifier hs-type"
+			>DepCtx</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473190"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473191"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473192"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473193"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473194"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473195"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.HasUnique</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473190"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		      ><span class="hs-identifier hs-type"
+			>PLC.TypeUnique</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-238"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+		      ><span class="hs-identifier hs-type"
+			>Type</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473190"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473192"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473194"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    >
+</span
+		    ><span id="line-239"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473195"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679473189"
+		      ><span class="hs-identifier hs-type"
+			>g</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span id="typeDeps"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeDeps :: forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m,
+ HasUnique tyname TypeUnique) =&gt;
+Type tyname uni a -&gt; m g
+</span
+	  ><a href="PlutusIR.Analysis.Dependencies.html#typeDeps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473648"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni a
+</span
+	  ><a href="#local-6989586621679473648"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- The dependency graph of a type is very simple since it doesn't have any internal</span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- let-bindings. So we just need to find all the used variables and mark them as</span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- dependencies of the current node.</span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473649"
+      ><span class="annot"
+	><span class="annottext"
+	  >used :: Set Unique
+</span
+	  ><a href="#local-6989586621679473649"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >used</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Usages -&gt; Set Unique
+</span
+	><a href="PlutusIR.Analysis.Usages.html#allUsed"
+	><span class="hs-identifier hs-var"
+	  >Usages.allUsed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Usages -&gt; Set Unique) -&gt; Usages -&gt; Set Unique
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a -&gt; Usages
+forall tyname (uni :: * -&gt; *) a.
+HasUnique tyname TypeUnique =&gt;
+Type tyname uni a -&gt; Usages
+</span
+	><a href="PlutusIR.Analysis.Usages.html#typeUsages"
+	><span class="hs-identifier hs-var"
+	  >Usages.typeUsages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+</span
+	><a href="#local-6989586621679473648"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Unique] -&gt; m g
+forall g tyname name (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+(DepGraph g, MonadReader (DepCtx tyname name uni fun a) m) =&gt;
+[Unique] -&gt; m g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#currentDependsOn"
+	><span class="hs-identifier hs-var"
+	  >currentDependsOn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set Unique -&gt; [Unique]
+forall a. Set a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Set.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set Unique
+</span
+	><a href="#local-6989586621679473649"
+	><span class="hs-identifier hs-var"
+	  >used</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

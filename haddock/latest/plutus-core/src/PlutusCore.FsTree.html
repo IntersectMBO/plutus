@@ -1,0 +1,3099 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- | Machinery defined in this module allows to export mulptiple Plutus Core definitions</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-comment"
+      >-- (types and terms) as a single value which enables convenient testing of various procedures</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-comment"
+      >-- (pretty-printing, type checking, etc): each time a function / data type is added to that value,</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-comment"
+      >-- none of the tests is required to be adapted, instead all the tests see the new definition</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-comment"
+      >-- automatically.</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.FsTree</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FsTree"
+	><span class="hs-identifier"
+	  >FsTree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcEntity"
+	><span class="hs-identifier"
+	  >PlcEntity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcFsTree"
+	><span class="hs-identifier"
+	  >PlcFsTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcFolderContents"
+	><span class="hs-identifier"
+	  >PlcFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#foldFsTree"
+	><span class="hs-identifier"
+	  >foldFsTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#foldPlcFsTree"
+	><span class="hs-identifier"
+	  >foldPlcFsTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#foldPlcFolderContents"
+	><span class="hs-identifier"
+	  >foldPlcFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- We use 'String's for names, because 'FilePath's are 'String's.</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | An 'FsTree' is either a file or a folder with a list of 'FsTree's inside.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="FsTree"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#FsTree"
+	  ><span class="hs-identifier hs-var"
+	    >FsTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890444"
+      ><span class="annot"
+	><a href="#local-6989586621681890444"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="FsFolder"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#FsFolder"
+	  ><span class="hs-identifier hs-var"
+	    >FsFolder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier hs-type"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890444"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="FsFile"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#FsFile"
+	  ><span class="hs-identifier hs-var"
+	    >FsFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890444"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- | The contents of a folder. A wrapper around @[FsTree a]@.</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >-- Exists because of its 'Semigroup' instance which allows to concatenate two 'FolderContents's</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-comment"
+      >-- without placing them into the same folder immediately, so we can have various PLC &quot;modules&quot;</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >-- (@stdlib@, @examples@, etc), define compound modules (e.g. @stdlib &lt;&gt; examples@) and run various</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- tests (pretty-printing, type synthesis, etc) against simple and compound modules uniformly.</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="FolderContents"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#FolderContents"
+	  ><span class="hs-identifier hs-var"
+	    >FolderContents</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890424"
+      ><span class="annot"
+	><a href="#local-6989586621681890424"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="FolderContents"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#FolderContents"
+	  ><span class="hs-identifier hs-var"
+	    >FolderContents</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unFolderContents"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. FolderContents a -&gt; [FsTree a]
+</span
+	  ><a href="PlutusCore.FsTree.html#unFolderContents"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unFolderContents</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FsTree"
+	><span class="hs-identifier hs-type"
+	  >FsTree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890424"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681890497"
+      ><span id="local-6989586621681890502"
+	><span id="local-6989586621681890508"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty (FolderContents a) -&gt; FolderContents a
+FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+(FolderContents a -&gt; FolderContents a -&gt; FolderContents a)
+-&gt; (NonEmpty (FolderContents a) -&gt; FolderContents a)
+-&gt; (forall b.
+    Integral b =&gt;
+    b -&gt; FolderContents a -&gt; FolderContents a)
+-&gt; Semigroup (FolderContents a)
+forall b. Integral b =&gt; b -&gt; FolderContents a -&gt; FolderContents a
+forall a. NonEmpty (FolderContents a) -&gt; FolderContents a
+forall a. FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+forall a b. Integral b =&gt; b -&gt; FolderContents a -&gt; FolderContents a
+$c&lt;&gt; :: forall a. FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+&lt;&gt; :: FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+$csconcat :: forall a. NonEmpty (FolderContents a) -&gt; FolderContents a
+sconcat :: NonEmpty (FolderContents a) -&gt; FolderContents a
+$cstimes :: forall a b. Integral b =&gt; b -&gt; FolderContents a -&gt; FolderContents a
+stimes :: forall b. Integral b =&gt; b -&gt; FolderContents a -&gt; FolderContents a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681890518"
+      ><span id="local-6989586621681890523"
+	><span id="local-6989586621681890527"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup (FolderContents a)
+FolderContents a
+Semigroup (FolderContents a) =&gt;
+FolderContents a
+-&gt; (FolderContents a -&gt; FolderContents a -&gt; FolderContents a)
+-&gt; ([FolderContents a] -&gt; FolderContents a)
+-&gt; Monoid (FolderContents a)
+[FolderContents a] -&gt; FolderContents a
+FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+forall a. Semigroup (FolderContents a)
+forall a. FolderContents a
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+forall a. [FolderContents a] -&gt; FolderContents a
+forall a. FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+$cmempty :: forall a. FolderContents a
+mempty :: FolderContents a
+$cmappend :: forall a. FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+mappend :: FolderContents a -&gt; FolderContents a -&gt; FolderContents a
+$cmconcat :: forall a. [FolderContents a] -&gt; FolderContents a
+mconcat :: [FolderContents a] -&gt; FolderContents a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A 'PlcEntity' is either a 'Type' or a 'Term'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="PlcEntity"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#PlcEntity"
+	  ><span class="hs-identifier hs-var"
+	    >PlcEntity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890456"
+      ><span class="annot"
+	><a href="#local-6989586621681890456"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890457"
+      ><span class="annot"
+	><a href="#local-6989586621681890457"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="PlcType"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#PlcType"
+	  ><span class="hs-identifier hs-var"
+	    >PlcType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890456"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="PlcTerm"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#PlcTerm"
+	  ><span class="hs-identifier hs-var"
+	    >PlcTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890456"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890457"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="PlcFsTree"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#PlcFsTree"
+	  ><span class="hs-identifier hs-var"
+	    >PlcFsTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span id="local-6989586621681890535"
+      ><span class="annot"
+	><a href="#local-6989586621681890535"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890536"
+      ><span class="annot"
+	><a href="#local-6989586621681890536"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FsTree"
+	><span class="hs-identifier hs-type"
+	  >FsTree</span
+	  ></a
+	></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcEntity"
+	><span class="hs-identifier hs-type"
+	  >PlcEntity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890535"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890536"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="PlcFolderContents"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#PlcFolderContents"
+	  ><span class="hs-identifier hs-var"
+	    >PlcFolderContents</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890537"
+      ><span class="annot"
+	><a href="#local-6989586621681890537"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890538"
+      ><span class="annot"
+	><a href="#local-6989586621681890538"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier hs-type"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcEntity"
+	><span class="hs-identifier hs-type"
+	  >PlcEntity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890537"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890538"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Construct an 'FsTree' out of the name of a folder and a list of 'FsTree's.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="local-6989586621681890442"
+      ><span class="annot"
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	  ><span class="hs-identifier hs-type"
+	    >treeFolderContents</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	  ><span class="hs-identifier hs-type"
+	    >String</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="PlutusCore.FsTree.html#FsTree"
+	  ><span class="hs-identifier hs-type"
+	    >FsTree</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681890442"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.FsTree.html#FsTree"
+	  ><span class="hs-identifier hs-type"
+	    >FsTree</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681890442"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="treeFolderContents"
+      ><span class="annot"
+	><span class="annottext"
+	  >treeFolderContents :: forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	  ><a href="PlutusCore.FsTree.html#treeFolderContents"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >treeFolderContents</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890539"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681890539"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; FolderContents a -&gt; FsTree a
+forall a. String -&gt; FolderContents a -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#FsFolder"
+	><span class="hs-identifier hs-var"
+	  >FsFolder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681890539"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FolderContents a -&gt; FsTree a)
+-&gt; ([FsTree a] -&gt; FolderContents a) -&gt; [FsTree a] -&gt; FsTree a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[FsTree a] -&gt; FolderContents a
+forall a. [FsTree a] -&gt; FolderContents a
+</span
+	><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier hs-var"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Construct a single-file 'PlcFsTree' out of a type.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="local-6989586621681890449"
+      ><span id="local-6989586621681890451"
+	><span class="annot"
+	  ><a href="PlutusCore.FsTree.html#plcTypeFile"
+	    ><span class="hs-identifier hs-type"
+	      >plcTypeFile</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#Type"
+	    ><span class="hs-identifier hs-type"
+	      >Type</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#TyName"
+	    ><span class="hs-identifier hs-type"
+	      >TyName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890449"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.FsTree.html#PlcFsTree"
+	    ><span class="hs-identifier hs-type"
+	      >PlcFsTree</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890449"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890451"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="plcTypeFile"
+      ><span class="annot"
+	><span class="annottext"
+	  >plcTypeFile :: forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	  ><a href="PlutusCore.FsTree.html#plcTypeFile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plcTypeFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890541"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681890541"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; PlcEntity uni fun -&gt; FsTree (PlcEntity uni fun)
+forall a. String -&gt; a -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#FsFile"
+	><span class="hs-identifier hs-var"
+	  >FsFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681890541"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcEntity uni fun -&gt; FsTree (PlcEntity uni fun))
+-&gt; (Type TyName uni () -&gt; PlcEntity uni fun)
+-&gt; Type TyName uni ()
+-&gt; FsTree (PlcEntity uni fun)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni () -&gt; PlcEntity uni fun
+forall (uni :: * -&gt; *) fun. Type TyName uni () -&gt; PlcEntity uni fun
+</span
+	><a href="PlutusCore.FsTree.html#PlcType"
+	><span class="hs-identifier hs-var"
+	  >PlcType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Construct a single-file 'PlcFsTree' out of a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621681890459"
+      ><span id="local-6989586621681890460"
+	><span class="annot"
+	  ><a href="PlutusCore.FsTree.html#plcTermFile"
+	    ><span class="hs-identifier hs-type"
+	      >plcTermFile</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#TyName"
+	    ><span class="hs-identifier hs-type"
+	      >TyName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Name"
+	    ><span class="hs-identifier hs-type"
+	      >Name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890459"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890460"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.FsTree.html#PlcFsTree"
+	    ><span class="hs-identifier hs-type"
+	      >PlcFsTree</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890459"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890460"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="plcTermFile"
+      ><span class="annot"
+	><span class="annottext"
+	  >plcTermFile :: forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	  ><a href="PlutusCore.FsTree.html#plcTermFile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plcTermFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890542"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681890542"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; PlcEntity uni fun -&gt; FsTree (PlcEntity uni fun)
+forall a. String -&gt; a -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#FsFile"
+	><span class="hs-identifier hs-var"
+	  >FsFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681890542"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcEntity uni fun -&gt; FsTree (PlcEntity uni fun))
+-&gt; (Term TyName Name uni fun () -&gt; PlcEntity uni fun)
+-&gt; Term TyName Name uni fun ()
+-&gt; FsTree (PlcEntity uni fun)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun () -&gt; PlcEntity uni fun
+forall (uni :: * -&gt; *) fun.
+Term TyName Name uni fun () -&gt; PlcEntity uni fun
+</span
+	><a href="PlutusCore.FsTree.html#PlcTerm"
+	><span class="hs-identifier hs-var"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Fold a 'FsTree'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="local-6989586621681890464"
+      ><span id="local-6989586621681890465"
+	><span class="annot"
+	  ><a href="PlutusCore.FsTree.html#foldFsTree"
+	    ><span class="hs-identifier hs-type"
+	      >foldFsTree</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-61"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890464"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890464"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><span class="hs-comment"
+	    >-- ^ What to do on a folder.</span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-62"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890465"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890464"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >    </span
+	  ><span class="annot"
+	  ><span class="hs-comment"
+	    >-- ^ What to do on a single file in a folder.</span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-63"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.FsTree.html#FsTree"
+	    ><span class="hs-identifier hs-type"
+	      >FsTree</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890465"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-64"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681890464"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="foldFsTree"
+      ><span class="annot"
+	><span class="annottext"
+	  >foldFsTree :: forall b a.
+(String -&gt; [b] -&gt; b) -&gt; (String -&gt; a -&gt; b) -&gt; FsTree a -&gt; b
+</span
+	  ><a href="PlutusCore.FsTree.html#foldFsTree"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >foldFsTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890543"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; [b] -&gt; b
+</span
+	  ><a href="#local-6989586621681890543"
+	  ><span class="hs-identifier hs-var"
+	    >onFolder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890544"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; a -&gt; b
+</span
+	  ><a href="#local-6989586621681890544"
+	  ><span class="hs-identifier hs-var"
+	    >onFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FsTree a -&gt; b
+</span
+	><a href="#local-6989586621681890545"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681890545"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: FsTree a -&gt; b
+</span
+	  ><a href="#local-6989586621681890545"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FsFolder"
+	><span class="hs-identifier hs-type"
+	  >FsFolder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890546"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681890546"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier hs-type"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890547"
+      ><span class="annot"
+	><span class="annottext"
+	  >[FsTree a]
+</span
+	  ><a href="#local-6989586621681890547"
+	  ><span class="hs-identifier hs-var"
+	    >trees</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; [b] -&gt; b
+</span
+	><a href="#local-6989586621681890543"
+	><span class="hs-identifier hs-var"
+	  >onFolder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681890546"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([b] -&gt; b) -&gt; [b] -&gt; b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FsTree a -&gt; b) -&gt; [FsTree a] -&gt; [b]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FsTree a -&gt; b
+</span
+	><a href="#local-6989586621681890545"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[FsTree a]
+</span
+	><a href="#local-6989586621681890547"
+	><span class="hs-identifier hs-var"
+	  >trees</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890545"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FsFile"
+	><span class="hs-identifier hs-type"
+	  >FsFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890548"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681890548"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890549"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681890549"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; a -&gt; b
+</span
+	><a href="#local-6989586621681890544"
+	><span class="hs-identifier hs-var"
+	  >onFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681890548"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681890549"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Fold a 'PlcFsTree'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="local-6989586621681890473"
+      ><span id="local-6989586621681890474"
+	><span id="local-6989586621681890475"
+	  ><span class="annot"
+	    ><a href="PlutusCore.FsTree.html#foldPlcFsTree"
+	      ><span class="hs-identifier hs-type"
+		>foldPlcFsTree</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-71"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	      ><span class="hs-identifier hs-type"
+		>String</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890473"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >]</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890473"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >                          </span
+	    ><span class="annot"
+	    ><span class="hs-comment"
+	      >-- ^ What to do on a folder.</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-72"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	      ><span class="hs-identifier hs-type"
+		>String</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Core.Type.html#Type"
+	      ><span class="hs-identifier hs-type"
+		>Type</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890474"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >          </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890473"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><span class="hs-comment"
+	      >-- ^ What to do on a type.</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-73"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	      ><span class="hs-identifier hs-type"
+		>String</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890474"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890475"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890473"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><span class="hs-comment"
+	      >-- ^ What to do on a term.</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-74"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.FsTree.html#PlcFsTree"
+	      ><span class="hs-identifier hs-type"
+		>PlcFsTree</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890474"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890475"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-75"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890473"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="foldPlcFsTree"
+      ><span class="annot"
+	><span class="annottext"
+	  >foldPlcFsTree :: forall b (uni :: * -&gt; *) fun.
+(String -&gt; [b] -&gt; b)
+-&gt; (String -&gt; Type TyName uni () -&gt; b)
+-&gt; (String -&gt; Term TyName Name uni fun () -&gt; b)
+-&gt; PlcFsTree uni fun
+-&gt; b
+</span
+	  ><a href="PlutusCore.FsTree.html#foldPlcFsTree"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >foldPlcFsTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890550"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; [b] -&gt; b
+</span
+	  ><a href="#local-6989586621681890550"
+	  ><span class="hs-identifier hs-var"
+	    >onFolder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890551"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; Type TyName uni () -&gt; b
+</span
+	  ><a href="#local-6989586621681890551"
+	  ><span class="hs-identifier hs-var"
+	    >onType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890552"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; Term TyName Name uni fun () -&gt; b
+</span
+	  ><a href="#local-6989586621681890552"
+	  ><span class="hs-identifier hs-var"
+	    >onTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; [b] -&gt; b)
+-&gt; (String -&gt; PlcEntity uni fun -&gt; b)
+-&gt; FsTree (PlcEntity uni fun)
+-&gt; b
+forall b a.
+(String -&gt; [b] -&gt; b) -&gt; (String -&gt; a -&gt; b) -&gt; FsTree a -&gt; b
+</span
+	><a href="PlutusCore.FsTree.html#foldFsTree"
+	><span class="hs-identifier hs-var"
+	  >foldFsTree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; [b] -&gt; b
+</span
+	><a href="#local-6989586621681890550"
+	><span class="hs-identifier hs-var"
+	  >onFolder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; PlcEntity uni fun -&gt; b
+</span
+	><a href="#local-6989586621681890553"
+	><span class="hs-identifier hs-var"
+	  >onFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681890553"
+      ><span class="annot"
+	><span class="annottext"
+	  >onFile :: String -&gt; PlcEntity uni fun -&gt; b
+</span
+	  ><a href="#local-6989586621681890553"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >onFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890554"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681890554"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcType"
+	><span class="hs-identifier hs-type"
+	  >PlcType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890555"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni ()
+</span
+	  ><a href="#local-6989586621681890555"
+	  ><span class="hs-identifier hs-var"
+	    >getTy</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Type TyName uni () -&gt; b
+</span
+	><a href="#local-6989586621681890551"
+	><span class="hs-identifier hs-var"
+	  >onType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681890554"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ()
+</span
+	><a href="#local-6989586621681890555"
+	><span class="hs-identifier hs-var"
+	  >getTy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621681890553"
+	><span class="hs-identifier hs-var"
+	  >onFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890556"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681890556"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890557"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ()
+</span
+	  ><a href="#local-6989586621681890557"
+	  ><span class="hs-identifier hs-var"
+	    >getTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Term TyName Name uni fun () -&gt; b
+</span
+	><a href="#local-6989586621681890552"
+	><span class="hs-identifier hs-var"
+	  >onTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681890556"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621681890557"
+	><span class="hs-identifier hs-var"
+	  >getTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Fold the contents of a PLC folder.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="local-6989586621681890479"
+      ><span id="local-6989586621681890480"
+	><span id="local-6989586621681890481"
+	  ><span class="annot"
+	    ><a href="PlutusCore.FsTree.html#foldPlcFolderContents"
+	      ><span class="hs-identifier hs-type"
+		>foldPlcFolderContents</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-82"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	      ><span class="hs-identifier hs-type"
+		>String</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890479"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >]</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890479"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >                          </span
+	    ><span class="annot"
+	    ><span class="hs-comment"
+	      >-- ^ What to do on a folder.</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-83"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	      ><span class="hs-identifier hs-type"
+		>String</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Core.Type.html#Type"
+	      ><span class="hs-identifier hs-type"
+		>Type</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890480"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >          </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890479"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><span class="hs-comment"
+	      >-- ^ What to do on a type.</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-84"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	      ><span class="hs-identifier hs-type"
+		>String</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890480"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890481"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890479"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><span class="hs-comment"
+	      >-- ^ What to do on a term.</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-85"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.FsTree.html#PlcFolderContents"
+	      ><span class="hs-identifier hs-type"
+		>PlcFolderContents</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890480"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890481"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-86"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681890479"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >]</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="foldPlcFolderContents"
+      ><span class="annot"
+	><span class="annottext"
+	  >foldPlcFolderContents :: forall b (uni :: * -&gt; *) fun.
+(String -&gt; [b] -&gt; b)
+-&gt; (String -&gt; Type TyName uni () -&gt; b)
+-&gt; (String -&gt; Term TyName Name uni fun () -&gt; b)
+-&gt; PlcFolderContents uni fun
+-&gt; [b]
+</span
+	  ><a href="PlutusCore.FsTree.html#foldPlcFolderContents"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >foldPlcFolderContents</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890558"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; [b] -&gt; b
+</span
+	  ><a href="#local-6989586621681890558"
+	  ><span class="hs-identifier hs-var"
+	    >onFolder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890559"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; Type TyName uni () -&gt; b
+</span
+	  ><a href="#local-6989586621681890559"
+	  ><span class="hs-identifier hs-var"
+	    >onType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890560"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; Term TyName Name uni fun () -&gt; b
+</span
+	  ><a href="#local-6989586621681890560"
+	  ><span class="hs-identifier hs-var"
+	    >onTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier hs-type"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681890561"
+      ><span class="annot"
+	><span class="annottext"
+	  >[FsTree (PlcEntity uni fun)]
+</span
+	  ><a href="#local-6989586621681890561"
+	  ><span class="hs-identifier hs-var"
+	    >trees</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FsTree (PlcEntity uni fun) -&gt; b)
+-&gt; [FsTree (PlcEntity uni fun)] -&gt; [b]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; [b] -&gt; b)
+-&gt; (String -&gt; Type TyName uni () -&gt; b)
+-&gt; (String -&gt; Term TyName Name uni fun () -&gt; b)
+-&gt; FsTree (PlcEntity uni fun)
+-&gt; b
+forall b (uni :: * -&gt; *) fun.
+(String -&gt; [b] -&gt; b)
+-&gt; (String -&gt; Type TyName uni () -&gt; b)
+-&gt; (String -&gt; Term TyName Name uni fun () -&gt; b)
+-&gt; PlcFsTree uni fun
+-&gt; b
+</span
+	><a href="PlutusCore.FsTree.html#foldPlcFsTree"
+	><span class="hs-identifier hs-var"
+	  >foldPlcFsTree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; [b] -&gt; b
+</span
+	><a href="#local-6989586621681890558"
+	><span class="hs-identifier hs-var"
+	  >onFolder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Type TyName uni () -&gt; b
+</span
+	><a href="#local-6989586621681890559"
+	><span class="hs-identifier hs-var"
+	  >onType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Term TyName Name uni fun () -&gt; b
+</span
+	><a href="#local-6989586621681890560"
+	><span class="hs-identifier hs-var"
+	  >onTerm</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[FsTree (PlcEntity uni fun)]
+</span
+	><a href="#local-6989586621681890561"
+	><span class="hs-identifier hs-var"
+	  >trees</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

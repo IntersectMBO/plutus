@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.StdLib.Data.Nat</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.StdLib.Data.Nat.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.StdLib.Data.Nat</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  ><code
+	    >nat</code
+	    > and related functions.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:natData"
+	      >natData</a
+	      > &#8759; <a href="PlutusCore-StdLib-Type.html#t:RecursiveType" title="PlutusCore.StdLib.Type"
+	      >RecursiveType</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:natTy"
+	      >natTy</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:zero"
+	      >zero</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun &#8658; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:succ"
+	      >succ</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun &#8658; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:foldrNat"
+	      >foldrNat</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun &#8658; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:foldNat"
+	      >foldNat</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun &#8658; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:natToInteger"
+	      >natToInteger</a
+	      > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >, uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeAndTermLevel`</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >) &#8658; term ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:natData" class="def"
+	    >natData</a
+	    > &#8759; <a href="PlutusCore-StdLib-Type.html#t:RecursiveType" title="PlutusCore.StdLib.Type"
+	    >RecursiveType</a
+	    > uni fun () <a href="src/PlutusCore.StdLib.Data.Nat.html#natData" class="link"
+	    >Source</a
+	    > <a href="#v:natData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >Nat</code
+	      > as a PLC type.</p
+	    ><pre
+	    >fix \(nat :: *) -&gt; all r. r -&gt; (nat -&gt; r) -&gt; r</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:natTy" class="def"
+	    >natTy</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.StdLib.Data.Nat.html#natTy" class="link"
+	    >Source</a
+	    > <a href="#v:natTy" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zero" class="def"
+	    >zero</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun &#8658; term () <a href="src/PlutusCore.StdLib.Data.Nat.html#zero" class="link"
+	    >Source</a
+	    > <a href="#v:zero" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >'0' as a PLC term.</p
+	    ><pre
+	    >wrapNat [] /\(r :: *) -&gt; \(z : r) (f : nat -&gt; r) -&gt; z</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:succ" class="def"
+	    >succ</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun &#8658; term () <a href="src/PlutusCore.StdLib.Data.Nat.html#succ" class="link"
+	    >Source</a
+	    > <a href="#v:succ" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><a href="PlutusCore-StdLib-Data-Nat.html#v:succ" title="PlutusCore.StdLib.Data.Nat"
+		>succ</a
+		></code
+	      > as a PLC term.</p
+	    ><pre
+	    >\(n : nat) -&gt; wrapNat [] /\(r :: *) -&gt; \(z : r) (f : nat -&gt; r) -&gt; f n</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldrNat" class="def"
+	    >foldrNat</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun &#8658; term () <a href="src/PlutusCore.StdLib.Data.Nat.html#foldrNat" class="link"
+	    >Source</a
+	    > <a href="#v:foldrNat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >foldrNat</code
+	      > as a PLC term.</p
+	    ><pre
+	    >/\(r :: *) -&gt; \(f : r -&gt; r) (z : r) -&gt;
+    fix {nat} {r} \(rec : nat -&gt; r) (n : nat) -&gt;
+        unwrap n {r} z \(n' : nat) -&gt; f (rec n')</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldNat" class="def"
+	    >foldNat</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun &#8658; term () <a href="src/PlutusCore.StdLib.Data.Nat.html#foldNat" class="link"
+	    >Source</a
+	    > <a href="#v:foldNat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >foldNat</code
+	      > as a PLC term.</p
+	    ><pre
+	    >/\(r :: *) -&gt; \(f : r -&gt; r) -&gt;
+    fix {r} {nat -&gt; r} \(rec : r -&gt; nat -&gt; r) (z : r) (n : nat) -&gt;
+        unwrap n {r} z (\(n' : nat) -&gt; rec (f z) n')</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:natToInteger" class="def"
+	    >natToInteger</a
+	    > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >, uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeAndTermLevel`</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) &#8658; term () <a href="src/PlutusCore.StdLib.Data.Nat.html#natToInteger" class="link"
+	    >Source</a
+	    > <a href="#v:natToInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a <code
+	      >nat</code
+	      > to an <code
+	      >integer</code
+	      >.</p
+	    ><pre
+	    >foldNat {integer} (addInteger 1) 1</pre
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,2265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Common.Eval</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.51.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Common.Eval.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Common.Eval</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:EvaluationError"
+	      >EvaluationError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CekError"
+		  >CekError</a
+		  > !(<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		  >CekEvaluationException</a
+		  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		  >NamedDeBruijn</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  >)</li
+		><li
+		>| <a href="#v:DeBruijnError"
+		  >DeBruijnError</a
+		  > !<a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:FreeVariableError" title="PlutusCore.DeBruijn.Internal"
+		  >FreeVariableError</a
+		  ></li
+		><li
+		>| <a href="#v:CodecError"
+		  >CodecError</a
+		  > !<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptDecodeError</a
+		  ></li
+		><li
+		>| <a href="#v:CostModelParameterMismatch"
+		  >CostModelParameterMismatch</a
+		  ></li
+		><li
+		>| <a href="#v:InvalidReturnValue"
+		  >InvalidReturnValue</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:EvaluationContext"
+	      >EvaluationContext</a
+	      > = <a href="#v:EvaluationContext"
+	      >EvaluationContext</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_evalCtxLedgerLang"
+		  >_evalCtxLedgerLang</a
+		  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  ></li
+		><li
+		><a href="#v:_evalCtxCaserBuiltin"
+		  >_evalCtxCaserBuiltin</a
+		  > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		  >CaserBuiltin</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  ></li
+		><li
+		><a href="#v:_evalCtxToSemVar"
+		  >_evalCtxToSemVar</a
+		  > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  ></li
+		><li
+		><a href="#v:_evalCtxMachParsCache"
+		  >_evalCtxMachParsCache</a
+		  > &#8759; [(<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  >, <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+		  >DefaultMachineVariantParameters</a
+		  >)]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:AsScriptDecodeError"
+	      >AsScriptDecodeError</a
+	      > r <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:_ScriptDecodeError"
+		  >_ScriptDecodeError</a
+		  > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptDecodeError</a
+		  ></li
+		><li
+		><a href="#v:_CBORDeserialiseError"
+		  >_CBORDeserialiseError</a
+		  > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >DeserialiseFailureInfo</a
+		  ></li
+		><li
+		><a href="#v:_RemainderError"
+		  >_RemainderError</a
+		  > &#8759; Prism' r <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		  >ByteString</a
+		  ></li
+		><li
+		><a href="#v:_LedgerLanguageNotAvailableError"
+		  >_LedgerLanguageNotAvailableError</a
+		  > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  >)</li
+		><li
+		><a href="#v:_PlutusCoreLanguageNotAvailableError"
+		  >_PlutusCoreLanguageNotAvailableError</a
+		  > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		  >Version</a
+		  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  >)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:LogOutput"
+	      >LogOutput</a
+	      > = [<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      >]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:VerboseMode"
+	      >VerboseMode</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Verbose"
+		  >Verbose</a
+		  ></li
+		><li
+		>| <a href="#v:Quiet"
+		  >Quiet</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evaluateScriptRestricting"
+	      >evaluateScriptRestricting</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+	      >VerboseMode</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationContext</a
+	      > &#8594; <a href="PlutusLedgerApi-Common.html#t:ExBudget" title="PlutusLedgerApi.Common"
+	      >ExBudget</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptForEvaluation</a
+	      > &#8594; [<a href="PlutusLedgerApi-Common.html#t:Data" title="PlutusLedgerApi.Common"
+	      >Data</a
+	      >] &#8594; (<a href="PlutusLedgerApi-Common-Eval.html#t:LogOutput" title="PlutusLedgerApi.Common.Eval"
+	      >LogOutput</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationError</a
+	      > <a href="PlutusLedgerApi-Common.html#t:ExBudget" title="PlutusLedgerApi.Common"
+	      >ExBudget</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:evaluateScriptCounting"
+	      >evaluateScriptCounting</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+	      >VerboseMode</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationContext</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptForEvaluation</a
+	      > &#8594; [<a href="PlutusLedgerApi-Common.html#t:Data" title="PlutusLedgerApi.Common"
+	      >Data</a
+	      >] &#8594; (<a href="PlutusLedgerApi-Common-Eval.html#t:LogOutput" title="PlutusLedgerApi.Common.Eval"
+	      >LogOutput</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationError</a
+	      > <a href="PlutusLedgerApi-Common.html#t:ExBudget" title="PlutusLedgerApi.Common"
+	      >ExBudget</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:evaluateTerm"
+	      >evaluateTerm</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:ExBudgetMode" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >ExBudgetMode</a
+	      > cost <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+	      >VerboseMode</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationContext</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekEvaluationException</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()), cost, [<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      >])</li
+	    ><li class="src short"
+	    ><a href="#v:mkDynEvaluationContext"
+	      >mkDynEvaluationContext</a
+	      > &#8759; <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	      >MonadError</a
+	      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+	      >CostModelApplyError</a
+	      > m &#8658; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; (<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaserBuiltin</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >) &#8594; [<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >] &#8594; (<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >) &#8594; <a href="PlutusLedgerApi-Common.html#t:CostModelParams" title="PlutusLedgerApi.Common"
+	      >CostModelParams</a
+	      > &#8594; m <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toMachineParameters"
+	      >toMachineParameters</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationContext</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+	      >DefaultMachineParameters</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkTermToEvaluate"
+	      >mkTermToEvaluate</a
+	      > &#8759; <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	      >MonadError</a
+	      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationError</a
+	      > m &#8658; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptForEvaluation</a
+	      > &#8594; [<a href="PlutusLedgerApi-Common.html#t:Data" title="PlutusLedgerApi.Common"
+	      >Data</a
+	      >] &#8594; m (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:assertWellFormedCostModelParams"
+	      >assertWellFormedCostModelParams</a
+	      > &#8759; <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	      >MonadError</a
+	      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+	      >CostModelApplyError</a
+	      > m &#8658; <a href="PlutusLedgerApi-Common.html#t:CostModelParams" title="PlutusLedgerApi.Common"
+	      >CostModelParams</a
+	      > &#8594; m ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvaluationError" class="def"
+	    >EvaluationError</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#EvaluationError" class="link"
+	    >Source</a
+	    > <a href="#t:EvaluationError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Errors that can be thrown when evaluating a Plutus script.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CekError" class="def"
+		  >CekError</a
+		  > !(<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		  >CekEvaluationException</a
+		  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		  >NamedDeBruijn</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >An error from the evaluator itself</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DeBruijnError" class="def"
+		  >DeBruijnError</a
+		  > !<a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:FreeVariableError" title="PlutusCore.DeBruijn.Internal"
+		  >FreeVariableError</a
+		  ></td
+		><td class="doc"
+		><p
+		  >An error in the pre-evaluation step of converting from de-Bruijn indices</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CodecError" class="def"
+		  >CodecError</a
+		  > !<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptDecodeError</a
+		  ></td
+		><td class="doc"
+		><p
+		  >A deserialisation error
+ TODO: make this error more informative when we have more information about what went wrong</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CostModelParameterMismatch" class="def"
+		  >CostModelParameterMismatch</a
+		  ></td
+		><td class="doc"
+		><p
+		  >An error indicating that the cost model parameters didn't match what we expected</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:InvalidReturnValue" class="def"
+		  >InvalidReturnValue</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The script evaluated to a value that is not a valid return value.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvaluationError"
+	    >Instances</h4
+	    ><details id="i:EvaluationError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:AsScriptDecodeError:3"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:AsScriptDecodeError" title="PlutusLedgerApi.Common.Eval"
+		      >AsScriptDecodeError</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:AsScriptDecodeError:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_ScriptDecodeError"
+			  >_ScriptDecodeError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+			  >Source</a
+			  > <a href="#v:_ScriptDecodeError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CBORDeserialiseError"
+			  >_CBORDeserialiseError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+			  >Source</a
+			  > <a href="#v:_CBORDeserialiseError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_RemainderError"
+			  >_RemainderError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+			  >ByteString</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+			  >Source</a
+			  > <a href="#v:_RemainderError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_LedgerLanguageNotAvailableError"
+			  >_LedgerLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PlutusCoreLanguageNotAvailableError"
+			  >_PlutusCoreLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Pretty:4"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Pretty:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvaluationContext" class="def"
+	    >EvaluationContext</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#EvaluationContext" class="link"
+	    >Source</a
+	    > <a href="#t:EvaluationContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An opaque type that contains all the static parameters that the evaluator needs to evaluate a
+script. This is so that they can be computed once and cached, rather than being recomputed on every
+evaluation.</p
+	    ><p
+	    >Different protocol versions may require different bundles of machine parameters, which allows us for
+example to tweak the shape of the costing function of a builtin, so that the builtin costs less.
+Currently this means that we have to create multiple <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+		>DefaultMachineParameters</a
+		></code
+	      > per language
+version, which we put into a cache (represented by an association list) in order to avoid costly
+recomputation of machine parameters.</p
+	    ><p
+	    >In order to get the appropriate <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+		>DefaultMachineParameters</a
+		></code
+	      > at validation time we look it up in the
+cache using a semantics variant as a key. We compute the semantics variant from the protocol
+version using the stored function. Note that the semantics variant depends on the language version
+too, but the latter is known statically (because each language version has its own evaluation
+context), hence there's no reason to require it to be provided at runtime.</p
+	    ><p
+	    >To say it differently, there's a matrix of semantics variants indexed by (LL, PV) pairs and we
+cache its particular row corresponding to the statically given LL in an <code
+	      ><a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		>EvaluationContext</a
+		></code
+	      >.</p
+	    ><p
+	    >The reason why we associate a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+		>DefaultMachineParameters</a
+		></code
+	      > with a semantics variant rather than a
+protocol version are</p
+	    ><ol
+	    ><li value="1"
+	      >generally there are far more protocol versions than semantics variants supported by a specific
+   language version, so we save on pointless duplication of bundles of machine parameters</li
+	      ><li value="2"
+	      >builtins don't know anything about protocol versions, only semantics variants. It is therefore
+   more semantically precise to associate bundles of machine parameters with semantics variants than
+   with protocol versions</li
+	      ></ol
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:EvaluationContext" class="def"
+		  >EvaluationContext</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_evalCtxLedgerLang" class="def"
+			  >_evalCtxLedgerLang</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Specifies what language versions the <code
+			    ><a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			      >EvaluationContext</a
+			      ></code
+			    > is for.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_evalCtxCaserBuiltin" class="def"
+			  >_evalCtxCaserBuiltin</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			  >CaserBuiltin</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Specifies how 'case' on values of built-in types works: fails evaluation for older
+ protocol versions and defers to <code
+			    >caseBuiltin</code
+			    > for newer ones. Note that this function
+ doesn't depend on the <code
+			    ><a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			      >PlutusLedgerLanguage</a
+			      ></code
+			    > or the AST version: deserialisation of a 1.0.0
+ AST fails upon encountering a <code
+			    ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Case" title="PlutusCore.Core.Type"
+			      >Case</a
+			      ></code
+			    > node anyway, so we can safely assume here that 'case'
+ is available.
+ FIXME: do we need to test that it fails for older PVs?  We can't submit
+ transactions in old PVs, so maybe it doesn't matter.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_evalCtxToSemVar" class="def"
+			  >_evalCtxToSemVar</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Specifies how to get a semantics variant for this ledger language given a
+ <code
+			    ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			      >MajorProtocolVersion</a
+			      ></code
+			    >.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_evalCtxMachParsCache" class="def"
+			  >_evalCtxMachParsCache</a
+			  > &#8759; [(<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  >, <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+			  >DefaultMachineVariantParameters</a
+			  >)]</dfn
+			><div class="doc"
+			><p
+			  >The cache of <code
+			    ><a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+			      >DefaultMachineParameters</a
+			      ></code
+			    > for each semantics variant supported by the
+ current language version.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvaluationContext"
+	    >Instances</h4
+	    ><details id="i:EvaluationContext" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationContext:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationContext</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-168" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationContext:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > x &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationContext:NFData:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationContext</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-169" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationContext:NFData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationContext:NoThunks:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationContext</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-169" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationContext:NoThunks:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationContext</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationContext:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationContext</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-168" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationContext:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+			>EvaluationContext</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;EvaluationContext&quot; &quot;PlutusLedgerApi.Common.Eval&quot; &quot;plutus-ledger-api-1.51.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;EvaluationContext&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_evalCtxLedgerLang&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			>PlutusLedgerLanguage</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_evalCtxCaserBuiltin&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			>MajorProtocolVersion</a
+			> &#8594; <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			>CaserBuiltin</a
+			> <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_evalCtxToSemVar&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			>MajorProtocolVersion</a
+			> &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			>BuiltinSemanticsVariant</a
+			> <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			>DefaultFun</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_evalCtxMachParsCache&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> [(<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			>BuiltinSemanticsVariant</a
+			> <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			>DefaultFun</a
+			>, <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+			>DefaultMachineVariantParameters</a
+			>)]))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:AsScriptDecodeError" class="def"
+	    >AsScriptDecodeError</a
+	    > r <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#AsScriptDecodeError" class="link"
+	    >Source</a
+	    > <a href="#t:AsScriptDecodeError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusLedgerApi-Common-Eval.html#v:_ScriptDecodeError" title="PlutusLedgerApi.Common.Eval"
+	      >_ScriptDecodeError</a
+	      ></p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:_ScriptDecodeError" class="def"
+	      >_ScriptDecodeError</a
+	      > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptDecodeError</a
+	      > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+	      >Source</a
+	      > <a href="#v:_ScriptDecodeError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_CBORDeserialiseError" class="def"
+	      >_CBORDeserialiseError</a
+	      > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >DeserialiseFailureInfo</a
+	      > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+	      >Source</a
+	      > <a href="#v:_CBORDeserialiseError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_RemainderError" class="def"
+	      >_RemainderError</a
+	      > &#8759; Prism' r <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+	      >Source</a
+	      > <a href="#v:_RemainderError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_LedgerLanguageNotAvailableError" class="def"
+	      >_LedgerLanguageNotAvailableError</a
+	      > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+	      >Source</a
+	      > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_PlutusCoreLanguageNotAvailableError" class="def"
+	      >_PlutusCoreLanguageNotAvailableError</a
+	      > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+	      >Version</a
+	      >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+	      >Source</a
+	      > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsScriptDecodeError"
+	    >Instances</h4
+	    ><details id="i:AsScriptDecodeError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AsScriptDecodeError:AsScriptDecodeError:1"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:AsScriptDecodeError" title="PlutusLedgerApi.Common.Eval"
+		      >AsScriptDecodeError</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:AsScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AsScriptDecodeError:AsScriptDecodeError:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_ScriptDecodeError"
+			  >_ScriptDecodeError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+			  >Source</a
+			  > <a href="#v:_ScriptDecodeError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CBORDeserialiseError"
+			  >_CBORDeserialiseError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+			  >Source</a
+			  > <a href="#v:_CBORDeserialiseError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_RemainderError"
+			  >_RemainderError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+			  >ByteString</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+			  >Source</a
+			  > <a href="#v:_RemainderError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_LedgerLanguageNotAvailableError"
+			  >_LedgerLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PlutusCoreLanguageNotAvailableError"
+			  >_PlutusCoreLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AsScriptDecodeError:AsScriptDecodeError:2"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:AsScriptDecodeError" title="PlutusLedgerApi.Common.Eval"
+		      >AsScriptDecodeError</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptDecodeError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-80" class="link"
+		    >Source</a
+		    > <a href="#t:AsScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AsScriptDecodeError:AsScriptDecodeError:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_ScriptDecodeError"
+			  >_ScriptDecodeError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+			  >Source</a
+			  > <a href="#v:_ScriptDecodeError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CBORDeserialiseError"
+			  >_CBORDeserialiseError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+			  >Source</a
+			  > <a href="#v:_CBORDeserialiseError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_RemainderError"
+			  >_RemainderError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+			  >ByteString</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+			  >Source</a
+			  > <a href="#v:_RemainderError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_LedgerLanguageNotAvailableError"
+			  >_LedgerLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PlutusCoreLanguageNotAvailableError"
+			  >_PlutusCoreLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:LogOutput" class="def"
+	    >LogOutput</a
+	    > = [<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    >] <a href="src/PlutusLedgerApi.Common.Eval.html#LogOutput" class="link"
+	    >Source</a
+	    > <a href="#t:LogOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of the executed script's accumulated log output: a list of <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >.</p
+	    ><p
+	    >It will be an empty list if the <code
+	      ><a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+		>VerboseMode</a
+		></code
+	      > is set to <code
+	      ><a href="PlutusLedgerApi-Common-Eval.html#v:Quiet" title="PlutusLedgerApi.Common.Eval"
+		>Quiet</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:VerboseMode" class="def"
+	    >VerboseMode</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#VerboseMode" class="link"
+	    >Source</a
+	    > <a href="#t:VerboseMode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A simple toggle indicating whether or not we should accumulate logs during script execution.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Verbose" class="def"
+		  >Verbose</a
+		  ></td
+		><td class="doc"
+		><p
+		  >accumulate all traces</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Quiet" class="def"
+		  >Quiet</a
+		  ></td
+		><td class="doc"
+		><p
+		  >don't accumulate anything</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:VerboseMode"
+	    >Instances</h4
+	    ><details id="i:VerboseMode" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VerboseMode:Eq:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+		      >VerboseMode</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:VerboseMode" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VerboseMode:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+			  >VerboseMode</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+			  >VerboseMode</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+			  >VerboseMode</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+			  >VerboseMode</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateScriptRestricting" class="def"
+	    >evaluateScriptRestricting</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#evaluateScriptRestricting" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateScriptRestricting" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The Plutus ledger language of the script under execution.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Which major protocol version to run the operation in</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+		  >VerboseMode</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether to produce log output</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		  >EvaluationContext</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Includes the cost model to use for tallying up the execution costs</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common.html#t:ExBudget" title="PlutusLedgerApi.Common"
+		  >ExBudget</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The resource budget which must not be exceeded during evaluation</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptForEvaluation</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The script to evaluate</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [<a href="PlutusLedgerApi-Common.html#t:Data" title="PlutusLedgerApi.Common"
+		  >Data</a
+		  >]</td
+		><td class="doc"
+		><p
+		  >The arguments to the script</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="PlutusLedgerApi-Common-Eval.html#t:LogOutput" title="PlutusLedgerApi.Common.Eval"
+		  >LogOutput</a
+		  >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		  >EvaluationError</a
+		  > <a href="PlutusLedgerApi-Common.html#t:ExBudget" title="PlutusLedgerApi.Common"
+		  >ExBudget</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Evaluates a script, with a cost model and a budget that restricts how many
+resources it can use according to the cost model. Also returns the budget that
+was actually used.</p
+	    ><p
+	    >Can be used to calculate budgets for scripts, but even in this case you must give
+a limit to guard against scripts that run for a long time or loop.</p
+	    ><p
+	    >Note: Parameterized over the <code
+	      >LedgerPlutusVersion</code
+	      > since
+1. The builtins allowed (during decoding) differ, and
+2. The Plutus language versions allowed differ.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateScriptCounting" class="def"
+	    >evaluateScriptCounting</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#evaluateScriptCounting" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateScriptCounting" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The Plutus ledger language of the script under execution.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Which major protocol version to run the operation in</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+		  >VerboseMode</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether to produce log output</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		  >EvaluationContext</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Includes the cost model to use for tallying up the execution costs</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptForEvaluation</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The script to evaluate</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [<a href="PlutusLedgerApi-Common.html#t:Data" title="PlutusLedgerApi.Common"
+		  >Data</a
+		  >]</td
+		><td class="doc"
+		><p
+		  >The arguments to the script</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="PlutusLedgerApi-Common-Eval.html#t:LogOutput" title="PlutusLedgerApi.Common.Eval"
+		  >LogOutput</a
+		  >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		  >EvaluationError</a
+		  > <a href="PlutusLedgerApi-Common.html#t:ExBudget" title="PlutusLedgerApi.Common"
+		  >ExBudget</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Evaluates a script, returning the minimum budget that the script would need
+to evaluate successfully. This will take as long as the script takes, if you need to
+limit the execution time of the script also, you can use <code
+	      ><a href="PlutusLedgerApi-Common-Eval.html#v:evaluateScriptRestricting" title="PlutusLedgerApi.Common.Eval"
+		>evaluateScriptRestricting</a
+		></code
+	      >, which
+also returns the used budget.</p
+	    ><p
+	    >Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateTerm" class="def"
+	    >evaluateTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:ExBudgetMode" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >ExBudgetMode</a
+	    > cost <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:VerboseMode" title="PlutusLedgerApi.Common.Eval"
+	    >VerboseMode</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	    >EvaluationContext</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekEvaluationException</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()), cost, [<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    >]) <a href="src/PlutusLedgerApi.Common.Eval.html#evaluateTerm" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
+ on-chain evaluator.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkDynEvaluationContext" class="def"
+	    >mkDynEvaluationContext</a
+	    > &#8759; <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	    >MonadError</a
+	    > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+	    >CostModelApplyError</a
+	    > m &#8658; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > &#8594; (<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaserBuiltin</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; [<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] &#8594; (<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) &#8594; <a href="PlutusLedgerApi-Common.html#t:CostModelParams" title="PlutusLedgerApi.Common"
+	    >CostModelParams</a
+	    > &#8594; m <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	    >EvaluationContext</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#mkDynEvaluationContext" class="link"
+	    >Source</a
+	    > <a href="#v:mkDynEvaluationContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create an <code
+	      ><a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		>EvaluationContext</a
+		></code
+	      > given all builtin semantics variants supported by the provided
+language version.</p
+	    ><p
+	    >The input is a <code
+	      ><a href="PlutusLedgerApi-Common.html#v:Map" title="PlutusLedgerApi.Common"
+		>Map</a
+		></code
+	      > of <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >s to cost integer values (aka <code
+	      ><a href="PlutusLedgerApi-Common.html#t:CostModelParams" title="PlutusLedgerApi.Common"
+		>CostModelParams</a
+		></code
+	      >, <code
+	      ><a href="Alonzo.html#v:CostModel" title="Alonzo"
+		>CostModel</a
+		></code
+	      >)
+See Note [Inlining meanings of builtins].</p
+	    ><p
+	    >IMPORTANT: the <code
+	      >toSemVar</code
+	      > argument computes the semantics variant for each <code
+	      ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		>MajorProtocolVersion</a
+		></code
+	      >
+and it must only return semantics variants from the <code
+	      >semVars</code
+	      > list, as well as cover ANY
+<code
+	      ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		>MajorProtocolVersion</a
+		></code
+	      >, including those that do not exist yet (i.e. <code
+	      >toSemVar</code
+	      > must never fail).</p
+	    ><p
+	    >IMPORTANT: The evaluation context of every Plutus version must be recreated upon a protocol update
+with the updated cost model parameters.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toMachineParameters" class="def"
+	    >toMachineParameters</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	    >EvaluationContext</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+	    >DefaultMachineParameters</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#toMachineParameters" class="link"
+	    >Source</a
+	    > <a href="#v:toMachineParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTermToEvaluate" class="def"
+	    >mkTermToEvaluate</a
+	    > <a href="src/PlutusLedgerApi.Common.Eval.html#mkTermToEvaluate" class="link"
+	    >Source</a
+	    > <a href="#v:mkTermToEvaluate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+		  >MonadError</a
+		  > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		  >EvaluationError</a
+		  > m</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the Plutus ledger language of the script under execution.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  ></td
+		><td class="doc"
+		><p
+		  >which major protocol version to run the operation in</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptForEvaluation</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the script to evaluate</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [<a href="PlutusLedgerApi-Common.html#t:Data" title="PlutusLedgerApi.Common"
+		  >Data</a
+		  >]</td
+		><td class="doc"
+		><p
+		  >the arguments that the script's underlying term will be applied to</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; m (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		  >NamedDeBruijn</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  > ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Shared helper for the evaluation functions: <code
+	      ><a href="PlutusLedgerApi-Common-Eval.html#v:evaluateScriptCounting" title="PlutusLedgerApi.Common.Eval"
+		>evaluateScriptCounting</a
+		></code
+	      > and <code
+	      ><a href="PlutusLedgerApi-Common-Eval.html#v:evaluateScriptRestricting" title="PlutusLedgerApi.Common.Eval"
+		>evaluateScriptRestricting</a
+		></code
+	      >,</p
+	    ><p
+	    >Given a <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		>ScriptForEvaluation</a
+		></code
+	      >:</p
+	    ><p
+	    >1) applies the term to a list of <code
+	      ><a href="PlutusLedgerApi-Common.html#t:Data" title="PlutusLedgerApi.Common"
+		>Data</a
+		></code
+	      > arguments (e.g. Datum, Redeemer, <code
+	      >ScriptContext</code
+	      >)
+2) checks that the applied-term is well-scoped
+3) returns the applied-term</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:assertWellFormedCostModelParams" class="def"
+	    >assertWellFormedCostModelParams</a
+	    > &#8759; <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	    >MonadError</a
+	    > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+	    >CostModelApplyError</a
+	    > m &#8658; <a href="PlutusLedgerApi-Common.html#t:CostModelParams" title="PlutusLedgerApi.Common"
+	    >CostModelParams</a
+	    > &#8594; m () <a href="src/PlutusLedgerApi.Common.Eval.html#assertWellFormedCostModelParams" class="link"
+	    >Source</a
+	    > <a href="#v:assertWellFormedCostModelParams" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
