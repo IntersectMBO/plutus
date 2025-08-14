@@ -57,12 +57,27 @@ infix 4 |>, <|
 instance Show (BuiltinRuntime (CkValue uni fun)) where
     show _ = "<builtin_runtime>"
 
+-- | Partial builtin application representation for the CK machine.
+data PartialBuiltinApp uni fun
+    = PartialBuiltinHead fun
+    | PartialBuiltinTyInst (PartialBuiltinApp uni fun) (Type TyName uni ())
+    | PartialBuiltinApply (PartialBuiltinApp uni fun) (CkValue uni fun)
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Closed uni)
+    => Show (PartialBuiltinApp uni fun)
+
+partialBuiltinAppToTerm :: PartialBuiltinApp uni fun -> Term TyName Name uni fun ()
+partialBuiltinAppToTerm = \case
+    PartialBuiltinHead fun      -> Builtin () fun
+    PartialBuiltinTyInst app ty -> TyInst () (partialBuiltinAppToTerm app) ty
+    PartialBuiltinApply app arg -> Apply () (partialBuiltinAppToTerm app) (ckValueToTerm arg)
+
 data CkValue uni fun =
     VCon (Some (ValueOf uni))
   | VTyAbs TyName (Kind ()) (Term TyName Name uni fun ())
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
-  | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
+  | VBuiltin (PartialBuiltinApp uni fun) (BuiltinRuntime (CkValue uni fun))
   | VConstr (Type TyName uni ()) Word64 [CkValue uni fun]
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Closed uni)
@@ -74,7 +89,7 @@ ckValueToTerm = \case
     VTyAbs  tn k body    -> TyAbs  () tn k body
     VLamAbs name ty body -> LamAbs () name ty body
     VIWrap  ty1 ty2 val  -> IWrap  () ty1 ty2 $ ckValueToTerm val
-    VBuiltin term _      -> term
+    VBuiltin app _       -> partialBuiltinAppToTerm app
     VConstr ty i es      -> Constr () ty i (fmap ckValueToTerm es)
 
 data CkEnv uni fun s = CkEnv
@@ -191,7 +206,7 @@ stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
     runtime <- lookupBuiltin bn . ckEnvRuntime <$> ask
-    stack <| VBuiltin (Builtin () bn) runtime
+    stack <| VBuiltin (PartialBuiltinHead bn) runtime
 stack |> Constant _ val          = stack <| VCon val
 stack |> Constr _ ty i es               = case es of
     []     -> stack <| VConstr ty i []
@@ -263,15 +278,16 @@ transferConstantSpine args ctx = foldr ((:) . FrameAwaitFunValue . VCon) ctx arg
 -- and proceed with the returning phase of the CK machine.
 evalBuiltinApp
     :: Context uni fun
-    -> Term TyName Name uni fun ()
+    -> PartialBuiltinApp uni fun
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (Term TyName Name uni fun ())
-evalBuiltinApp stack term runtime = case runtime of
+evalBuiltinApp stack app runtime = case runtime of
     BuiltinCostedResult _ getFXs -> case getFXs of
         BuiltinSuccess y              -> stack <| y
         BuiltinSuccessWithLogs logs y -> emitCkM logs *> (stack <| y)
-        BuiltinFailure logs err       -> emitCkM logs *> throwBuiltinErrorWithCause term err
-    _ -> stack <| VBuiltin term runtime
+        BuiltinFailure logs err       ->
+            emitCkM logs *> throwBuiltinErrorWithCause err (partialBuiltinAppToTerm app)
+    _ -> stack <| VBuiltin app runtime
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application
@@ -286,16 +302,19 @@ instantiateEvaluate
 instantiateEvaluate stack ty (VTyAbs tn _k body) =
      -- No kind check - too expensive at run time.
     stack |> termSubstClosedType tn ty body
-instantiateEvaluate stack ty (VBuiltin term runtime) = do
-    let term' = TyInst () term ty
+instantiateEvaluate stack ty (VBuiltin app runtime) = do
+    let app' = PartialBuiltinTyInst app ty
     case runtime of
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        BuiltinExpectForce runtime' -> evalBuiltinApp stack term' runtime'
-        _ -> throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
+        BuiltinExpectForce runtime' -> evalBuiltinApp stack app' runtime'
+        _ ->
+            throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) $
+                partialBuiltinAppToTerm app'
 instantiateEvaluate _ _ val =
-    throwErrorWithCause (StructuralError NonPolymorphicInstantiationMachineError) $ ckValueToTerm val
+    throwErrorWithCause (StructuralError NonPolymorphicInstantiationMachineError) $
+        ckValueToTerm val
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a lambda, then perform substitution and proceed.
@@ -309,16 +328,16 @@ applyEvaluate
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg =
     stack |> termSubstClosedTerm name (ckValueToTerm arg) body
-applyEvaluate stack (VBuiltin term runtime) arg = do
-    let argTerm = ckValueToTerm arg
-        term' = Apply () term argTerm
+applyEvaluate stack (VBuiltin app runtime) arg = do
+    let app' = PartialBuiltinApply app arg
     case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
         BuiltinExpectArgument f -> do
-            evalBuiltinApp stack term' $ f arg
+            evalBuiltinApp stack app' $ f arg
         _ ->
-            throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
+            throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) $
+                partialBuiltinAppToTerm app'
 applyEvaluate _ val _ =
     throwErrorWithCause (StructuralError NonFunctionalApplicationMachineError) $ ckValueToTerm val
 

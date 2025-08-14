@@ -138,6 +138,6 @@ throwBuiltinErrorWithCause
     :: ( MonadError (EvaluationException structural operational cause) m
        , BuiltinErrorToEvaluationError structural operational
        )
-    => cause -> BuiltinError -> m void
-throwBuiltinErrorWithCause cause e = throwErrorWithCause (builtinErrorToEvaluationError e) cause
+    => BuiltinError -> cause -> m void
+throwBuiltinErrorWithCause = throwErrorWithCause . builtinErrorToEvaluationError
 {-# INLINE throwBuiltinErrorWithCause #-}

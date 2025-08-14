@@ -33,6 +33,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , cekResultToEither
     , mapTermCekResult
     , CekReport(..)
+    , PartialBuiltinApp(..)
+    , headPartialBuiltinApp
     , CekValue(..)
     , DischargeResult(..)
     , dischargeResultToTerm
@@ -56,6 +58,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , unsafeSplitStructuralOperational
     , runCekDeBruijn
     , dischargeCekValue
+    , dischargePartialBuiltinApp
     , Context (..)
     , CekValEnv
     , GivenCekReqs
@@ -257,35 +260,36 @@ data ArgStack uni fun ann =
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (ArgStack uni fun ann)
 
+data PartialBuiltinApp uni fun ann
+    = PartialBuiltinHead !fun
+    | PartialBuiltinForce !(PartialBuiltinApp uni fun ann)
+    | PartialBuiltinApply !(PartialBuiltinApp uni fun ann) !(CekValue uni fun ann)
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (PartialBuiltinApp uni fun ann)
+
+headPartialBuiltinApp :: PartialBuiltinApp uni fun ann -> fun
+headPartialBuiltinApp (PartialBuiltinHead fun)    = fun
+headPartialBuiltinApp (PartialBuiltinForce app)   = headPartialBuiltinApp app
+headPartialBuiltinApp (PartialBuiltinApply app _) = headPartialBuiltinApp app
+
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann =
     -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
   | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
   | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
-    -- | A partial builtin application, accumulating arguments for eventual full application.
-    -- We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
-    -- values always store their corresponding 'Term's fully discharged, see the comments at
-    -- the call sites (search for 'VBuiltin').
-  | VBuiltin
-      !fun
-      -- ^ So that we know, for what builtin we're calculating the cost. We can sneak this into
-      -- 'BuiltinRuntime', so that we don't need to store it here, but somehow doing so was
-      -- consistently slowing evaluation down by half a percent. Might be noise, might be not, but
-      -- at least we know that removing this @fun@ is not helpful anyway. See this commit reversing
-      -- the change: https://github.com/IntersectMBO/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
-      (NTerm uni fun ())
-      -- ^ This must be lazy. It represents the fully discharged partial application of the builtin
-      -- function that we're going to run when it's fully saturated.  We need the 'Term' to be able
-      -- to return it in case full saturation is never achieved and a partial application needs to
-      -- be returned in the result. The laziness is important, because the arguments are discharged
-      -- values and discharging is expensive, so we don't want to do it unless we really have
-      -- to. Making this field strict resulted in a 3-4.5% slowdown at the time of writing.
+  | -- | A partial builtin application, accumulating arguments for eventual full application.
+    VBuiltin
+      !(PartialBuiltinApp uni fun ann)
+      -- ^ The partial application of the builtin representing the 'BuiltinRuntime' below.
+      -- We need it to be able to return the corresponding 'Term' in case full saturation is never
+      -- achieved and a partial application needs to be returned in the result.
       !(BuiltinRuntime (CekValue uni fun ann))
       -- ^ The partial application and its costing function.
       -- Check the docs of 'BuiltinRuntime' for details.
-    -- | A constructor value, including fully computed arguments and the tag.
-  | VConstr {-# UNPACK #-} !Word64 !(ArgStack uni fun ann)
+  | -- | A constructor value, including fully computed arguments and the tag.
+    VConstr {-# UNPACK #-} !Word64 !(ArgStack uni fun ann)
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (CekValue uni fun ann)
@@ -597,6 +601,13 @@ dischargeResultToTerm :: DischargeResult uni fun -> NTerm uni fun ()
 dischargeResultToTerm (DischargeConstant val)     = Constant () val
 dischargeResultToTerm (DischargeNonConstant term) = term
 
+dischargePartialBuiltinApp :: PartialBuiltinApp uni fun ann -> NTerm uni fun ()
+dischargePartialBuiltinApp = \case
+    PartialBuiltinHead fun      -> Builtin () fun
+    PartialBuiltinForce app     -> Force () $ dischargePartialBuiltinApp app
+    PartialBuiltinApply app arg ->
+        Apply () (dischargePartialBuiltinApp app) (dischargeResultToTerm $ dischargeCekValue arg)
+
 -- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtained by recursively discharging values).
 dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
@@ -612,7 +623,7 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
         -- We only return a discharged builtin application when (a) it's being returned by the
         -- machine, or (b) it's needed for an error message.
         -- @term@ is fully discharged, so we can return it directly without any further discharging.
-        VBuiltin _ term _ -> term
+        VBuiltin app _ -> dischargePartialBuiltinApp app
         VConstr ind args -> Constr () ind . map goValue $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
@@ -800,12 +811,11 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Apply _ fun arg) = do
         stepAndMaybeSpend BApply
         computeCek (FrameAwaitFunTerm env arg ctx) env fun
-    -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-    computeCek !ctx !_ (Builtin _ bn) = do
+    -- s ; ρ ▻ builtin fun ↦ s ◅ builtin fun arity arity [] [] ρ
+    computeCek !ctx !_ (Builtin _ fun) = do
         stepAndMaybeSpend BBuiltin
-        let meaning = lookupBuiltin bn ?cekRuntime
-        -- 'Builtin' is fully discharged.
-        returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
+        let meaning = lookupBuiltin fun ?cekRuntime
+        returnCek ctx (VBuiltin (PartialBuiltinHead fun) meaning)
     -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
@@ -886,9 +896,8 @@ enterComputeCek = computeCek
         -> CekValue uni fun ann
         -> CekM uni fun s (DischargeResult uni fun)
     forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
-    forceEvaluate !ctx (VBuiltin fun term runtime) = do
-        -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
-        let term' = Force () term
+    forceEvaluate !ctx (VBuiltin app runtime) = do
+        let !app' = PartialBuiltinForce app
         case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
@@ -896,9 +905,10 @@ enterComputeCek = computeCek
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                evalBuiltinApp ctx fun term' runtime'
+                evalBuiltinApp ctx app' runtime'
             _ ->
-                throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
+                throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) $
+                    dischargePartialBuiltinApp app'
     forceEvaluate !_ val =
         throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
 
@@ -918,18 +928,16 @@ enterComputeCek = computeCek
         computeCek ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate !ctx (VBuiltin fun funTerm runtime) arg = do
-        let argTerm = dischargeResultToTerm $ dischargeCekValue arg
-            -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
-            -- in a 'VBuiltin'.
-            term' = Apply () funTerm argTerm
+    applyEvaluate !ctx (VBuiltin app runtime) arg = do
+        let app' = PartialBuiltinApply app arg
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
             BuiltinExpectArgument f ->
-                evalBuiltinApp ctx fun term' $ f arg
+                evalBuiltinApp ctx app' $ f arg
             _ ->
-                throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
+                throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) $
+                    dischargePartialBuiltinApp app'
     applyEvaluate !_ val _ =
         throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
@@ -976,13 +984,12 @@ enterComputeCek = computeCek
     -- and proceed with the returning phase of the CEK machine.
     evalBuiltinApp
         :: Context uni fun ann
-        -> fun
-        -> NTerm uni fun ()
+        -> PartialBuiltinApp uni fun ann
         -> BuiltinRuntime (CekValue uni fun ann)
         -> CekM uni fun s (DischargeResult uni fun)
-    evalBuiltinApp ctx fun term runtime = case runtime of
+    evalBuiltinApp ctx app runtime = case runtime of
         BuiltinCostedResult budgets0 getFXs -> do
-            let exCat = BBuiltinApp fun
+            let exCat = BBuiltinApp $ headPartialBuiltinApp app
                 spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
                 spendBudgets (ExBudgetCons budget budgets) =
                     spendBudget exCat budget *> spendBudgets budgets
@@ -995,8 +1002,8 @@ enterComputeCek = computeCek
                     returnCek ctx y
                 BuiltinFailure logs err -> do
                     ?cekEmitter logs
-                    throwBuiltinErrorWithCause term err
-        _ -> returnCek ctx $ VBuiltin fun term runtime
+                    throwBuiltinErrorWithCause err $ dischargePartialBuiltinApp app
+        _ -> returnCek ctx $ VBuiltin app runtime
     {-# INLINE evalBuiltinApp #-}
 
     spendBudget :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
