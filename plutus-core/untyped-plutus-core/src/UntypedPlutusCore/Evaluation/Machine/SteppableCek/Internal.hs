@@ -61,7 +61,6 @@ import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
-import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word (Word64)
 import GHC.TypeNats
@@ -85,7 +84,7 @@ data CekState uni fun ann =
     -- the next state is returning
     | Returning (Context uni fun ann) (CekValue uni fun ann)
     -- evaluation finished
-    | Terminating (NTerm uni fun ())
+    | Terminating (DischargeResult uni fun)
 
 instance Pretty (CekState uni fun ann) where
     pretty = \case
@@ -267,7 +266,7 @@ applyEvaluate !ctx (VLamAbs _ body env) arg =
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
 applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
-    let argTerm = dischargeCekValue arg
+    let argTerm = dischargeResultToTerm $ dischargeCekValue arg
         -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
         -- in a 'VBuiltin'.
         term' = Apply () term argTerm
@@ -287,7 +286,7 @@ runCekDeBruijn
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
+    -> CekReport cost NamedDeBruijn uni fun
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudget BStartup $ runIdentity $ cekStartupCost ?cekCosts
@@ -301,10 +300,10 @@ enterComputeCek
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
-    -> CekM uni fun s (NTerm uni fun ())
+    -> CekM uni fun s (DischargeResult uni fun)
 enterComputeCek ctx env term = iterToFinalState $ Computing ctx env term
  where
-   iterToFinalState :: CekState uni fun ann -> CekM uni fun s (NTerm uni fun ())
+   iterToFinalState :: CekState uni fun ann -> CekM uni fun s (DischargeResult uni fun)
    iterToFinalState = cekTrans
                       >=>
                       \case
@@ -430,7 +429,7 @@ throwErrorDischarged
   => EvaluationError (MachineError fun) CekUserError
   -> CekValue uni fun ann
   -> CekM uni fun s x
-throwErrorDischarged err = throwErrorWithCause err . dischargeCekValue
+throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dischargeCekValue
 
 -- | Look up a variable name in the environment.
 lookupVarName
