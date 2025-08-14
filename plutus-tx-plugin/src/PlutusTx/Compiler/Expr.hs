@@ -854,22 +854,24 @@ entryExitTracing lamName displayName e ty =
    an unfolding.
 -}
 
-takeHaskellList
+compileHaskellList
   :: forall uni fun m ann
    . (CompilingDefault uni fun m ann)
   => GHC.CoreExpr
   -> m [PIRTerm uni fun]
-takeHaskellList = withOrWithoutTick buildList
+compileHaskellList = buildList . strip
   where
     err =
       throwPlain $
         CompilationError "Unexpected expression is given where to be Haskell list constructor is expected"
 
-    withOrWithoutTick :: (GHC.CoreExpr -> a) -> GHC.CoreExpr -> a
-    withOrWithoutTick f (GHC.Tick _ e) = f e
-    withOrWithoutTick f e              = f e
-
+    -- This is when the list is a single element and GHC will specialize list builder directly.
+    -- GHC will generate core that looks like below:
+    -- (:) @resTy e ([] @resTy)
     buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = traverse compileExpr [e]
+    -- This is when the list has more than one elements. GHC will generate core that looks like below:
+    -- build @resTy (\con nil -> con e1 (con e2 (... nil)))
+    -- 'build' is some special function that abstracts the list type.
     buildList (GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam con (GHC.Lam nil li)))) =
       let
         consume :: GHC.CoreExpr -> m [GHC.CoreExpr]
@@ -923,9 +925,15 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
         resTy' <- compileTypeNorm resTy
         scrut' <- compileExpr scrut
-        branches <- takeHaskellList li
+        branches <- compileHaskellList li
         pure $ PIR.kase annAlwaysInline resTy' scrut' branches
       | GHC.getName var == caseIntegerName ->
+        -- This is when we don't have bultin casing. We have to use something
+        -- else. Currently, it will use PlutusTx.List.!!, but this will be quite a bit
+        -- less efficient since it will also build the list and than index on the built
+        -- list.  Ideally, It is possible to have some custom PIR here that will generate
+        -- chain of if-statements so that can skip the list construction work if we want
+        -- to optimize more here.
         compileExpr $ GHC.App (GHC.App (GHC.App (GHC.Var listIndexId) (GHC.Type resTy)) li) scrut
     {- Note [Lazy boolean operators]
       (||) and (&&) have a special treatment: we want them lazy in the second argument,
