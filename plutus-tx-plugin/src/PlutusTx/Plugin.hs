@@ -502,7 +502,6 @@ runCompiler moduleName opts expr = do
     extensionBlacklist =
       [ GADTs
       , PolyKinds
-      , DerivingVia
       ]
     unsupportedExtensions =
       filter (`elem` extensionBlacklist) enabledExtensions
