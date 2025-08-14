@@ -43,6 +43,7 @@ module PlutusTx.Builtins (
   lessThanEqualsInteger,
   equalsInteger,
   expModInteger,
+  BI.caseInteger,
 
   -- * Error
   error,

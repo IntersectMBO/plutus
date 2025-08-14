@@ -73,15 +73,10 @@
                           !args : list data = sndPair {integer} {list data} tup
                         in
                         case
-                          (all dead. bytestring)
-                          (equalsInteger 0 index)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit = trace {Unit} "PT1" Unit
-                               in
-                               error {bytestring})
-                          , (/\dead -> unBData (headList {data} args)) ]
-                          {all dead. dead}))
+                          (list data -> bytestring)
+                          index
+                          [(\(ds : list data) -> unBData (headList {data} ds))]
+                          args))
                     (headList
                        {data}
                        (sndPair {integer} {list data} (unConstrData d)))

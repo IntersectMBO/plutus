@@ -4,11 +4,6 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Unit | Unit_match where
-    Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(ds : data) ->
   (let
@@ -21,18 +16,12 @@ in
         !args : list data = sndPair {integer} {list data} tup
       in
       case
-        (all dead. Maybe a)
-        (equalsInteger 1 index)
-        [ (/\dead ->
-             case
-               (all dead. Maybe a)
-               (equalsInteger 0 index)
-               [ (/\dead -> traceError {Maybe a} "PT1")
-               , (/\dead ->
-                    Just {a} (`$dUnsafeFromData` (headList {data} args))) ]
-               {all dead. dead})
-        , (/\dead -> Nothing {a}) ]
-        {all dead. dead})
+        (list data -> Maybe a)
+        index
+        [ (\(ds : list data) ->
+             Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+        , (\(ds : list data) -> Nothing {a}) ]
+        args)
     (\(d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
@@ -40,14 +29,13 @@ in
          !args : list data = sndPair {integer} {list data} tup
        in
        case
-         (all dead. Tuple2 integer integer)
-         (equalsInteger 0 index)
-         [ (/\dead -> traceError {Tuple2 integer integer} "PT1")
-         , (/\dead ->
+         (list data -> Tuple2 integer integer)
+         index
+         [ (\(ds : list data) ->
               Tuple2
                 {integer}
                 {integer}
-                (unIData (headList {data} args))
-                (unIData (headList {data} (tailList {data} args)))) ]
-         {all dead. dead})
+                (unIData (headList {data} ds))
+                (unIData (headList {data} (tailList {data} ds)))) ]
+         args)
     ds

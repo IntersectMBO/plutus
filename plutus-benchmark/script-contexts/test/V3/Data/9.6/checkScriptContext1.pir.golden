@@ -10,8 +10,6 @@
     data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
-    data Unit | Unit_match where
-      Unit : Unit
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
@@ -22,24 +20,14 @@
               !args : list data = sndPair {integer} {list data} tup
             in
             case
-              (all dead. Maybe a)
-              (equalsInteger 1 index)
-              [ (/\dead ->
-                   case
-                     (all dead. Maybe a)
-                     (equalsInteger 0 index)
-                     [ (/\dead ->
-                          let
-                            !x : Unit = trace {Unit} "PT1" Unit
-                          in
-                          error {Maybe a})
-                     , (/\dead ->
-                          Just
-                            {a}
-                            (`$dUnsafeFromData` (headList {data} args))) ]
-                     {all dead. dead})
-              , (/\dead -> Nothing {a}) ]
-              {all dead. dead}
+              (list data -> Maybe a)
+              index
+              [ (\(ds : list data) ->
+                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+              , (\(ds : list data) -> Nothing {a}) ]
+              args
+    data Unit | Unit_match where
+      Unit : Unit
     data (Solo :: * -> *) a | Solo_match where
       MkSolo : a -> Solo a
   in

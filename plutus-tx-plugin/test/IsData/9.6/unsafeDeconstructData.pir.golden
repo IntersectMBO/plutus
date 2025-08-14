@@ -1,24 +1,9 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  !equalsInteger : integer -> integer -> bool = equalsInteger
   !fst : all a b. pair a b -> a = fstPair
   !head : all a. list a -> a = headList
-  ~reconstructCaseError : string = "PT1"
   !snd : all a b. pair a b -> b = sndPair
-  data Unit | Unit_match where
-    Unit : Unit
-  !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
-  !trace : all a. string -> a -> a = trace
-  !unitval : unit = ()
-  ~traceError : all a. string -> a
-    = /\a ->
-        \(str : string) ->
-          let
-            !str : string = str
-            !x : Unit = trace {Unit} str Unit
-          in
-          error {a} unitval
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   !tail : all a. list a -> list a = tailList
   ~wrapTail : all a. list a -> list a = tail
@@ -35,16 +20,18 @@ let
             !args : list data = snd {integer} {list data} tup
           in
           case
-            (all dead. Tuple2 a b)
-            (equalsInteger 0 index)
-            [ (/\dead -> traceError {Tuple2 a b} reconstructCaseError)
-            , (/\dead ->
+            (list data -> Tuple2 a b)
+            index
+            [ (\(ds : list data) ->
+                 let
+                   !ds : list data = ds
+                 in
                  Tuple2
                    {a}
                    {b}
-                   (`$dUnsafeFromData` (head {data} args))
-                   (`$dUnsafeFromData` (head {data} (wrapTail {data} args)))) ]
-            {all dead. dead}
+                   (`$dUnsafeFromData` (head {data} ds))
+                   (`$dUnsafeFromData` (head {data} (wrapTail {data} ds)))) ]
+            args
   ~`$fUnsafeFromDataTuple2` :
      all a b.
        (\a -> data -> a) a ->
@@ -73,18 +60,15 @@ let
             !args : list data = snd {integer} {list data} tup
           in
           case
-            (all dead. Maybe a)
-            (equalsInteger 1 index)
-            [ (/\dead ->
-                 case
-                   (all dead. Maybe a)
-                   (equalsInteger 0 index)
-                   [ (/\dead -> traceError {Maybe a} reconstructCaseError)
-                   , (/\dead ->
-                        Just {a} (`$dUnsafeFromData` (head {data} args))) ]
-                   {all dead. dead})
-            , (/\dead -> Nothing {a}) ]
-            {all dead. dead}
+            (list data -> Maybe a)
+            index
+            [ (\(ds : list data) ->
+                 let
+                   !ds : list data = ds
+                 in
+                 Just {a} (`$dUnsafeFromData` (head {data} ds)))
+            , (\(ds : list data) -> Nothing {a}) ]
+            args
   ~`$fUnsafeFromDataMaybe` :
      all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)
     = `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`

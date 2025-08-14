@@ -39,8 +39,6 @@ in
 let
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
-  data Unit | Unit_match where
-    Unit : Unit
   data (These :: * -> * -> *) a b | These_match where
     That : b -> These a b
     These : a -> b -> These a b
@@ -371,36 +369,17 @@ in
             !args : list data = sndPair {integer} {list data} tup
           in
           case
-            (all dead. These integer integer)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. These integer integer)
-                   (equalsInteger 1 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. These integer integer)
-                          (equalsInteger 2 index)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit = trace {Unit} "PT1" Unit
-                               in
-                               error {These integer integer})
-                          , (/\dead ->
-                               These
-                                 {integer}
-                                 {integer}
-                                 (unIData (headList {data} args))
-                                 (unIData
-                                    (headList {data} (tailList {data} args)))) ]
-                          {all dead. dead})
-                   , (/\dead ->
-                        That
-                          {integer}
-                          {integer}
-                          (unIData (headList {data} args))) ]
-                   {all dead. dead})
-            , (/\dead ->
-                 This {integer} {integer} (unIData (headList {data} args))) ]
-            {all dead. dead})
+            (list data -> These integer integer)
+            index
+            [ (\(ds : list data) ->
+                 This {integer} {integer} (unIData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 That {integer} {integer} (unIData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 These
+                   {integer}
+                   {integer}
+                   (unIData (headList {data} ds))
+                   (unIData (headList {data} (tailList {data} ds)))) ]
+            args)
        nt)

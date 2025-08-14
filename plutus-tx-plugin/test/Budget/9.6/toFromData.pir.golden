@@ -7,11 +7,6 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Unit | Unit_match where
-    Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
   !d : data
     = (let
           b = Maybe (Tuple3 bool integer bool)
@@ -88,22 +83,13 @@ in
       !args : list data = sndPair {integer} {list data} tup
     in
     case
-      (all dead. Either integer b)
-      (equalsInteger 0 index)
-      [ (/\dead ->
-           case
-             (all dead. Either integer b)
-             (equalsInteger 1 index)
-             [ (/\dead -> traceError {Either integer b} "PT1")
-             , (/\dead ->
-                  Right
-                    {integer}
-                    {b}
-                    (`$dUnsafeFromData` (headList {data} args))) ]
-             {all dead. dead})
-      , (/\dead ->
-           Left {integer} {b} (`$dUnsafeFromData` (headList {data} args))) ]
-      {all dead. dead})
+      (list data -> Either integer b)
+      index
+      [ (\(ds : list data) ->
+           Left {integer} {b} (`$dUnsafeFromData` (headList {data} ds)))
+      , (\(ds : list data) ->
+           Right {integer} {b} (`$dUnsafeFromData` (headList {data} ds))) ]
+      args)
   unIData
   ((let
        a = Tuple3 bool integer bool
@@ -115,18 +101,12 @@ in
          !args : list data = sndPair {integer} {list data} tup
        in
        case
-         (all dead. Maybe a)
-         (equalsInteger 1 index)
-         [ (/\dead ->
-              case
-                (all dead. Maybe a)
-                (equalsInteger 0 index)
-                [ (/\dead -> traceError {Maybe a} "PT1")
-                , (/\dead ->
-                     Just {a} (`$dUnsafeFromData` (headList {data} args))) ]
-                {all dead. dead})
-         , (/\dead -> Nothing {a}) ]
-         {all dead. dead})
+         (list data -> Maybe a)
+         index
+         [ (\(ds : list data) ->
+              Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+         , (\(ds : list data) -> Nothing {a}) ]
+         args)
      (\(d : data) ->
         let
           !tup : pair integer (list data) = unConstrData d
@@ -134,12 +114,11 @@ in
           !args : list data = sndPair {integer} {list data} tup
         in
         case
-          (all dead. Tuple3 bool integer bool)
-          (equalsInteger 0 index)
-          [ (/\dead -> traceError {Tuple3 bool integer bool} "PT1")
-          , (/\dead ->
+          (list data -> Tuple3 bool integer bool)
+          index
+          [ (\(ds : list data) ->
                let
-                 !l : list data = tailList {data} args
+                 !l : list data = tailList {data} ds
                in
                Tuple3
                  {bool}
@@ -147,22 +126,15 @@ in
                  {bool}
                  (let
                    !tup : pair integer (list data)
-                     = unConstrData (headList {data} args)
+                     = unConstrData (headList {data} ds)
                    !index : integer = fstPair {integer} {list data} tup
                    !args : list data = sndPair {integer} {list data} tup
                  in
                  case
-                   (all dead. bool)
-                   (equalsInteger 0 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. bool)
-                          (equalsInteger 1 index)
-                          [ (/\dead -> traceError {bool} "PT1")
-                          , (/\dead -> True) ]
-                          {all dead. dead})
-                   , (/\dead -> False) ]
-                   {all dead. dead})
+                   (list data -> bool)
+                   index
+                   [(\(ds : list data) -> False), (\(ds : list data) -> True)]
+                   args)
                  (unIData (headList {data} l))
                  (let
                    !tup : pair integer (list data)
@@ -171,16 +143,9 @@ in
                    !args : list data = sndPair {integer} {list data} tup
                  in
                  case
-                   (all dead. bool)
-                   (equalsInteger 0 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. bool)
-                          (equalsInteger 1 index)
-                          [ (/\dead -> traceError {bool} "PT1")
-                          , (/\dead -> True) ]
-                          {all dead. dead})
-                   , (/\dead -> False) ]
-                   {all dead. dead})) ]
-          {all dead. dead}))
+                   (list data -> bool)
+                   index
+                   [(\(ds : list data) -> False), (\(ds : list data) -> True)]
+                   args)) ]
+          args))
   d
