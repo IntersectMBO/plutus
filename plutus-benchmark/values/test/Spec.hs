@@ -3,6 +3,7 @@ module Main where
 import Test.Tasty
 import Test.Tasty.HUnit
 
+import Data.Map.Strict qualified as Map
 import Data.Monoid (Sum (..))
 
 import PlutusBenchmark.Values.FlattenedValue qualified as FlattenedValue
@@ -22,7 +23,7 @@ testLookupCoin =
         let nRes = NestedValue.lookupCoin polId500 tokN10000 nVal2
             fRes = FlattenedValue.lookupCoin polId500 tokN10000 fVal2
             Sum mRes = MMValue.lookupCoin polId500 tokN10000 mVal2
-         in assertBool "" (nRes == fRes && fRes == mRes)
+         in assertBool "" (nRes == fRes && fRes == mRes && mRes == 0)
     ]
 
 testInsertCoin :: TestTree
@@ -57,19 +58,33 @@ testDeleteCoin =
 
 testUnion :: TestTree
 testUnion =
-    testCase "union" $
+    testGroup "union" $
+    [ testCase "with two different values" $ do
         let nRes = NestedValue.toHMap $ NestedValue.union nVal1 nVal2
             fRes = FlattenedValue.toHMap $ FlattenedValue.union fVal1 fVal2
             mRes = MMValue.toHMap $ MMValue.union mVal1 mVal2
          in assertBool "" (nRes == fRes && fRes == mRes)
+    , testCase "with inverse" $ do
+        let nRes = NestedValue.toHMap $ NestedValue.union nVal1 nVal1Inv
+            fRes = FlattenedValue.toHMap $ FlattenedValue.union fVal1 fVal1Inv
+            mRes = MMValue.toHMap $ MMValue.union mVal1 mmValue1Inv
+         in assertBool "" (nRes == fRes && fRes == mRes && mRes == Map.empty)
+    ]
 
 testContains :: TestTree
 testContains =
-    testCase "contains" $
+    testGroup "contains" $
+    [ testCase "is not sub-value" $ do
         let nRes = NestedValue.valueContains nVal1 nVal2
             fRes = FlattenedValue.valueContains fVal1 fVal2
             mRes = MMValue.valueContains mVal1 mVal2
-         in assertBool "" (nRes == fRes && fRes == mRes)
+         in assertBool "" (nRes == fRes && fRes == mRes && mRes == False)
+    , testCase "is sub-value" $ do
+        let nRes = NestedValue.valueContains nVal1 nVal1Inv
+            fRes = FlattenedValue.valueContains fVal1 fVal1Inv
+            mRes = MMValue.valueContains mVal1 mmValue1Inv
+         in assertBool "" (nRes == fRes && fRes == mRes && mRes == True)
+    ]
 
 main :: IO ()
 main =

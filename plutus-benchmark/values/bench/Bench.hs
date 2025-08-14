@@ -114,12 +114,12 @@ setupEnvMM1andInv =
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
                 mockTokenValues1
-        (_, _, mmValue1Inv) =
+        (_, _, mmValue1Inv') =
             mkMockValues
                 mockNumPolicies1
                 mockNumTokensPerPolicy1
                 (map negate mockTokenValues1)
-     in pure (mmValue1, mmValue1Inv)
+     in pure (mmValue1, mmValue1Inv')
 
 main :: IO ()
 main = do

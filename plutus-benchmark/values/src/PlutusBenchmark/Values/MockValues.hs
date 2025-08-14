@@ -16,9 +16,9 @@ import PlutusBenchmark.Values.MMValue qualified as MMValue
 import PlutusBenchmark.Values.NestedValue qualified as NestedValue
 
 
-fVal1, fVal2 :: FlattenedValue.Value
-nVal1, nVal2 :: NestedValue.Value
-mVal1, mVal2 :: MMValue.Value
+fVal1, fVal2, fVal1Inv :: FlattenedValue.Value
+nVal1, nVal2, nVal1Inv :: NestedValue.Value
+mVal1, mVal2, mmValue1Inv :: MMValue.Value
 (!nVal1, !fVal1, !mVal1) =
     mkMockValues
         mockNumPolicies1
@@ -29,6 +29,11 @@ mVal1, mVal2 :: MMValue.Value
         mockNumPolicies2
         mockNumTokensPerPolicy2
         mockTokenValues2
+(!nVal1Inv, !fVal1Inv, !mmValue1Inv) =
+    mkMockValues
+        mockNumPolicies1
+        mockNumTokensPerPolicy1
+        (map negate mockTokenValues1)
 
 mockNumPolicies1 :: Int
 mockNumPolicies1 = 10000

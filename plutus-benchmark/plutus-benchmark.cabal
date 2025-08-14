@@ -292,6 +292,7 @@ test-suite plutus-benchmark-values-tests
   hs-source-dirs: values/test
   build-depends:
     , base             >=4.9 && <5
+    , containers
     , tasty
     , tasty-hunit
     , values-internal

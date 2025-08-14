@@ -13,6 +13,7 @@ module PlutusBenchmark.Values.FlattenedValue (
 
 import Control.DeepSeq (NFData)
 import Data.ByteString (ByteString)
+import Data.Map.Merge.Strict qualified as Map
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 
@@ -30,11 +31,9 @@ empty = Value Map.empty
 
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
 insertCoin currencyName coinName amount (Value m) =
-    normalize insertCoin'
-  where
-    insertCoin' =
-        Value
-        $ Map.insert (currencyName, coinName) amount m
+    if amount == 0
+        then Value $ Map.delete (currencyName, coinName) m
+        else Value $ Map.insert (currencyName, coinName) amount m
 
 lookupCoin :: ByteString -> ByteString -> Value -> Integer
 lookupCoin currencyName coinName (Value m) =
@@ -46,10 +45,17 @@ deleteCoin currencyName coinName (Value m) =
 
 union :: Value -> Value -> Value
 union (Value m1) (Value m2) =
-    normalize union'
-  where
-    union' =
-        Value $ Map.unionWith (+) m1 m2
+    Value
+    $ Map.merge
+        Map.preserveMissing
+        Map.preserveMissing
+        (Map.zipWithMaybeMatched $ \_ v1 v2 ->
+            if v1 + v2 == 0
+                then Nothing
+                else Just (v1 + v2)
+        )
+        m1
+        m2
 
 valueContains :: Value -> Value -> Bool
 valueContains (Value m1) (Value m2) =
@@ -76,11 +82,3 @@ byTokenName tokenName (Value m) =
         )
         Map.empty
         m
-
-normalize :: Value -> Value
-normalize (Value m) =
-    Value $ Map.filter (/= 0) m
-
--- {}
--- {k1 -> 2, k2 -> 3}
--- {k4 -> 2}
