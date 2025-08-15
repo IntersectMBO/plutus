@@ -232,7 +232,7 @@ cekStepCost costs = runIdentity . \case
 
 data ExBudgetCategory fun
     = BStep StepKind
-    | BBuiltinApp fun  -- Cost of evaluating a fully applied builtin function
+    | BBuiltinApp !fun  -- Cost of evaluating a fully applied builtin function
     | BStartup
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData, Hashable)
