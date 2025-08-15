@@ -36,7 +36,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekValue(..)
     , DischargeResult(..)
     , dischargeResultToTerm
-    , ArgStack(..)
+    , ArgStack
     , transferArgStack
     , CekUserError(..)
     , CekEvaluationException
@@ -111,6 +111,7 @@ import Data.Word
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
+import Queue qualified as Queue
 import Universe
 
 {- Note [Compilation peculiarities]
@@ -250,12 +251,7 @@ instance Show (BuiltinRuntime (CekValue uni fun ann)) where
 
 -- | A LIFO stack of 'CekValue's, useful for recording multiple arguments which will need to
 -- be pushed onto the context in reverse order.
-data ArgStack uni fun ann =
-  EmptyStack
-  | ConsStack !(CekValue uni fun ann) !(ArgStack uni fun ann)
-
-deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-    => Show (ArgStack uni fun ann)
+type ArgStack uni fun ann = Queue.Queue (CekValue uni fun ann)
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann =
@@ -575,9 +571,7 @@ instance Pretty CekUserError where
 
 -- | Convert the given 'ArgStack' to a list by reversing it.
 argStackToList :: ArgStack uni fun ann -> [CekValue uni fun ann]
-argStackToList = go [] where
-    go acc EmptyStack           = acc
-    go acc (ConsStack arg rest) = go (arg : acc) rest
+argStackToList = Queue.toList
 
 -- | The result of 'dischargeCekValue'.
 data DischargeResult uni fun
@@ -669,8 +663,8 @@ data Context uni fun ann
     -- ^ @[V _]@
     | FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
-    | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
-    -- ^ @[_ V]@
+    | FrameAwaitFunValues !(ArgStack uni fun ann) !(Context uni fun ann)
+    -- ^ @[[[_ V_1] ...] V_n]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
@@ -710,15 +704,14 @@ directly to the head of the application. Which is why 'transferSpine' is a right
 -- See Note [ArgStack vs Spine].
 -- | Transfers an 'ArgStack' to a series of 'Context' frames.
 transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
-transferArgStack EmptyStack c           = c
-transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
+transferArgStack = FrameAwaitFunValues
 
 -- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine
     :: Spine (Some (ValueOf uni))
     -> Context uni fun ann
     -> Context uni fun ann
-transferConstantSpine args ctx = foldr (FrameAwaitFunValue . VCon) ctx args
+transferConstantSpine args = FrameAwaitFunValues (foldl' (\q c -> Queue.enqueue (VCon c) q) mempty args)
 {-# INLINE transferConstantSpine #-}
 
 runCekM
@@ -810,8 +803,8 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
         case es of
-          (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
-          []         -> returnCek ctx $ VConstr i EmptyStack
+          (t : rest) -> computeCek (FrameConstr env i rest mempty ctx) env t
+          []         -> returnCek ctx $ VConstr i mempty
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -847,12 +840,15 @@ enterComputeCek = computeCek
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
-    -- s , [_ V] ◅ lam x (M,ρ)  ↦  s ; ρ [ x  ↦  V ] ▻ M
-    returnCek (FrameAwaitFunValue arg ctx) fun =
-        applyEvaluate ctx fun arg
+    -- s , [[[_ V_1] ... ] V_n] ◅ (lam x_1 ( ... (lam x_n (M,ρ)))) ↦ s ; ρ [ x_1  ↦  V_1, ..., x_n ↦ V_n] ▻ M
+    returnCek (FrameAwaitFunValues args ctx) fun =
+      case Queue.dequeue args of
+        Nothing -> returnCek ctx fun
+        Just (arg,rest) ->
+          applyEvaluate (FrameAwaitFunValues rest ctx) fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
-        let done' = ConsStack e done
+        let done' = Queue.enqueue e done
         case todo of
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
           []             -> returnCek ctx $ VConstr i done'
