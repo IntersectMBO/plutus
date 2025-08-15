@@ -20,6 +20,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Value qualified as PLC
 
 import Data.ByteString qualified as BS
 import Data.Functor
@@ -367,6 +368,10 @@ instance ExMemoryUsage Data where
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
+
+-- TODO: add instance for value
+instance ExMemoryUsage PLC.Value where
+    memoryUsage = undefined
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
