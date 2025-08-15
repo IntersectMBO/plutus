@@ -663,6 +663,8 @@ data Context uni fun ann
     -- ^ @[V _]@
     | FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
+    | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
+    -- ^ @[_ V]@
     | FrameAwaitFunValues !(ArgStack uni fun ann) !(Context uni fun ann)
     -- ^ @[[[_ V_1] ...] V_n]@
     | FrameForce !(Context uni fun ann)
@@ -711,7 +713,7 @@ transferConstantSpine
     :: Spine (Some (ValueOf uni))
     -> Context uni fun ann
     -> Context uni fun ann
-transferConstantSpine args = FrameAwaitFunValues (foldl' (\q c -> Queue.enqueue (VCon c) q) mempty args)
+transferConstantSpine args ctx = foldr (FrameAwaitFunValue . VCon) ctx args
 {-# INLINE transferConstantSpine #-}
 
 runCekM
@@ -840,6 +842,9 @@ enterComputeCek = computeCek
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
+    -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
+    returnCek (FrameAwaitFunValue arg ctx) fun =
+      applyEvaluate ctx fun arg
     -- s , [[[_ V_1] ... ] V_n] ◅ (lam x_1 ( ... (lam x_n (M,ρ)))) ↦ s ; ρ [ x_1  ↦  V_1, ..., x_n ↦ V_n] ▻ M
     returnCek (FrameAwaitFunValues args ctx) fun =
       case Queue.dequeue args of
