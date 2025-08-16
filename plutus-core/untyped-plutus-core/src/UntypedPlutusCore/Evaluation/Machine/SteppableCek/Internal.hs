@@ -200,12 +200,14 @@ returnCek (FrameAwaitFunValues ann args ctx) fun =
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
     let
-      appendArgStack x EmptyStack         = ConsStack x EmptyStack
-      appendArgStack x (ConsStack y rest) = ConsStack y (appendArgStack x rest)
-      done' = appendArgStack e done
+      reverseArgStack = go EmptyStack
+        where
+          go acc EmptyStack       = acc
+          go acc (ConsStack x xs) = go (ConsStack x acc) xs
+      done' = ConsStack e done
     case todo of
         (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        []             -> returnCek ctx $ VConstr i done'
+        []             -> returnCek ctx $ VConstr i (reverseArgStack done')
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
     -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
