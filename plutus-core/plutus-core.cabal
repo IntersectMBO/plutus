@@ -336,7 +336,6 @@ library
     , prettyprinter-configurable
     , primitive
     , profunctors
-    , queues
     , recursion-schemes
     , satint
     , semigroups                  >=0.19.1

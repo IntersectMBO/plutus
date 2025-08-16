@@ -36,7 +36,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekValue(..)
     , DischargeResult(..)
     , dischargeResultToTerm
-    , ArgStack
+    , ArgStack(..)
     , transferArgStack
     , CekUserError(..)
     , CekEvaluationException
@@ -111,7 +111,6 @@ import Data.Word
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
-import Queue qualified as Queue
 import Universe
 
 {- Note [Compilation peculiarities]
@@ -251,7 +250,12 @@ instance Show (BuiltinRuntime (CekValue uni fun ann)) where
 
 -- | A LIFO stack of 'CekValue's, useful for recording multiple arguments which will need to
 -- be pushed onto the context in reverse order.
-type ArgStack uni fun ann = Queue.Queue (CekValue uni fun ann)
+data ArgStack uni fun ann =
+  EmptyStack
+  | ConsStack !(CekValue uni fun ann) !(ArgStack uni fun ann)
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (ArgStack uni fun ann)
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann =
@@ -569,9 +573,10 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
--- | Convert the given 'ArgStack' to a list by reversing it.
+-- | Convert the given 'ArgStack' to a list.
 argStackToList :: ArgStack uni fun ann -> [CekValue uni fun ann]
-argStackToList = Queue.toList
+argStackToList EmptyStack           = []
+argStackToList (ConsStack arg rest) = arg : argStackToList rest
 
 -- | The result of 'dischargeCekValue'.
 data DischargeResult uni fun
@@ -805,8 +810,8 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
         case es of
-          (t : rest) -> computeCek (FrameConstr env i rest mempty ctx) env t
-          []         -> returnCek ctx $ VConstr i mempty
+          (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
+          []         -> returnCek ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -847,13 +852,16 @@ enterComputeCek = computeCek
       applyEvaluate ctx fun arg
     -- s , [[[_ V_1] ... ] V_n] ◅ (lam x_1 ( ... (lam x_n (M,ρ)))) ↦ s ; ρ [ x_1  ↦  V_1, ..., x_n ↦ V_n] ▻ M
     returnCek (FrameAwaitFunValues args ctx) fun =
-      case Queue.dequeue args of
-        Nothing -> returnCek ctx fun
-        Just (arg,rest) ->
+      case args of
+        EmptyStack -> returnCek ctx fun
+        ConsStack arg rest ->
           applyEvaluate (FrameAwaitFunValues rest ctx) fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
-        let done' = Queue.enqueue e done
+        let
+          appendArgStack x EmptyStack         = ConsStack x EmptyStack
+          appendArgStack x (ConsStack y rest) = ConsStack y (appendArgStack x rest)
+          done' = appendArgStack e done
         case todo of
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
           []             -> returnCek ctx $ VConstr i done'

@@ -66,8 +66,6 @@ import Data.Word (Word64)
 import GHC.TypeNats
 import Universe
 
-import Queue qualified as Queue
-
 {- Note [Debuggable vs Original versions of CEK]
 
 The debuggable version of CEK was created from copying over the original CEK/Internal.hs module
@@ -159,8 +157,8 @@ computeCek !ctx !_ (Builtin _ bn) = do
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     pure $ case es of
-        (t : rest) -> Computing (FrameConstr ann env i rest mempty ctx) env t
-        []         -> Returning ctx $ VConstr i mempty
+        (t : rest) -> Computing (FrameConstr ann env i rest EmptyStack ctx) env t
+        []         -> Returning ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
@@ -195,13 +193,16 @@ returnCek (FrameAwaitFunValue _ arg ctx) fun =
   applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
 returnCek (FrameAwaitFunValues ann args ctx) fun =
-    case Queue.dequeue args of
-      Nothing -> returnCek ctx fun
-      Just (arg,rest) ->
+    case args of
+      EmptyStack -> returnCek ctx fun
+      ConsStack arg rest ->
         applyEvaluate (FrameAwaitFunValues ann rest ctx) fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
-    let done' = Queue.enqueue e done
+    let
+      appendArgStack x EmptyStack         = ConsStack x EmptyStack
+      appendArgStack x (ConsStack y rest) = ConsStack y (appendArgStack x rest)
+      done' = appendArgStack e done
     case todo of
         (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
         []             -> returnCek ctx $ VConstr i done'
