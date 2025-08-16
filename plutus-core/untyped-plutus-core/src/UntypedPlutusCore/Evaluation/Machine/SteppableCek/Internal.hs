@@ -153,7 +153,7 @@ computeCek !ctx !_ (Builtin _ fun) = do
     stepAndMaybeSpend BBuiltin
     let meaning = lookupBuiltin fun ?cekRuntime
     -- 'Builtin' is fully discharged.
-    pure $ Returning ctx (VBuiltin (PartialBuiltinHead fun) meaning)
+    pure $ Returning ctx (VBuiltin fun (PartialBuiltinHead fun) meaning)
 -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
@@ -231,7 +231,7 @@ forceEvaluate
     -> CekM uni fun s (CekState uni fun ann)
 forceEvaluate !ctx (VDelay body env) =
     pure $ Computing ctx env body
-forceEvaluate !ctx (VBuiltin app runtime) = do
+forceEvaluate !ctx (VBuiltin fun app runtime) = do
     -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
     let app' = PartialBuiltinForce app
     case runtime of
@@ -241,7 +241,7 @@ forceEvaluate !ctx (VBuiltin app runtime) = do
             -- We allow a type argument to appear last in the type of a built-in function,
             -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
             -- application.
-            evalBuiltinApp ctx app' runtime'
+            evalBuiltinApp ctx fun app' runtime'
         _ ->
             throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) $
                 dischargePartialBuiltinApp app'
@@ -266,12 +266,12 @@ applyEvaluate !ctx (VLamAbs _ body env) arg =
     pure $ Computing ctx (Env.cons arg env) body
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-applyEvaluate !ctx (VBuiltin app runtime) arg = do
+applyEvaluate !ctx (VBuiltin fun app runtime) arg = do
     let app' = PartialBuiltinApply app arg
     case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        BuiltinExpectArgument f -> evalBuiltinApp ctx app' $ f arg
+        BuiltinExpectArgument f -> evalBuiltinApp ctx fun app' $ f arg
         _ ->
             throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) $
                 dischargePartialBuiltinApp app'
@@ -452,12 +452,13 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
 evalBuiltinApp
     :: (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
+    -> fun
     -> PartialBuiltinApp uni fun ann
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
-evalBuiltinApp ctx app runtime = case runtime of
+evalBuiltinApp ctx fun app runtime = case runtime of
     BuiltinCostedResult budgets0 getFXs -> do
-        let exCat = BBuiltinApp $ headPartialBuiltinApp app
+        let exCat = BBuiltinApp fun
             spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
             spendBudgets (ExBudgetCons budget budgets) =
                 spendBudget exCat budget *> spendBudgets budgets
@@ -471,7 +472,7 @@ evalBuiltinApp ctx app runtime = case runtime of
             BuiltinFailure logs err -> do
                 ?cekEmitter logs
                 throwBuiltinErrorWithCause err $ dischargePartialBuiltinApp app
-    _ -> returnCek ctx $ VBuiltin app runtime
+    _ -> returnCek ctx $ VBuiltin fun app runtime
 {-# INLINE evalBuiltinApp #-}
 
 spendBudget :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
