@@ -573,11 +573,10 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
--- | Convert the given 'ArgStack' to a list by reversing it.
+-- | Convert the given 'ArgStack' to a list.
 argStackToList :: ArgStack uni fun ann -> [CekValue uni fun ann]
-argStackToList = go [] where
-    go acc EmptyStack           = acc
-    go acc (ConsStack arg rest) = go (arg : acc) rest
+argStackToList EmptyStack           = []
+argStackToList (ConsStack arg rest) = arg : argStackToList rest
 
 -- | The result of 'dischargeCekValue'.
 data DischargeResult uni fun
@@ -671,6 +670,8 @@ data Context uni fun ann
     -- ^ @[_ N]@
     | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V]@
+    | FrameAwaitFunValues !(ArgStack uni fun ann) !(Context uni fun ann)
+    -- ^ @[[[_ V_1] ...] V_n]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
@@ -710,8 +711,7 @@ directly to the head of the application. Which is why 'transferSpine' is a right
 -- See Note [ArgStack vs Spine].
 -- | Transfers an 'ArgStack' to a series of 'Context' frames.
 transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
-transferArgStack EmptyStack c           = c
-transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
+transferArgStack = FrameAwaitFunValues
 
 -- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine
@@ -847,12 +847,21 @@ enterComputeCek = computeCek
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
-    -- s , [_ V] ◅ lam x (M,ρ)  ↦  s ; ρ [ x  ↦  V ] ▻ M
+    -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
     returnCek (FrameAwaitFunValue arg ctx) fun =
-        applyEvaluate ctx fun arg
+      applyEvaluate ctx fun arg
+    -- s , [[[_ V_1] ... ] V_n] ◅ (lam x_1 ( ... (lam x_n (M,ρ)))) ↦ s ; ρ [ x_1  ↦  V_1, ..., x_n ↦ V_n] ▻ M
+    returnCek (FrameAwaitFunValues args ctx) fun =
+      case args of
+        EmptyStack -> returnCek ctx fun
+        ConsStack arg rest ->
+          applyEvaluate (FrameAwaitFunValues rest ctx) fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
-        let done' = ConsStack e done
+        let
+          appendArgStack x EmptyStack         = ConsStack x EmptyStack
+          appendArgStack x (ConsStack y rest) = ConsStack y (appendArgStack x rest)
+          done' = appendArgStack e done
         case todo of
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
           []             -> returnCek ctx $ VConstr i done'
