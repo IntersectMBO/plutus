@@ -863,7 +863,7 @@ compileHaskellList = buildList . strip
   where
     err =
       throwPlain $
-        CompilationError "Unexpected expression is given where to be Haskell list constructor is expected"
+        CompilationError "Unexpected expression where a list constructor was expected"
 
     -- This is when the list is a single element and GHC will specialize list builder directly.
     -- GHC will generate core that looks like below:
