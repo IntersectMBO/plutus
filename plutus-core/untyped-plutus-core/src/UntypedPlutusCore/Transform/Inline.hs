@@ -283,16 +283,29 @@ processTerm = handleTerm
     :: Term name uni fun a
     -> InlineM name uni fun a (Term name uni fun a)
   handleTerm = \case
+    -- If term = single variable, try to substitute it
+    -- using the substitution map from the InlineM state
     v@(Var _ n) -> fromMaybe v <$> substName n
     -- See Note [Differences from PIR inliner] 3
+
+    -- this is like "let bs (list of bindings) in t"
     (extractApps -> Just (bs, t)) -> do
+      -- it tries to find all of the substitutions which
+      -- we allow to be applied in the term, inside
+      -- processSingleBinding the state is modified to keep
+      -- track of them
       bs' <- wither (processSingleBinding t) bs
       t' <- processTerm t
+      -- !!the substitutions are not applied here!!
+      -- we just return the term from the recursive call,
+      -- with the applications which can be substituted
       pure $ restoreApps bs' t'
     t -> inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
   -- See Note [Renaming strategy]
   substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun a))
+  -- renaming should not matter for the certifier since there we
+  -- use DeBruijn
   substName name = gets (lookupTerm name) >>= traverse renameTerm
 
   -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -310,9 +323,13 @@ processSingleBinding
   -> UTermDef name uni fun a
   -> InlineM name uni fun a (Maybe (UTermDef name uni fun a))
 processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
+  -- maybeAddSubst is basically just "processTerm"!
+  -- after running "processTerm" it checks whether we can really
+  -- inline the UTermDef
   maybeAddSubst body a n rhs0 >>= \case
     Just rhs -> do
       let (binders, rhsBody) = UPLC.splitParams rhs
+      -- here is where the state is modified with the new substitution
       modify' . extendVarInfo n $
         VarInfo
           { _varBinders = binders
@@ -561,6 +578,9 @@ fullyApplyAndBetaReduce info args0 = do
           if safe
             then do
               acc' <-
+                -- this needs to be changed, such that every time
+                -- a variable is substituted, we store the resulting
+                -- subterm with an incremented attribute
                 termSubstNamesM
                   ( \n ->
                       if n == param
