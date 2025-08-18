@@ -37,7 +37,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , DischargeResult(..)
     , dischargeResultToTerm
     , ArgStack(..)
-    , transferArgStack
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
@@ -701,17 +700,12 @@ pass them to a function they need to be evaluated to values, which means that in
 machine the evaluated arguments are going to be reversed: you evaluate the first argument and put
 the result into a 'FrameConstr', then the second one and put it in a 'FrameConstr' again, this time
 prepending it to the one that is already there etc -- in the end you get the arguments in reversed
-order. Which is why 'transferArgStack' is a left fold (just like 'reverse').
+order.
 
 But in case of 'Spine' the builtins machinery directly produces values, not terms. Meaning, a
 'Spine' that we get from the builtins machinery isn't reversed, hence we can pass its contents
 directly to the head of the application. Which is why 'transferSpine' is a right fold.
 -}
-
--- See Note [ArgStack vs Spine].
--- | Transfers an 'ArgStack' to a series of 'Context' frames.
-transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
-transferArgStack = FrameAwaitFunValues
 
 -- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine
@@ -877,7 +871,7 @@ enterComputeCek = computeCek
                         throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
         -- Otherwise, we can safely convert the index to an Int and use it.
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
-            Just t  -> computeCek (transferArgStack args ctx) env t
+            Just t  -> computeCek (FrameAwaitFunValues args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of

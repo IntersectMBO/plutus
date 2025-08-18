@@ -50,8 +50,7 @@ import PlutusPrelude
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn,
-                                                          transferArgStack)
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
@@ -106,10 +105,6 @@ data Context uni fun ann
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (Context uni fun ann)
-
--- | Transfers an 'ArgStack' to a series of 'Context' frames.
-transferArgStack :: ann -> ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
-transferArgStack = FrameAwaitFunValues
 
 -- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
@@ -218,7 +213,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
                     throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
-              let ctx' = transferArgStack ann args ctx
+              let ctx' = FrameAwaitFunValues ann args ctx
               in computeCek ctx' env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
