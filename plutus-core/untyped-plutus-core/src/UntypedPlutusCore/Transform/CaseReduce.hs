@@ -12,7 +12,7 @@ import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseReduce), SimplifierT,
-                                               recordSimplification)
+                                               initSimplifierTerm, recordSimplification)
 
 caseReduce
     :: (Monad m, CaseBuiltin uni)
@@ -20,7 +20,10 @@ caseReduce
     -> SimplifierT name uni fun a m (Term name uni fun a)
 caseReduce term = do
     let result = transformOf termSubterms processTerm term
-    recordSimplification term CaseReduce result
+    recordSimplification
+       (initSimplifierTerm term)
+       CaseReduce
+       (initSimplifierTerm result)
     return result
 
 processTerm :: CaseBuiltin uni => Term name uni fun a -> Term name uni fun a

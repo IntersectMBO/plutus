@@ -62,7 +62,7 @@ import PlutusCore.Name.UniqueSet qualified as USet
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (FloatDelay), SimplifierT,
-                                               recordSimplification)
+                                               initSimplifierTerm, recordSimplification)
 
 import Control.Lens (forOf, forOf_, transformOf)
 import Control.Monad.Trans.Writer.CPS (Writer, execWriter, runWriter, tell)
@@ -78,7 +78,10 @@ floatDelay term = do
   result <-
     PLC.rename term >>= \t ->
         pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
-  recordSimplification term FloatDelay result
+  recordSimplification
+    (initSimplifierTerm term)
+    FloatDelay
+    (initSimplifierTerm result)
   return result
 
 {- | First pass. Returns the names of all variables, at least one occurrence
