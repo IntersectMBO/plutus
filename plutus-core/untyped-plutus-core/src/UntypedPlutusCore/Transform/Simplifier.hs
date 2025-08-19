@@ -4,6 +4,7 @@ module UntypedPlutusCore.Transform.Simplifier (
     SimplifierT (..),
     SimplifierTrace (..),
     SimplifierStage (..),
+    SimplifierAnn (..),
     Simplification (..),
     runSimplifierT,
     evalSimplifierT,
@@ -64,11 +65,17 @@ data SimplifierStage
   | Inline
   | CSE
 
+data SimplifierAnn a =
+  SimplifierAnn
+    { inlineCounter :: Integer
+    , ann           :: a
+    }
+
 data Simplification name uni fun a =
   Simplification
-    { beforeAST :: Term name uni fun a
+    { beforeAST :: Term name uni fun (SimplifierAnn a)
     , stage     :: SimplifierStage
-    , afterAST  :: Term name uni fun a
+    , afterAST  :: Term name uni fun (SimplifierAnn a)
     }
 
 -- TODO2: we probably don't want this in memory so after MVP
@@ -84,9 +91,9 @@ initSimplifierTrace = SimplifierTrace []
 
 recordSimplification
   :: Monad m
-  => Term name uni fun a
+  => Term name uni fun (SimplifierAnn a)
   -> SimplifierStage
-  -> Term name uni fun a
+  -> Term name uni fun (SimplifierAnn a)
   -> SimplifierT name uni fun a m ()
 recordSimplification beforeAST stage afterAST =
   let simplification = Simplification { beforeAST, stage, afterAST }

@@ -191,12 +191,6 @@ extendVarInfo
   -> S name uni fun a
 extendVarInfo n info s = s & vars %~ UMap.insertByName n info
 
-addAnnotationsTODO :: Term name uni fun a -> Term name uni fun (Integer, a)
-addAnnotationsTODO = undefined
-
-removeAnnotationsTODO :: Term name uni fun (Integer, a) -> Term name uni fun a
-removeAnnotationsTODO = undefined
-
 {-| Inline simple bindings. Relies on global uniqueness, and preserves it.
 See Note [Inlining and global uniqueness]
 -}
@@ -209,10 +203,10 @@ inline
   -- ^ inline constants
   -> Bool
   -- ^ preserve logging
-  -> InlineHints name (Integer, a)
+  -> InlineHints name a
   -> PLC.BuiltinSemanticsVariant fun
   -> Term name uni fun a
-  -> SimplifierT name uni fun (Integer, a) m (Term name uni fun a)
+  -> SimplifierT name uni fun a m (Term name uni fun a)
 inline
   callsiteGrowth
   inlineConstants
@@ -220,23 +214,21 @@ inline
   hints
   builtinSemanticsVariant
   t = do
-    let t' = addAnnotationsTODO t
     result <-
       liftQuote $
         flip evalStateT mempty $
           runReaderT
-            (processTerm t')
+            (processTerm t)
             InlineInfo
-              { _iiUsages = Usages.termUsages t'
+              { _iiUsages = Usages.termUsages t
               , _iiHints = hints
               , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
               , _iiInlineConstants = inlineConstants
               , _iiInlineCallsiteGrowth = callsiteGrowth
               , _iiPreserveLogging = preserveLogging
               }
-    recordSimplification t' Inline result
-    let result' = removeAnnotationsTODO result
-    return result'
+    recordSimplification t Inline result
+    return result
 
 -- See Note [Differences from PIR inliner] 3
 
@@ -283,43 +275,30 @@ restoreApps defs t = makeLams [] t (reverse defs)
 processTerm
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => Term name uni fun (Integer, a)
-  -> InlineM name uni fun (Integer, a) (Term name uni fun (Integer, a))
+  => Term name uni fun a
+  -> InlineM name uni fun a (Term name uni fun a)
 processTerm = handleTerm
  where
   handleTerm
-    :: Term name uni fun (Integer, a)
-    -> InlineM name uni fun (Integer, a) (Term name uni fun (Integer, a))
+    :: Term name uni fun a
+    -> InlineM name uni fun a (Term name uni fun a)
   handleTerm = \case
-    -- If term = single variable, try to substitute it
-    -- using the substitution map from the InlineM state
     v@(Var _ n) -> fromMaybe v <$> substName n
     -- See Note [Differences from PIR inliner] 3
-
-    -- this is like "let bs (list of bindings) in t"
     (extractApps -> Just (bs, t)) -> do
-      -- it tries to find all of the substitutions which
-      -- we allow to be applied in the term, inside
-      -- processSingleBinding the state is modified to keep
-      -- track of them
       bs' <- wither (processSingleBinding t) bs
       t' <- processTerm t
-      -- !!the substitutions are not applied here!!
-      -- we just return the term from the recursive call,
-      -- with the applications which can be substituted
       pure $ restoreApps bs' t'
     t -> inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
   -- See Note [Renaming strategy]
-  substName :: name -> InlineM name uni fun (Integer, a) (Maybe (Term name uni fun (Integer, a)))
-  -- renaming should not matter for the certifier since there we
-  -- use DeBruijn
+  substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun a))
   substName name = gets (lookupTerm name) >>= traverse renameTerm
 
   -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
   renameTerm
-    :: InlineTerm name uni fun (Integer, a)
-    -> InlineM name uni fun (Integer, a) (Term name uni fun (Integer, a))
+    :: InlineTerm name uni fun a
+    -> InlineM name uni fun a (Term name uni fun a)
   renameTerm = \case
     -- Already processed term, just rename and put it in, don't do any
     -- further optimization here.
@@ -327,17 +306,13 @@ processTerm = handleTerm
 
 processSingleBinding
   :: (InliningConstraints name uni fun)
-  => Term name uni fun (Integer, a)
-  -> UTermDef name uni fun (Integer, a)
-  -> InlineM name uni fun (Integer, a) (Maybe (UTermDef name uni fun (Integer, a)))
+  => Term name uni fun a
+  -> UTermDef name uni fun a
+  -> InlineM name uni fun a (Maybe (UTermDef name uni fun a))
 processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
-  -- maybeAddSubst is basically just "processTerm"!
-  -- after running "processTerm" it checks whether we can really
-  -- inline the UTermDef
   maybeAddSubst body a n rhs0 >>= \case
     Just rhs -> do
       let (binders, rhsBody) = UPLC.splitParams rhs
-      -- here is where the state is modified with the new substitution
       modify' . extendVarInfo n $
         VarInfo
           { _varBinders = binders
@@ -357,11 +332,11 @@ Nothing means that we are inlining the term:
 maybeAddSubst
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => Term name uni fun (Integer, a)
-  -> (Integer, a)
+  => Term name uni fun a
+  -> a
   -> name
-  -> Term name uni fun (Integer, a)
-  -> InlineM name uni fun (Integer, a) (Maybe (Term name uni fun (Integer, a)))
+  -> Term name uni fun a
+  -> InlineM name uni fun a (Maybe (Term name uni fun a))
 maybeAddSubst body a n rhs0 = do
   rhs <- processTerm rhs0
 
@@ -380,8 +355,8 @@ maybeAddSubst body a n rhs0 = do
  where
   extendAndDrop
     :: forall b
-     . InlineTerm name uni fun (Integer, a)
-    -> InlineM name uni fun (Integer, a) (Maybe b)
+     . InlineTerm name uni fun a
+    -> InlineM name uni fun a (Maybe b)
   extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
 shouldUnconditionallyInline
@@ -569,16 +544,16 @@ sizeIsAcceptable inlineConstants = \case
 fullyApplyAndBetaReduce
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => VarInfo name uni fun (Integer, a)
-  -> [((Integer, a), Term name uni fun (Integer, a))]
-  -> InlineM name uni fun (Integer, a) (Maybe (Term name uni fun (Integer, a)))
+  => VarInfo name uni fun a
+  -> [(a, Term name uni fun a)]
+  -> InlineM name uni fun a (Maybe (Term name uni fun a))
 fullyApplyAndBetaReduce info args0 = do
   rhsBody <- liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)
   let go
-        :: Term name uni fun (Integer, a)
+        :: Term name uni fun a
         -> [name]
-        -> [((Integer, a), Term name uni fun (Integer, a))]
-        -> InlineM name uni fun (Integer, a) (Maybe (Term name uni fun (Integer, a)))
+        -> [(a, Term name uni fun a)]
+        -> InlineM name uni fun a (Maybe (Term name uni fun a))
       go acc bs args = case (bs, args) of
         ([], _) -> pure . Just $ mkIterApp acc args
         (param : params, (_ann, arg) : args') -> do
@@ -586,9 +561,6 @@ fullyApplyAndBetaReduce info args0 = do
           if safe
             then do
               acc' <-
-                -- this needs to be changed, such that every time
-                -- a variable is substituted, we store the resulting
-                -- subterm with an incremented attribute
                 termSubstNamesM
                   ( \n ->
                       if n == param
@@ -605,8 +577,8 @@ fullyApplyAndBetaReduce info args0 = do
       -- inlining `a`, since inlining is the same as beta reduction.
       safeToBetaReduce
         :: name
-        -> Term name uni fun (Integer, a)
-        -> InlineM name uni fun (Integer, a) Bool
+        -> Term name uni fun a
+        -> InlineM name uni fun a Bool
       safeToBetaReduce a arg = shouldUnconditionallyInline False a arg rhsBody
   go rhsBody (info ^. varBinders) args0
 
@@ -617,8 +589,8 @@ See Note [Inlining and beta reduction of functions].
 inlineSaturatedApp
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => Term name uni fun (Integer, a)
-  -> InlineM name uni fun (Integer, a) (Term name uni fun (Integer, a))
+  => Term name uni fun a
+  -> InlineM name uni fun a (Term name uni fun a)
 inlineSaturatedApp t
   | (Var _ann name, args) <- UPLC.splitApplication t =
       gets (lookupVarInfo name) >>= \case
