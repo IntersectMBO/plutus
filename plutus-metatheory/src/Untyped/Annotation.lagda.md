@@ -56,24 +56,22 @@ read = proj₁
 strip : {M : X ⊢} → Annotation A M → X ⊢
 strip {M = M} _ = M
 
-postulate
-  weakenAnnotation' : {M : X ⊢} → Annotation′ A M → Annotation′ A (weaken M)
+weakenAnnotation' : {M : X ⊢} → Annotation′ A M → Annotation′ A (weaken M)
 
 weakenAnnotation : {M : X ⊢} → Annotation A M → Annotation A (weaken M)
-{-
+weakenAnnotation (a , a') = (a , (weakenAnnotation' a'))
+
 weakenAnnotation' (` v) = ` (just v)
-weakenAnnotation' (ƛ NN) = ƛ (weakenAnnotation NN)
-weakenAnnotation' (LL · MM) = {!!}
-weakenAnnotation' (force MM) = {!!}
-weakenAnnotation' (delay MM) = {!!}
+weakenAnnotation' (ƛ NN) = ƛ {!!}
+weakenAnnotation' (LL · MM) = weakenAnnotation LL · weakenAnnotation MM
+weakenAnnotation' (force MM) = force (weakenAnnotation MM)
+weakenAnnotation' (delay MM) = delay (weakenAnnotation MM)
 weakenAnnotation' (con t) = con t
 weakenAnnotation' error = error
 weakenAnnotation' (builtin b) = builtin b
-weakenAnnotation' (case t ts) = {!!}
-weakenAnnotation' (constr i ts) = {!!}
--}
+weakenAnnotation' (case t ts) = case (weakenAnnotation t) {!!}
+weakenAnnotation' (constr i ts) = constr i {!!}
 
-weakenAnnotation (a , a') = (a , (weakenAnnotation' a'))
 
 {-
 unannotated : {A : Set} → (default : A) → (M : X ⊢) → Annotation A M

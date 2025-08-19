@@ -115,6 +115,38 @@ unconstrained scope, but `Inlined a e` would be constrained by the
 scope of the terms in `a` and `e`. Consequently we have to introduce a
 new scope `Y`, but will only have constructors for places where this
 matches the scope of the environment.
+
+[]
+<>
+0
+((ƛ ƛ (` 1)) · a · b) ~ (2 , a)
+
+= c· =>
+[b]
+<>
+1
+((ƛ ƛ (` 1)) · a) ~ (1 , a)
+
+= c· =>
+
+[a , b]
+2
+((ƛ ƛ (` 1))) ~ (0 , a)
+
+= cƛ =>
+
+[b]
+<a>
+1
+( ƛ (` 1)) ~ (0 , a)
+
+= cƛ =>
+
+[]
+<b , a>
+0
+(` 1) ~ (0 , a)
+
 ```
 
 data Inlined : List (X ⊢) → Bind X → {t₂ : X ⊢} → ℕ → (t₁ : X ⊢) → Annotation ℕ t₂ → Set₁ where
