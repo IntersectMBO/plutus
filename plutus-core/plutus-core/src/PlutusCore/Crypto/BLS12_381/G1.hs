@@ -173,8 +173,5 @@ compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve1)
 
 -- | Multi-scalar multiplication of G1 points.
--- Uses MSM when the number of pairs exceeds a threshold (currently 10).
--- Below this, a naive approach (repeated add/mul) is faster.
--- The threshold should be determined by the costing benchmarked.
 multiScalarMul :: [Integer] -> [Element] -> Element
 multiScalarMul = coerce (\s p -> BlstBindings.blsMSM @BlstBindings.Curve1 (zip s p))
