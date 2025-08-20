@@ -95,6 +95,7 @@ library
     Data.MultiSet.Lens
     Data.Version.Extras
     PlutusCore
+    PlutusCore.ASTSize
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Arity
@@ -171,7 +172,6 @@ library
     PlutusCore.Rename
     PlutusCore.Rename.Internal
     PlutusCore.Rename.Monad
-    PlutusCore.Size
     PlutusCore.StdLib.Data.Bool
     PlutusCore.StdLib.Data.ChurchNat
     PlutusCore.StdLib.Data.Data
@@ -198,6 +198,7 @@ library
     Prettyprinter.Custom
     Universe
     UntypedPlutusCore
+    UntypedPlutusCore.ASTSize
     UntypedPlutusCore.Check.Scope
     UntypedPlutusCore.Check.Uniques
     UntypedPlutusCore.Contexts
@@ -220,7 +221,6 @@ library
     UntypedPlutusCore.Purity
     UntypedPlutusCore.Rename
     UntypedPlutusCore.Rename.Internal
-    UntypedPlutusCore.Size
     UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.Cse
@@ -509,10 +509,10 @@ library plutus-ir
   hs-source-dirs:  plutus-ir/src
   exposed-modules:
     PlutusIR
+    PlutusIR.ASTSize
     PlutusIR.Analysis.Builtins
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize
-    PlutusIR.Analysis.Size
     PlutusIR.Analysis.VarInfo
     PlutusIR.Check.Uniques
     PlutusIR.Compiler
