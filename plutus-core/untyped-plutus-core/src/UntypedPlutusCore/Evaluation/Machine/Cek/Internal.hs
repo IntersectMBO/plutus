@@ -37,7 +37,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , DischargeResult(..)
     , dischargeResultToTerm
     , ArgStack(..)
-    , transferArgStack
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
