@@ -117,7 +117,7 @@ instance Haskell.Monoid (List a) where
   mempty = nil
   {-# INLINEABLE mempty #-}
 
-{- Note [Making the cons case non-strict in caseList and caseList']
+{- Note [Making arguments non-strict in case and match functions]
 
 A function parameter's strictness is in theory irrelevant to the Plinth compiler.
 However, it does affect how GHC compiles the function's callsites to GHC Core.
@@ -139,8 +139,8 @@ caseList
   -- ^ Cons case
   -> List a
   -> r
--- See Note [Making the cons case non-strict in caseList and caseList']
-caseList n ~c (List l) = B.caseList n (\x -> c (unsafeFromBuiltinData x) . List) l
+-- See Note [Making arguments non-strict in case and match functions]
+caseList ~n ~c (List l) = B.caseList n (\x -> c (unsafeFromBuiltinData x) . List) l
 {-# INLINEABLE caseList #-}
 
 {-| Like `caseList`, except the nil case takes an `r` directly, which is evaluated strictly.
@@ -155,8 +155,8 @@ caseList'
   -- ^ Cons case
   -> List a
   -> r
--- See Note [Making the cons case non-strict in caseList and caseList']
-caseList' n ~c (List l) = B.caseList' n (\x -> c (unsafeFromBuiltinData x) . List) l
+-- See Note [Making arguments non-strict in case and match functions]
+caseList' ~n ~c (List l) = B.caseList' n (\x -> c (unsafeFromBuiltinData x) . List) l
 {-# INLINEABLE caseList' #-}
 
 null :: List a -> Bool

@@ -4,39 +4,10 @@ let
     = /\arep -> \(v : (\arep -> list arep) arep) -> v
   ~empty : all a. (\arep -> list arep) a -> list a = mkNil
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
+  ~lastEmptyBuiltinListError : string = "PT25"
   data Unit | Unit_match where
     Unit : Unit
-  ~caseList : all a r. (Unit -> r) -> (a -> list a -> r) -> list a -> r
-    = /\a r ->
-        \(nilCase : Unit -> r) ->
-          let
-            !nilCase : Unit -> r = nilCase
-          in
-          \(consCase : a -> list a -> r) ->
-            let
-              !consCase : a -> list a -> r = consCase
-            in
-            \(l : list a) ->
-              let
-                !l : list a = l
-              in
-              caseList'
-                {a}
-                {Unit -> r}
-                nilCase
-                (\(x : a) ->
-                   let
-                     !x : a = x
-                   in
-                   \(xs : list a) ->
-                     let
-                       !xs : list a = xs
-                     in
-                     \(ds : Unit) -> consCase x xs)
-                l
-                Unit
-  ~lastEmptyBuiltinListError : string = "PT25"
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
   !trace : all a. string -> a -> a = trace
   !unitval : unit = ()
@@ -52,18 +23,30 @@ in
 letrec
   ~last : all a. list a -> a
     = /\a ->
-        caseList
-          {a}
-          {a}
-          (\(ds : Unit) -> traceError {a} lastEmptyBuiltinListError)
-          (\(x : a) ->
-             let
-               !x : a = x
-             in
-             \(xs : list a) ->
+        \(eta : list a) ->
+          let
+            !l : list a = eta
+          in
+          caseList'
+            {a}
+            {Unit -> a}
+            (\(ds : Unit) -> traceError {a} lastEmptyBuiltinListError)
+            (\(x : a) ->
                let
-                 !xs : list a = xs
+                 !x : a = x
                in
-               caseList' {a} {a} x (\(ds : a) (ds : list a) -> last {a} xs) xs)
+               \(xs : list a) ->
+                 let
+                   !xs : list a = xs
+                 in
+                 \(ds : Unit) ->
+                   caseList'
+                     {a}
+                     {a}
+                     x
+                     (\(ds : a) (ds : list a) -> last {a} xs)
+                     xs)
+            l
+            Unit
 in
 \(ds : list integer) -> last {integer} (empty {integer} `$fMkNilInteger`)

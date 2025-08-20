@@ -11,17 +11,12 @@ let
           in
           trace
             {unit -> integer}
-            "entering addInteger"
+            "-> addInteger"
             (\(thunk : unit) ->
-               trace {integer} "exiting addInteger" (addInteger x y))
+               trace {integer} "<- addInteger" (addInteger x y))
             ()
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
-  ~equalsInteger : integer -> integer -> Bool
+  ~equalsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
@@ -31,16 +26,10 @@ let
             !y : integer = y
           in
           trace
-            {unit -> Bool}
-            "entering equalsInteger"
+            {unit -> bool}
+            "-> equalsInteger"
             (\(thunk : unit) ->
-               trace
-                 {Bool}
-                 "exiting equalsInteger"
-                 (let
-                   !b : bool = equalsInteger x y
-                 in
-                 ifThenElse {Bool} b True False))
+               trace {bool} "<- equalsInteger" (equalsInteger x y))
             ()
   !subtractInteger : integer -> integer -> integer = subtractInteger
   ~subtractInteger : integer -> integer -> integer
@@ -54,9 +43,9 @@ let
           in
           trace
             {unit -> integer}
-            "entering subtractInteger"
+            "-> subtractInteger"
             (\(thunk : unit) ->
-               trace {integer} "exiting subtractInteger" (subtractInteger x y))
+               trace {integer} "<- subtractInteger" (subtractInteger x y))
             ()
 in
 letrec
@@ -67,25 +56,25 @@ letrec
         in
         trace
           {unit -> integer}
-          "entering fib"
+          "-> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)"
           (\(thunk : unit) ->
              trace
                {integer}
-               "exiting fib"
-               (Bool_match
+               "<- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)"
+               (case
+                  (all dead. integer)
                   (equalsInteger n 0)
-                  {all dead. integer}
-                  (/\dead -> 0)
-                  (/\dead ->
-                     Bool_match
-                       (equalsInteger n 1)
-                       {all dead. integer}
-                       (/\dead -> 1)
-                       (/\dead ->
-                          addInteger
-                            (fib (subtractInteger n 1))
-                            (fib (subtractInteger n 2)))
-                       {all dead. dead})
+                  [ (/\dead ->
+                       case
+                         (all dead. integer)
+                         (equalsInteger n 1)
+                         [ (/\dead ->
+                              addInteger
+                                (fib (subtractInteger n 1))
+                                (fib (subtractInteger n 2)))
+                         , (/\dead -> 1) ]
+                         {all dead. dead})
+                  , (/\dead -> 0) ]
                   {all dead. dead}))
           ()
 in

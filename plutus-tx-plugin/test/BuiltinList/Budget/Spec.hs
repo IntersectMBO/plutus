@@ -35,8 +35,8 @@ tests =
       , goldenBundle "empty" empty (empty `unsafeApplyCode` l1)
       , goldenBundle "singleton" singleton (singleton `unsafeApplyCode` l1)
       , goldenBundle "null" null (null `unsafeApplyCode` l1)
-      , goldenBundle "(++)" (++) ((++) `unsafeApplyCode` l1)
-      , goldenBundle "(<|)" (<|) ((<|) `unsafeApplyCode` l1)
+      , goldenBundle "concat_operator" (++) ((++) `unsafeApplyCode` l1)
+      , goldenBundle "cons_operator" (<|) ((<|) `unsafeApplyCode` l1)
       , goldenBundle "append" append (append `unsafeApplyCode` l1)
       , goldenBundle "findIndices" findIndices (findIndices `unsafeApplyCode` l1)
       , goldenBundle "filter" filter (filter `unsafeApplyCode` l1)
@@ -142,10 +142,10 @@ mapMaybe = $$(compile [||\xs -> L.mapMaybe (\x -> if odd x then Just x else Noth
 length :: CompiledCode (L.BuiltinList Integer -> Integer)
 length = $$(compile [||\xs -> L.length xs||])
 
-and :: CompiledCode (L.BuiltinList BuiltinBool -> Bool)
+and :: CompiledCode (L.BuiltinList Bool -> Bool)
 and = $$(compile [||\xs -> L.and xs||])
 
-or :: CompiledCode (L.BuiltinList BuiltinBool -> Bool)
+or :: CompiledCode (L.BuiltinList Bool -> Bool)
 or = $$(compile [||\xs -> L.or xs||])
 
 notElem :: CompiledCode (L.BuiltinList Integer -> Bool)
@@ -226,7 +226,7 @@ nubBy = $$(compile [||\xs -> L.nubBy (<=) xs||])
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
 
-l2 :: CompiledCode (L.BuiltinList BuiltinBool)
+l2 :: CompiledCode (L.BuiltinList Bool)
 l2 = liftCodeDef $ toBuiltin ([True, False, True, False] :: [Bool])
 
 l3 :: CompiledCode (L.BuiltinList (BuiltinPair Integer Integer))

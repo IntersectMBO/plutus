@@ -1,8 +1,3 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
   !go : (\a -> list data) integer -> (\a -> list data) integer
     = \(ds : (\a -> list data) integer) ->
@@ -10,21 +5,21 @@ letrec
             r = (\a -> list data) integer
           in
           \(z : r) (f : data -> list data -> r) (xs : list data) ->
-            case r xs [z, f])
+            case r xs [f, z])
           []
           (\(x : data) (eta : list data) ->
              let
                !h : integer = unIData x
              in
-             Bool_match
-               (case Bool (lessThanInteger h 8) [True, False])
-               {all dead. (\a -> list data) integer}
-               (/\dead ->
-                  let
-                    !nt : list data = go eta
-                  in
-                  mkCons {data} (iData h) nt)
-               (/\dead -> go eta)
+             case
+               (all dead. (\a -> list data) integer)
+               (case bool (lessThanInteger h 8) [True, False])
+               [ (/\dead -> go eta)
+               , (/\dead ->
+                    let
+                      !nt : list data = go eta
+                    in
+                    mkCons {data} (iData h) nt) ]
                {all dead. dead})
           ds
 in

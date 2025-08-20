@@ -2,17 +2,12 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data Unit | Unit_match where
     Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(d : data) ->
-  Bool_match
+  case
+    (all dead. unit)
     (let
       !tup : pair integer (list data)
         = unConstrData
@@ -24,43 +19,33 @@ in
                      {data}
                      (sndPair {integer} {list data} (unConstrData d)))))
     in
-    Bool_match
-      (case
-         Bool
-         (equalsInteger 1 (fstPair {integer} {list data} tup))
-         [False, True])
-      {all dead. Bool}
-      (/\dead ->
-         let
-           !l : list data = sndPair {integer} {list data} tup
-         in
-         Maybe_match
-           {data}
-           (let
-             !tup : pair integer (list data)
-               = unConstrData (headList {data} (tailList {data} l))
-             !index : integer = fstPair {integer} {list data} tup
-             !args : list data = sndPair {integer} {list data} tup
+    case
+      (all dead. bool)
+      (equalsInteger 1 (fstPair {integer} {list data} tup))
+      [ (/\dead -> False)
+      , (/\dead ->
+           let
+             !l : list data = sndPair {integer} {list data} tup
            in
-           Bool_match
-             (case Bool (equalsInteger 1 index) [False, True])
-             {all dead. Maybe data}
-             (/\dead -> Nothing {data})
-             (/\dead ->
-                Bool_match
-                  (case Bool (equalsInteger 0 index) [False, True])
-                  {all dead. Maybe data}
-                  (/\dead -> Just {data} (headList {data} args))
-                  (/\dead -> traceError {Maybe data} "PT1")
-                  {all dead. dead})
-             {all dead. dead})
-           {all dead. Bool}
-           (\(ds : data) -> /\dead -> True)
-           (/\dead -> False)
-           {all dead. dead})
-      (/\dead -> False)
+           Maybe_match
+             {data}
+             (let
+               !tup : pair integer (list data)
+                 = unConstrData (headList {data} (tailList {data} l))
+               !index : integer = fstPair {integer} {list data} tup
+               !args : list data = sndPair {integer} {list data} tup
+             in
+             case
+               (list data -> Maybe data)
+               index
+               [ (\(ds : list data) -> Just {data} (headList {data} ds))
+               , (\(ds : list data) -> Nothing {data}) ]
+               args)
+             {all dead. bool}
+             (\(ds : data) -> /\dead -> True)
+             (/\dead -> False)
+             {all dead. dead}) ]
       {all dead. dead})
-    {all dead. unit}
-    (/\dead -> ())
-    (/\dead -> traceError {unit} "PT5")
+    [ (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
+    , (/\dead -> ()) ]
     {all dead. dead}

@@ -22,15 +22,21 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UnboxedTuples            #-}
 {-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE ViewPatterns             #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
     ( EvaluationResult(..)
+    , CekResult(..)
+    , cekResultToEither
+    , mapTermCekResult
+    , CekReport(..)
     , CekValue(..)
+    , DischargeResult(..)
+    , dischargeResultToTerm
     , ArgStack(..)
-    , transferArgStack
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
@@ -162,6 +168,38 @@ this can make a surprisingly large difference.
 -- | The 'Term's that CEK can execute must have DeBruijn binders
 -- 'Name' is not necessary but we leave it here for simplicity and debuggability.
 type NTerm uni fun = Term NamedDeBruijn uni fun
+
+-- | The result of evaluating a term with the CEK machine.
+data CekResult name uni fun
+    = CekFailure (CekEvaluationException name uni fun)
+    | CekSuccessConstant (Some (ValueOf uni))
+    | CekSuccessNonConstant (Term name uni fun ())
+
+-- | All info produced by a CEK machine run.
+data CekReport cost name uni fun = CekReport
+    { _cekReportResult :: CekResult name uni fun  -- ^ The result of evaluation.
+    , _cekReportCost   :: cost                    -- ^ The final @cost@ value.
+    , _cekReportLogs   :: [Text]                  -- ^ Logs emitted during evaluation.
+    }
+
+-- | Convert the given 'CekResult' into an 'Either'.
+-- This is useful, because in the ledger API we care whether the result is a constant or not, but in
+-- tests, executables etc we don't and so handling an either-error-or-term is more natural.
+cekResultToEither
+    :: CekResult name uni fun
+    -> Either (CekEvaluationException name uni fun) (Term name uni fun ())
+cekResultToEither (CekFailure err)             = Left err
+cekResultToEither (CekSuccessConstant val)     = Right $ Constant () val
+cekResultToEither (CekSuccessNonConstant term) = Right term
+
+-- | Apply the given function to the 'Term' (if any) stored in the given 'CekResult'.
+mapTermCekResult
+    :: (Term name uni fun () -> Term name' uni fun ())
+    -> CekResult name uni fun
+    -> CekResult name' uni fun
+mapTermCekResult f (CekFailure err)             = CekFailure $ f <$> err
+mapTermCekResult _ (CekSuccessConstant val)     = CekSuccessConstant val
+mapTermCekResult f (CekSuccessNonConstant term) = CekSuccessNonConstant $ f term
 
 data StepKind
     = BConst
@@ -474,7 +512,7 @@ throwErrorDischarged
   => EvaluationError (MachineError fun) CekUserError
   -> CekValue uni fun ann
   -> CekM uni fun s x
-throwErrorDischarged err = throwErrorWithCause err . dischargeCekValue
+throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dischargeCekValue
 
 instance ThrowableBuiltins uni fun =>
         MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
@@ -534,57 +572,79 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
--- | Instantiate all the free variables of a term by looking them up in an environment.
--- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv :: forall uni fun ann. CekValEnv uni fun ann -> NTerm uni fun () -> NTerm uni fun ()
-dischargeCekValEnv valEnv = go 0
- where
-  -- The lamCnt is just a counter that measures how many lambda-abstractions
-  -- we have descended in the `go` loop.
-  go :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
-  go !lamCnt =  \case
-    LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
-    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let idx = coerce ndbnIx :: Word64  in
-        if lamCnt >= idx
-        -- the index n is less-than-or-equal than the number of lambdas we have descended
-        -- this means that n points to a bound variable, so we don't discharge it.
-        then var
-        else maybe
-               -- var is free, leave it alone
-               var
-               -- var is in the env, discharge its value
-               dischargeCekValue
-               -- index relative to (as seen from the point of view of) the environment
-               (Env.indexOne valEnv $ idx - lamCnt)
-    Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
-    Delay ann term       -> Delay ann $ go lamCnt term
-    Force ann term       -> Force ann $ go lamCnt term
-    t -> t
+-- | Convert the given 'ArgStack' to a list.
+argStackToList :: ArgStack uni fun ann -> [CekValue uni fun ann]
+argStackToList EmptyStack           = []
+argStackToList (ConsStack arg rest) = arg : argStackToList rest
+
+-- | The result of 'dischargeCekValue'.
+data DischargeResult uni fun
+    = DischargeConstant (Some (ValueOf uni))
+    | DischargeNonConstant (NTerm uni fun ())
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Closed uni)
+    => Show (DischargeResult uni fun)
+
+deriving stock instance (GEq uni, Everywhere uni Eq, Eq fun, Closed uni)
+    => Eq (DischargeResult uni fun)
+
+instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (DischargeResult uni fun) where
+    prettyBy cfg = prettyBy cfg . dischargeResultToTerm
+
+dischargeResultToTerm :: DischargeResult uni fun -> NTerm uni fun ()
+dischargeResultToTerm (DischargeConstant val)     = Constant () val
+dischargeResultToTerm (DischargeNonConstant term) = term
 
 -- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
--- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekValue :: CekValue uni fun ann -> NTerm uni fun ()
-dischargeCekValue = \case
-    VCon     val                         -> Constant () val
-    VDelay   body env                    -> dischargeCekValEnv env $ Delay () (void body)
-    -- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an
-    -- argument of 'computeCek' and hence we need to start discharging outside of the reassembled
-    -- lambda, otherwise @name@ could clash with the names that we have in @env@.
-    VLamAbs (NamedDeBruijn n _ix) body env ->
-        -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
-        dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) (void body)
-    -- We only return a discharged builtin application when (a) it's being returned by the machine,
-    -- or (b) it's needed for an error message.
-    -- @term@ is fully discharged, so we can return it directly without any further discharging.
-    VBuiltin _ term _                    -> term
-    VConstr i es                         -> Constr () i (fmap dischargeCekValue $ stack2list es)
-      where
-        stack2list = go []
-        go acc EmptyStack           = acc
-        go acc (ConsStack arg rest) = go (arg : acc) rest
+-- they're bound to (which themselves have to be obtained by recursively discharging values).
+dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
+dischargeCekValue (VCon val) = DischargeConstant val
+dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
+    goValue :: CekValue uni fun ann -> NTerm uni fun ()
+    goValue = \case
+        VCon val -> Constant () val
+        VDelay body env -> Delay () $ goValEnv env 0 body
+        VLamAbs (NamedDeBruijn n _ix) body env ->
+            -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
+            LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
+        -- We only return a discharged builtin application when (a) it's being returned by the
+        -- machine, or (b) it's needed for an error message.
+        -- @term@ is fully discharged, so we can return it directly without any further discharging.
+        VBuiltin _ term _ -> term
+        VConstr ind args -> Constr () ind . map goValue $ argStackToList args
+
+    -- Instantiate all the free variables of a term by looking them up in an environment.
+    -- Mutually recursive with @goValue@.
+    goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
+    goValEnv env = go where
+        -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
+        -- into so far.
+        go :: Word64 -> NTerm uni fun ann -> NTerm uni fun ()
+        go !shift =  \case
+          LamAbs _ name body -> LamAbs () name $ go (shift + 1) body
+          Var _ named@(NamedDeBruijn _ (coerce -> idx)) ->
+              if shift >= idx
+              -- the index n is less-than-or-equal than the number of lambdas we have descended
+              -- this means that n points to a bound variable, so we don't discharge it.
+              then Var () named
+              else maybe
+                     -- var is free, leave it alone
+                     (Var () named)
+                     -- var is in the env, discharge its value
+                     goValue
+                     -- index relative to (as seen from the point of view of) the environment
+                     (Env.indexOne env $ idx - shift)
+          Apply _ fun arg    -> Apply () (go shift fun) $ go shift arg
+          Delay _ term       -> Delay () $ go shift term
+          Force _ term       -> Force () $ go shift term
+          Constant _ val     -> Constant () val
+          Builtin _ fun      -> Builtin () fun
+          Error _            -> Error ()
+          Constr _ ind args  -> Constr () ind $ map (go shift) args
+          Case _ scrut alts  -> Case () (go shift scrut) $ fmap (go shift) alts
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
-    prettyBy cfg = prettyBy cfg . dischargeCekValue
+    prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
 
 type instance UniOf (CekValue uni fun ann) = uni
 
@@ -609,6 +669,8 @@ data Context uni fun ann
     -- ^ @[_ N]@
     | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V]@
+    | FrameAwaitFunValueN !(ArgStack uni fun ann) !(Context uni fun ann)
+    -- ^ @[_ V1 .. Vn]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
@@ -638,27 +700,12 @@ pass them to a function they need to be evaluated to values, which means that in
 machine the evaluated arguments are going to be reversed: you evaluate the first argument and put
 the result into a 'FrameConstr', then the second one and put it in a 'FrameConstr' again, this time
 prepending it to the one that is already there etc -- in the end you get the arguments in reversed
-order. Which is why 'transferArgStack' is a left fold (just like 'reverse').
+order.
 
 But in case of 'Spine' the builtins machinery directly produces values, not terms. Meaning, a
 'Spine' that we get from the builtins machinery isn't reversed, hence we can pass its contents
 directly to the head of the application. Which is why 'transferSpine' is a right fold.
 -}
-
--- See Note [ArgStack vs Spine].
--- | Transfers an 'ArgStack' to a series of 'Context' frames.
-transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
-transferArgStack EmptyStack c           = c
-transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
-
--- See Note [ArgStack vs Spine].
--- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
-transferValueSpine
-    :: Spine (CekValue uni fun ann)
-    -> Context uni fun ann
-    -> Context uni fun ann
-transferValueSpine args ctx = foldr FrameAwaitFunValue ctx args
-{-# INLINE transferValueSpine #-}
 
 -- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine
@@ -669,13 +716,13 @@ transferConstantSpine args ctx = foldr (FrameAwaitFunValue . VCon) ctx args
 {-# INLINE transferConstantSpine #-}
 
 runCekM
-    :: forall a cost uni fun ann
+    :: forall cost uni fun ann
     . ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
-    -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
+    -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s (DischargeResult uni fun))
+    -> CekReport cost NamedDeBruijn uni fun
 runCekM
         (MachineParameters caser (MachineVariantParameters costs runtime))
         (ExBudgetMode getExBudgetInfo)
@@ -691,10 +738,13 @@ runCekM
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
         ?cekStepCounter = ctr
-    errOrRes <- unCekM $ tryError a
+    res <- unCekM (tryError a) <&> \case
+        Left err                          -> CekFailure err
+        Right (DischargeConstant val)     -> CekSuccessConstant val
+        Right (DischargeNonConstant term) -> CekSuccessNonConstant term
     st <- _exBudgetModeGetFinal
     logs <- _cekEmitterInfoGetFinal
-    pure (errOrRes, st, logs)
+    pure $ CekReport res st logs
 {-# INLINE runCekM #-}
 
 -- See Note [Compilation peculiarities].
@@ -705,7 +755,7 @@ enterComputeCek
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
-    -> CekM uni fun s (NTerm uni fun ())
+    -> CekM uni fun s (DischargeResult uni fun)
 enterComputeCek = computeCek
   where
     -- | The computing part of the CEK machine.
@@ -718,7 +768,7 @@ enterComputeCek = computeCek
         :: Context uni fun ann
         -> CekValEnv uni fun ann
         -> NTerm uni fun ann
-        -> CekM uni fun s (NTerm uni fun ())
+        -> CekM uni fun s (DischargeResult uni fun)
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
     computeCek !ctx !env (Var _ varName) = do
         stepAndMaybeSpend BVar
@@ -776,7 +826,7 @@ enterComputeCek = computeCek
     returnCek
         :: Context uni fun ann
         -> CekValue uni fun ann
-        -> CekM uni fun s (NTerm uni fun ())
+        -> CekM uni fun s (DischargeResult uni fun)
     --- Instantiate all the free variable of the resulting term in case there are any.
     -- . ◅ V           ↦  [] V
     returnCek NoFrame val = do
@@ -791,15 +841,26 @@ enterComputeCek = computeCek
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
-    -- s , [_ V] ◅ lam x (M,ρ)  ↦  s ; ρ [ x  ↦  V ] ▻ M
+    -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
     returnCek (FrameAwaitFunValue arg ctx) fun =
         applyEvaluate ctx fun arg
+    -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+    returnCek (FrameAwaitFunValueN args ctx) fun =
+        case args of
+          EmptyStack -> returnCek ctx fun
+          ConsStack arg rest ->
+            applyEvaluate (FrameAwaitFunValueN rest ctx) fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
-        let done' = ConsStack e done
+        let
+          reverseArgStack = go EmptyStack
+            where
+              go acc EmptyStack       = acc
+              go acc (ConsStack x xs) = go (ConsStack x acc) xs
+          done' = ConsStack e done
         case todo of
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
-          []             -> returnCek ctx $ VConstr i done'
+          []             -> returnCek ctx $ VConstr i (reverseArgStack done')
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -810,7 +871,7 @@ enterComputeCek = computeCek
                         throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
         -- Otherwise, we can safely convert the index to an Int and use it.
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
-            Just t  -> computeCek (transferArgStack args ctx) env t
+            Just t  -> computeCek (FrameAwaitFunValueN args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
@@ -818,15 +879,6 @@ enterComputeCek = computeCek
             Right (HeadOnly fX) -> computeCek ctx env fX
             Right (HeadSpine f xs) -> computeCek (transferConstantSpine xs ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
-
-    -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
-    -- the returning phase of the CEK machine.
-    returnCekHeadSpine
-        :: Context uni fun ann
-        -> MonoHeadSpine (CekValue uni fun ann)
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
-    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (transferValueSpine xs ctx) f
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -837,7 +889,7 @@ enterComputeCek = computeCek
     forceEvaluate
         :: Context uni fun ann
         -> CekValue uni fun ann
-        -> CekM uni fun s (NTerm uni fun ())
+        -> CekM uni fun s (DischargeResult uni fun)
     forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
     forceEvaluate !ctx (VBuiltin fun term runtime) = do
         -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
@@ -866,16 +918,16 @@ enterComputeCek = computeCek
         :: Context uni fun ann
         -> CekValue uni fun ann   -- lhs of application
         -> CekValue uni fun ann   -- rhs of application
-        -> CekM uni fun s (NTerm uni fun ())
+        -> CekM uni fun s (DischargeResult uni fun)
     applyEvaluate !ctx (VLamAbs _ body env) arg =
         computeCek ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
-        let argTerm = dischargeCekValue arg
+    applyEvaluate !ctx (VBuiltin fun funTerm runtime) arg = do
+        let argTerm = dischargeResultToTerm $ dischargeCekValue arg
             -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
             -- in a 'VBuiltin'.
-            term' = Apply () term argTerm
+            term' = Apply () funTerm argTerm
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
@@ -932,7 +984,7 @@ enterComputeCek = computeCek
         -> fun
         -> NTerm uni fun ()
         -> BuiltinRuntime (CekValue uni fun ann)
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+        -> CekM uni fun s (DischargeResult uni fun)
     evalBuiltinApp ctx fun term runtime = case runtime of
         BuiltinCostedResult budgets0 getFXs -> do
             let exCat = BBuiltinApp fun
@@ -941,11 +993,11 @@ enterComputeCek = computeCek
                     spendBudget exCat budget *> spendBudgets budgets
             spendBudgets budgets0
             case getFXs of
-                BuiltinSuccess fXs ->
-                    returnCekHeadSpine ctx fXs
-                BuiltinSuccessWithLogs logs fXs -> do
+                BuiltinSuccess y ->
+                    returnCek ctx y
+                BuiltinSuccessWithLogs logs y -> do
                     ?cekEmitter logs
-                    returnCekHeadSpine ctx fXs
+                    returnCek ctx y
                 BuiltinFailure logs err -> do
                     ?cekEmitter logs
                     throwBuiltinErrorWithCause term err
@@ -974,7 +1026,7 @@ runCekDeBruijn
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
+    -> CekReport cost NamedDeBruijn uni fun
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts

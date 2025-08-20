@@ -36,7 +36,7 @@ open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
             using (integer;bool;bytestring;string;pdata;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open Sig
-open import RawU using (TmCon;tmCon;TyTag;decTag;⟦_⟧tag)
+open import RawU using (TmCon;tmCon;TyTag;decTyTag;⟦_⟧tag)
 ```
 
 ```
@@ -340,7 +340,7 @@ BUILTIN chooseList = λ
   ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
-BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTag t ts
+BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTyTag t ts
 ... | yes refl = inj₂ (V-con (list ts) (x ∷ xs))
 ... | no _     = inj₁ userError
 BUILTIN mkCons _ = inj₁ userError
@@ -356,6 +356,25 @@ BUILTIN nullList = λ
   { (app (app⋆ base) (V-con (list _) [])) → inj₂ (V-con bool true)
   ; (app (app⋆ base) (V-con (list _) (_ ∷ _))) → inj₂ (V-con bool false)
   ; _ -> inj₁ userError
+  }
+BUILTIN lengthOfArray = λ
+  { (app (app⋆ base) (V-con (array _) as)) → inj₂ (V-con integer (Utils.HSlengthOfArray as))
+    ; _ -> inj₁ userError
+  }
+BUILTIN listToArray = λ
+  { (app (app⋆ base) (V-con (list t) ls)) → inj₂ (V-con (array t) (Utils.HSlistToArray ls))
+    ; _ -> inj₁ userError
+  }
+BUILTIN indexArray = λ
+  { (app (app (app⋆ base) (V-con (array t) as)) (V-con integer i)) →
+      case Data.Integer.ℤ.pos 0 ≤? i of λ
+        { (no  _) -> inj₁ userError
+        ; (yes _) -> case i <? Utils.HSlengthOfArray as of λ
+          { (no _)  -> inj₁ userError
+          ; (yes _) -> inj₂ (V-con t (Utils.HSindexArray as i))
+          }
+        }
+    ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ
   { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) → inj₂ v

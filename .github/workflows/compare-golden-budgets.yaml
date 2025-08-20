@@ -1,0 +1,82 @@
+name: "🏆 Compare Golden Budgets"
+
+on:
+  pull_request:
+    paths:
+      - '**.eval.golden'
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.3.0
+        with:
+          fetch-depth: 5
+
+      - name: Make script executable
+        run: chmod +x scripts/eval-percent-diff.sh
+
+      - name: Run the bash script and capture output
+        run: ./scripts/eval-percent-diff.sh -t ${{ github.event.pull_request.base.sha }} 2>&1 | tee output.log
+
+      - name: Comment script output on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            const botCommentIdentifier = "<!-- GITHUB_ACTION_GOLDEN_FILE_BOT -->";
+
+            const scriptOutput = fs.readFileSync('output.log', 'utf8');
+
+            const headSha = context.payload.pull_request.head.sha;
+            const baseSha = context.payload.pull_request.base.sha;            
+            const commentBody = `
+              ${botCommentIdentifier}            
+              ## Execution Budget Golden Diff
+
+              ${baseSha.substring(0, 7)} (master) vs ${headSha.substring(0, 7)}
+
+              <details>
+              <summary>output</summary>
+              
+              ${scriptOutput}              
+
+              </details>
+
+              This comment will get updated when changes are made.
+            `;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment => comment.body.includes(botCommentIdentifier));
+
+            if (botComment) {
+              console.log('Found existing comment. Updating...');
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+              console.log('Comment updated successfully.');
+            } else {
+              console.log('No existing comment found. Creating a new one...');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+              console.log('Comment posted successfully.');
+            }

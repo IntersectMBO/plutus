@@ -34,7 +34,7 @@ import Builtin.Constant.Type as Syn
 ## Type β-normal forms
 
 We mutually define normal forms and neutral terms. It is guaranteed
-that not further beta reductions are possible. Neutral terms can be
+that no further beta reductions are possible. Neutral terms can be
 variables, neutral applications (where the term in the function
 position cannot be a lambda), or recursive types. Normal forms can be
 pi types, function types, lambdas or neutral terms.
@@ -229,4 +229,3 @@ module _ where
   lookup-embNf-VecList zero (_ ∷ _) = refl
   lookup-embNf-VecList (suc e) (_ ∷ Tss) = lookup-embNf-VecList e Tss
 ```
-

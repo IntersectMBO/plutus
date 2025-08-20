@@ -9,8 +9,8 @@
 module PlutusTx.Test.Util.Apply (
   CompiledCodeFuncToHaskType,
   FinalType,
-  compiledCodeToHaskUnsafe,
-  compiledCodeToHask,
+  unsafeApplyCodeN,
+  applyCodeN,
   ) where
 
 import Prelude
@@ -30,7 +30,7 @@ type family FinalType t where
   FinalType a = a
 
 class CompiledCodeFuncToHask t r uni fun where
-  compiledCodeToHask'
+  applyCodeN'
     :: (Either String (CompiledCodeIn uni fun (FinalType t)) -> r)
     -> Either String (CompiledCodeIn uni fun t)
     -> CompiledCodeFuncToHaskType (CompiledCodeIn uni fun t) r
@@ -46,14 +46,14 @@ instance {-# OVERLAPPING #-} ( PLC.Everywhere uni Flat
            ~ (CompiledCodeIn uni fun a -> CompiledCodeFuncToHaskType (CompiledCodeIn uni fun b) r)
          ) =>
   CompiledCodeFuncToHask (a -> b) r uni fun where
-  compiledCodeToHask' cont f a =
-    compiledCodeToHask' @b @r cont $ f >>= flip applyCode a
+  applyCodeN' cont f a =
+    applyCodeN' @b @r cont $ f >>= flip applyCode a
 
 instance
   ( FinalType a ~ a
   , CompiledCodeFuncToHaskType (CompiledCodeIn uni fun a) r ~ r
   ) => CompiledCodeFuncToHask a r uni fun where
-  compiledCodeToHask' = ($)
+  applyCodeN' = ($)
 
 {- | Transform 'CompiledCode' function into a function in "Hask". This helps applying
 arguments to already built script in a type safe manner. Example:
@@ -62,30 +62,30 @@ foo :: CompiledCode (Integer -> () -> Bool)
 bar :: CompiledCode Integer
 baz :: CompiledCode ()
 
-compiledCodeToHask foo bar baz :: Either String (CompiledCode ())
+applyCodeN foo bar baz :: Either String (CompiledCode Bool)
 ```
 -}
-compiledCodeToHask
+applyCodeN
   :: forall uni fun a
    . CompiledCodeFuncToHask a (Either String (CompiledCodeIn uni fun (FinalType a))) uni fun
   => CompiledCodeIn uni fun a
   -> CompiledCodeFuncToHaskType
        (CompiledCodeIn uni fun a)
        (Either String (CompiledCodeIn uni fun (FinalType a)))
-compiledCodeToHask =
-  compiledCodeToHask'
+applyCodeN =
+  applyCodeN'
     @a @(Either String (CompiledCodeIn uni fun (FinalType a)))
     id
     . pure
 
--- | Same as 'compiledCodeToHask' but is partial instead of returning `Either String`.
-compiledCodeToHaskUnsafe
+-- | Same as 'applyCodeN' but is partial instead of returning `Either String`.
+unsafeApplyCodeN
   :: forall uni fun a
    . CompiledCodeFuncToHask a (CompiledCodeIn uni fun (FinalType a)) uni fun
   => CompiledCodeIn uni fun a
   -> CompiledCodeFuncToHaskType (CompiledCodeIn uni fun a) (CompiledCodeIn uni fun (FinalType a))
-compiledCodeToHaskUnsafe =
-  compiledCodeToHask'
+unsafeApplyCodeN =
+  applyCodeN'
     @a @(CompiledCodeIn uni fun (FinalType a))
     (either error id)
     . pure

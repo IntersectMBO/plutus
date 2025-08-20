@@ -1,12 +1,1 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl Bool (type))
-
-      Bool_match
-      (vardecl True Bool) (vardecl False Bool)
-    )
-  )
-  False
-)
+(con bool False)

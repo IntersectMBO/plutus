@@ -251,26 +251,8 @@ FrameCase cs : stack <| e = case e of
             Right (HeadSpine f xs) -> transferConstantSpine xs stack |> f
     _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
 
--- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
---
--- >>> import PlutusCore.Default
--- >>> import PlutusCore.Builtin
--- >>> transferValueSpine (SpineCons (fromValue (1 :: Integer)) (SpineLast (fromValue (2 :: Integer)))) [FrameUnwrap :: Frame DefaultUni DefaultFun]
--- [FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 1))),FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 2))),FrameUnwrap]
-transferValueSpine :: Spine (CkValue uni fun) -> Context uni fun -> Context uni fun
-transferValueSpine args ctx = foldr ((:) . FrameAwaitFunValue) ctx args
-
 transferConstantSpine :: Spine (Some (ValueOf uni)) -> Context uni fun -> Context uni fun
 transferConstantSpine args ctx = foldr ((:) . FrameAwaitFunValue . VCon) ctx args
-
--- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
--- the returning phase of the CK machine, i.e. @<|@.
-returnCkHeadSpine
-    :: Context uni fun
-    -> HeadSpine (CkValue uni fun) (CkValue uni fun)
-    -> CkM uni fun s (Term TyName Name uni fun ())
-returnCkHeadSpine stack (HeadOnly  x)    = stack <| x
-returnCkHeadSpine stack (HeadSpine f xs) = transferValueSpine xs stack <| f
 
 -- | Take a possibly partial builtin application and
 --
@@ -286,9 +268,9 @@ evalBuiltinApp
     -> CkM uni fun s (Term TyName Name uni fun ())
 evalBuiltinApp stack term runtime = case runtime of
     BuiltinCostedResult _ getFXs -> case getFXs of
-        BuiltinSuccess fXs              -> returnCkHeadSpine stack fXs
-        BuiltinSuccessWithLogs logs fXs -> emitCkM logs *> returnCkHeadSpine stack fXs
-        BuiltinFailure logs err         -> emitCkM logs *> throwBuiltinErrorWithCause term err
+        BuiltinSuccess y              -> stack <| y
+        BuiltinSuccessWithLogs logs y -> emitCkM logs *> (stack <| y)
+        BuiltinFailure logs err       -> emitCkM logs *> throwBuiltinErrorWithCause term err
     _ -> stack <| VBuiltin term runtime
 
 -- | Instantiate a term with a type and proceed.

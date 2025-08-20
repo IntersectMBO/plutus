@@ -11,7 +11,7 @@ module VerifiedCompilation.UInline where
 ## Imports
 
 ```
-open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
+open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)

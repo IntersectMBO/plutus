@@ -346,8 +346,8 @@ deriving via PrettyCommon (HeadSpine a b)
 class uni ~ UniOf val => MakeKnownIn uni val a where
     -- | Convert a Haskell value to the corresponding PLC value.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> BuiltinResult (HeadSpine val val)
-    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult (HeadSpine val val)
+    makeKnown :: a -> BuiltinResult val
+    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
     -- Everything on evaluation path has to be strict in production, so in theory we don't need to
     -- force anything here. In practice however all kinds of weird things happen in tests and @val@
     -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
@@ -356,7 +356,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . HeadOnly . fromValue $! x
+    makeKnown x = pure . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -374,7 +374,7 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
-makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult (HeadSpine val val)
+makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
 makeKnownOrFail x = case makeKnown x of
     BuiltinSuccess val           -> EvaluationSuccess val
     BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
@@ -385,7 +385,8 @@ makeKnownOrFail x = case makeKnown x of
 readKnownSelf
     :: (ReadKnown val a, BuiltinErrorToEvaluationError structural operational)
     => val -> Either (ErrorWithCause (EvaluationError structural operational) val) a
-readKnownSelf val = fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
+readKnownSelf val =
+    fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
@@ -420,7 +421,7 @@ instance
     {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
-    makeKnown = coerceArg $ pure . HeadOnly . fromConstant
+    makeKnown = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
@@ -428,13 +429,9 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg $ pure . HeadOnly
+    makeKnown = coerceArg pure
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
     readKnown = coerceArg pure
     {-# INLINE readKnown #-}
-
-instance uni ~ UniOf val => MakeKnownIn uni val (Opaque (HeadSpine val val) rep) where
-    makeKnown = coerceArg pure
-    {-# INLINE makeKnown #-}

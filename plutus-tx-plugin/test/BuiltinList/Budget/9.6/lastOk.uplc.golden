@@ -7,17 +7,16 @@
          (\last arg ->
             delay
               (delay
-                 (\l ->
+                 (\eta ->
                     case
-                      l
-                      [ (\ds ->
-                           (\x -> error) (force trace "PT25" (constr 0 [])))
-                      , (\x xs ds ->
+                      eta
+                      [ (\x xs ds ->
                            case
                              xs
-                             [ x
-                             , (\ds ds ->
-                                  force (force (last (delay (\x -> x))))
-                                    xs) ]) ]
+                             [ (\ds ds ->
+                                  force (force (last (delay (\x -> x)))) xs)
+                             , x ])
+                      , (\ds ->
+                           (\x -> error) (force trace "PT25" (constr 0 []))) ]
                       (constr 0 []))))
          (delay (\x -> x)))))

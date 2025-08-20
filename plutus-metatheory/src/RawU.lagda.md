@@ -36,7 +36,7 @@ open import Relation.Nullary using (does;yes;no;¬_)
 open import Data.Unit using (⊤;tt)
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 
-open import Utils using (♯;ByteString;DATA;List;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
+open import Utils using (♯;ByteString;DATA;List;Array;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
 open import Utils.Decidable using (dcong;dcong₂)
 import Builtin as B
 open import Builtin using (Builtin;equals)
@@ -56,7 +56,6 @@ open _⊢Ne⋆_
 open B.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π
      using (⊢♯2TyNe♯;sig2type;SigTy;sigTy2type;convSigTy) public
 open import Algorithmic using (⟦_⟧)
-
 
 {-# FOREIGN GHC {-# LANGUAGE GADTs #-} #-}
 {-# FOREIGN GHC import PlutusCore #-}
@@ -85,6 +84,7 @@ data Tag : Set → Set where
   pdata                : Tag (Esc DATA)
   pair                 : ∀{A B} → Tag (Esc A) → Tag (Esc B) → Tag (Esc (A × B))
   list                 : ∀{A} → Tag (Esc A) → Tag (Esc (List A))
+  array                 : ∀{A} → Tag (Esc A) → Tag (Esc (Array A))
   bls12-381-g1-element : Tag (Esc Bls12-381-G1-Element)
   bls12-381-g2-element : Tag (Esc Bls12-381-G2-Element)
   bls12-381-mlresult   : Tag (Esc Bls12-381-MlResult)
@@ -98,6 +98,7 @@ data Tag : Set → Set where
 {-# FOREIGN GHC pattern TagData                 = DefaultUniData #-}
 {-# FOREIGN GHC pattern TagPair ta tb           = DefaultUniPair ta tb #-}
 {-# FOREIGN GHC pattern TagList ta              = DefaultUniList ta #-}
+{-# FOREIGN GHC pattern TagArray ta              = DefaultUniArray ta #-}
 {-# FOREIGN GHC pattern TagBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element #-}
 {-# FOREIGN GHC pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element #-}
 {-# FOREIGN GHC pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult #-}
@@ -109,10 +110,57 @@ data Tag : Set → Set where
                                                            | TagData
                                                            | TagPair
                                                            | TagList
+                                                           | TagArray
                                                            | TagBLS12_381_G1_Element
                                                            | TagBLS12_381_G2_Element
                                                            | TagBLS12_381_MlResult)
 #-}
+
+```
+## Raw syntax
+
+This version is not intrinsically well-scoped. It's an easy to work
+with rendering of the untyped plutus-core syntax.
+
+##  Agda-Style universes
+
+In the rest of the formalisation we use the following representation of type tags.
+
+```
+TyTag : Set
+TyTag = 0 ⊢♯
+```
+
+TyTags can be given an interpretation as
+an Agda type.
+
+```
+⟦_⟧tag : 0 ⊢♯ → Set
+⟦ t ⟧tag =  ⟦ ne (⊢♯2TyNe♯ t) ⟧
+
+```
+
+Equality of `TyTag`s is decidable
+
+```
+decTyTag : DecidableEquality TyTag
+decTyTag (atomic x) (atomic y) = dcong atomic (λ { refl  → refl }) (decAtomicTyCon x y)
+decTyTag (atomic _) (list _) = no λ()
+decTyTag (atomic _) (pair _ _) = no λ()
+decTyTag (atomic _) (array _) = no λ()
+decTyTag (list _) (atomic _) = no λ()
+decTyTag (list x) (list y) = dcong list (λ { refl → refl }) (decTyTag x y)
+decTyTag (list x) (array y) = no λ ()
+decTyTag (list _) (pair _ _) = no λ()
+decTyTag (array _) (pair _ _) = no λ()
+decTyTag (array _) (atomic _) = no λ()
+decTyTag (array x) (list y) = no λ ()
+decTyTag (array x) (array y) = dcong array (λ { refl → refl }) (decTyTag x y)
+decTyTag (pair _ _) (atomic _) = no λ()
+decTyTag (pair _ _) (list _) = no λ()
+decTyTag (pair _ _) (array _) = no λ()
+decTyTag (pair x x') (pair y y') = dcong₂ pair (λ {refl → refl ,, refl}) (decTyTag x y) (decTyTag x' y')
+
 ```
 
 ## Term constants
@@ -136,22 +184,26 @@ decTagCon' unit ⊤ unit ⊤                                = true
 decTagCon' pdata d pdata d'                              = eqDATA d d'
 decTagCon' (pair t₁ t₂) (x₁ , x₂) (pair u₁ u₂) (y₁ , y₂) = decTagCon' t₁ x₁ u₁ y₁
                                                          ∧ decTagCon' t₂ x₂ u₂ y₂
-decTagCon' (list t) [] (list t') []                      = true -- TODO: check that the tags t and t' are equal
+decTagCon' (list t) [] (list t') []                      = true -- FIXME: Should compare tags
 decTagCon' (list t) (x ∷ xs) (list t') (y ∷ ys)          = decTagCon' t x t' y
                                                          ∧ decTagCon' (list t) xs (list t') ys
+decTagCon' (array t) x (array t') y = false -- FIXME: eqArray, but this needs reorganisation https://github.com/IntersectMBO/plutus-private/issues/1686
 decTagCon' _ _ _ _                                       = false
 
 -- Comparison of TagCon. Written with an auxiliary function to pass the termination checker.
 decTagCon : (C C' : TagCon) → Bool
 decTagCon (tagCon t x) (tagCon t' y) = decTagCon' t x t' y
 
-```
-## Raw syntax
-
-This version is not intrinsically well-scoped. It's an easy to work
-with rendering of the untyped plutus-core syntax.
 
 ```
+
+Again term constants are a pair of a tag, and its meaning, except
+this time the meaning is given by the semantic function ⟦_⟧tag.
+
+```
+data TmCon : Set where
+  tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
+
 data Untyped : Set where
   UVar : ℕ → Untyped
   ULambda : Untyped → Untyped
@@ -166,47 +218,7 @@ data Untyped : Set where
 
 {-# FOREIGN GHC import FFI.Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce | UConstr | UCase) #-}
-```
 
-##  Agda-Style universes
-
-In the rest of the formalisation we use the following representation of type tags.
-
-```
-TyTag : Set
-TyTag = 0 ⊢♯
-```
-
-TyTags can be given an interpretation as
-an Agda type.
-
-```
-⟦_⟧tag : 0 ⊢♯ → Set
-⟦ t ⟧tag =  ⟦ ne (⊢♯2TyNe♯ t) ⟧
-```
-
-
-Equality of `TyTag`s is decidable
-
-```
-decTag : DecidableEquality TyTag
-decTag (atomic x) (atomic y) = dcong atomic (λ { refl  → refl}) (decAtomicTyCon x y)
-decTag (atomic _) (list _) = no λ()
-decTag (atomic _) (pair _ _) = no λ()
-decTag (list _) (atomic _) = no λ()
-decTag (list x) (list y) = dcong list (λ { refl → refl}) (decTag x y)
-decTag (list _) (pair _ _) = no λ()
-decTag (pair _ _) (atomic _) = no λ()
-decTag (pair _ _) (list _) = no λ()
-decTag (pair x x') (pair y y') = dcong₂ pair (λ {refl → refl ,, refl}) (decTag x y) (decTag x' y')
-```
-
-Again term constants are a pair of a tag, and its meaning, except
-this time the meaning is given by the semantic function ⟦_⟧tag.
-
-```
-data TmCon : Set where
-  tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
 ```
 
 ## Conversion between universe representations
@@ -230,6 +242,7 @@ tag2TyTag bls12-381-g2-element = B.bls12-381-g2-element
 tag2TyTag bls12-381-mlresult = B.bls12-381-mlresult
 tag2TyTag (pair t u) = pair (tag2TyTag t) (tag2TyTag u)
 tag2TyTag (list t) = list (tag2TyTag t)
+tag2TyTag (array t) = array (tag2TyTag t)
 
 tagLemma : ∀{A}(t : Tag (Esc A)) →  A ≡ ⟦ tag2TyTag t ⟧tag
 tagLemma integer = refl
@@ -240,6 +253,7 @@ tagLemma unit = refl
 tagLemma pdata = refl
 tagLemma (pair t u) = cong₂ _×_ (tagLemma t) (tagLemma u)
 tagLemma (list t) = cong List (tagLemma t)
+tagLemma (array t) = cong Array (tagLemma t)
 tagLemma bls12-381-g1-element = refl
 tagLemma bls12-381-g2-element = refl
 tagLemma bls12-381-mlresult = refl
@@ -257,6 +271,7 @@ tagCon2TmCon (tagCon bls12-381-mlresult x) = tmCon (B.bls12-381-mlresult) x
 tagCon2TmCon (tagCon (pair x y) (a , b))
    rewrite tagLemma x | tagLemma y = tmCon (pair (tag2TyTag x) (tag2TyTag y)) (a , b)
 tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (list (tag2TyTag x)) xs
+tagCon2TmCon (tagCon (array x) xs) rewrite tagLemma x = tmCon (array (tag2TyTag x)) xs
 ```
 
 ### From Agda-style to Haskell-style
@@ -274,6 +289,8 @@ tyTag2Tag (atomic aBls12-381-g2-element) = Bls12-381-G2-Element ,, bls12-381-g2-
 tyTag2Tag (atomic aBls12-381-mlresult) = Bls12-381-MlResult ,, bls12-381-mlresult
 tyTag2Tag (list t)  with tyTag2Tag t
 ... | A ,, a = List A ,, list a
+tyTag2Tag (array t)  with tyTag2Tag t
+... | A ,, a = Array A ,, array a
 tyTag2Tag (pair t u)  with tyTag2Tag t | tyTag2Tag u
 ... | A ,, a | B ,, b  = (A × B) ,, pair a b
 
@@ -288,6 +305,7 @@ tyTagLemma (atomic aBls12-381-g1-element) = refl
 tyTagLemma (atomic aBls12-381-g2-element) = refl
 tyTagLemma (atomic aBls12-381-mlresult) = refl
 tyTagLemma (list t) = cong List (tyTagLemma t)
+tyTagLemma (array t) = cong Array (tyTagLemma t)
 tyTagLemma (pair t u) = cong₂ _×_ (tyTagLemma t) (tyTagLemma u)
 
 tmCon2TagCon : TmCon → TagCon
@@ -301,6 +319,7 @@ tmCon2TagCon (tmCon (atomic aBls12-381-g1-element) x) = tagCon bls12-381-g1-elem
 tmCon2TagCon (tmCon (atomic aBls12-381-g2-element) x) = tagCon bls12-381-g2-element x
 tmCon2TagCon (tmCon (atomic aBls12-381-mlresult) x) = tagCon bls12-381-mlresult x
 tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
+tmCon2TagCon (tmCon (array t) x) rewrite tyTagLemma t = tagCon (array (proj₂ (tyTag2Tag t))) x
 tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u =
     tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
 ```

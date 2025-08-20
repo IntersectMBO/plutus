@@ -127,10 +127,10 @@ d_deBruijnifyTmU_36 ::
     MAlonzo.Code.Scoped.T_FreeVariableError_574 T_TermU_24
 d_deBruijnifyTmU_36 = second void . runExcept . U.deBruijnTerm
 -- Evaluator.Term.convTm
-d_convTm_38 :: T_Term_14 -> MAlonzo.Code.Raw.T_RawTm_30
+d_convTm_38 :: T_Term_14 -> MAlonzo.Code.Raw.T_RawTm_32
 d_convTm_38 = conv
 -- Evaluator.Term.unconvTm
-d_unconvTm_40 :: MAlonzo.Code.Raw.T_RawTm_30 -> T_Term_14
+d_unconvTm_40 :: MAlonzo.Code.Raw.T_RawTm_32 -> T_Term_14
 d_unconvTm_40 = unconv 0
 -- Evaluator.Term.convTy
 d_convTy_42 :: T_Type_16 -> MAlonzo.Code.Raw.T_RawTy_2
@@ -139,22 +139,22 @@ d_convTy_42 = convT
 d_unconvTy_44 :: MAlonzo.Code.Raw.T_RawTy_2 -> T_Type_16
 d_unconvTy_44 = unconvT 0
 -- Evaluator.Term.convTmU
-d_convTmU_46 :: T_TermU_24 -> MAlonzo.Code.RawU.T_Untyped_146
+d_convTmU_46 :: T_TermU_24 -> MAlonzo.Code.RawU.T_Untyped_208
 d_convTmU_46 = U.conv
 -- Evaluator.Term.unconvTmU
-d_unconvTmU_48 :: MAlonzo.Code.RawU.T_Untyped_146 -> T_TermU_24
+d_unconvTmU_48 :: MAlonzo.Code.RawU.T_Untyped_208 -> T_TermU_24
 d_unconvTmU_48 = U.uconv 0
 -- Evaluator.Term.checkKindX
 checkKindAgda ::
   T_Type_16 ->
-  MAlonzo.Code.Utils.T_Kind_636 ->
+  MAlonzo.Code.Utils.T_Kind_652 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
     MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
 checkKindAgda = coe d_checkKindX_50
 d_checkKindX_50 ::
   T_Type_16 ->
-  MAlonzo.Code.Utils.T_Kind_636 ->
+  MAlonzo.Code.Utils.T_Kind_652 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
     MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
@@ -215,13 +215,13 @@ inferKindAgda ::
   T_Type_16 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
-    MAlonzo.Code.Utils.T_Kind_636
+    MAlonzo.Code.Utils.T_Kind_652
 inferKindAgda = coe d_inferKind'8709'_68
 d_inferKind'8709'_68 ::
   T_Type_16 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
-    MAlonzo.Code.Utils.T_Kind_636
+    MAlonzo.Code.Utils.T_Kind_652
 d_inferKind'8709'_68 v0
   = coe
       MAlonzo.Code.Utils.du_eitherBind_42
@@ -368,7 +368,7 @@ d_inferType'8709'_92 v0
                                       (coe
                                          MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26
                                          (coe MAlonzo.Code.Type.C_'8709'_4)
-                                         (coe MAlonzo.Code.Utils.C_'42'_638) (coe v3)))))
+                                         (coe MAlonzo.Code.Utils.C_'42'_654) (coe v3)))))
                       _ -> MAlonzo.RTE.mazUnreachableError))))
 -- Evaluator.Term.checkType∅
 checkTypeAgda ::
@@ -412,7 +412,7 @@ d_checkType'8709'_104 v0 v1
                  (coe
                     MAlonzo.Code.Check.d_checkKind_554
                     (coe MAlonzo.Code.Type.C_'8709'_4) (coe v2)
-                    (coe MAlonzo.Code.Utils.C_'42'_638)))
+                    (coe MAlonzo.Code.Utils.C_'42'_654)))
               (coe
                  (\ v3 ->
                     coe
@@ -688,7 +688,7 @@ d_runTCK_146 v0
                                                         (coe MAlonzo.Code.Algorithmic.C_'8709'_4)
                                                         (coe v3)
                                                         (coe
-                                                           MAlonzo.Code.Algorithmic.C_error_258)))))
+                                                           MAlonzo.Code.Algorithmic.C_error_268)))))
                                      _ -> MAlonzo.RTE.mazUnreachableError))
                       _ -> MAlonzo.RTE.mazUnreachableError))))
 -- Evaluator.Term.runTCEK
@@ -738,29 +738,29 @@ d_runTCEK_166 v0
                                 MAlonzo.Code.Utils.du_withE_282
                                 (coe MAlonzo.Code.Evaluator.Base.C_runtimeError_20)
                                 (coe
-                                   MAlonzo.Code.Algorithmic.CEK.du_stepper_1538
+                                   MAlonzo.Code.Algorithmic.CEK.du_stepper_1594
                                    (coe MAlonzo.Code.Evaluator.Base.d_maxsteps_72)
                                    (coe
-                                      MAlonzo.Code.Algorithmic.CEK.C__'894'_'9659'__1194
+                                      MAlonzo.Code.Algorithmic.CEK.C__'894'_'9659'__1250
                                       (coe MAlonzo.Code.Algorithmic.C_'8709'_4) (coe v3)
-                                      (coe MAlonzo.Code.Algorithmic.CEK.C_ε_1176)
+                                      (coe MAlonzo.Code.Algorithmic.CEK.C_ε_1232)
                                       (coe MAlonzo.Code.Algorithmic.CEK.C_'91''93'_202) (coe v4))))
                              (coe
                                 (\ v5 ->
                                    case coe v5 of
-                                     MAlonzo.Code.Algorithmic.CEK.C__'894'_'9659'__1194 v6 v7 v8 v9 v10
+                                     MAlonzo.Code.Algorithmic.CEK.C__'894'_'9659'__1250 v6 v7 v8 v9 v10
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8321'_12
                                             (coe
                                                MAlonzo.Code.Evaluator.Base.C_runtimeError_20
                                                (coe MAlonzo.Code.Utils.C_gasError_350))
-                                     MAlonzo.Code.Algorithmic.CEK.C__'9669'__1198 v6 v7 v8
+                                     MAlonzo.Code.Algorithmic.CEK.C__'9669'__1254 v6 v7 v8
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8321'_12
                                             (coe
                                                MAlonzo.Code.Evaluator.Base.C_runtimeError_20
                                                (coe MAlonzo.Code.Utils.C_gasError_350))
-                                     MAlonzo.Code.Algorithmic.CEK.C_'9633'_1200 v6
+                                     MAlonzo.Code.Algorithmic.CEK.C_'9633'_1256 v6
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
@@ -785,7 +785,7 @@ d_runTCEK_166 v0
                                                         (coe
                                                            MAlonzo.Code.Algorithmic.CEK.d_discharge_228
                                                            (coe v3) (coe v6))))))
-                                     MAlonzo.Code.Algorithmic.CEK.C_'9670'_1202 v6
+                                     MAlonzo.Code.Algorithmic.CEK.C_'9670'_1258 v6
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
@@ -803,7 +803,7 @@ d_runTCEK_166 v0
                                                         (coe MAlonzo.Code.Algorithmic.C_'8709'_4)
                                                         (coe v3)
                                                         (coe
-                                                           MAlonzo.Code.Algorithmic.C_error_258)))))
+                                                           MAlonzo.Code.Algorithmic.C_error_268)))))
                                      _ -> MAlonzo.RTE.mazUnreachableError))
                       _ -> MAlonzo.RTE.mazUnreachableError))))
 -- Evaluator.Term.runUValue
@@ -819,7 +819,7 @@ d_runUValue_186 v0
          MAlonzo.Code.Utils.du_withE_282
          (coe MAlonzo.Code.Evaluator.Base.C_runtimeError_20)
          (coe
-            MAlonzo.Code.Untyped.CEK.d_stepper_1242
+            MAlonzo.Code.Untyped.CEK.d_stepper_1264
             (coe MAlonzo.Code.Evaluator.Base.d_maxsteps_72)
             (coe
                MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222
@@ -861,7 +861,7 @@ d_runU_194 v0
          MAlonzo.Code.Utils.du_withE_282
          (coe MAlonzo.Code.Evaluator.Base.C_scopeError_18)
          (coe
-            MAlonzo.Code.Untyped.d_scopeCheckU0_322 (coe d_convTmU_46 v0)))
+            MAlonzo.Code.Untyped.d_scopeCheckU0_326 (coe d_convTmU_46 v0)))
       (coe
          (\ v1 ->
             coe
@@ -872,7 +872,7 @@ d_runU_194 v0
                       MAlonzo.Code.Utils.C_inj'8322'_14
                       (coe
                          d_unconvTmU_48
-                         (MAlonzo.Code.Untyped.d_extricateU0_236
+                         (MAlonzo.Code.Untyped.d_extricateU0_240
                             (coe MAlonzo.Code.Untyped.CEK.d_discharge_126 (coe v2))))))))
 -- Evaluator.Term.runUCounting
 runUCountingAgda ::
@@ -1067,209 +1067,221 @@ d_runUCounting_202 v0 v1
                                                                                                                                              (coe
                                                                                                                                                 MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                 (coe
-                                                                                                                                                   MAlonzo.Code.Builtin.C_chooseData_80)
+                                                                                                                                                   MAlonzo.Code.Builtin.C_lengthOfArray_80)
                                                                                                                                                 (coe
                                                                                                                                                    MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                    (coe
-                                                                                                                                                      MAlonzo.Code.Builtin.C_constrData_82)
+                                                                                                                                                      MAlonzo.Code.Builtin.C_listToArray_82)
                                                                                                                                                    (coe
                                                                                                                                                       MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                       (coe
-                                                                                                                                                         MAlonzo.Code.Builtin.C_mapData_84)
+                                                                                                                                                         MAlonzo.Code.Builtin.C_indexArray_84)
                                                                                                                                                       (coe
                                                                                                                                                          MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                          (coe
-                                                                                                                                                            MAlonzo.Code.Builtin.C_listData_86)
+                                                                                                                                                            MAlonzo.Code.Builtin.C_chooseData_86)
                                                                                                                                                          (coe
                                                                                                                                                             MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                             (coe
-                                                                                                                                                               MAlonzo.Code.Builtin.C_iData_88)
+                                                                                                                                                               MAlonzo.Code.Builtin.C_constrData_88)
                                                                                                                                                             (coe
                                                                                                                                                                MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                (coe
-                                                                                                                                                                  MAlonzo.Code.Builtin.C_bData_90)
+                                                                                                                                                                  MAlonzo.Code.Builtin.C_mapData_90)
                                                                                                                                                                (coe
                                                                                                                                                                   MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                   (coe
-                                                                                                                                                                     MAlonzo.Code.Builtin.C_unConstrData_92)
+                                                                                                                                                                     MAlonzo.Code.Builtin.C_listData_92)
                                                                                                                                                                   (coe
                                                                                                                                                                      MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                      (coe
-                                                                                                                                                                        MAlonzo.Code.Builtin.C_unMapData_94)
+                                                                                                                                                                        MAlonzo.Code.Builtin.C_iData_94)
                                                                                                                                                                      (coe
                                                                                                                                                                         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                         (coe
-                                                                                                                                                                           MAlonzo.Code.Builtin.C_unListData_96)
+                                                                                                                                                                           MAlonzo.Code.Builtin.C_bData_96)
                                                                                                                                                                         (coe
                                                                                                                                                                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                            (coe
-                                                                                                                                                                              MAlonzo.Code.Builtin.C_unIData_98)
+                                                                                                                                                                              MAlonzo.Code.Builtin.C_unConstrData_98)
                                                                                                                                                                            (coe
                                                                                                                                                                               MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                               (coe
-                                                                                                                                                                                 MAlonzo.Code.Builtin.C_unBData_100)
+                                                                                                                                                                                 MAlonzo.Code.Builtin.C_unMapData_100)
                                                                                                                                                                               (coe
                                                                                                                                                                                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                  (coe
-                                                                                                                                                                                    MAlonzo.Code.Builtin.C_equalsData_102)
+                                                                                                                                                                                    MAlonzo.Code.Builtin.C_unListData_102)
                                                                                                                                                                                  (coe
                                                                                                                                                                                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                     (coe
-                                                                                                                                                                                       MAlonzo.Code.Builtin.C_serialiseData_104)
+                                                                                                                                                                                       MAlonzo.Code.Builtin.C_unIData_104)
                                                                                                                                                                                     (coe
                                                                                                                                                                                        MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                        (coe
-                                                                                                                                                                                          MAlonzo.Code.Builtin.C_mkPairData_106)
+                                                                                                                                                                                          MAlonzo.Code.Builtin.C_unBData_106)
                                                                                                                                                                                        (coe
                                                                                                                                                                                           MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                           (coe
-                                                                                                                                                                                             MAlonzo.Code.Builtin.C_mkNilData_108)
+                                                                                                                                                                                             MAlonzo.Code.Builtin.C_equalsData_108)
                                                                                                                                                                                           (coe
                                                                                                                                                                                              MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                              (coe
-                                                                                                                                                                                                MAlonzo.Code.Builtin.C_mkNilPairData_110)
+                                                                                                                                                                                                MAlonzo.Code.Builtin.C_serialiseData_110)
                                                                                                                                                                                              (coe
                                                                                                                                                                                                 MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                 (coe
-                                                                                                                                                                                                   MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'add_112)
+                                                                                                                                                                                                   MAlonzo.Code.Builtin.C_mkPairData_112)
                                                                                                                                                                                                 (coe
                                                                                                                                                                                                    MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                    (coe
-                                                                                                                                                                                                      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'neg_114)
+                                                                                                                                                                                                      MAlonzo.Code.Builtin.C_mkNilData_114)
                                                                                                                                                                                                    (coe
                                                                                                                                                                                                       MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                       (coe
-                                                                                                                                                                                                         MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'scalarMul_116)
+                                                                                                                                                                                                         MAlonzo.Code.Builtin.C_mkNilPairData_116)
                                                                                                                                                                                                       (coe
                                                                                                                                                                                                          MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                          (coe
-                                                                                                                                                                                                            MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'equal_118)
+                                                                                                                                                                                                            MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'add_118)
                                                                                                                                                                                                          (coe
                                                                                                                                                                                                             MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                             (coe
-                                                                                                                                                                                                               MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'hashToGroup_120)
+                                                                                                                                                                                                               MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'neg_120)
                                                                                                                                                                                                             (coe
                                                                                                                                                                                                                MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                (coe
-                                                                                                                                                                                                                  MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'compress_122)
+                                                                                                                                                                                                                  MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'scalarMul_122)
                                                                                                                                                                                                                (coe
                                                                                                                                                                                                                   MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                   (coe
-                                                                                                                                                                                                                     MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'uncompress_124)
+                                                                                                                                                                                                                     MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'equal_124)
                                                                                                                                                                                                                   (coe
                                                                                                                                                                                                                      MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                      (coe
-                                                                                                                                                                                                                        MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'add_126)
+                                                                                                                                                                                                                        MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'hashToGroup_126)
                                                                                                                                                                                                                      (coe
                                                                                                                                                                                                                         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                         (coe
-                                                                                                                                                                                                                           MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'neg_128)
+                                                                                                                                                                                                                           MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'compress_128)
                                                                                                                                                                                                                         (coe
                                                                                                                                                                                                                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                            (coe
-                                                                                                                                                                                                                              MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'scalarMul_130)
+                                                                                                                                                                                                                              MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'uncompress_130)
                                                                                                                                                                                                                            (coe
                                                                                                                                                                                                                               MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                               (coe
-                                                                                                                                                                                                                                 MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'equal_132)
+                                                                                                                                                                                                                                 MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'add_132)
                                                                                                                                                                                                                               (coe
                                                                                                                                                                                                                                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                  (coe
-                                                                                                                                                                                                                                    MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'hashToGroup_134)
+                                                                                                                                                                                                                                    MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'neg_134)
                                                                                                                                                                                                                                  (coe
                                                                                                                                                                                                                                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                     (coe
-                                                                                                                                                                                                                                       MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'compress_136)
+                                                                                                                                                                                                                                       MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'scalarMul_136)
                                                                                                                                                                                                                                     (coe
                                                                                                                                                                                                                                        MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                        (coe
-                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'uncompress_138)
+                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'equal_138)
                                                                                                                                                                                                                                        (coe
                                                                                                                                                                                                                                           MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                           (coe
-                                                                                                                                                                                                                                             MAlonzo.Code.Builtin.C_bls12'45'381'45'millerLoop_140)
+                                                                                                                                                                                                                                             MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'hashToGroup_140)
                                                                                                                                                                                                                                           (coe
                                                                                                                                                                                                                                              MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                              (coe
-                                                                                                                                                                                                                                                MAlonzo.Code.Builtin.C_bls12'45'381'45'mulMlResult_142)
+                                                                                                                                                                                                                                                MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'compress_142)
                                                                                                                                                                                                                                              (coe
                                                                                                                                                                                                                                                 MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                 (coe
-                                                                                                                                                                                                                                                   MAlonzo.Code.Builtin.C_bls12'45'381'45'finalVerify_144)
+                                                                                                                                                                                                                                                   MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'uncompress_144)
                                                                                                                                                                                                                                                 (coe
                                                                                                                                                                                                                                                    MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                    (coe
-                                                                                                                                                                                                                                                      MAlonzo.Code.Builtin.C_keccak'45'256_146)
+                                                                                                                                                                                                                                                      MAlonzo.Code.Builtin.C_bls12'45'381'45'millerLoop_146)
                                                                                                                                                                                                                                                    (coe
                                                                                                                                                                                                                                                       MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                       (coe
-                                                                                                                                                                                                                                                         MAlonzo.Code.Builtin.C_blake2b'45'224_148)
+                                                                                                                                                                                                                                                         MAlonzo.Code.Builtin.C_bls12'45'381'45'mulMlResult_148)
                                                                                                                                                                                                                                                       (coe
                                                                                                                                                                                                                                                          MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                          (coe
-                                                                                                                                                                                                                                                            MAlonzo.Code.Builtin.C_byteStringToInteger_150)
+                                                                                                                                                                                                                                                            MAlonzo.Code.Builtin.C_bls12'45'381'45'finalVerify_150)
                                                                                                                                                                                                                                                          (coe
                                                                                                                                                                                                                                                             MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                             (coe
-                                                                                                                                                                                                                                                               MAlonzo.Code.Builtin.C_integerToByteString_152)
+                                                                                                                                                                                                                                                               MAlonzo.Code.Builtin.C_keccak'45'256_152)
                                                                                                                                                                                                                                                             (coe
                                                                                                                                                                                                                                                                MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                (coe
-                                                                                                                                                                                                                                                                  MAlonzo.Code.Builtin.C_andByteString_154)
+                                                                                                                                                                                                                                                                  MAlonzo.Code.Builtin.C_blake2b'45'224_154)
                                                                                                                                                                                                                                                                (coe
                                                                                                                                                                                                                                                                   MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                   (coe
-                                                                                                                                                                                                                                                                     MAlonzo.Code.Builtin.C_orByteString_156)
+                                                                                                                                                                                                                                                                     MAlonzo.Code.Builtin.C_byteStringToInteger_156)
                                                                                                                                                                                                                                                                   (coe
                                                                                                                                                                                                                                                                      MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                      (coe
-                                                                                                                                                                                                                                                                        MAlonzo.Code.Builtin.C_xorByteString_158)
+                                                                                                                                                                                                                                                                        MAlonzo.Code.Builtin.C_integerToByteString_158)
                                                                                                                                                                                                                                                                      (coe
                                                                                                                                                                                                                                                                         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                         (coe
-                                                                                                                                                                                                                                                                           MAlonzo.Code.Builtin.C_complementByteString_160)
+                                                                                                                                                                                                                                                                           MAlonzo.Code.Builtin.C_andByteString_160)
                                                                                                                                                                                                                                                                         (coe
                                                                                                                                                                                                                                                                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                            (coe
-                                                                                                                                                                                                                                                                              MAlonzo.Code.Builtin.C_readBit_162)
+                                                                                                                                                                                                                                                                              MAlonzo.Code.Builtin.C_orByteString_162)
                                                                                                                                                                                                                                                                            (coe
                                                                                                                                                                                                                                                                               MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                               (coe
-                                                                                                                                                                                                                                                                                 MAlonzo.Code.Builtin.C_writeBits_164)
+                                                                                                                                                                                                                                                                                 MAlonzo.Code.Builtin.C_xorByteString_164)
                                                                                                                                                                                                                                                                               (coe
                                                                                                                                                                                                                                                                                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                  (coe
-                                                                                                                                                                                                                                                                                    MAlonzo.Code.Builtin.C_replicateByte_166)
+                                                                                                                                                                                                                                                                                    MAlonzo.Code.Builtin.C_complementByteString_166)
                                                                                                                                                                                                                                                                                  (coe
                                                                                                                                                                                                                                                                                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                     (coe
-                                                                                                                                                                                                                                                                                       MAlonzo.Code.Builtin.C_shiftByteString_168)
+                                                                                                                                                                                                                                                                                       MAlonzo.Code.Builtin.C_readBit_168)
                                                                                                                                                                                                                                                                                     (coe
                                                                                                                                                                                                                                                                                        MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                        (coe
-                                                                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.C_rotateByteString_170)
+                                                                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.C_writeBits_170)
                                                                                                                                                                                                                                                                                        (coe
                                                                                                                                                                                                                                                                                           MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                           (coe
-                                                                                                                                                                                                                                                                                             MAlonzo.Code.Builtin.C_countSetBits_172)
+                                                                                                                                                                                                                                                                                             MAlonzo.Code.Builtin.C_replicateByte_172)
                                                                                                                                                                                                                                                                                           (coe
                                                                                                                                                                                                                                                                                              MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                              (coe
-                                                                                                                                                                                                                                                                                                MAlonzo.Code.Builtin.C_findFirstSetBit_174)
+                                                                                                                                                                                                                                                                                                MAlonzo.Code.Builtin.C_shiftByteString_174)
                                                                                                                                                                                                                                                                                              (coe
                                                                                                                                                                                                                                                                                                 MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                                 (coe
-                                                                                                                                                                                                                                                                                                   MAlonzo.Code.Builtin.C_ripemd'45'160_176)
+                                                                                                                                                                                                                                                                                                   MAlonzo.Code.Builtin.C_rotateByteString_176)
                                                                                                                                                                                                                                                                                                 (coe
                                                                                                                                                                                                                                                                                                    MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                                    (coe
-                                                                                                                                                                                                                                                                                                      MAlonzo.Code.Builtin.C_expModInteger_178)
+                                                                                                                                                                                                                                                                                                      MAlonzo.Code.Builtin.C_countSetBits_178)
                                                                                                                                                                                                                                                                                                    (coe
                                                                                                                                                                                                                                                                                                       MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                                                                                                                                                                                                                                                                                       (coe
-                                                                                                                                                                                                                                                                                                         MAlonzo.Code.Builtin.C_dropList_180)
+                                                                                                                                                                                                                                                                                                         MAlonzo.Code.Builtin.C_findFirstSetBit_180)
                                                                                                                                                                                                                                                                                                       (coe
-                                                                                                                                                                                                                                                                                                         MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))) in
+                                                                                                                                                                                                                                                                                                         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                                                                                                                                                                                                                                                                                                         (coe
+                                                                                                                                                                                                                                                                                                            MAlonzo.Code.Builtin.C_ripemd'45'160_182)
+                                                                                                                                                                                                                                                                                                         (coe
+                                                                                                                                                                                                                                                                                                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                                                                                                                                                                                                                                                                                                            (coe
+                                                                                                                                                                                                                                                                                                               MAlonzo.Code.Builtin.C_expModInteger_184)
+                                                                                                                                                                                                                                                                                                            (coe
+                                                                                                                                                                                                                                                                                                               MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                                                                                                                                                                                                                                                                                                               (coe
+                                                                                                                                                                                                                                                                                                                  MAlonzo.Code.Builtin.C_dropList_186)
+                                                                                                                                                                                                                                                                                                               (coe
+                                                                                                                                                                                                                                                                                                                  MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))) in
            coe
              (case coe v4 of
                 MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v5
@@ -1279,7 +1291,7 @@ d_runUCounting_202 v0 v1
                           MAlonzo.Code.Utils.du_withE_282
                           (coe MAlonzo.Code.Evaluator.Base.C_scopeError_18)
                           (coe
-                             MAlonzo.Code.Untyped.d_scopeCheckU0_322 (coe d_convTmU_46 v1)))
+                             MAlonzo.Code.Untyped.d_scopeCheckU0_326 (coe d_convTmU_46 v1)))
                        (coe
                           (\ v6 ->
                              coe
@@ -1316,7 +1328,7 @@ d_runUCounting_202 v0 v1
                                                     MAlonzo.Code.Utils.C__'44'__380
                                                     (coe
                                                        d_unconvTmU_48
-                                                       (MAlonzo.Code.Untyped.d_extricateU0_236
+                                                       (MAlonzo.Code.Untyped.d_extricateU0_240
                                                           (coe
                                                              MAlonzo.Code.Untyped.CEK.d_discharge_126
                                                              (coe v9))))
@@ -1406,12 +1418,12 @@ d_blah_240 v0 v1
                                        MAlonzo.Code.Utils.C_inj'8322'_14 v9
                                          -> coe
                                               MAlonzo.Code.Data.String.Base.d__'43''43'__20
-                                              (MAlonzo.Code.Raw.d_rawPrinter_344
+                                              (MAlonzo.Code.Raw.d_rawPrinter_346
                                                  (coe d_convTm_38 v8))
                                               (coe
                                                  MAlonzo.Code.Data.String.Base.d__'43''43'__20
                                                  (" || " :: Data.Text.Text)
-                                                 (MAlonzo.Code.Raw.d_rawPrinter_344
+                                                 (MAlonzo.Code.Raw.d_rawPrinter_346
                                                     (coe d_convTm_38 v9)))
                                        _ -> coe ("deBruijnifying failed" :: Data.Text.Text)
                                 _ -> coe ("deBruijnifying failed" :: Data.Text.Text)))
@@ -1438,7 +1450,7 @@ d_printTy_286 v0
                    MAlonzo.Code.Utils.C_inj'8321'_12 v4
                      -> coe ("deBruinjifyTy error" :: Data.Text.Text)
                    MAlonzo.Code.Utils.C_inj'8322'_14 v4
-                     -> coe MAlonzo.Code.Raw.d_rawTyPrinter_294 (coe d_convTy_42 v4)
+                     -> coe MAlonzo.Code.Raw.d_rawTyPrinter_296 (coe d_convTy_42 v4)
                    _ -> MAlonzo.RTE.mazUnreachableError)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Evaluator.Term.alphaTy
@@ -1467,7 +1479,7 @@ d_alphaTy_314 v0 v1
                                   -> case coe v7 of
                                        MAlonzo.Code.Utils.C_inj'8322'_14 v9
                                          -> coe
-                                              MAlonzo.Code.Raw.d_decRTy_100 (coe d_convTy_42 v8)
+                                              MAlonzo.Code.Raw.d_decRTy_102 (coe d_convTy_42 v8)
                                               (coe d_convTy_42 v9)
                                        _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8
                                 _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8))
@@ -1499,7 +1511,7 @@ d_alphaTm_360 v0 v1
                                   -> case coe v7 of
                                        MAlonzo.Code.Utils.C_inj'8322'_14 v9
                                          -> coe
-                                              MAlonzo.Code.Raw.d_decRTm_186 (coe d_convTm_38 v8)
+                                              MAlonzo.Code.Raw.d_decRTm_188 (coe d_convTm_38 v8)
                                               (coe d_convTm_38 v9)
                                        _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8
                                 _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8))
@@ -1531,7 +1543,7 @@ d_alphaU_406 v0 v1
                                   -> case coe v7 of
                                        MAlonzo.Code.Utils.C_inj'8322'_14 v9
                                          -> coe
-                                              MAlonzo.Code.Untyped.d_decUTm_332
+                                              MAlonzo.Code.Untyped.d_decUTm_336
                                               (coe d_convTmU_46 v8) (coe d_convTmU_46 v9)
                                        _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8
                                 _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8))

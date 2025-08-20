@@ -21,6 +21,7 @@ on:
       - "🌘 Nightly Testsuite"
       - "📝 Papers & Specs"
       - "📊 Code Coverage Report"
+      - "🏆 Compare Golden Budgets"
       - "pages-build-deployment"
 
 jobs:
@@ -49,7 +50,8 @@ jobs:
                 "ana-pantilie": ["U05V2854W86"],
                 "zliu41": ["U03BP2HTKDK"],
                 "bezirg": ["UQ1LUSR8B"],
-                "erikd": ["U914V9D2B"]
+                "erikd": ["U914V9D2B"],
+                "SeungheonOh": ["U08RN7SACTT"]
               };
 
               const workflowOwners = {

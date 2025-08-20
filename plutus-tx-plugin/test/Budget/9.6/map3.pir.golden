@@ -1,8 +1,3 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
   !safeAppend :
      list (pair data data) -> list (pair data data) -> list (pair data data)
@@ -10,8 +5,7 @@ letrec
         case
           (list (pair data data))
           xs
-          [ xs
-          , (\(hd : pair data data) (tl : list (pair data data)) ->
+          [ (\(hd : pair data data) (tl : list (pair data data)) ->
                let
                  !v : data = sndPair {data} {data} hd
                  !k : data = fstPair {data} {data} hd
@@ -25,30 +19,26 @@ letrec
                        case
                          (list (pair data data))
                          xs
-                         [ nilCase
-                         , (\(hd : pair data data) ->
-                              Bool_match
-                                (case
-                                   Bool
-                                   (equalsData k (fstPair {data} {data} hd))
-                                   [False, True])
-                                {all dead.
+                         [ (\(hd : pair data data) ->
+                              case
+                                (all dead.
                                    list (pair data data) ->
-                                   list (pair data data)}
-                                (/\dead ->
-                                   mkCons {pair data data} (mkPairData k v))
-                                (/\dead ->
-                                   \(eta : list (pair data data)) ->
-                                     mkCons {pair data data} hd (go eta))
-                                {all dead. dead}) ]
+                                   list (pair data data))
+                                (equalsData k (fstPair {data} {data} hd))
+                                [ (/\dead ->
+                                     \(eta : list (pair data data)) ->
+                                       mkCons {pair data data} hd (go eta))
+                                , (/\dead ->
+                                     mkCons {pair data data} (mkPairData k v)) ]
+                                {all dead. dead})
+                         , nilCase ]
                in
-               go eta) ]
+               go eta)
+          , xs ]
 in
 let
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
-  data Unit | Unit_match where
-    Unit : Unit
   data (These :: * -> * -> *) a b | These_match where
     That : b -> These a b
     These : a -> b -> These a b
@@ -84,19 +74,16 @@ let
                 case
                   (Maybe data)
                   xs
-                  [ (Nothing {data})
-                  , (\(hd : pair data data) ->
-                       Bool_match
-                         (case
-                            Bool
-                            (equalsData k (fstPair {data} {data} hd))
-                            [False, True])
-                         {all dead. list (pair data data) -> Maybe data}
-                         (/\dead ->
-                            \(ds : list (pair data data)) ->
-                              Just {data} (sndPair {data} {data} hd))
-                         (/\dead -> go)
-                         {all dead. dead}) ]
+                  [ (\(hd : pair data data) ->
+                       case
+                         (all dead. list (pair data data) -> Maybe data)
+                         (equalsData k (fstPair {data} {data} hd))
+                         [ (/\dead -> go)
+                         , (/\dead ->
+                              \(ds : list (pair data data)) ->
+                                Just {data} (sndPair {data} {data} hd)) ]
+                         {all dead. dead})
+                  , (Nothing {data}) ]
         in
         \(m : list (pair data data)) -> go m
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
@@ -195,8 +182,7 @@ in
           case
             (list (pair data data))
             xs
-            [ []
-            , (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !v : data = sndPair {data} {data} hd
                    !k : data = fstPair {data} {data} hd
@@ -234,7 +220,8 @@ in
                               `$dToData`
                               (This {integer} {integer} (unIData v))))
                         (goLeft tl))
-                   {all dead. dead}) ]
+                   {all dead. dead})
+            , [] ]
   in
   let
     !nt : list (pair data data)
@@ -268,8 +255,7 @@ in
           case
             (list (pair data data))
             xs
-            [ []
-            , (\(hd : pair data data) (tl : list (pair data data)) ->
+            [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
                    !v : data = sndPair {data} {data} hd
                    !k : data = fstPair {data} {data} hd
@@ -307,7 +293,8 @@ in
                               `$dToData`
                               (That {integer} {integer} (unIData v))))
                         (goRight tl))
-                   {all dead. dead}) ]
+                   {all dead. dead})
+            , [] ]
   in
   let
     !nt : list (pair data data) = safeAppend (goLeft nt) (goRight nt)
@@ -362,8 +349,7 @@ in
                  case
                    (List (Tuple2 integer a))
                    xs
-                   [ (Nil {Tuple2 integer a})
-                   , (\(hd : pair data data) (tl : list (pair data data)) ->
+                   [ (\(hd : pair data data) (tl : list (pair data data)) ->
                         Cons
                           {Tuple2 integer a}
                           (Tuple2
@@ -371,7 +357,8 @@ in
                              {a}
                              (`$dUnsafeFromData` (fstPair {data} {data} hd))
                              (`$dUnsafeFromData` (sndPair {data} {data} hd)))
-                          (go tl)) ]
+                          (go tl))
+                   , (Nil {Tuple2 integer a}) ]
          in
          \(d : (\k a -> list (pair data data)) integer a) -> go d)
        unIData
@@ -381,33 +368,18 @@ in
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          Bool_match
-            (case Bool (equalsInteger 0 index) [False, True])
-            {all dead. These integer integer}
-            (/\dead ->
-               This {integer} {integer} (unIData (headList {data} args)))
-            (/\dead ->
-               Bool_match
-                 (case Bool (equalsInteger 1 index) [False, True])
-                 {all dead. These integer integer}
-                 (/\dead ->
-                    That {integer} {integer} (unIData (headList {data} args)))
-                 (/\dead ->
-                    Bool_match
-                      (case Bool (equalsInteger 2 index) [False, True])
-                      {all dead. These integer integer}
-                      (/\dead ->
-                         These
-                           {integer}
-                           {integer}
-                           (unIData (headList {data} args))
-                           (unIData (headList {data} (tailList {data} args))))
-                      (/\dead ->
-                         let
-                           !x : Unit = trace {Unit} "PT1" Unit
-                         in
-                         error {These integer integer})
-                      {all dead. dead})
-                 {all dead. dead})
-            {all dead. dead})
+          case
+            (list data -> These integer integer)
+            index
+            [ (\(ds : list data) ->
+                 This {integer} {integer} (unIData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 That {integer} {integer} (unIData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 These
+                   {integer}
+                   {integer}
+                   (unIData (headList {data} ds))
+                   (unIData (headList {data} (tailList {data} ds)))) ]
+            args)
        nt)
