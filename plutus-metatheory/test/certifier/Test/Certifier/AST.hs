@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 module Test.Certifier.AST where
 
 import PlutusCore qualified as PLC
@@ -13,8 +14,8 @@ import Test.Tasty.HUnit
 
 mkMockTracePair
   :: SimplifierStage
-  -> Term Name DefaultUni DefaultFun ()
-  -> Term Name DefaultUni DefaultFun ()
+  -> SimplifierTerm Name DefaultUni DefaultFun ()
+  -> SimplifierTerm Name DefaultUni DefaultFun ()
   -> SimplifierTrace Name DefaultUni DefaultFun ()
 mkMockTracePair stage before' after' =
   SimplifierTrace
@@ -43,7 +44,7 @@ testSuccess
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> TestTree
-testSuccess testName st bf af =
+testSuccess testName st (initSimplifierTerm -> bf) (initSimplifierTerm -> af) =
   testCase testName $ do
     let trace = mkMockTracePair st bf af
     result <- runCertifierWithMockTrace trace
@@ -57,7 +58,7 @@ testFailure
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> TestTree
-testFailure testName st bf af =
+testFailure testName st (initSimplifierTerm -> bf) (initSimplifierTerm -> af) =
   testCase testName $ do
     let trace = mkMockTracePair st bf af
     result <- runCertifierWithMockTrace trace
