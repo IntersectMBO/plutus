@@ -16,7 +16,7 @@ import Control.Lens.TH (makeLenses)
 import Data.Default.Class
 
 import PlutusCore.Annotation (InlineHints (..))
-import PlutusCore.Size
+import PlutusCore.ASTSize
 
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
@@ -24,7 +24,7 @@ data SimplifyOpts name a = SimplifyOpts
   , _soConservativeOpts        :: Bool
   , _soInlineHints             :: InlineHints name a
   , _soInlineConstants         :: Bool
-  , _soInlineCallsiteGrowth    :: Size
+  , _soInlineCallsiteGrowth    :: ASTSize
   , _soPreserveLogging         :: Bool
   }
   deriving stock (Show)
