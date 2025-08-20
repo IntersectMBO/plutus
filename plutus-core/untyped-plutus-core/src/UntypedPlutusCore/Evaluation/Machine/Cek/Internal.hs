@@ -669,8 +669,8 @@ data Context uni fun ann
     -- ^ @[_ N]@
     | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V]@
-    | FrameAwaitFunValues !(ArgStack uni fun ann) !(Context uni fun ann)
-    -- ^ @[[[_ V_1] ...] V_n]@
+    | FrameAwaitFunValueN !(ArgStack uni fun ann) !(Context uni fun ann)
+    -- ^ @[_ V1 .. Vn]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
@@ -844,12 +844,12 @@ enterComputeCek = computeCek
     -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
     returnCek (FrameAwaitFunValue arg ctx) fun =
         applyEvaluate ctx fun arg
-    -- s , [[[_ V_1] ... ] V_n] ◅ (lam x_1 ( ... (lam x_n (M,ρ)))) ↦ s ; ρ [ x_1  ↦  V_1, ..., x_n ↦ V_n] ▻ M
-    returnCek (FrameAwaitFunValues args ctx) fun =
+    -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+    returnCek (FrameAwaitFunValueN args ctx) fun =
         case args of
           EmptyStack -> returnCek ctx fun
           ConsStack arg rest ->
-            applyEvaluate (FrameAwaitFunValues rest ctx) fun arg
+            applyEvaluate (FrameAwaitFunValueN rest ctx) fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
         let
@@ -871,7 +871,7 @@ enterComputeCek = computeCek
                         throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
         -- Otherwise, we can safely convert the index to an Int and use it.
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
-            Just t  -> computeCek (FrameAwaitFunValues args ctx) env t
+            Just t  -> computeCek (FrameAwaitFunValueN args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of

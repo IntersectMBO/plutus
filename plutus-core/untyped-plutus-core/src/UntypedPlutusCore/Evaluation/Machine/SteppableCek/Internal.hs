@@ -97,7 +97,7 @@ data Context uni fun ann
     = FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
     | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
-    | FrameAwaitFunValues ann !(ArgStack uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFunValueN ann !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
@@ -187,11 +187,11 @@ returnCek (FrameAwaitArg _ fun ctx) arg =
 returnCek (FrameAwaitFunValue _ arg ctx) fun =
   applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameAwaitFunValues ann args ctx) fun =
+returnCek (FrameAwaitFunValueN ann args ctx) fun =
     case args of
       EmptyStack -> returnCek ctx fun
       ConsStack arg rest ->
-        applyEvaluate (FrameAwaitFunValues ann rest ctx) fun arg
+        applyEvaluate (FrameAwaitFunValueN ann rest ctx) fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
     let
@@ -213,7 +213,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
                     throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
-              let ctx' = FrameAwaitFunValues ann args ctx
+              let ctx' = FrameAwaitFunValueN ann args ctx
               in computeCek ctx' env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
@@ -392,7 +392,7 @@ contextAnn = \case
     FrameAwaitArg ann _ _       -> pure ann
     FrameAwaitFunTerm ann _ _ _ -> pure ann
     FrameAwaitFunValue ann _ _  -> pure ann
-    FrameAwaitFunValues ann _ _  -> pure ann
+    FrameAwaitFunValueN ann _ _  -> pure ann
     FrameForce ann _            -> pure ann
     FrameConstr ann _ _ _ _ _   -> pure ann
     FrameCases ann _ _ _        -> pure ann
@@ -406,7 +406,7 @@ lenContext = go 0
               FrameAwaitArg _ _ k       -> go (n+1) k
               FrameAwaitFunTerm _ _ _ k -> go (n+1) k
               FrameAwaitFunValue _ _ k  -> go (n+1) k
-              FrameAwaitFunValues _ _ k  -> go (n+1) k
+              FrameAwaitFunValueN _ _ k  -> go (n+1) k
               FrameForce _ k            -> go (n+1) k
               FrameConstr _ _ _ _ _ k   -> go (n+1) k
               FrameCases _ _ _ k        -> go (n+1) k
