@@ -24,6 +24,7 @@ import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
+import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
@@ -407,6 +408,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'GHC.Num.Integer.integerNegate
            , '(PlutusTx.Bool.&&)
            , '(PlutusTx.Bool.||)
+           , '(PlutusTx.List.!!)
            , 'PlutusTx.AsData.Internal.wrapTail
            , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
            , 'PlutusTx.Function.fix

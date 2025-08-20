@@ -60,45 +60,32 @@
                                                                     (\index ->
                                                                        (\args ->
                                                                           case
-                                                                            (equalsInteger
-                                                                               0
-                                                                               index)
-                                                                            [ (case
-                                                                                 (equalsInteger
-                                                                                    1
-                                                                                    index)
-                                                                                 [ (case
-                                                                                      (equalsInteger
-                                                                                         2
-                                                                                         index)
-                                                                                      [ ((\x ->
-                                                                                            error)
+                                                                            index
+                                                                            [ (\ds ->
+                                                                                 constr 2
+                                                                                   [ (unIData
+                                                                                        (force
+                                                                                           headList
+                                                                                           ds)) ])
+                                                                            , (\ds ->
+                                                                                 constr 0
+                                                                                   [ (unIData
+                                                                                        (force
+                                                                                           headList
+                                                                                           ds)) ])
+                                                                            , (\ds ->
+                                                                                 constr 1
+                                                                                   [ (unIData
+                                                                                        (force
+                                                                                           headList
+                                                                                           ds))
+                                                                                   , (unIData
+                                                                                        (force
+                                                                                           headList
                                                                                            (force
-                                                                                              trace
-                                                                                              "PT1"
-                                                                                              (constr 0
-                                                                                                 [  ])))
-                                                                                      , (constr 1
-                                                                                           [ (unIData
-                                                                                                (force
-                                                                                                   headList
-                                                                                                   args))
-                                                                                           , (unIData
-                                                                                                (force
-                                                                                                   headList
-                                                                                                   (force
-                                                                                                      tailList
-                                                                                                      args))) ]) ])
-                                                                                 , (constr 0
-                                                                                      [ (unIData
-                                                                                           (force
-                                                                                              headList
-                                                                                              args)) ]) ])
-                                                                            , (constr 2
-                                                                                 [ (unIData
-                                                                                      (force
-                                                                                         headList
-                                                                                         args)) ]) ])
+                                                                                              tailList
+                                                                                              ds))) ]) ]
+                                                                            args)
                                                                          (force
                                                                             (force
                                                                                sndPair)

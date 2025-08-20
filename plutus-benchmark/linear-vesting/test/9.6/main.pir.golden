@@ -150,10 +150,6 @@
               {all dead. dead}
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
-    !reconstructCaseError : string = "PT1"
-    !traceError : all a. string -> a
-      = /\a ->
-          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
     data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
@@ -167,20 +163,12 @@
               !args : list data = sndPair {integer} {list data} tup
             in
             case
-              (all dead. Maybe a)
-              (equalsInteger 1 index)
-              [ (/\dead ->
-                   case
-                     (all dead. Maybe a)
-                     (equalsInteger 0 index)
-                     [ (/\dead -> traceError {Maybe a} reconstructCaseError)
-                     , (/\dead ->
-                          Just
-                            {a}
-                            (`$dUnsafeFromData` (headList {data} args))) ]
-                     {all dead. dead})
-              , (/\dead -> Nothing {a}) ]
-              {all dead. dead}
+              (list data -> Maybe a)
+              index
+              [ (\(ds : list data) ->
+                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+              , (\(ds : list data) -> Nothing {a}) ]
+              args
     !`$mSpendingScript` :
        all r. data -> (data -> Maybe data -> r) -> (unit -> r) -> r
       = /\r ->
@@ -306,6 +294,9 @@
     !addressCredential : data -> data
       = \(ds : data) ->
           headList {data} (sndPair {integer} {list data} (unConstrData ds))
+    !traceError : all a. string -> a
+      = /\a ->
+          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
     !getLowerInclusiveTimeRange : (\a -> data) integer -> integer
       = \(ds : (\a -> data) integer) ->
           let
@@ -338,17 +329,10 @@
                      !args : list data = sndPair {integer} {list data} tup
                    in
                    case
-                     (all dead. bool)
-                     (equalsInteger 0 index)
-                     [ (/\dead ->
-                          case
-                            (all dead. bool)
-                            (equalsInteger 1 index)
-                            [ (/\dead -> traceError {bool} reconstructCaseError)
-                            , (/\dead -> True) ]
-                            {all dead. dead})
-                     , (/\dead -> False) ]
-                     {all dead. dead})
+                     (list data -> bool)
+                     index
+                     [(\(ds : list data) -> False), (\(ds : list data) -> True)]
+                     args)
                    [(/\dead -> addInteger 1 posixTime), (/\dead -> posixTime)]
                    {all dead. dead}) ]
             {all dead. dead}
@@ -789,22 +773,18 @@
                                       = sndPair {integer} {list data} tup
                                   in
                                   case
-                                    (all dead. VestingDatum)
-                                    (equalsInteger 0 index)
-                                    [ (/\dead ->
-                                         traceError
-                                           {VestingDatum}
-                                           reconstructCaseError)
-                                    , (/\dead ->
+                                    (list data -> VestingDatum)
+                                    index
+                                    [ (\(ds : list data) ->
                                          let
-                                           !l : list data = tailList {data} args
+                                           !l : list data = tailList {data} ds
                                            !l : list data = tailList {data} l
                                            !l : list data = tailList {data} l
                                            !l : list data = tailList {data} l
                                            !l : list data = tailList {data} l
                                          in
                                          VestingDatum
-                                           (headList {data} args)
+                                           (headList {data} ds)
                                            (let
                                              !tup : pair integer (list data)
                                                = unConstrData
@@ -821,28 +801,22 @@
                                                    tup
                                            in
                                            case
-                                             (all dead.
-                                                Tuple2 bytestring bytestring)
-                                             (equalsInteger 0 index)
-                                             [ (/\dead ->
-                                                  traceError
-                                                    {Tuple2
-                                                       bytestring
-                                                       bytestring}
-                                                    reconstructCaseError)
-                                             , (/\dead ->
+                                             (list data ->
+                                              Tuple2 bytestring bytestring)
+                                             index
+                                             [ (\(ds : list data) ->
                                                   Tuple2
                                                     {bytestring}
                                                     {bytestring}
                                                     (unBData
-                                                       (headList {data} args))
+                                                       (headList {data} ds))
                                                     (unBData
                                                        (headList
                                                           {data}
                                                           (tailList
                                                              {data}
-                                                             args)))) ]
-                                             {all dead. dead})
+                                                             ds)))) ]
+                                             args)
                                            (unIData (headList {data} l))
                                            (unIData (headList {data} l))
                                            (unIData (headList {data} l))
@@ -851,7 +825,7 @@
                                               (headList
                                                  {data}
                                                  (tailList {data} l)))) ]
-                                    {all dead. dead})
+                                    args)
                             !vestingDatum : VestingDatum
                               = Solo_match
                                   {VestingDatum}
@@ -958,22 +932,18 @@
                                       = sndPair {integer} {list data} tup
                                   in
                                   case
-                                    (all dead. VestingDatum)
-                                    (equalsInteger 0 index)
-                                    [ (/\dead ->
-                                         traceError
-                                           {VestingDatum}
-                                           reconstructCaseError)
-                                    , (/\dead ->
+                                    (list data -> VestingDatum)
+                                    index
+                                    [ (\(ds : list data) ->
                                          let
-                                           !l : list data = tailList {data} args
+                                           !l : list data = tailList {data} ds
                                            !l : list data = tailList {data} l
                                            !l : list data = tailList {data} l
                                            !l : list data = tailList {data} l
                                            !l : list data = tailList {data} l
                                          in
                                          VestingDatum
-                                           (headList {data} args)
+                                           (headList {data} ds)
                                            (let
                                              !tup : pair integer (list data)
                                                = unConstrData
@@ -990,28 +960,22 @@
                                                    tup
                                            in
                                            case
-                                             (all dead.
-                                                Tuple2 bytestring bytestring)
-                                             (equalsInteger 0 index)
-                                             [ (/\dead ->
-                                                  traceError
-                                                    {Tuple2
-                                                       bytestring
-                                                       bytestring}
-                                                    reconstructCaseError)
-                                             , (/\dead ->
+                                             (list data ->
+                                              Tuple2 bytestring bytestring)
+                                             index
+                                             [ (\(ds : list data) ->
                                                   Tuple2
                                                     {bytestring}
                                                     {bytestring}
                                                     (unBData
-                                                       (headList {data} args))
+                                                       (headList {data} ds))
                                                     (unBData
                                                        (headList
                                                           {data}
                                                           (tailList
                                                              {data}
-                                                             args)))) ]
-                                             {all dead. dead})
+                                                             ds)))) ]
+                                             args)
                                            (unIData (headList {data} l))
                                            (unIData (headList {data} l))
                                            (unIData (headList {data} l))
@@ -1020,7 +984,7 @@
                                               (headList
                                                  {data}
                                                  (tailList {data} l)))) ]
-                                    {all dead. dead})
+                                    args)
                             !vestingDatum : VestingDatum
                               = Solo_match
                                   {VestingDatum}

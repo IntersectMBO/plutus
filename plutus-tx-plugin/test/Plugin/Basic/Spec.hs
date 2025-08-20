@@ -159,4 +159,3 @@ integerMatchFunction _ = 42
 
 integerPatternMatch :: CompiledCode Integer
 integerPatternMatch = plc (Proxy @"integerPatternMatch") (integerMatchFunction 2)
-
