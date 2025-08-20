@@ -37,7 +37,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , DischargeResult(..)
     , dischargeResultToTerm
     , ArgStack(..)
-    , transferArgStack
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
@@ -573,11 +572,10 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
--- | Convert the given 'ArgStack' to a list by reversing it.
+-- | Convert the given 'ArgStack' to a list.
 argStackToList :: ArgStack uni fun ann -> [CekValue uni fun ann]
-argStackToList = go [] where
-    go acc EmptyStack           = acc
-    go acc (ConsStack arg rest) = go (arg : acc) rest
+argStackToList EmptyStack           = []
+argStackToList (ConsStack arg rest) = arg : argStackToList rest
 
 -- | The result of 'dischargeCekValue'.
 data DischargeResult uni fun
@@ -671,6 +669,8 @@ data Context uni fun ann
     -- ^ @[_ N]@
     | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V]@
+    | FrameAwaitFunValueN !(ArgStack uni fun ann) !(Context uni fun ann)
+    -- ^ @[_ V1 .. Vn]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
@@ -700,18 +700,12 @@ pass them to a function they need to be evaluated to values, which means that in
 machine the evaluated arguments are going to be reversed: you evaluate the first argument and put
 the result into a 'FrameConstr', then the second one and put it in a 'FrameConstr' again, this time
 prepending it to the one that is already there etc -- in the end you get the arguments in reversed
-order. Which is why 'transferArgStack' is a left fold (just like 'reverse').
+order.
 
 But in case of 'Spine' the builtins machinery directly produces values, not terms. Meaning, a
 'Spine' that we get from the builtins machinery isn't reversed, hence we can pass its contents
 directly to the head of the application. Which is why 'transferSpine' is a right fold.
 -}
-
--- See Note [ArgStack vs Spine].
--- | Transfers an 'ArgStack' to a series of 'Context' frames.
-transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
-transferArgStack EmptyStack c           = c
-transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
 
 -- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine
@@ -847,15 +841,26 @@ enterComputeCek = computeCek
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
-    -- s , [_ V] ◅ lam x (M,ρ)  ↦  s ; ρ [ x  ↦  V ] ▻ M
+    -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
     returnCek (FrameAwaitFunValue arg ctx) fun =
         applyEvaluate ctx fun arg
+    -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+    returnCek (FrameAwaitFunValueN args ctx) fun =
+        case args of
+          EmptyStack -> returnCek ctx fun
+          ConsStack arg rest ->
+            applyEvaluate (FrameAwaitFunValueN rest ctx) fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
-        let done' = ConsStack e done
+        let
+          reverseArgStack = go EmptyStack
+            where
+              go acc EmptyStack       = acc
+              go acc (ConsStack x xs) = go (ConsStack x acc) xs
+          done' = ConsStack e done
         case todo of
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
-          []             -> returnCek ctx $ VConstr i done'
+          []             -> returnCek ctx $ VConstr i (reverseArgStack done')
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -866,7 +871,7 @@ enterComputeCek = computeCek
                         throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
         -- Otherwise, we can safely convert the index to an Int and use it.
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
-            Just t  -> computeCek (transferArgStack args ctx) env t
+            Just t  -> computeCek (FrameAwaitFunValueN args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
