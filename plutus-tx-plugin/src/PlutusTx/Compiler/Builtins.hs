@@ -254,6 +254,7 @@ builtinNames =
   , 'Builtins.bls12_381_G1_add
   , 'Builtins.bls12_381_G1_neg
   , 'Builtins.bls12_381_G1_scalarMul
+  , 'Builtins.bls12_381_G1_multiScalarMul
   , 'Builtins.bls12_381_G1_compress
   , 'Builtins.bls12_381_G1_uncompress
   , 'Builtins.bls12_381_G1_hashToGroup
@@ -264,6 +265,7 @@ builtinNames =
   , 'Builtins.bls12_381_G2_add
   , 'Builtins.bls12_381_G2_neg
   , 'Builtins.bls12_381_G2_scalarMul
+  , 'Builtins.bls12_381_G2_multiScalarMul
   , 'Builtins.bls12_381_G2_compress
   , 'Builtins.bls12_381_G2_uncompress
   , 'Builtins.bls12_381_G2_hashToGroup
@@ -546,12 +548,14 @@ defineBuiltinTerms = do
           PLC.Bls12_381_G1_add -> defineBuiltinInl 'Builtins.bls12_381_G1_add
           PLC.Bls12_381_G1_neg -> defineBuiltinInl 'Builtins.bls12_381_G1_neg
           PLC.Bls12_381_G1_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G1_scalarMul
+          PLC.Bls12_381_G1_multiScalarMul -> defineBuiltinInl 'Builtins.bls12_381_G1_multiScalarMul
           PLC.Bls12_381_G1_compress -> defineBuiltinInl 'Builtins.bls12_381_G1_compress
           PLC.Bls12_381_G1_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G1_uncompress
           PLC.Bls12_381_G1_hashToGroup -> defineBuiltinInl 'Builtins.bls12_381_G1_hashToGroup
           PLC.Bls12_381_G2_equal -> defineBuiltinInl 'Builtins.bls12_381_G2_equals
           PLC.Bls12_381_G2_add -> defineBuiltinInl 'Builtins.bls12_381_G2_add
           PLC.Bls12_381_G2_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G2_scalarMul
+          PLC.Bls12_381_G2_multiScalarMul -> defineBuiltinInl 'Builtins.bls12_381_G2_multiScalarMul
           PLC.Bls12_381_G2_neg -> defineBuiltinInl 'Builtins.bls12_381_G2_neg
           PLC.Bls12_381_G2_compress -> defineBuiltinInl 'Builtins.bls12_381_G2_compress
           PLC.Bls12_381_G2_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G2_uncompress
