@@ -96,7 +96,7 @@ instance Pretty (CekState uni fun ann) where
 data Context uni fun ann
     = FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
-    | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFunConN ann !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
     | FrameAwaitFunValueN ann !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
@@ -105,11 +105,6 @@ data Context uni fun ann
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (Context uni fun ann)
-
--- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
-transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
-transferConstantSpine ann args ctx =
-  foldr (FrameAwaitFunValue ann . VCon) ctx args
 
 computeCek
     :: forall uni fun ann s
@@ -184,8 +179,10 @@ returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
 returnCek (FrameAwaitArg _ fun ctx) arg =
     applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameAwaitFunValue _ arg ctx) fun =
-  applyEvaluate ctx fun arg
+returnCek (FrameAwaitFunConN ann args ctx) fun =
+  case args of
+    SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
+    SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN ann rest ctx) fun (VCon arg)
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
 returnCek (FrameAwaitFunValueN ann args ctx) fun =
     case args of
@@ -219,7 +216,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
         Right (HeadOnly fX) -> pure $ Computing ctx env fX
-        Right (HeadSpine f xs) -> pure $ Computing (transferConstantSpine ann xs ctx) env f
+        Right (HeadSpine f xs) -> pure $ Computing (FrameAwaitFunConN ann xs ctx) env f
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
@@ -391,7 +388,7 @@ contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
     FrameAwaitArg ann _ _       -> pure ann
     FrameAwaitFunTerm ann _ _ _ -> pure ann
-    FrameAwaitFunValue ann _ _  -> pure ann
+    FrameAwaitFunConN ann _ _  -> pure ann
     FrameAwaitFunValueN ann _ _  -> pure ann
     FrameForce ann _            -> pure ann
     FrameConstr ann _ _ _ _ _   -> pure ann
@@ -405,7 +402,7 @@ lenContext = go 0
       go !n = \case
               FrameAwaitArg _ _ k       -> go (n+1) k
               FrameAwaitFunTerm _ _ _ k -> go (n+1) k
-              FrameAwaitFunValue _ _ k  -> go (n+1) k
+              FrameAwaitFunConN _ _ k  -> go (n+1) k
               FrameAwaitFunValueN _ _ k  -> go (n+1) k
               FrameForce _ k            -> go (n+1) k
               FrameConstr _ _ _ _ _ k   -> go (n+1) k
