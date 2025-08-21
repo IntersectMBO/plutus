@@ -37,8 +37,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , DischargeResult(..)
     , dischargeResultToTerm
     , ArgStack(..)
-    , ArgStack0(..)
-    , ArgStack1(..)
+    , ArgStack'(..)
+    , ArgNonEmptyStack(..)
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
@@ -249,26 +249,35 @@ but functions are not printable and hence we provide a dummy instance.
 instance Show (BuiltinRuntime (CekValue uni fun ann)) where
     show _ = "<builtin_runtime>"
 
+-- | A LIFO stack of 'CekValue's, used to record multiple arguments that need to be pushed
+-- onto the context in reverse order.  Currently used by 'FrameConstr' for collecting the
+-- elements of a 'Constr' as it is cheap to prepend new elements in 'ArgStack'.
 data ArgStack uni fun ann =
   EmptyStack
   | ConsStack !(CekValue uni fun ann) !(ArgStack uni fun ann)
 
-data ArgStack1 uni fun ann =
-  LastStack1 !(CekValue uni fun ann)
-  | ConsStack1 !(CekValue uni fun ann) !(ArgStack1 uni fun ann)
+-- | A non-empty variant of 'ArgStack', used in 'FrameAwaitFunValueN' to store arguments
+-- that will be applied to a term. More efficient than 'ArgStack', since this saves one
+-- evaluation cycle by ensuring there is no 'EmptyStack'.
+data ArgNonEmptyStack uni fun ann =
+  LastNonEmptyStack !(CekValue uni fun ann)
+  | ConsNonEmptyStack !(CekValue uni fun ann) !(ArgNonEmptyStack uni fun ann)
 
--- | A LIFO stack of 'CekValue's, useful for recording multiple arguments which will need to
--- be pushed onto the context in reverse order.
-data ArgStack0 uni fun ann =
-  EmptyStack0
-  | MultiStack0 !(ArgStack1 uni fun ann)
+-- | An alternative version of 'ArgStack' that uses 'ArgNonEmptyStack' when non-empty.
+-- Used in 'VConstr'. Once all evaluated elements of 'Constr' is collecting to 'ArgStack'
+-- in 'FrameConstr', the collected elements gets reversed and put into 'VConstr' as
+-- `ArgStack'`. 'VConstr' using `ArgStack'` is more efficient than 'ArgStack' when casing,
+-- since 'FrameAwaitFunValueN' can be dispatched with a single pattern match.
+data ArgStack' uni fun ann =
+  EmptyStack'
+  | MultiStack' !(ArgNonEmptyStack uni fun ann)
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (ArgStack uni fun ann)
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-    => Show (ArgStack0 uni fun ann)
+    => Show (ArgStack' uni fun ann)
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-    => Show (ArgStack1 uni fun ann)
+    => Show (ArgNonEmptyStack uni fun ann)
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann =
@@ -298,7 +307,7 @@ data CekValue uni fun ann =
       -- ^ The partial application and its costing function.
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
-  | VConstr {-# UNPACK #-} !Word64 !(ArgStack0 uni fun ann)
+  | VConstr {-# UNPACK #-} !Word64 !(ArgStack' uni fun ann)
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (CekValue uni fun ann)
@@ -586,14 +595,14 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
-argStack1ToList :: ArgStack1 uni fun ann -> [CekValue uni fun ann]
-argStack1ToList (LastStack1 val)       = [val]
-argStack1ToList (ConsStack1 val stack) = val : argStack1ToList stack
+argNonEmptyStackToList :: ArgNonEmptyStack uni fun ann -> [CekValue uni fun ann]
+argNonEmptyStackToList (LastNonEmptyStack val)       = [val]
+argNonEmptyStackToList (ConsNonEmptyStack val stack) = val : argNonEmptyStackToList stack
 
 -- | Convert the given 'ArgStack' to a list.
-argStack0ToList :: ArgStack0 uni fun ann -> [CekValue uni fun ann]
-argStack0ToList EmptyStack0         = []
-argStack0ToList (MultiStack0 stack) = argStack1ToList stack
+argStackToList :: ArgStack' uni fun ann -> [CekValue uni fun ann]
+argStackToList EmptyStack'         = []
+argStackToList (MultiStack' stack) = argNonEmptyStackToList stack
 
 -- | The result of 'dischargeCekValue'.
 data DischargeResult uni fun
@@ -629,7 +638,7 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
         -- machine, or (b) it's needed for an error message.
         -- @term@ is fully discharged, so we can return it directly without any further discharging.
         VBuiltin _ term _ -> term
-        VConstr ind args -> Constr () ind . map goValue $ argStack0ToList args
+        VConstr ind args -> Constr () ind . map goValue $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
@@ -687,7 +696,7 @@ data Context uni fun ann
     -- ^ @[_ N]@
     | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V]@
-    | FrameAwaitFunValueN !(ArgStack1 uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFunValueN !(ArgNonEmptyStack uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V1 .. Vn]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
@@ -823,7 +832,7 @@ enterComputeCek = computeCek
         stepAndMaybeSpend BConstr
         case es of
           (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
-          []         -> returnCek ctx $ VConstr i EmptyStack0
+          []         -> returnCek ctx $ VConstr i EmptyStack'
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -865,10 +874,9 @@ enterComputeCek = computeCek
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
     returnCek (FrameAwaitFunValueN args ctx) fun =
         case args of
-          LastStack1 arg ->
+          LastNonEmptyStack arg ->
             applyEvaluate ctx fun arg
-            -- returnCek (FrameAwaitFunValue arg ctx) fun
-          ConsStack1 arg rest ->
+          ConsNonEmptyStack arg rest ->
             applyEvaluate (FrameAwaitFunValueN rest ctx) fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
@@ -876,8 +884,8 @@ enterComputeCek = computeCek
           (next : todo') -> computeCek (FrameConstr env i todo' (ConsStack e done) ctx) env next
           []             ->
             let go acc EmptyStack       = acc
-                go acc (ConsStack x xs) = go (ConsStack1 x acc) xs
-            in returnCek ctx $ VConstr i (MultiStack0 $ go (LastStack1 e) done)
+                go acc (ConsStack x xs) = go (ConsNonEmptyStack x acc) xs
+            in returnCek ctx $ VConstr i (MultiStack' $ go (LastNonEmptyStack e) done)
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -889,8 +897,8 @@ enterComputeCek = computeCek
         -- Otherwise, we can safely convert the index to an Int and use it.
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> case args of
-              EmptyStack0      -> computeCek ctx env t
-              MultiStack0 rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
+              EmptyStack'      -> computeCek ctx env t
+              MultiStack' rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
