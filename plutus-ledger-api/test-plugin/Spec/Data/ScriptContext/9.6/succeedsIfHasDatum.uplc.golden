@@ -1,35 +1,28 @@
 (program
    1.1.0
    (\d ->
-      force
-        ((\traceError ->
+      case
+        ((\tup ->
             case
-              ((\tup ->
-                  case
-                    (equalsInteger 1 (case tup [(\l r -> l)]))
-                    [ (constr 1 [])
-                    , (case
-                         ((\tup ->
-                             (\index ->
-                                (\args ->
-                                   case
-                                     (equalsInteger 1 index)
-                                     [ (case
-                                          (equalsInteger 0 index)
-                                          [ (traceError "PT1")
-                                          , (constr 0
-                                               [(force headList args)]) ])
-                                     , (constr 1 []) ])
-                                  (case tup [(\l r -> r)]))
-                               (case tup [(\l r -> l)]))
-                            (unConstrData
-                               (force headList
-                                  (force tailList (case tup [(\l r -> r)])))))
-                         [(\ds -> constr 0 []), (constr 1 [])]) ])
-                 (unConstrData
-                    (force headList
-                       (force tailList
-                          (force tailList
-                             (case (unConstrData d) [(\l r -> r)]))))))
-              [(delay ()), (delay (traceError "PT5"))])
-           (\str -> (\x -> error) (force trace str (constr 0 []))))))
+              (equalsInteger 1 (case tup [(\l r -> l)]))
+              [ False
+              , (case
+                   ((\tup ->
+                       (\index ->
+                          (\args ->
+                             case
+                               index
+                               [ (\ds -> constr 0 [(force headList ds)])
+                               , (\ds -> constr 1 []) ]
+                               args)
+                            (case tup [(\l r -> r)]))
+                         (case tup [(\l r -> l)]))
+                      (unConstrData
+                         (force headList
+                            (force tailList (case tup [(\l r -> r)])))))
+                   [(\ds -> True), False]) ])
+           (unConstrData
+              (force headList
+                 (force tailList
+                    (force tailList (case (unConstrData d) [(\l r -> r)]))))))
+        [((\x -> error) (force trace "PT5" (constr 0 []))), ()]))

@@ -4,8 +4,10 @@ module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
 import Data.Functor.Identity
+import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as T
+import Data.Vector.Strict (Vector)
 import FFI.Untyped qualified as AgdaFFI
 import PlutusCore qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -13,7 +15,6 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Data qualified as Data
-import PlutusCore.Default (DSum (..))
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
@@ -31,7 +32,7 @@ instance AgdaUnparse AgdaFFI.UTerm where
       AgdaFFI.UVar n -> "(UVar " ++ agdaUnparse (fromInteger n :: Natural) ++ ")"
       AgdaFFI.ULambda term -> "(ULambda " ++ agdaUnparse term ++ ")"
       AgdaFFI.UApp t u -> "(UApp " ++ agdaUnparse t ++ " " ++ agdaUnparse u ++ ")"
-      AgdaFFI.UCon someValue -> "(UCon " ++ (agdaUnparseValue . mkValueDSum) someValue ++ ")"
+      AgdaFFI.UCon someValue -> "(UCon " ++ agdaUnparse someValue ++ ")"
       AgdaFFI.UError -> "UError"
       AgdaFFI.UBuiltin fun -> "(UBuiltin " ++ agdaUnparse fun ++ ")"
       AgdaFFI.UDelay term -> "(UDelay " ++ agdaUnparse term ++ ")"
@@ -76,23 +77,29 @@ instance AgdaUnparse ByteString where
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"
 
+agdaUnfold :: (AgdaUnparse a , Foldable f) => f a -> String
+agdaUnfold l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
+
 instance AgdaUnparse a => AgdaUnparse [a] where
-  agdaUnparse l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
+  agdaUnparse = agdaUnfold
 
 instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
   agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
 
+instance (AgdaUnparse a) => AgdaUnparse (Vector a) where
+  agdaUnparse v = "(mkArray (" ++ agdaUnfold v ++ "))"
+
 instance AgdaUnparse Data where
   agdaUnparse (Data.Constr i args) =
-    "(ConstrDATA" ++ " " ++ agdaUnparse i ++ " " ++ agdaUnparse args ++ ")"
+    "(ConstrDATA " ++ agdaUnparse i ++ " " ++ agdaUnparse args ++ ")"
   agdaUnparse (Data.Map assocList) =
-    "(MapDATA" ++ " " ++ agdaUnparse assocList ++ ")"
+    "(MapDATA " ++ agdaUnparse assocList ++ ")"
   agdaUnparse (Data.List xs) =
-    "(ListDATA" ++ " " ++ agdaUnparse xs ++ ")"
+    "(ListDATA " ++ agdaUnparse xs ++ ")"
   agdaUnparse (Data.I i) =
-    "(iDATA" ++ " " ++ agdaUnparse i ++ ")"
+    "(iDATA " ++ agdaUnparse i ++ ")"
   agdaUnparse (Data.B b) =
-    "(bDATA" ++ " " ++ agdaUnparse b ++ ")"
+    "(bDATA " ++ agdaUnparse b ++ ")"
 
 instance AgdaUnparse BLS12_381.G1.Element where
   agdaUnparse = show
@@ -117,54 +124,54 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse PLC.DefaultUniBLS12_381_G1_Element = "bls12-381-g1-element"
   agdaUnparse PLC.DefaultUniBLS12_381_G2_Element = "bls12-381-g2-element"
   agdaUnparse PLC.DefaultUniBLS12_381_MlResult = "bls12-381-mlresult"
-  agdaUnparse (PLC.DefaultUniArray _) = error "Arrays are currently not supported."
+  agdaUnparse (PLC.DefaultUniArray t) =
+    "(array " ++ agdaUnparse t ++ ")"
   agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
-agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
-agdaUnparseValue dSum =
-  "(tagCon " ++
-    case dSum of
-      PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val ->
-        "integer " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val ->
-        "bytestring " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniString _ :=> Identity val ->
-        "string " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val ->
-        "bool " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ ->
-        "unit " ++ agdaUnparse ()
-      PLC.ValueOf PLC.DefaultUniData _ :=> Identity val ->
-        "pdata " ++ agdaUnparse val
-      PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
-        "(list " ++ agdaUnparse elemType ++ ") " ++ agdaUnparseDList elemType val
-      PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
-        "(pair "
-        ++ agdaUnparse type1
-        ++ " "
-        ++ agdaUnparse type2
-        ++ ") "
-        ++ agdaUnparseDPair type1 type2 val
-      PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
-        "bls12-381-g1-element " ++  agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
-        "bls12-381-g2-element " ++  agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
-        "bls12-381-mlresult " ++ agdaUnparse val
-      PLC.ValueOf (PLC.DefaultUniArray _) _ :=> Identity _ ->
-        error "Arrays are currently not supported."
-      PLC.ValueOf (PLC.DefaultUniApply _ _) _ :=> Identity _ ->
-        error "Application of an unknown type is not supported."
-  ++ ")"
-  where
-    agdaUnparseDList elemType xs =
-      let xs' :: [DSum (PLC.ValueOf PLC.DefaultUni) Identity]
-          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
-        in agdaUnparse $ agdaUnparseValue <$> xs'
-    agdaUnparseDPair type1 type2 (x, y) =
-      let x' = mkValueDSum $ PLC.Some $ PLC.ValueOf type1 x
-          y' = mkValueDSum $ PLC.Some $ PLC.ValueOf type2 y
-        in agdaUnparse (agdaUnparseValue x', agdaUnparseValue y')
-
-mkValueDSum :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> DSum (PLC.ValueOf UPLC.DefaultUni) Identity
-mkValueDSum (PLC.Some valueOf@(PLC.ValueOf _ a)) = valueOf :=> Identity a
+instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
+  agdaUnparse (PLC.Some valOf) =
+    "(tagCon " ++
+      case valOf of
+        PLC.ValueOf PLC.DefaultUniInteger val ->
+          "integer " ++ agdaUnparse val
+        PLC.ValueOf PLC.DefaultUniByteString val ->
+          "bytestring " ++ agdaUnparse val
+        PLC.ValueOf PLC.DefaultUniString val ->
+          "string " ++ agdaUnparse val
+        PLC.ValueOf PLC.DefaultUniBool val ->
+          "bool " ++ agdaUnparse val
+        PLC.ValueOf PLC.DefaultUniUnit _ ->
+          "unit " ++ agdaUnparse ()
+        PLC.ValueOf PLC.DefaultUniData val ->
+          "pdata " ++ agdaUnparse val
+        PLC.ValueOf univ@(PLC.DefaultUniList elemType) val ->
+          agdaUnparse univ
+          ++ " "
+          ++
+            ( PLC.bring (Proxy @AgdaUnparse) elemType
+            $ agdaUnparse val
+            )
+        PLC.ValueOf univ@(PLC.DefaultUniPair type1 type2) val ->
+          agdaUnparse univ
+          ++ " "
+          ++
+            ( PLC.bring (Proxy @AgdaUnparse) type1
+            $ PLC.bring (Proxy @AgdaUnparse) type2
+            $ agdaUnparse val
+            )
+        PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element val ->
+          "bls12-381-g1-element " ++  agdaUnparse val
+        PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element val ->
+          "bls12-381-g2-element " ++  agdaUnparse val
+        PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult val ->
+          "bls12-381-mlresult " ++ agdaUnparse val
+        PLC.ValueOf univ@(PLC.DefaultUniArray elemType)  val ->
+          agdaUnparse univ
+          ++ " "
+          ++
+            ( PLC.bring (Proxy @AgdaUnparse) elemType
+            $ agdaUnparse val
+            )
+        PLC.ValueOf (PLC.DefaultUniApply _ _) _ ->
+          error "Application of an unknown type is not supported."
+    ++ ")"

@@ -199,7 +199,8 @@ genArgs semvar bn = case meaning of
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning semvar bn
 
--- FIXME: this doesn't work in some cases: for example if we have a costing
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1733):
+-- this doesn't work in some cases: for example if we have a costing
 -- function 10-2*size we'll only test it on for a small value of size (0 or 1)
 -- so we won't spot that it can give you a negative result.  We do want to check
 -- small sizes, but we should also check larger ones.
@@ -247,4 +248,3 @@ test_costModelSafety =
             ]
   in testGroup "Cost model safety test" $
      map mkTest $ enumerate @(BuiltinSemanticsVariant DefaultFun)
-

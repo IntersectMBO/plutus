@@ -14,19 +14,14 @@ letrec
           (\(x : integer) (xs : List integer) -> /\dead -> go acc xs)
           {all dead. dead}
 in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
   !go : integer -> List integer
     = \(n : integer) ->
-        Bool_match
-          (case Bool (lessThanEqualsInteger n 0) [False, True])
-          {all dead. List integer}
-          (/\dead -> Nil {integer})
-          (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))
+        case
+          (all dead. List integer)
+          (lessThanEqualsInteger n 0)
+          [ (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))
+          , (/\dead -> Nil {integer}) ]
           {all dead. dead}
 in
 let

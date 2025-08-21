@@ -16,8 +16,7 @@ instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoRecord
            PlutusTx.IsData.Class.unsafeFromBuiltinData d_8 = let {!tup_9 = PlutusTx.Builtins.Internal.unsafeDataAsConstr d_8;
                                                                   !index_10 = PlutusTx.Builtins.Internal.fst tup_9;
                                                                   !args_11 = PlutusTx.Builtins.Internal.snd tup_9}
-                                                              in case (index_10, args_11) of
-                                                                 {(((PlutusTx.Eq.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
-                                                                   (PlutusTx.AsData.Internal.wrapUnsafeUncons -> ((PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_12),
-                                                                                                                  (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_13))))) -> Plugin.Data.Spec.MyMonoRecord arg_12 arg_13;
-                                                                  _ -> PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}}
+                                                              in PlutusTx.Builtins.Internal.caseInteger index_10 [\case
+                                                                                                                  {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ((PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_12),
+                                                                                                                                                                  (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_13)))) -> Plugin.Data.Spec.MyMonoRecord arg_12 arg_13;
+                                                                                                                   _ -> PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}] args_11}

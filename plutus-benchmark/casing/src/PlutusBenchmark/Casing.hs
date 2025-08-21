@@ -85,7 +85,7 @@ casingList i = debruijnTermUnsafe $ go i arg
       kase ()
         (TyBuiltin () (SomeTypeIn $ DefaultUniApply DefaultUniProtoList DefaultUniInteger))
         t
-        [nonMatchingBranch, listConsHandler (\_x xs -> go (n-1) xs)]
+        [listConsHandler (\_x xs -> go (n-1) xs), nonMatchingBranch]
 
 
 casingListOneBranch :: Integer -> Term

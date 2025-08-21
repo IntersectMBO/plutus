@@ -43,7 +43,12 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , logWithCallTraceEmitter
     -- * Misc
     , BuiltinsRuntime (..)
+    , CekResult (..)
+    , CekReport (..)
+    , cekResultToEither
     , CekValue (..)
+    , DischargeResult(..)
+    , dischargeResultToTerm
     , readKnownCek
     , Hashable
     , ThrowableBuiltins
@@ -73,7 +78,7 @@ runCek
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term Name uni fun ann
-    -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost, [Text])
+    -> CekReport cost Name uni fun
 runCek = Common.runCek runCekDeBruijn
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.

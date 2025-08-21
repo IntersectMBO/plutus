@@ -11,7 +11,7 @@ module VerifiedCompilation.UFloatDelay where
 ## Imports
 
 ```
-open import VerifiedCompilation.Equality using (DecEq; _≟_;decPointwise)
+open import Untyped.Equality using (DecEq; _≟_;decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; isVar?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay; isvar)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
 open import Relation.Nullary using (_×-dec_)

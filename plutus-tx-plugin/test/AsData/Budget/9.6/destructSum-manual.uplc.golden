@@ -5,7 +5,7 @@
          case
            (equalsInteger 0 (case cse [(\l r -> l)]))
            [ (case
-                (equalsInteger 0 (case cse [(\l r -> l)]))
+                (equalsInteger 1 (case cse [(\l r -> l)]))
                 [ (case
                      (equalsInteger 2 (case cse [(\l r -> l)]))
                      [ ((\cse -> case cse [cse]) error)

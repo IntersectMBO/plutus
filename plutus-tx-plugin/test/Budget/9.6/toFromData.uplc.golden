@@ -1,137 +1,110 @@
 (program
    1.1.0
-   ((\traceError ->
-       (\tup ->
-          (\index ->
-             (\args ->
-                case
-                  (equalsInteger 0 index)
-                  [ (case
-                       (equalsInteger 1 index)
-                       [ (traceError "PT1")
-                       , (constr 1
-                            [ ((\tup ->
-                                  (\index ->
-                                     (\args ->
-                                        case
-                                          (equalsInteger 1 index)
-                                          [ (case
-                                               (equalsInteger 0 index)
-                                               [ (traceError "PT1")
-                                               , (constr 0
-                                                    [ ((\tup ->
-                                                          (\index ->
-                                                             (\args ->
-                                                                case
-                                                                  (equalsInteger
-                                                                     0
-                                                                     index)
-                                                                  [ (traceError
-                                                                       "PT1")
-                                                                  , ((\l ->
-                                                                        constr 0
-                                                                          [ ((\tup ->
-                                                                                (\index ->
-                                                                                   (\args ->
-                                                                                      case
-                                                                                        (equalsInteger
-                                                                                           0
-                                                                                           index)
-                                                                                        [ (case
-                                                                                             (equalsInteger
-                                                                                                1
-                                                                                                index)
-                                                                                             [ (traceError
-                                                                                                  "PT1")
-                                                                                             , (constr 0
-                                                                                                  [  ]) ])
-                                                                                        , (constr 1
-                                                                                             [  ]) ])
-                                                                                     (case
-                                                                                        tup
-                                                                                        [ (\l
-                                                                                            r ->
-                                                                                             r) ]))
-                                                                                  (case
-                                                                                     tup
-                                                                                     [ (\l
-                                                                                         r ->
-                                                                                          l) ]))
-                                                                               (unConstrData
-                                                                                  (force
-                                                                                     headList
-                                                                                     args)))
-                                                                          , (unIData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                          , ((\tup ->
-                                                                                (\index ->
-                                                                                   (\args ->
-                                                                                      case
-                                                                                        (equalsInteger
-                                                                                           0
-                                                                                           index)
-                                                                                        [ (case
-                                                                                             (equalsInteger
-                                                                                                1
-                                                                                                index)
-                                                                                             [ (traceError
-                                                                                                  "PT1")
-                                                                                             , (constr 0
-                                                                                                  [  ]) ])
-                                                                                        , (constr 1
-                                                                                             [  ]) ])
-                                                                                     (case
-                                                                                        tup
-                                                                                        [ (\l
-                                                                                            r ->
-                                                                                             r) ]))
-                                                                                  (case
-                                                                                     tup
-                                                                                     [ (\l
-                                                                                         r ->
-                                                                                          l) ]))
-                                                                               (unConstrData
-                                                                                  (force
-                                                                                     headList
-                                                                                     (force
-                                                                                        tailList
-                                                                                        l)))) ])
-                                                                       (force
-                                                                          tailList
-                                                                          args)) ])
-                                                               (case
-                                                                  tup
-                                                                  [ (\l r ->
-                                                                       r) ]))
-                                                            (case
-                                                               tup
-                                                               [(\l r -> l)]))
-                                                         (unConstrData
-                                                            (force headList
-                                                               args))) ]) ])
-                                          , (constr 1 []) ])
-                                       (case tup [(\l r -> r)]))
-                                    (case tup [(\l r -> l)]))
-                                 (unConstrData (force headList args))) ]) ])
-                  , (constr 0 [(unIData (force headList args))]) ])
-               (case tup [(\l r -> r)]))
-            (case tup [(\l r -> l)]))
-         (unConstrData
-            (constrData
-               1
-               (force mkCons
-                  (constrData
-                     0
-                     (force mkCons
-                        (constrData
-                           0
+   ((\tup ->
+       (\index ->
+          (\args ->
+             case
+               index
+               [ (\ds -> constr 0 [(unIData (force headList ds))])
+               , (\ds ->
+                    constr 1
+                      [ ((\tup ->
+                            (\index ->
+                               (\args ->
+                                  case
+                                    index
+                                    [ (\ds ->
+                                         constr 0
+                                           [ ((\tup ->
+                                                 (\index ->
+                                                    (\args ->
+                                                       case
+                                                         index
+                                                         [ (\ds ->
+                                                              (\l ->
+                                                                 constr 0
+                                                                   [ ((\tup ->
+                                                                         (\index ->
+                                                                            (\args ->
+                                                                               case
+                                                                                 index
+                                                                                 [ (\ds ->
+                                                                                      False)
+                                                                                 , (\ds ->
+                                                                                      True) ]
+                                                                                 args)
+                                                                              (case
+                                                                                 tup
+                                                                                 [ (\l
+                                                                                     r ->
+                                                                                      r) ]))
+                                                                           (case
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   l) ]))
+                                                                        (unConstrData
+                                                                           (force
+                                                                              headList
+                                                                              ds)))
+                                                                   , (unIData
+                                                                        (force
+                                                                           headList
+                                                                           l))
+                                                                   , ((\tup ->
+                                                                         (\index ->
+                                                                            (\args ->
+                                                                               case
+                                                                                 index
+                                                                                 [ (\ds ->
+                                                                                      False)
+                                                                                 , (\ds ->
+                                                                                      True) ]
+                                                                                 args)
+                                                                              (case
+                                                                                 tup
+                                                                                 [ (\l
+                                                                                     r ->
+                                                                                      r) ]))
+                                                                           (case
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   l) ]))
+                                                                        (unConstrData
+                                                                           (force
+                                                                              headList
+                                                                              (force
+                                                                                 tailList
+                                                                                 l)))) ])
+                                                                (force tailList
+                                                                   ds)) ]
+                                                         args)
+                                                      (case tup [(\l r -> r)]))
+                                                   (case tup [(\l r -> l)]))
+                                                (unConstrData
+                                                   (force headList ds))) ])
+                                    , (\ds -> constr 1 []) ]
+                                    args)
+                                 (case tup [(\l r -> r)]))
+                              (case tup [(\l r -> l)]))
+                           (unConstrData (force headList ds))) ]) ]
+               args)
+            (case tup [(\l r -> r)]))
+         (case tup [(\l r -> l)]))
+      (unConstrData
+         (constrData
+            1
+            (force mkCons
+               (constrData
+                  0
+                  (force mkCons
+                     (constrData
+                        0
+                        (force mkCons
+                           (Constr 1 [])
                            (force mkCons
-                              (Constr 1 [])
-                              (force mkCons
-                                 (iData 1)
-                                 (force mkCons (Constr 0 []) []))))
-                        []))
-                  []))))
-      (\str -> (\x -> error) (force trace str (constr 0 [])))))
+                              (iData 1)
+                              (force mkCons (Constr 0 []) []))))
+                     []))
+               [])))))

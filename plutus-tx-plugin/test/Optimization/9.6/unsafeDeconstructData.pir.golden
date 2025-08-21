@@ -1,17 +1,9 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Unit | Unit_match where
-    Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(ds : data) ->
   (let
@@ -25,18 +17,13 @@ in
         !args : list data
           = case (list data) tup [(\(l : integer) (r : list data) -> r)]
       in
-      Bool_match
-        (case Bool (equalsInteger 1 index) [False, True])
-        {all dead. Maybe a}
-        (/\dead -> Nothing {a})
-        (/\dead ->
-           Bool_match
-             (case Bool (equalsInteger 0 index) [False, True])
-             {all dead. Maybe a}
-             (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
-             (/\dead -> traceError {Maybe a} "PT1")
-             {all dead. dead})
-        {all dead. dead})
+      case
+        (list data -> Maybe a)
+        index
+        [ (\(ds : list data) ->
+             Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+        , (\(ds : list data) -> Nothing {a}) ]
+        args)
     (\(d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
@@ -45,15 +32,14 @@ in
          !args : list data
            = case (list data) tup [(\(l : integer) (r : list data) -> r)]
        in
-       Bool_match
-         (case Bool (equalsInteger 0 index) [False, True])
-         {all dead. Tuple2 integer integer}
-         (/\dead ->
-            Tuple2
-              {integer}
-              {integer}
-              (unIData (headList {data} args))
-              (unIData (headList {data} (tailList {data} args))))
-         (/\dead -> traceError {Tuple2 integer integer} "PT1")
-         {all dead. dead})
+       case
+         (list data -> Tuple2 integer integer)
+         index
+         [ (\(ds : list data) ->
+              Tuple2
+                {integer}
+                {integer}
+                (unIData (headList {data} ds))
+                (unIData (headList {data} (tailList {data} ds)))) ]
+         args)
     ds

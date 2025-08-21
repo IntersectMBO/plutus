@@ -1,215 +1,227 @@
 (program
    1.1.0
    ((\go ->
-       (\traceError ->
-          (\`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ->
-             (\`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData` ->
-                (\`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` ->
-                   (\go ->
-                      (\`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` ->
-                         (\`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` ->
-                            (\go ->
-                               (\`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` ->
-                                  (\`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` ->
-                                     (\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
-                                        (\go ->
-                                           (\go
-                                             obsScriptCred
-                                             ctx ->
-                                              case
-                                                ((\tup ->
-                                                    (\index ->
-                                                       (\args ->
-                                                          case
-                                                            (equalsInteger
-                                                               0
-                                                               index)
-                                                            [ (traceError "PT1")
-                                                            , ((\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
-                                                                  constr 0
-                                                                    [ ((\tup ->
-                                                                          (\index ->
-                                                                             (\args ->
-                                                                                case
-                                                                                  (equalsInteger
-                                                                                     0
-                                                                                     index)
-                                                                                  [ (traceError
-                                                                                       "PT1")
-                                                                                  , ((\l ->
-                                                                                        (\l ->
-                                                                                           (\l ->
-                                                                                              (\l ->
-                                                                                                 (\l ->
-                                                                                                    (\l ->
-                                                                                                       (\l ->
-                                                                                                          (\l ->
-                                                                                                             (\l ->
-                                                                                                                (\l ->
-                                                                                                                   (\`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` ->
-                                                                                                                      (\cse ->
-                                                                                                                         (\cse ->
-                                                                                                                            (\arg_0
-                                                                                                                              arg_1
-                                                                                                                              arg_2
-                                                                                                                              arg_3
-                                                                                                                              arg_4
-                                                                                                                              arg_5
-                                                                                                                              arg_6
-                                                                                                                              arg_7
-                                                                                                                              arg_8
-                                                                                                                              arg_9
-                                                                                                                              arg_10
-                                                                                                                              arg_11 ->
-                                                                                                                               constr 0
-                                                                                                                                 [ arg_0
-                                                                                                                                 , arg_1
-                                                                                                                                 , arg_2
-                                                                                                                                 , arg_3
-                                                                                                                                 , arg_4
-                                                                                                                                 , arg_5
-                                                                                                                                 , arg_6
-                                                                                                                                 , arg_7
-                                                                                                                                 , arg_8
-                                                                                                                                 , arg_9
-                                                                                                                                 , arg_10
-                                                                                                                                 , arg_11 ])
-                                                                                                                              (go
-                                                                                                                                 (unListData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       args)))
-                                                                                                                              (go
-                                                                                                                                 (unListData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       l)))
-                                                                                                                              (go
-                                                                                                                                 (unListData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       l)))
-                                                                                                                              (cse
-                                                                                                                                 (force
-                                                                                                                                    headList
-                                                                                                                                    l))
-                                                                                                                              (cse
-                                                                                                                                 (force
-                                                                                                                                    headList
-                                                                                                                                    l))
-                                                                                                                              (go
-                                                                                                                                 (unListData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       l)))
-                                                                                                                              (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                                 `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                                                                                 unIData
-                                                                                                                                 (force
-                                                                                                                                    headList
-                                                                                                                                    l))
-                                                                                                                              ((\tup ->
-                                                                                                                                  (\index ->
-                                                                                                                                     (\args ->
-                                                                                                                                        case
-                                                                                                                                          (equalsInteger
-                                                                                                                                             0
-                                                                                                                                             index)
-                                                                                                                                          [ (traceError
-                                                                                                                                               "PT1")
-                                                                                                                                          , ((\`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData` ->
-                                                                                                                                                (\`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` ->
-                                                                                                                                                   constr 0
-                                                                                                                                                     [ ((\tup ->
-                                                                                                                                                           (\index ->
-                                                                                                                                                              (\args ->
-                                                                                                                                                                 case
-                                                                                                                                                                   (equalsInteger
-                                                                                                                                                                      0
-                                                                                                                                                                      index)
-                                                                                                                                                                   [ (traceError
-                                                                                                                                                                        "PT1")
-                                                                                                                                                                   , (constr 0
-                                                                                                                                                                        [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
-                                                                                                                                                                             unIData
-                                                                                                                                                                             (force
-                                                                                                                                                                                headList
-                                                                                                                                                                                args))
-                                                                                                                                                                        , (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
-                                                                                                                                                                             (force
-                                                                                                                                                                                headList
-                                                                                                                                                                                (force
-                                                                                                                                                                                   tailList
-                                                                                                                                                                                   args))) ]) ])
+       (\`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ->
+          (\`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData` ->
+             (\`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` ->
+                (\go ->
+                   (\`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` ->
+                      (\`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` ->
+                         (\go ->
+                            (\`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` ->
+                               (\`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` ->
+                                  (\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
+                                     (\go ->
+                                        (\go
+                                          obsScriptCred
+                                          ctx ->
+                                           case
+                                             ((\tup ->
+                                                 (\index ->
+                                                    (\args ->
+                                                       case
+                                                         index
+                                                         [ (\ds ->
+                                                              (\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
+                                                                 constr 0
+                                                                   [ ((\tup ->
+                                                                         (\index ->
+                                                                            (\args ->
+                                                                               case
+                                                                                 index
+                                                                                 [ (\ds ->
+                                                                                      (\l ->
+                                                                                         (\l ->
+                                                                                            (\l ->
+                                                                                               (\l ->
+                                                                                                  (\l ->
+                                                                                                     (\l ->
+                                                                                                        (\l ->
+                                                                                                           (\l ->
+                                                                                                              (\l ->
+                                                                                                                 (\l ->
+                                                                                                                    (\`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` ->
+                                                                                                                       (\cse ->
+                                                                                                                          (\cse ->
+                                                                                                                             (\arg_0
+                                                                                                                               arg_1
+                                                                                                                               arg_2
+                                                                                                                               arg_3
+                                                                                                                               arg_4
+                                                                                                                               arg_5
+                                                                                                                               arg_6
+                                                                                                                               arg_7
+                                                                                                                               arg_8
+                                                                                                                               arg_9
+                                                                                                                               arg_10
+                                                                                                                               arg_11 ->
+                                                                                                                                constr 0
+                                                                                                                                  [ arg_0
+                                                                                                                                  , arg_1
+                                                                                                                                  , arg_2
+                                                                                                                                  , arg_3
+                                                                                                                                  , arg_4
+                                                                                                                                  , arg_5
+                                                                                                                                  , arg_6
+                                                                                                                                  , arg_7
+                                                                                                                                  , arg_8
+                                                                                                                                  , arg_9
+                                                                                                                                  , arg_10
+                                                                                                                                  , arg_11 ])
+                                                                                                                               (go
+                                                                                                                                  (unListData
+                                                                                                                                     (force
+                                                                                                                                        headList
+                                                                                                                                        ds)))
+                                                                                                                               (go
+                                                                                                                                  (unListData
+                                                                                                                                     (force
+                                                                                                                                        headList
+                                                                                                                                        l)))
+                                                                                                                               (go
+                                                                                                                                  (unListData
+                                                                                                                                     (force
+                                                                                                                                        headList
+                                                                                                                                        l)))
+                                                                                                                               (cse
+                                                                                                                                  (force
+                                                                                                                                     headList
+                                                                                                                                     l))
+                                                                                                                               (cse
+                                                                                                                                  (force
+                                                                                                                                     headList
+                                                                                                                                     l))
+                                                                                                                               (go
+                                                                                                                                  (unListData
+                                                                                                                                     (force
+                                                                                                                                        headList
+                                                                                                                                        l)))
+                                                                                                                               (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                                  `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                                                                  unIData
+                                                                                                                                  (force
+                                                                                                                                     headList
+                                                                                                                                     l))
+                                                                                                                               ((\tup ->
+                                                                                                                                   (\index ->
+                                                                                                                                      (\args ->
+                                                                                                                                         case
+                                                                                                                                           index
+                                                                                                                                           [ (\ds ->
+                                                                                                                                                (\`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData` ->
+                                                                                                                                                   (\`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` ->
+                                                                                                                                                      constr 0
+                                                                                                                                                        [ ((\tup ->
+                                                                                                                                                              (\index ->
+                                                                                                                                                                 (\args ->
+                                                                                                                                                                    case
+                                                                                                                                                                      index
+                                                                                                                                                                      [ (\ds ->
+                                                                                                                                                                           constr 0
+                                                                                                                                                                             [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                                  unIData
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     headList
+                                                                                                                                                                                     ds))
+                                                                                                                                                                             , (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     headList
+                                                                                                                                                                                     (force
+                                                                                                                                                                                        tailList
+                                                                                                                                                                                        ds))) ]) ]
+                                                                                                                                                                      args)
+                                                                                                                                                                   (case
+                                                                                                                                                                      tup
+                                                                                                                                                                      [ (\l
+                                                                                                                                                                          r ->
+                                                                                                                                                                           r) ]))
                                                                                                                                                                 (case
                                                                                                                                                                    tup
                                                                                                                                                                    [ (\l
                                                                                                                                                                        r ->
-                                                                                                                                                                        r) ]))
-                                                                                                                                                             (case
-                                                                                                                                                                tup
-                                                                                                                                                                [ (\l
-                                                                                                                                                                    r ->
-                                                                                                                                                                     l) ]))
-                                                                                                                                                          (unConstrData
-                                                                                                                                                             (force
-                                                                                                                                                                headList
-                                                                                                                                                                args)))
-                                                                                                                                                     , ((\tup ->
-                                                                                                                                                           (\index ->
-                                                                                                                                                              (\args ->
-                                                                                                                                                                 case
-                                                                                                                                                                   (equalsInteger
-                                                                                                                                                                      0
-                                                                                                                                                                      index)
-                                                                                                                                                                   [ (traceError
-                                                                                                                                                                        "PT1")
-                                                                                                                                                                   , (constr 0
-                                                                                                                                                                        [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
-                                                                                                                                                                             unIData
-                                                                                                                                                                             (force
-                                                                                                                                                                                headList
-                                                                                                                                                                                args))
-                                                                                                                                                                        , (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
-                                                                                                                                                                             (force
-                                                                                                                                                                                headList
-                                                                                                                                                                                (force
-                                                                                                                                                                                   tailList
-                                                                                                                                                                                   args))) ]) ])
-                                                                                                                                                                (case
-                                                                                                                                                                   tup
-                                                                                                                                                                   [ (\l
-                                                                                                                                                                       r ->
-                                                                                                                                                                        r) ]))
-                                                                                                                                                             (case
-                                                                                                                                                                tup
-                                                                                                                                                                [ (\l
-                                                                                                                                                                    r ->
-                                                                                                                                                                     l) ]))
-                                                                                                                                                          (unConstrData
-                                                                                                                                                             (force
-                                                                                                                                                                headList
+                                                                                                                                                                        l) ]))
+                                                                                                                                                             (unConstrData
                                                                                                                                                                 (force
-                                                                                                                                                                   tailList
-                                                                                                                                                                   args)))) ])
-                                                                                                                                                  (\d ->
+                                                                                                                                                                   headList
+                                                                                                                                                                   ds)))
+                                                                                                                                                        , ((\tup ->
+                                                                                                                                                              (\index ->
+                                                                                                                                                                 (\args ->
+                                                                                                                                                                    case
+                                                                                                                                                                      index
+                                                                                                                                                                      [ (\ds ->
+                                                                                                                                                                           constr 0
+                                                                                                                                                                             [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                                  unIData
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     headList
+                                                                                                                                                                                     ds))
+                                                                                                                                                                             , (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     headList
+                                                                                                                                                                                     (force
+                                                                                                                                                                                        tailList
+                                                                                                                                                                                        ds))) ]) ]
+                                                                                                                                                                      args)
+                                                                                                                                                                   (case
+                                                                                                                                                                      tup
+                                                                                                                                                                      [ (\l
+                                                                                                                                                                          r ->
+                                                                                                                                                                           r) ]))
+                                                                                                                                                                (case
+                                                                                                                                                                   tup
+                                                                                                                                                                   [ (\l
+                                                                                                                                                                       r ->
+                                                                                                                                                                        l) ]))
+                                                                                                                                                             (unConstrData
+                                                                                                                                                                (force
+                                                                                                                                                                   headList
+                                                                                                                                                                   (force
+                                                                                                                                                                      tailList
+                                                                                                                                                                      ds)))) ])
+                                                                                                                                                     (\d ->
+                                                                                                                                                        (\tup ->
+                                                                                                                                                           (\index ->
+                                                                                                                                                              (\args ->
+                                                                                                                                                                 case
+                                                                                                                                                                   index
+                                                                                                                                                                   [ (\ds ->
+                                                                                                                                                                        False)
+                                                                                                                                                                   , (\ds ->
+                                                                                                                                                                        True) ]
+                                                                                                                                                                   args)
+                                                                                                                                                                (case
+                                                                                                                                                                   tup
+                                                                                                                                                                   [ (\l
+                                                                                                                                                                       r ->
+                                                                                                                                                                        r) ]))
+                                                                                                                                                             (case
+                                                                                                                                                                tup
+                                                                                                                                                                [ (\l
+                                                                                                                                                                    r ->
+                                                                                                                                                                     l) ]))
+                                                                                                                                                          (unConstrData
+                                                                                                                                                             d)))
+                                                                                                                                                  (\`$dUnsafeFromData`
+                                                                                                                                                    d ->
                                                                                                                                                      (\tup ->
                                                                                                                                                         (\index ->
                                                                                                                                                            (\args ->
                                                                                                                                                               case
-                                                                                                                                                                (equalsInteger
-                                                                                                                                                                   0
-                                                                                                                                                                   index)
-                                                                                                                                                                [ (case
-                                                                                                                                                                     (equalsInteger
-                                                                                                                                                                        1
-                                                                                                                                                                        index)
-                                                                                                                                                                     [ (traceError
-                                                                                                                                                                          "PT1")
-                                                                                                                                                                     , (constr 0
-                                                                                                                                                                          [  ]) ])
-                                                                                                                                                                , (constr 1
-                                                                                                                                                                     [  ]) ])
+                                                                                                                                                                index
+                                                                                                                                                                [ (\ds ->
+                                                                                                                                                                     constr 1
+                                                                                                                                                                       [  ])
+                                                                                                                                                                , (\ds ->
+                                                                                                                                                                     constr 0
+                                                                                                                                                                       [ (`$dUnsafeFromData`
+                                                                                                                                                                            (force
+                                                                                                                                                                               headList
+                                                                                                                                                                               ds)) ])
+                                                                                                                                                                , (\ds ->
+                                                                                                                                                                     constr 2
+                                                                                                                                                                       [  ]) ]
+                                                                                                                                                                args)
                                                                                                                                                              (case
                                                                                                                                                                 tup
                                                                                                                                                                 [ (\l
@@ -221,474 +233,390 @@
                                                                                                                                                                  r ->
                                                                                                                                                                   l) ]))
                                                                                                                                                        (unConstrData
-                                                                                                                                                          d)))
-                                                                                                                                               (\`$dUnsafeFromData`
-                                                                                                                                                 d ->
-                                                                                                                                                  (\tup ->
-                                                                                                                                                     (\index ->
-                                                                                                                                                        (\args ->
-                                                                                                                                                           case
-                                                                                                                                                             (equalsInteger
-                                                                                                                                                                0
-                                                                                                                                                                index)
-                                                                                                                                                             [ (case
-                                                                                                                                                                  (equalsInteger
-                                                                                                                                                                     1
-                                                                                                                                                                     index)
-                                                                                                                                                                  [ (case
-                                                                                                                                                                       (equalsInteger
-                                                                                                                                                                          2
-                                                                                                                                                                          index)
-                                                                                                                                                                       [ (traceError
-                                                                                                                                                                            "PT1")
-                                                                                                                                                                       , (constr 2
-                                                                                                                                                                            [  ]) ])
-                                                                                                                                                                  , (constr 0
-                                                                                                                                                                       [ (`$dUnsafeFromData`
-                                                                                                                                                                            (force
-                                                                                                                                                                               headList
-                                                                                                                                                                               args)) ]) ])
-                                                                                                                                                             , (constr 1
-                                                                                                                                                                  [  ]) ])
-                                                                                                                                                          (case
-                                                                                                                                                             tup
-                                                                                                                                                             [ (\l
-                                                                                                                                                                 r ->
-                                                                                                                                                                  r) ]))
-                                                                                                                                                       (case
-                                                                                                                                                          tup
-                                                                                                                                                          [ (\l
-                                                                                                                                                              r ->
-                                                                                                                                                               l) ]))
-                                                                                                                                                    (unConstrData
-                                                                                                                                                       d))) ])
-                                                                                                                                       (case
-                                                                                                                                          tup
-                                                                                                                                          [ (\l
-                                                                                                                                              r ->
-                                                                                                                                               r) ]))
-                                                                                                                                    (case
-                                                                                                                                       tup
-                                                                                                                                       [ (\l
-                                                                                                                                           r ->
-                                                                                                                                            l) ]))
-                                                                                                                                 (unConstrData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       l)))
-                                                                                                                              (go
-                                                                                                                                 (unListData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       l)))
-                                                                                                                              (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                                 `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                                                                                                 `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                                 (force
-                                                                                                                                    headList
-                                                                                                                                    l))
-                                                                                                                              (cse
-                                                                                                                                 `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                                 (force
-                                                                                                                                    headList
-                                                                                                                                    l)))
-                                                                                                                           (cse
-                                                                                                                              (cse
-                                                                                                                                 unIData)))
-                                                                                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                           unBData))
-                                                                                                                     (\d ->
-                                                                                                                        d)
-                                                                                                                     (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                                                                                                                        (force
-                                                                                                                           headList
-                                                                                                                           (force
-                                                                                                                              tailList
-                                                                                                                              l))))
-                                                                                                                  (force
-                                                                                                                     tailList
-                                                                                                                     l))
-                                                                                                               (force
-                                                                                                                  tailList
-                                                                                                                  l))
-                                                                                                            (force
-                                                                                                               tailList
-                                                                                                               l))
-                                                                                                         (force
-                                                                                                            tailList
-                                                                                                            l))
-                                                                                                      (force
-                                                                                                         tailList
-                                                                                                         l))
-                                                                                                   (force
-                                                                                                      tailList
-                                                                                                      l))
-                                                                                                (force
-                                                                                                   tailList
-                                                                                                   l))
-                                                                                             (force
-                                                                                                tailList
-                                                                                                l))
-                                                                                          (force
-                                                                                             tailList
-                                                                                             l))
-                                                                                       (force
-                                                                                          tailList
-                                                                                          args)) ])
-                                                                               (case
-                                                                                  tup
-                                                                                  [ (\l
-                                                                                      r ->
-                                                                                       r) ]))
-                                                                            (case
-                                                                               tup
-                                                                               [ (\l
-                                                                                   r ->
-                                                                                    l) ]))
-                                                                         (unConstrData
-                                                                            (force
-                                                                               headList
-                                                                               args)))
-                                                                    , (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                                         (force
-                                                                            headList
-                                                                            (force
-                                                                               tailList
-                                                                               args))) ])
-                                                                 (\d ->
-                                                                    (\tup ->
-                                                                       (\index ->
-                                                                          (\args ->
-                                                                             case
-                                                                               (equalsInteger
-                                                                                  0
-                                                                                  index)
-                                                                               [ (case
-                                                                                    (equalsInteger
-                                                                                       1
-                                                                                       index)
-                                                                                    [ (case
-                                                                                         (equalsInteger
-                                                                                            2
-                                                                                            index)
-                                                                                         [ (case
-                                                                                              (equalsInteger
-                                                                                                 3
-                                                                                                 index)
-                                                                                              [ (traceError
-                                                                                                   "PT1")
-                                                                                              , (constr 0
-                                                                                                   [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
-                                                                                                        (force
-                                                                                                           headList
-                                                                                                           args)) ]) ])
-                                                                                         , (constr 2
-                                                                                              [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                                                   (force
-                                                                                                      headList
-                                                                                                      args)) ]) ])
-                                                                                    , (constr 3
-                                                                                         [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                                                                                                                                          d))) ]
+                                                                                                                                           args)
+                                                                                                                                        (case
+                                                                                                                                           tup
+                                                                                                                                           [ (\l
+                                                                                                                                               r ->
+                                                                                                                                                r) ]))
+                                                                                                                                     (case
+                                                                                                                                        tup
+                                                                                                                                        [ (\l
+                                                                                                                                            r ->
+                                                                                                                                             l) ]))
+                                                                                                                                  (unConstrData
+                                                                                                                                     (force
+                                                                                                                                        headList
+                                                                                                                                        l)))
+                                                                                                                               (go
+                                                                                                                                  (unListData
+                                                                                                                                     (force
+                                                                                                                                        headList
+                                                                                                                                        l)))
+                                                                                                                               (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                                  `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                                                                                  `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                  (force
+                                                                                                                                     headList
+                                                                                                                                     l))
+                                                                                                                               (cse
+                                                                                                                                  `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                  (force
+                                                                                                                                     headList
+                                                                                                                                     l)))
+                                                                                                                            (cse
+                                                                                                                               (cse
+                                                                                                                                  unIData)))
+                                                                                                                         (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                            unBData))
+                                                                                                                      (\d ->
+                                                                                                                         d)
+                                                                                                                      (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                                                                                         (force
+                                                                                                                            headList
+                                                                                                                            (force
+                                                                                                                               tailList
+                                                                                                                               l))))
+                                                                                                                   (force
+                                                                                                                      tailList
+                                                                                                                      l))
+                                                                                                                (force
+                                                                                                                   tailList
+                                                                                                                   l))
+                                                                                                             (force
+                                                                                                                tailList
+                                                                                                                l))
+                                                                                                          (force
+                                                                                                             tailList
+                                                                                                             l))
+                                                                                                       (force
+                                                                                                          tailList
+                                                                                                          l))
+                                                                                                    (force
+                                                                                                       tailList
+                                                                                                       l))
+                                                                                                 (force
+                                                                                                    tailList
+                                                                                                    l))
                                                                                               (force
-                                                                                                 headList
-                                                                                                 args)) ]) ])
-                                                                               , (constr 1
-                                                                                    [ (unBData
-                                                                                         (force
-                                                                                            headList
-                                                                                            args)) ]) ])
-                                                                            (case
-                                                                               tup
-                                                                               [ (\l
-                                                                                   r ->
-                                                                                    r) ]))
-                                                                         (case
-                                                                            tup
-                                                                            [ (\l
-                                                                                r ->
-                                                                                 l) ]))
-                                                                      (unConstrData
-                                                                         d))) ])
-                                                         (case
-                                                            tup
-                                                            [(\l r -> r)]))
-                                                      (case tup [(\l r -> l)]))
-                                                   (unConstrData ctx))
-                                                [ (\ds
-                                                    ds ->
-                                                     case
-                                                       ds
-                                                       [ (\ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds ->
-                                                            force
-                                                              ((\`$j` ->
-                                                                  case
-                                                                    ds
-                                                                    [ (delay
-                                                                         ((\x ->
-                                                                             case
-                                                                               error
-                                                                               [ (\a
-                                                                                   ds ->
-                                                                                    `$j`
-                                                                                      a
-                                                                                      ds) ])
-                                                                            (force
-                                                                               trace
-                                                                               "PT8"
-                                                                               (constr 0
-                                                                                  [  ]))))
-                                                                    , (\x
-                                                                        ds ->
-                                                                         delay
+                                                                                                 tailList
+                                                                                                 l))
+                                                                                           (force
+                                                                                              tailList
+                                                                                              l))
+                                                                                        (force
+                                                                                           tailList
+                                                                                           ds)) ]
+                                                                                 args)
+                                                                              (case
+                                                                                 tup
+                                                                                 [ (\l
+                                                                                     r ->
+                                                                                      r) ]))
                                                                            (case
-                                                                              x
-                                                                              [ (\a
-                                                                                  ds ->
-                                                                                   `$j`
-                                                                                     a
-                                                                                     ds) ])) ])
-                                                                 (\a
-                                                                   ds ->
-                                                                    force
-                                                                      ((\`$j` ->
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   l) ]))
+                                                                        (unConstrData
+                                                                           (force
+                                                                              headList
+                                                                              ds)))
+                                                                   , (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                        (force
+                                                                           headList
+                                                                           (force
+                                                                              tailList
+                                                                              ds))) ])
+                                                                (\d ->
+                                                                   (\tup ->
+                                                                      (\index ->
+                                                                         (\args ->
+                                                                            case
+                                                                              index
+                                                                              [ (\ds ->
+                                                                                   constr 1
+                                                                                     [ (unBData
+                                                                                          (force
+                                                                                             headList
+                                                                                             ds)) ])
+                                                                              , (\ds ->
+                                                                                   constr 3
+                                                                                     [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                                                                          (force
+                                                                                             headList
+                                                                                             ds)) ])
+                                                                              , (\ds ->
+                                                                                   constr 2
+                                                                                     [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                          (force
+                                                                                             headList
+                                                                                             ds)) ])
+                                                                              , (\ds ->
+                                                                                   constr 0
+                                                                                     [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                                                                                          (force
+                                                                                             headList
+                                                                                             ds)) ]) ]
+                                                                              args)
+                                                                           (case
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   r) ]))
+                                                                        (case
+                                                                           tup
+                                                                           [ (\l
+                                                                               r ->
+                                                                                l) ]))
+                                                                     (unConstrData
+                                                                        d))) ]
+                                                         args)
+                                                      (case tup [(\l r -> r)]))
+                                                   (case tup [(\l r -> l)]))
+                                                (unConstrData ctx))
+                                             [ (\ds
+                                                 ds ->
+                                                  case
+                                                    ds
+                                                    [ (\ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds ->
+                                                         force
+                                                           ((\`$j` ->
+                                                               case
+                                                                 ds
+                                                                 [ (delay
+                                                                      ((\x ->
                                                                           case
-                                                                            ds
-                                                                            [ (delay
-                                                                                 (`$j`
-                                                                                    (traceError
-                                                                                       "PT9")))
-                                                                            , (\ds
-                                                                                as ->
-                                                                                 delay
-                                                                                   (`$j`
-                                                                                      as)) ])
-                                                                         (\rest ->
-                                                                            force
-                                                                              ((\`$j` ->
-                                                                                  case
-                                                                                    rest
-                                                                                    [ (delay
-                                                                                         ((\x ->
+                                                                            error
+                                                                            [ (\a
+                                                                                ds ->
+                                                                                 `$j`
+                                                                                   a
+                                                                                   ds) ])
+                                                                         (force
+                                                                            trace
+                                                                            "PT8"
+                                                                            (constr 0
+                                                                               [  ]))))
+                                                                 , (\x
+                                                                     ds ->
+                                                                      delay
+                                                                        (case
+                                                                           x
+                                                                           [ (\a
+                                                                               ds ->
+                                                                                `$j`
+                                                                                  a
+                                                                                  ds) ])) ])
+                                                              (\a
+                                                                ds ->
+                                                                 force
+                                                                   ((\`$j` ->
+                                                                       case
+                                                                         ds
+                                                                         [ (delay
+                                                                              (`$j`
+                                                                                 ((\x ->
+                                                                                     error)
+                                                                                    (force
+                                                                                       trace
+                                                                                       "PT9"
+                                                                                       (constr 0
+                                                                                          [  ])))))
+                                                                         , (\ds
+                                                                             as ->
+                                                                              delay
+                                                                                (`$j`
+                                                                                   as)) ])
+                                                                      (\rest ->
+                                                                         force
+                                                                           ((\`$j` ->
+                                                                               case
+                                                                                 rest
+                                                                                 [ (delay
+                                                                                      ((\x ->
+                                                                                          case
+                                                                                            error
+                                                                                            [ (\a
+                                                                                                ds ->
+                                                                                                 `$j`
+                                                                                                   a
+                                                                                                   ds) ])
+                                                                                         (force
+                                                                                            trace
+                                                                                            "PT8"
+                                                                                            (constr 0
+                                                                                               [  ]))))
+                                                                                 , (\x
+                                                                                     ds ->
+                                                                                      delay
+                                                                                        (case
+                                                                                           x
+                                                                                           [ (\a
+                                                                                               ds ->
+                                                                                                `$j`
+                                                                                                  a
+                                                                                                  ds) ])) ])
+                                                                              (\a
+                                                                                ds ->
+                                                                                 (\obsScriptCred' ->
+                                                                                    (\`$fEqStakingCredential_$c==` ->
+                                                                                       (\go ->
+                                                                                          (\cse ->
                                                                                              case
-                                                                                               error
-                                                                                               [ (\a
-                                                                                                   ds ->
-                                                                                                    `$j`
-                                                                                                      a
-                                                                                                      ds) ])
-                                                                                            (force
-                                                                                               trace
-                                                                                               "PT8"
-                                                                                               (constr 0
-                                                                                                  [  ]))))
-                                                                                    , (\x
-                                                                                        ds ->
-                                                                                         delay
-                                                                                           (case
-                                                                                              x
-                                                                                              [ (\a
-                                                                                                  ds ->
-                                                                                                   `$j`
-                                                                                                     a
-                                                                                                     ds) ])) ])
-                                                                                 (\a
-                                                                                   ds ->
-                                                                                    (\obsScriptCred' ->
-                                                                                       (\`$fEqStakingCredential_$c==` ->
-                                                                                          (\go ->
-                                                                                             case
-                                                                                               (`$fEqStakingCredential_$c==`
-                                                                                                  obsScriptCred'
+                                                                                               (cse
                                                                                                   a)
-                                                                                               [ (constr 0
-                                                                                                    [  ])
-                                                                                               , (case
-                                                                                                    (`$fEqStakingCredential_$c==`
-                                                                                                       obsScriptCred'
+                                                                                               [ (case
+                                                                                                    (cse
                                                                                                        a)
-                                                                                                    [ (constr 0
-                                                                                                         [  ])
-                                                                                                    , (go
-                                                                                                         ds) ]) ])
-                                                                                            ((\s ->
-                                                                                                s
-                                                                                                  s)
-                                                                                               (\s
-                                                                                                 ds ->
-                                                                                                  case
-                                                                                                    ds
-                                                                                                    [ ((\x ->
-                                                                                                          error)
-                                                                                                         (force
-                                                                                                            trace
-                                                                                                            "not found"
-                                                                                                            (constr 0
-                                                                                                               [  ])))
-                                                                                                    , (\ds
-                                                                                                        xs' ->
-                                                                                                         case
-                                                                                                           ds
-                                                                                                           [ (\c'
-                                                                                                               i ->
-                                                                                                                case
-                                                                                                                  (`$fEqStakingCredential_$c==`
-                                                                                                                     c'
-                                                                                                                     obsScriptCred')
-                                                                                                                  [ (constr 0
-                                                                                                                       [  ])
-                                                                                                                  , (s
-                                                                                                                       s
-                                                                                                                       xs') ]) ]) ])))
-                                                                                         (\ds
-                                                                                           ds ->
-                                                                                            case
-                                                                                              ds
-                                                                                              [ (\l ->
-                                                                                                   case
-                                                                                                     ds
-                                                                                                     [ (\r ->
-                                                                                                          case
-                                                                                                            l
-                                                                                                            [ (\l ->
-                                                                                                                 case
-                                                                                                                   r
-                                                                                                                   [ (\r ->
-                                                                                                                        case
-                                                                                                                          (equalsByteString
-                                                                                                                             l
-                                                                                                                             r)
-                                                                                                                          [ (constr 1
-                                                                                                                               [  ])
-                                                                                                                          , (constr 0
-                                                                                                                               [  ]) ])
-                                                                                                                   , (\ipv ->
-                                                                                                                        constr 1
-                                                                                                                          [  ]) ])
-                                                                                                            , (\a ->
-                                                                                                                 case
-                                                                                                                   r
-                                                                                                                   [ (\ipv ->
-                                                                                                                        constr 1
-                                                                                                                          [  ])
-                                                                                                                   , (\a' ->
-                                                                                                                        case
-                                                                                                                          (equalsByteString
-                                                                                                                             a
-                                                                                                                             a')
-                                                                                                                          [ (constr 1
-                                                                                                                               [  ])
-                                                                                                                          , (constr 0
-                                                                                                                               [  ]) ]) ]) ])
-                                                                                                     , (\ipv
-                                                                                                         ipv
-                                                                                                         ipv ->
-                                                                                                          constr 1
-                                                                                                            [  ]) ])
-                                                                                              , (\a
-                                                                                                  b
-                                                                                                  c ->
-                                                                                                   case
-                                                                                                     ds
-                                                                                                     [ (\ipv ->
-                                                                                                          constr 1
-                                                                                                            [  ])
-                                                                                                     , (\a'
-                                                                                                         b'
-                                                                                                         c' ->
-                                                                                                          case
-                                                                                                            (equalsInteger
-                                                                                                               a
-                                                                                                               a')
-                                                                                                            [ (constr 1
-                                                                                                                 [  ])
-                                                                                                            , (case
-                                                                                                                 (equalsInteger
-                                                                                                                    b
-                                                                                                                    b')
-                                                                                                                 [ (constr 1
-                                                                                                                      [  ])
-                                                                                                                 , (case
-                                                                                                                      (equalsInteger
-                                                                                                                         c
-                                                                                                                         c')
-                                                                                                                      [ (constr 1
-                                                                                                                           [  ])
-                                                                                                                      , (constr 0
-                                                                                                                           [  ]) ]) ]) ]) ]) ]))
-                                                                                      (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                                         obsScriptCred)))))))) ]) ])
-                                             ((\s ->
-                                                 s s)
-                                                (\s
-                                                  xs ->
-                                                   case
-                                                     xs
-                                                     [ (constr 0 [])
-                                                     , (\x
-                                                         xs ->
-                                                          constr 1
-                                                            [ (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                                 x)
-                                                            , (s s xs) ]) ])))
+                                                                                                    [ (go
+                                                                                                         ds)
+                                                                                                    , (constr 0
+                                                                                                         [  ]) ])
+                                                                                               , (constr 0
+                                                                                                    [  ]) ])
+                                                                                            (`$fEqStakingCredential_$c==`
+                                                                                               obsScriptCred'))
+                                                                                         ((\s ->
+                                                                                             s
+                                                                                               s)
+                                                                                            (\s
+                                                                                              ds ->
+                                                                                               case
+                                                                                                 ds
+                                                                                                 [ ((\x ->
+                                                                                                       error)
+                                                                                                      (force
+                                                                                                         trace
+                                                                                                         "not found"
+                                                                                                         (constr 0
+                                                                                                            [  ])))
+                                                                                                 , (\ds
+                                                                                                     xs' ->
+                                                                                                      case
+                                                                                                        ds
+                                                                                                        [ (\c'
+                                                                                                            i ->
+                                                                                                             case
+                                                                                                               (`$fEqStakingCredential_$c==`
+                                                                                                                  c'
+                                                                                                                  obsScriptCred')
+                                                                                                               [ (s
+                                                                                                                    s
+                                                                                                                    xs')
+                                                                                                               , (constr 0
+                                                                                                                    [  ]) ]) ]) ])))
+                                                                                      (\ds
+                                                                                        ds ->
+                                                                                         case
+                                                                                           ds
+                                                                                           [ (\l ->
+                                                                                                case
+                                                                                                  ds
+                                                                                                  [ (\r ->
+                                                                                                       case
+                                                                                                         l
+                                                                                                         [ (\l ->
+                                                                                                              case
+                                                                                                                r
+                                                                                                                [ (\r ->
+                                                                                                                     equalsByteString
+                                                                                                                       l
+                                                                                                                       r)
+                                                                                                                , (\ipv ->
+                                                                                                                     False) ])
+                                                                                                         , (\a ->
+                                                                                                              case
+                                                                                                                r
+                                                                                                                [ (\ipv ->
+                                                                                                                     False)
+                                                                                                                , (\a' ->
+                                                                                                                     equalsByteString
+                                                                                                                       a
+                                                                                                                       a') ]) ])
+                                                                                                  , (\ipv
+                                                                                                      ipv
+                                                                                                      ipv ->
+                                                                                                       False) ])
+                                                                                           , (\a
+                                                                                               b
+                                                                                               c ->
+                                                                                                case
+                                                                                                  ds
+                                                                                                  [ (\ipv ->
+                                                                                                       False)
+                                                                                                  , (\a'
+                                                                                                      b'
+                                                                                                      c' ->
+                                                                                                       case
+                                                                                                         (equalsInteger
+                                                                                                            a
+                                                                                                            a')
+                                                                                                         [ False
+                                                                                                         , (case
+                                                                                                              (equalsInteger
+                                                                                                                 b
+                                                                                                                 b')
+                                                                                                              [ False
+                                                                                                              , (equalsInteger
+                                                                                                                   c
+                                                                                                                   c') ]) ]) ]) ]))
+                                                                                   (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                      obsScriptCred)))))))) ]) ])
                                           ((\s ->
                                               s s)
                                              (\s
                                                xs ->
                                                 case
                                                   xs
-                                                  [ (constr 0 [])
-                                                  , (\x
+                                                  [ (\x
                                                       xs ->
                                                        constr 1
                                                          [ (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                                                               x)
-                                                         , (s s xs) ]) ])))
-                                       (\d ->
-                                          (\tup ->
-                                             (\index ->
-                                                (\args ->
-                                                   case
-                                                     (equalsInteger 0 index)
-                                                     [ (traceError "PT1")
-                                                     , (constr 0
-                                                          [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                                               (force headList
-                                                                  args))
-                                                          , (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                                                               (force
-                                                                  headList
-                                                                  (force
-                                                                     tailList
-                                                                     args))) ]) ])
-                                                  (case tup [(\l r -> r)]))
-                                               (case tup [(\l r -> l)]))
-                                            (unConstrData d)))
+                                                         , (s s xs) ])
+                                                  , (constr 0 []) ])))
+                                       ((\s ->
+                                           s s)
+                                          (\s
+                                            xs ->
+                                             case
+                                               xs
+                                               [ (\x
+                                                   xs ->
+                                                    constr 1
+                                                      [ (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                           x)
+                                                      , (s s xs) ])
+                                               , (constr 0 []) ])))
                                     (\d ->
                                        (\tup ->
                                           (\index ->
                                              (\args ->
                                                 case
-                                                  (equalsInteger 0 index)
-                                                  [ (traceError "PT1")
-                                                  , (constr 0
-                                                       [ (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                                                            (force headList
-                                                               args))
-                                                       , (unIData
-                                                            (force headList
-                                                               (force tailList
-                                                                  args))) ]) ])
+                                                  index
+                                                  [ (\ds ->
+                                                       constr 0
+                                                         [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                                              (force headList
+                                                                 ds))
+                                                         , (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                                              (force headList
+                                                                 (force tailList
+                                                                    ds))) ]) ]
+                                                  args)
                                                (case tup [(\l r -> r)]))
                                             (case tup [(\l r -> l)]))
                                          (unConstrData d)))
@@ -697,267 +625,224 @@
                                        (\index ->
                                           (\args ->
                                              case
-                                               (equalsInteger 0 index)
-                                               [ (traceError "PT1")
-                                               , (unBData
-                                                    (force headList args)) ])
+                                               index
+                                               [ (\ds ->
+                                                    constr 0
+                                                      [ (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                           (force headList ds))
+                                                      , (unIData
+                                                           (force headList
+                                                              (force tailList
+                                                                 ds))) ]) ]
+                                               args)
                                             (case tup [(\l r -> r)]))
                                          (case tup [(\l r -> l)]))
                                       (unConstrData d)))
-                              ((\s ->
-                                  s s)
-                                 (\s
-                                   xs ->
+                              (\d ->
+                                 (\tup ->
+                                    (\index ->
+                                       (\args ->
+                                          case
+                                            index
+                                            [ (\ds ->
+                                                 unBData (force headList ds)) ]
+                                            args)
+                                         (case tup [(\l r -> r)]))
+                                      (case tup [(\l r -> l)]))
+                                   (unConstrData d)))
+                           ((\s ->
+                               s s)
+                              (\s
+                                xs ->
+                                 case
+                                   xs
+                                   [ (\x
+                                       xs ->
+                                        constr 1
+                                          [ (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                               x)
+                                          , (s s xs) ])
+                                   , (constr 0 []) ])))
+                        (\eta ->
+                           (\tup ->
+                              (\index ->
+                                 (\args ->
                                     case
-                                      xs
-                                      [ (constr 0 [])
-                                      , (\x
-                                          xs ->
-                                           constr 1
-                                             [ (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                                                  x)
-                                             , (s s xs) ]) ])))
-                           (\eta ->
-                              (\tup ->
-                                 (\index ->
-                                    (\args ->
-                                       case
-                                         (equalsInteger 0 index)
-                                         [ (traceError "PT1")
-                                         , ((\l ->
-                                               (\l ->
-                                                  (\`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` ->
-                                                     (\cse ->
-                                                        constr 0
-                                                          [ ((\tup ->
-                                                                (\index ->
-                                                                   (\args ->
-                                                                      case
-                                                                        (equalsInteger
-                                                                           0
-                                                                           index)
-                                                                        [ (traceError
-                                                                             "PT1")
-                                                                        , (constr 0
-                                                                             [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                                                  (force
-                                                                                     headList
-                                                                                     args))
-                                                                             , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                                  `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                                  (force
-                                                                                     headList
-                                                                                     (force
-                                                                                        tailList
-                                                                                        args))) ]) ])
-                                                                     (case
-                                                                        tup
-                                                                        [ (\l
-                                                                            r ->
-                                                                             r) ]))
-                                                                  (case
-                                                                     tup
-                                                                     [ (\l r ->
-                                                                          l) ]))
-                                                               (unConstrData
-                                                                  (force
-                                                                     headList
-                                                                     args)))
-                                                          , (cse
-                                                               (cse unIData)
-                                                               (force headList
-                                                                  l))
-                                                          , ((\tup ->
-                                                                (\index ->
-                                                                   (\args ->
-                                                                      case
-                                                                        (equalsInteger
-                                                                           0
-                                                                           index)
-                                                                        [ (case
-                                                                             (equalsInteger
-                                                                                1
-                                                                                index)
-                                                                             [ (case
-                                                                                  (equalsInteger
-                                                                                     2
-                                                                                     index)
-                                                                                  [ (traceError
-                                                                                       "PT1")
-                                                                                  , (constr 1
-                                                                                       [ (force
-                                                                                            headList
-                                                                                            args) ]) ])
-                                                                             , (constr 2
-                                                                                  [ (unBData
-                                                                                       (force
-                                                                                          headList
-                                                                                          args)) ]) ])
-                                                                        , (constr 0
-                                                                             [  ]) ])
-                                                                     (case
-                                                                        tup
-                                                                        [ (\l
-                                                                            r ->
-                                                                             r) ]))
-                                                                  (case
-                                                                     tup
-                                                                     [ (\l r ->
-                                                                          l) ]))
-                                                               (unConstrData
-                                                                  (force
-                                                                     headList
-                                                                     l)))
-                                                          , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                               unBData
-                                                               (force headList
-                                                                  (force
-                                                                     tailList
-                                                                     l))) ])
-                                                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                          unBData))
-                                                    (\`$dUnsafeFromData`
-                                                      d ->
-                                                       (\tup ->
-                                                          (\index ->
-                                                             (\args ->
-                                                                case
-                                                                  (equalsInteger
-                                                                     1
-                                                                     index)
-                                                                  [ (case
-                                                                       (equalsInteger
-                                                                          0
-                                                                          index)
-                                                                       [ (traceError
-                                                                            "PT1")
-                                                                       , (constr 0
-                                                                            [ (`$dUnsafeFromData`
-                                                                                 (force
-                                                                                    headList
-                                                                                    args)) ]) ])
-                                                                  , (constr 1
-                                                                       []) ])
-                                                               (case
-                                                                  tup
-                                                                  [ (\l r ->
-                                                                       r) ]))
-                                                            (case
-                                                               tup
-                                                               [(\l r -> l)]))
-                                                         (unConstrData d)))
-                                                 (force tailList l))
-                                              (force tailList args)) ])
-                                      (case tup [(\l r -> r)]))
-                                   (case tup [(\l r -> l)]))
-                                (unConstrData eta)))
-                        (\`$dUnsafeFromData` `$dUnsafeFromData` ->
-                           (\go d -> go (unMapData d))
-                             ((\s -> s s)
-                                (\s xs ->
-                                   case
-                                     xs
-                                     [ (constr 0 [])
-                                     , (\tup tups ->
-                                          constr 1
-                                            [ (constr 0
-                                                 [ (`$dUnsafeFromData`
-                                                      (case tup [(\l r -> l)]))
-                                                 , (`$dUnsafeFromData`
-                                                      (case
-                                                         tup
-                                                         [(\l r -> r)])) ])
-                                            , (s s tups) ]) ]))))
-                     ((\s ->
-                         s s)
-                        (\s
-                          xs ->
-                           case
-                             xs
-                             [ (constr 0 [])
-                             , (\x
-                                 xs ->
-                                  constr 1
-                                    [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
-                                         x)
-                                    , (s s xs) ]) ])))
-                  (\d ->
-                     (\tup ->
-                        (\index ->
-                           (\args ->
-                              case
-                                (equalsInteger 0 index)
-                                [ (case
-                                     (equalsInteger 1 index)
-                                     [ (case
-                                          (equalsInteger 2 index)
-                                          [ (case
-                                               (equalsInteger 3 index)
-                                               [ (case
-                                                    (equalsInteger 4 index)
-                                                    [ (case
-                                                         (equalsInteger 5 index)
-                                                         [ (case
-                                                              (equalsInteger
-                                                                 6
-                                                                 index)
-                                                              [ (traceError
-                                                                   "PT1")
-                                                              , (constr 4 []) ])
-                                                         , (constr 3 []) ])
-                                                    , (constr 6
-                                                         [ (unBData
+                                      index
+                                      [ (\ds ->
+                                           (\l ->
+                                              (\l ->
+                                                 (\`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` ->
+                                                    (\cse ->
+                                                       constr 0
+                                                         [ ((\tup ->
+                                                               (\index ->
+                                                                  (\args ->
+                                                                     case
+                                                                       index
+                                                                       [ (\ds ->
+                                                                            constr 0
+                                                                              [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                                   (force
+                                                                                      headList
+                                                                                      ds))
+                                                                              , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                   `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                   (force
+                                                                                      headList
+                                                                                      (force
+                                                                                         tailList
+                                                                                         ds))) ]) ]
+                                                                       args)
+                                                                    (case
+                                                                       tup
+                                                                       [ (\l
+                                                                           r ->
+                                                                            r) ]))
+                                                                 (case
+                                                                    tup
+                                                                    [ (\l r ->
+                                                                         l) ]))
+                                                              (unConstrData
+                                                                 (force headList
+                                                                    ds)))
+                                                         , (cse
+                                                              (cse unIData)
                                                               (force headList
-                                                                 args))
-                                                         , (unIData
-                                                              (force
-                                                                 headList
-                                                                 (force
-                                                                    tailList
-                                                                    args))) ]) ])
-                                               , (constr 5
-                                                    [ (unBData
-                                                         (force headList args))
-                                                    , (unBData
-                                                         (force headList
-                                                            (force tailList
-                                                               args))) ]) ])
-                                          , (constr 1
-                                               [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                    (force headList args))
-                                               , (unBData
-                                                    (force headList
-                                                       (force tailList
-                                                          args))) ]) ])
-                                     , (constr 0
-                                          [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                               (force headList args)) ]) ])
-                                , (constr 2
-                                     [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                          (force headList args)) ]) ])
-                             (case tup [(\l r -> r)]))
-                          (case tup [(\l r -> l)]))
-                       (unConstrData d)))
+                                                                 l))
+                                                         , ((\tup ->
+                                                               (\index ->
+                                                                  (\args ->
+                                                                     case
+                                                                       index
+                                                                       [ (\ds ->
+                                                                            constr 0
+                                                                              [  ])
+                                                                       , (\ds ->
+                                                                            constr 2
+                                                                              [ (unBData
+                                                                                   (force
+                                                                                      headList
+                                                                                      ds)) ])
+                                                                       , (\ds ->
+                                                                            constr 1
+                                                                              [ (force
+                                                                                   headList
+                                                                                   ds) ]) ]
+                                                                       args)
+                                                                    (case
+                                                                       tup
+                                                                       [ (\l
+                                                                           r ->
+                                                                            r) ]))
+                                                                 (case
+                                                                    tup
+                                                                    [ (\l r ->
+                                                                         l) ]))
+                                                              (unConstrData
+                                                                 (force headList
+                                                                    l)))
+                                                         , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                              unBData
+                                                              (force headList
+                                                                 (force tailList
+                                                                    l))) ])
+                                                      (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                         unBData))
+                                                   (\`$dUnsafeFromData`
+                                                     d ->
+                                                      (\tup ->
+                                                         (\index ->
+                                                            (\args ->
+                                                               case
+                                                                 index
+                                                                 [ (\ds ->
+                                                                      constr 0
+                                                                        [ (`$dUnsafeFromData`
+                                                                             (force
+                                                                                headList
+                                                                                ds)) ])
+                                                                 , (\ds ->
+                                                                      constr 1
+                                                                        []) ]
+                                                                 args)
+                                                              (case
+                                                                 tup
+                                                                 [(\l r -> r)]))
+                                                           (case
+                                                              tup
+                                                              [(\l r -> l)]))
+                                                        (unConstrData d)))
+                                                (force tailList l))
+                                             (force tailList ds)) ]
+                                      args)
+                                   (case tup [(\l r -> r)]))
+                                (case tup [(\l r -> l)]))
+                             (unConstrData eta)))
+                     (\`$dUnsafeFromData` `$dUnsafeFromData` ->
+                        (\go d -> go (unMapData d))
+                          ((\s -> s s)
+                             (\s xs ->
+                                case
+                                  xs
+                                  [ (\tup tups ->
+                                       constr 1
+                                         [ (constr 0
+                                              [ (`$dUnsafeFromData`
+                                                   (case tup [(\l r -> l)]))
+                                              , (`$dUnsafeFromData`
+                                                   (case tup [(\l r -> r)])) ])
+                                         , (s s tups) ])
+                                  , (constr 0 []) ]))))
+                  ((\s ->
+                      s s)
+                     (\s
+                       xs ->
+                        case
+                          xs
+                          [ (\x
+                              xs ->
+                               constr 1
+                                 [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                                      x)
+                                 , (s s xs) ])
+                          , (constr 0 []) ])))
                (\d ->
                   (\tup ->
                      (\index ->
                         (\args ->
                            case
-                             (equalsInteger 0 index)
-                             [ (case
-                                  (equalsInteger 1 index)
-                                  [ (traceError "PT1")
-                                  , ((\l ->
-                                        constr 1
-                                          [ (unIData (force headList args))
-                                          , (unIData (force headList l))
-                                          , (unIData
-                                               (force headList
-                                                  (force tailList l))) ])
-                                       (force tailList args)) ])
-                             , (constr 0
-                                  [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                       (force headList args)) ]) ])
+                             index
+                             [ (\ds ->
+                                  constr 2
+                                    [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                         (force headList ds)) ])
+                             , (\ds ->
+                                  constr 0
+                                    [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                         (force headList ds)) ])
+                             , (\ds ->
+                                  constr 1
+                                    [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                         (force headList ds))
+                                    , (unBData
+                                         (force headList
+                                            (force tailList ds))) ])
+                             , (\ds ->
+                                  constr 5
+                                    [ (unBData (force headList ds))
+                                    , (unBData
+                                         (force headList
+                                            (force tailList ds))) ])
+                             , (\ds ->
+                                  constr 6
+                                    [ (unBData (force headList ds))
+                                    , (unIData
+                                         (force headList
+                                            (force tailList ds))) ])
+                             , (\ds -> constr 3 [])
+                             , (\ds -> constr 4 []) ]
+                             args)
                           (case tup [(\l r -> r)]))
                        (case tup [(\l r -> l)]))
                     (unConstrData d)))
@@ -966,18 +851,37 @@
                   (\index ->
                      (\args ->
                         case
-                          (equalsInteger 0 index)
-                          [ (case
-                               (equalsInteger 1 index)
-                               [ (traceError "PT1")
-                               , (constr 1 [(unBData (force headList args))]) ])
-                          , (constr 0 [(unBData (force headList args))]) ])
+                          index
+                          [ (\ds ->
+                               constr 0
+                                 [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                      (force headList ds)) ])
+                          , (\ds ->
+                               (\l ->
+                                  constr 1
+                                    [ (unIData (force headList ds))
+                                    , (unIData (force headList l))
+                                    , (unIData
+                                         (force headList (force tailList l))) ])
+                                 (force tailList ds)) ]
+                          args)
                        (case tup [(\l r -> r)]))
                     (case tup [(\l r -> l)]))
                  (unConstrData d)))
-         (\str -> (\x -> error) (force trace str (constr 0 []))))
+         (\d ->
+            (\tup ->
+               (\index ->
+                  (\args ->
+                     case
+                       index
+                       [ (\ds -> constr 0 [(unBData (force headList ds))])
+                       , (\ds -> constr 1 [(unBData (force headList ds))]) ]
+                       args)
+                    (case tup [(\l r -> r)]))
+                 (case tup [(\l r -> l)]))
+              (unConstrData d)))
       ((\s -> s s)
          (\s xs ->
             case
               xs
-              [(constr 0 []), (\x xs -> constr 1 [(unBData x), (s s xs)])]))))
+              [(\x xs -> constr 1 [(unBData x), (s s xs)]), (constr 0 [])]))))

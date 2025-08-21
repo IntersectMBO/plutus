@@ -1,9 +1,6 @@
 (let
     data Unit | Unit_match where
       Unit : Unit
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
   in
   \(d : data) -> Unit)
   (Constr 0

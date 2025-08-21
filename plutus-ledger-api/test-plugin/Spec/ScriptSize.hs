@@ -25,7 +25,8 @@ import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, assertEqual, assertFailure, testCase)
 import UntypedPlutusCore.Core.Type (progTerm)
-import UntypedPlutusCore.Evaluation.Machine.Cek (counting, noEmitter)
+import UntypedPlutusCore.Evaluation.Machine.Cek (_cekReportResult, cekResultToEither, counting,
+                                                 noEmitter)
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
 tests :: TestTree
@@ -196,8 +197,9 @@ dummyScriptContext =
 assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
 assertResult expectedResult code = do
   let plc = getPlc code ^. progTerm
-  case runCekDeBruijn defaultCekParametersForTesting counting noEmitter plc of
-    (Left ex, _counting, _logs) ->
+      tidy = cekResultToEither . _cekReportResult
+  case tidy $ runCekDeBruijn defaultCekParametersForTesting counting noEmitter plc of
+    Left ex ->
       assertFailure $ Haskell.show ex
-    (Right actualResult, _counting, _logs) ->
+    Right actualResult ->
       assertEqual "Evaluation has succeeded" expectedResult actualResult

@@ -4,16 +4,13 @@ letrec
         case
           integer
           xs
-          [ 0
-          , (\(hd : pair data data) (eta : list (pair data data)) ->
+          [ (\(hd : pair data data) (eta : list (pair data data)) ->
                addInteger
                  (unIData (case data hd [(\(l : data) (r : data) -> r)]))
-                 (go eta)) ]
+                 (go eta))
+          , 0 ]
 in
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -34,23 +31,20 @@ in
             case
               (Maybe data)
               xs
-              [ (Nothing {data})
-              , (\(hd : pair data data) ->
-                   Bool_match
-                     (case
-                        Bool
-                        (equalsData
-                           k
-                           (case data hd [(\(l : data) (r : data) -> l)]))
-                        [False, True])
-                     {all dead. list (pair data data) -> Maybe data}
-                     (/\dead ->
-                        \(ds : list (pair data data)) ->
-                          Just
-                            {data}
-                            (case data hd [(\(l : data) (r : data) -> r)]))
-                     (/\dead -> go)
-                     {all dead. dead}) ]
+              [ (\(hd : pair data data) ->
+                   case
+                     (all dead. list (pair data data) -> Maybe data)
+                     (equalsData
+                        k
+                        (case data hd [(\(l : data) (r : data) -> l)]))
+                     [ (/\dead -> go)
+                     , (/\dead ->
+                          \(ds : list (pair data data)) ->
+                            Just
+                              {data}
+                              (case data hd [(\(l : data) (r : data) -> r)])) ]
+                     {all dead. dead})
+              , (Nothing {data}) ]
     in
     go value)
     {integer}

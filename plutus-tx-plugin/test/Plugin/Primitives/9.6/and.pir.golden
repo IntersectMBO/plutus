@@ -1,19 +1,10 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
-\(ds : Bool) ->
+\(ds : bool) ->
   let
-    !ds : Bool = ds
+    !ds : bool = ds
   in
-  \(ds : Bool) ->
+  \(ds : bool) ->
     let
-      !ds : Bool = ds
+      !ds : bool = ds
     in
-    Bool_match
-      ds
-      {all dead. Bool}
-      (/\dead -> ds)
-      (/\dead -> False)
+    case (all dead. bool) ds [(/\dead -> False), (/\dead -> ds)]
       {all dead. dead}

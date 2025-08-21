@@ -1,6 +1,8 @@
-CPU:                 5_057_086
-Memory:                 22_512
-Term Size:                 257
-Flat Size:                 297
+CPU:                 4_222_422
+Memory:                 19_904
+Term Size:                 205
+Flat Size:                 206
 
-(constr 1 (constr 0 (constr 0 (constr 0) (con integer 1) (constr 1))))
+(constr
+  1 (constr 0 (constr 0 (con bool True) (con integer 1) (con bool False)))
+)

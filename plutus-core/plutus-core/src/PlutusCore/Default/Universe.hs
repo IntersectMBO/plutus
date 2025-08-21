@@ -544,8 +544,8 @@ instance AnnotateCaseBuiltin DefaultUni where
         listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
           case branches of
             [cons]      -> Right [(cons, [argTy, listTy])]
-            [nil, cons] -> Right [(nil, []), (cons, [argTy, listTy])]
-            _           -> Left "Casing on list requires exactly one branch or two branches"
+            [cons, nil] -> Right [(cons, [argTy, listTy]), (nil, [])]
+            _           -> Left $ "Casing on list requires exactly one branch or two branches"
         (TyApp _ (TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoPair)) lTyArg) rTyArg) ->
           case branches of
             [f] -> Right [(f, [lTyArg, rTyArg])]
@@ -574,8 +574,8 @@ instance CaseBuiltin DefaultUni where
                 (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
             | len == 2 ->
               case x of
-                []       -> Right $ HeadOnly $ branches Vector.! 0
-                (y : ys) -> Right $ headSpine (branches Vector.! 1) [someValueOf ty y, someValueOf uni ys]
+                []       -> Right $ HeadOnly $ branches Vector.! 1
+                (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
             | otherwise            -> Left $ outOfBoundsErr someVal branches
         DefaultUniPair tyL tyR
             | len == 1 ->

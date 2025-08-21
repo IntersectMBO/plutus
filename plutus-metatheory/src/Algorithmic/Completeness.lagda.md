@@ -143,6 +143,7 @@ helper : ∀ {n⋆} {n♯} (x : n♯ ⊢♯) → ne (Norm.⊢♯2TyNe♯ x) ≡ 
 helper (_⊢♯.` x) = refl
 helper (_⊢♯.atomic x) = refl
 helper (_⊢♯.list x) = cong ne (cong (^ list ·_) (helper x))
+helper (_⊢♯.array x) = cong ne (cong (^ array ·_) (helper x))
 helper (_⊢♯.pair x y) = cong ne (cong₂ (λ x y → ^ pair · x · y) (helper x) (helper y))
 
 mkTy-lem : ∀ {n⋆ n♯}(t : n⋆ / n♯ ⊢⋆) → Norm.mkTy t ≡ nf (Syn.mkTy t)

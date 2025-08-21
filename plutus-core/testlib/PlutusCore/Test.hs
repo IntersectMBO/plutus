@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE ViewPatterns           #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -265,7 +266,7 @@ runUPlcFull ::
 runUPlcFull values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-      (res, UPLC.CountingSt budget, logs) =
+      UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt budget) logs =
         UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logEmitter t
   case res of
     Left err   -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
@@ -316,7 +317,7 @@ runUPlcProfile ::
 runUPlcProfile values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-      (res, UPLC.CountingSt budget, logs) =
+      UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt budget) logs =
         UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logWithTimeEmitter t
   case res of
     Left err -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
@@ -334,7 +335,7 @@ runUPlcProfile' ::
 runUPlcProfile' values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-      (res, UPLC.CountingSt _, logs) =
+      UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt _) logs =
         UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logWithBudgetEmitter t
   case res of
     Left err -> throwError (SomeException err)

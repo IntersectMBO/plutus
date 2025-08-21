@@ -1,6 +1,6 @@
-CPU:               387_699_324
-Memory:              1_177_185
-Term Size:               1_091
-Flat Size:               1_365
+CPU:               380_107_011
+Memory:              1_149_624
+Term Size:               1_065
+Flat Size:               1_324
 
-(constr 0)
+(con bool True)

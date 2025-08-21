@@ -17,8 +17,7 @@
                                    xs ->
                                     case
                                       xs
-                                      [ []
-                                      , (\hd
+                                      [ (\hd
                                           tl ->
                                            (\tl' ->
                                               case
@@ -29,8 +28,7 @@
                                                         xs ->
                                                          case
                                                            xs
-                                                           [ (constr 1 [])
-                                                           , (\hd ->
+                                                           [ (\hd ->
                                                                 case
                                                                   (equalsData
                                                                      k
@@ -42,12 +40,13 @@
                                                                   [ (\x ->
                                                                        s s x)
                                                                   , (\ds ->
-                                                                       constr 0
-                                                                         [  ]) ]) ])
+                                                                       True) ])
+                                                           , False ])
                                                       nt)
                                                    (case hd [(\l r -> l)]))
-                                                [tl', (force mkCons hd tl')])
-                                             (s s tl)) ])
+                                                [(force mkCons hd tl'), tl'])
+                                             (s s tl))
+                                      , [] ])
                                  nt)))
                         (unsafeFromSOPList
                            (\i -> iData i)
@@ -71,8 +70,7 @@
                           xs ->
                            case
                              xs
-                             [ []
-                             , (\hd
+                             [ (\hd
                                  tl ->
                                   (\v' ->
                                      (\k' ->
@@ -83,8 +81,7 @@
                                                xs ->
                                                 case
                                                   xs
-                                                  [ (constr 1 [])
-                                                  , (\hd ->
+                                                  [ (\hd ->
                                                        case
                                                          (equalsData
                                                             k'
@@ -98,7 +95,8 @@
                                                                      hd
                                                                      [ (\l
                                                                          r ->
-                                                                          r) ]) ]) ]) ])
+                                                                          r) ]) ]) ])
+                                                  , (constr 1 []) ])
                                              nt)
                                           [ (\r ->
                                                force mkCons
@@ -113,7 +111,8 @@
                                                (mkPairData k' v')
                                                (s s tl)) ])
                                        (case hd [(\l r -> l)]))
-                                    (case hd [(\l r -> r)])) ])))
+                                    (case hd [(\l r -> r)]))
+                             , [] ])))
                   (unsafeFromSOPList
                      (\i -> iData i)
                      (\i -> iData i)
@@ -153,15 +152,15 @@
                            (s s ds)) ])))
          ((\s -> s s)
             (\s acc xs ->
-               case xs [acc, (\hd -> (\x -> s s x) (force mkCons hd acc))])))
+               case xs [(\hd -> (\x -> s s x) (force mkCons hd acc)), acc])))
       ((\s -> s s)
          (\s xs ->
             case
               xs
-              [ (constr 0 [])
-              , (\hd tl ->
+              [ (\hd tl ->
                    constr 1
                      [ (constr 0
                           [ (unIData (case hd [(\l r -> l)]))
                           , (unIData (case hd [(\l r -> r)])) ])
-                     , (s s tl) ]) ]))))
+                     , (s s tl) ])
+              , (constr 0 []) ]))))

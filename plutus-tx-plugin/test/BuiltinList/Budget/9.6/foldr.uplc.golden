@@ -10,8 +10,7 @@
                 (\xs ->
                    case
                      xs
-                     [ 0
-                     , (\x xs ->
-                          addInteger x (force (go (delay (\x -> x))) xs)) ]))
+                     [ (\x xs -> addInteger x (force (go (delay (\x -> x))) xs))
+                     , 0 ]))
            (delay (\x -> x)))
         xs))

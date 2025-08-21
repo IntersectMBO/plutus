@@ -1,9 +1,6 @@
 let
   data Unit | Unit_match where
     Unit : Unit
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 \(r_stake_cred : data) ->
   letrec
@@ -13,7 +10,7 @@ in
               a = pair data data
             in
             /\r ->
-              \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f])
+              \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z])
             {Unit -> Unit}
             (\(ds : Unit) ->
                let
@@ -21,16 +18,12 @@ in
                in
                error {Unit})
             (\(x : pair data data) (xs : list (pair data data)) (ds : Unit) ->
-               Bool_match
-                 (case
-                    Bool
-                    (equalsData
-                       r_stake_cred
-                       (case data x [(\(l : data) (r : data) -> l)]))
-                    [False, True])
-                 {all dead. Unit}
-                 (/\dead -> Unit)
-                 (/\dead -> lookForCred xs)
+               case
+                 (all dead. Unit)
+                 (equalsData
+                    r_stake_cred
+                    (case data x [(\(l : data) (r : data) -> l)]))
+                 [(/\dead -> lookForCred xs), (/\dead -> Unit)]
                  {all dead. dead})
             l
             Unit
@@ -78,15 +71,14 @@ in
             (headList {pair data data} rest)
             [(\(l : data) (r : data) -> l)]
     in
-    Bool_match
-      (case Bool (equalsData r_stake_cred wdrlAtZero) [False, True])
-      {all dead. Unit}
-      (/\dead -> Unit)
-      (/\dead ->
-         Bool_match
-           (case Bool (equalsData r_stake_cred wdrlAtOne) [False, True])
-           {all dead. Unit}
-           (/\dead -> Unit)
-           (/\dead -> lookForCred rest)
-           {all dead. dead})
+    case
+      (all dead. Unit)
+      (equalsData r_stake_cred wdrlAtZero)
+      [ (/\dead ->
+           case
+             (all dead. Unit)
+             (equalsData r_stake_cred wdrlAtOne)
+             [(/\dead -> lookForCred rest), (/\dead -> Unit)]
+             {all dead. dead})
+      , (/\dead -> Unit) ]
       {all dead. dead}

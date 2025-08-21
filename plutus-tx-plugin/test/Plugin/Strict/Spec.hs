@@ -70,10 +70,10 @@ strictAppendString = plc (Proxy @"strictAppendString") strictAppendStringExample
 strictAppendStringExample :: P.BuiltinString -> P.BuiltinString -> P.BuiltinString
 strictAppendStringExample !x !y = Builtins.appendString x y
 
-strictITE :: CompiledCode (BI.BuiltinBool -> Integer -> Integer -> Integer)
+strictITE :: CompiledCode (Bool -> Integer -> Integer -> Integer)
 strictITE = plc (Proxy @"strictITE") strictITEExample
 
-strictITEExample :: BI.BuiltinBool -> Integer -> Integer -> Integer
+strictITEExample :: Bool -> Integer -> Integer -> Integer
 strictITEExample !x !y !z = BI.ifThenElse x y z
 
 strictPair :: CompiledCode (BI.BuiltinPair Integer Integer -> Integer)
