@@ -1,3 +1,4 @@
+
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 -- on 9.2.4 this is the flag that suppresses the above warning
 {-# OPTIONS -Wno-missing-signatures #-}
@@ -552,11 +553,11 @@ instance CaseBuiltin DefaultUni where
             -- We allow there to be only one branch as long as the scrutinee is 'False'.
             -- This is strictly to save size by not having the 'True' branch if it was gonna be
             -- 'Error' anyway.
-            False | len == 1 || len == 2 -> Right $ HeadOnly $ branches Vector.! 0
-            True  |             len == 2 -> Right $ HeadOnly $ branches Vector.! 1
+            False | len == 1 || len == 2 -> Right $ Head $ branches Vector.! 0
+            True  |             len == 2 -> Right $ Head $ branches Vector.! 1
             _                            -> Left  $ outOfBoundsErr someVal branches
         DefaultUniInteger
-            | 0 <= x && x < toInteger len -> Right $ HeadOnly $ branches Vector.! fromInteger x
+            | 0 <= x && x < toInteger len -> Right $ Head $ branches Vector.! fromInteger x
             | otherwise                   -> Left  $ outOfBoundsErr someVal branches
         DefaultUniList ty
             | len == 1 ->
@@ -565,7 +566,7 @@ instance CaseBuiltin DefaultUni where
                 (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
             | len == 2 ->
               case x of
-                []       -> Right $ HeadOnly $ branches Vector.! 1
+                []       -> Right $ Head $ branches Vector.! 1
                 (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
             | otherwise            -> Left $ outOfBoundsErr someVal branches
         _ -> Left $ display uni <> " isn't supported in 'case'"

@@ -106,11 +106,6 @@ data Context uni fun ann
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (Context uni fun ann)
 
--- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
-transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
-transferConstantSpine ann args ctx =
-  foldr (FrameAwaitFunValue ann . VCon) ctx args
-
 computeCek
     :: forall uni fun ann s
     . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
@@ -217,9 +212,11 @@ returnCek (FrameCases ann env cs ctx) e = case e of
               in computeCek ctx' env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-        Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-        Right (HeadOnly fX) -> pure $ Computing ctx env fX
-        Right (HeadSpine f xs) -> pure $ Computing (transferConstantSpine ann xs ctx) env f
+        Left err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+        Right hSp ->
+            let go ctx' (Head f)    = computeCek ctx' env f
+                go ctx' (Snoc xs x) = go (FrameAwaitFunValue ann (VCon x) ctx') xs
+            in go ctx hSp
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
