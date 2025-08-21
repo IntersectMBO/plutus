@@ -835,6 +835,11 @@ enterComputeCek = computeCek
         applyEvaluate ctx fun arg
     -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
     returnCek (FrameAwaitFunConN args ctx) fun =
+      -- In the future, if we want to revert back to more general
+      -- 'FrameAwaitFunValue (CekValue uni fun ann)', we can use optimization proposed in
+      -- https://github.com/IntersectMBO/plutus/pull/7288.  #7288 have almost equivalent
+      -- performance improvement as using 'FrameAwaitFunConN' while keeping more general
+      -- 'FrameAwaitFunValue'.
       case args of
         SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
         SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
