@@ -32,7 +32,7 @@ import GHC.Generics (Generic)
 
 import PlutusTx.Prelude
 
-import PlutusLedgerApi.V1 (lovelaceValueOf, valueOf)
+import PlutusLedgerApi.V3 (lovelaceValueOf, valueOf)
 import PlutusLedgerApi.V1.Address (toPubKeyHash)
 import PlutusLedgerApi.V1.Interval (contains)
 import PlutusLedgerApi.V3 (CurrencySymbol, Datum (Datum, getDatum), Lovelace,
