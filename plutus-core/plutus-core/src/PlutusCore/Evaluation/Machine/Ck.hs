@@ -247,12 +247,11 @@ FrameCase cs : stack <| e = case e of
         case unCaserBuiltin caser val $ Vector.fromList cs of
             Left err  ->
                 throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
-            Right (HeadOnly fX) -> stack |> fX
-            Right (HeadSpine f xs) -> transferConstantSpine xs stack |> f
+            Right hSp ->
+                let go stack' (Head f)    = stack' |> f
+                    go stack' (Snoc xs x) = go (FrameAwaitFunValue (VCon x) : stack') xs
+                in go stack hSp
     _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
-
-transferConstantSpine :: Spine (Some (ValueOf uni)) -> Context uni fun -> Context uni fun
-transferConstantSpine args ctx = foldr ((:) . FrameAwaitFunValue . VCon) ctx args
 
 -- | Take a possibly partial builtin application and
 --

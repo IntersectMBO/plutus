@@ -707,14 +707,6 @@ But in case of 'Spine' the builtins machinery directly produces values, not term
 directly to the head of the application. Which is why 'transferSpine' is a right fold.
 -}
 
--- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
-transferConstantSpine
-    :: Spine (Some (ValueOf uni))
-    -> Context uni fun ann
-    -> Context uni fun ann
-transferConstantSpine args ctx = foldr (FrameAwaitFunValue . VCon) ctx args
-{-# INLINE transferConstantSpine #-}
-
 runCekM
     :: forall cost uni fun ann
     . ThrowableBuiltins uni fun
@@ -876,8 +868,10 @@ enterComputeCek = computeCek
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
             Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-            Right (HeadOnly fX) -> computeCek ctx env fX
-            Right (HeadSpine f xs) -> computeCek (transferConstantSpine xs ctx) env f
+            Right hSp ->
+                let go ctx' (Head f)    = computeCek ctx' env f
+                    go ctx' (Snoc xs x) = go (FrameAwaitFunValue (VCon x) ctx') xs
+                in go ctx hSp
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | @force@ a term and proceed.

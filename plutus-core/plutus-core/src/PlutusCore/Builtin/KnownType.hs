@@ -21,7 +21,6 @@ module PlutusCore.Builtin.KnownType
     , KnownBuiltinType
     , BuiltinResult (..)
     , ReadKnownM
-    , Spine (..)
     , HeadSpine (..)
     , headSpine
     , MonoHeadSpine
@@ -47,11 +46,9 @@ import PlutusCore.Pretty
 import Control.Monad.Except
 import Data.Bifunctor
 import Data.Either.Extras
-import Data.Functor.Identity
 import Data.String
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
-import Prettyprinter
 import Text.PrettyBy.Internal
 import Universe
 
@@ -282,13 +279,6 @@ readKnownConstant val = asConstant val >>= oneShot \case
             Nothing   -> throwError $ BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
--- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
--- recursive data type.
-data Spine a
-    = SpineLast a
-    | SpineCons a (Spine a)
-    deriving stock (Show, Eq, Foldable, Functor)
-
 -- | The head-spine form of an iterated application. Provides O(1) access to the head of the
 -- application. @NonEmpty a ~ HeadSpine a a@, except is strict and the no-spine case is made a separate
 -- constructor for performance reasons (it only takes a single pattern match to access the head when
@@ -297,47 +287,30 @@ data Spine a
 --
 -- Used in built-in functions returning function applications such as 'CaseList'.
 data HeadSpine a b
-    = HeadOnly a
-    | HeadSpine a (Spine b)
+    = Head a
+    | Snoc (HeadSpine a b) b
     deriving stock (Show, Eq, Functor)
 
 -- | @HeadSpine@ but the type of head and spine is same
 type MonoHeadSpine a = HeadSpine a a
 
 instance Bifunctor HeadSpine where
-  bimap headF _ (HeadOnly a)         = HeadOnly $ headF a
-  bimap headF spineF (HeadSpine a b) = HeadSpine (headF a) (spineF <$> b)
+    bimap f g = go where
+        go (Head x)    = Head (f x)
+        go (Snoc ys y) = Snoc (go ys) (g y)
+    {-# INLINE bimap #-}
 
 -- | Construct @HeadSpine@ from head and list.
 headSpine :: a -> [b] -> HeadSpine a b
-headSpine h [] = HeadOnly h
-headSpine h (x:xs) =
-  -- It's critical to use 'foldr' here, so that deforestation kicks in.
-  -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
-  -- of the trick.
-  HeadSpine h $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x
+-- It's critical to use 'foldl' here, so that deforestation kicks in.
+-- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
+-- of the trick.
+headSpine = foldl Snoc . Head
 {-# INLINE headSpine #-}
 
--- |
---
--- >>> import Text.Pretty
--- >>> pretty (SpineCons 'a' $ SpineLast 'b')
--- [a, b]
-instance Pretty a => Pretty (Spine a) where pretty = pretty . map Identity . toList
-instance PrettyBy config a => DefaultPrettyBy config (Spine a)
-deriving via PrettyCommon (Spine a)
-    instance PrettyDefaultBy config (Spine a) => PrettyBy config (Spine a)
-
--- |
---
--- >>> import Text.Pretty
--- >>> pretty (HeadOnly 'z')
--- z
--- >>> pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
--- f `applyN` [x, y]
 instance (Pretty a, Pretty b) => Pretty (HeadSpine a b) where
-    pretty (HeadOnly x)     = pretty x
-    pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
+    pretty _ = ""
+
 instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (HeadSpine a b)
 deriving via PrettyCommon (HeadSpine a b)
     instance PrettyDefaultBy config (HeadSpine a b) => PrettyBy config (HeadSpine a b)
