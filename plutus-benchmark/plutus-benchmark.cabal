@@ -279,12 +279,10 @@ benchmark casing
 
 ---------------- validation ----------------
 
-benchmark validation
-  import:         lang, os-support
-  type:           exitcode-stdio-1.0
-  main-is:        BenchCek.hs
-  hs-source-dirs: validation/bench
-  other-modules:  Common
+library validation-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  validation/src
+  exposed-modules: PlutusBenchmark.Validation.Common
   build-depends:
     , base                     >=4.9     && <5
     , bytestring
@@ -295,7 +293,38 @@ benchmark validation
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.52
+
+benchmark validation
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        BenchCek.hs
+  hs-source-dirs: validation/bench
+  build-depends:
+    , base                     >=4.9   && <5
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.52
     , plutus-ledger-api        ^>=1.52
+    , validation-internal
+
+test-suite validation-tests
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: validation/test
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                             >=4.9   && <5
+    , bytestring
+    , directory
+    , filepath
+    , flat                             ^>=0.6
+    , plutus-benchmark-common
+    , plutus-core                      ^>=1.52
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.52
+    , plutus-tx:plutus-tx-testlib
+    , tasty
+    , validation-internal
 
 ---------------- validation-decode ----------------
 
