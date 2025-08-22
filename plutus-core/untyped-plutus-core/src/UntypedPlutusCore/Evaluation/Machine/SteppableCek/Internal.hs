@@ -97,7 +97,7 @@ data Context uni fun ann
     = FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
     | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
-    | FrameAwaitFunValueN ann !(ArgStack uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFunValueN ann !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
@@ -152,7 +152,7 @@ computeCek !ctx !_ (Builtin _ bn) = do
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     pure $ case es of
-        (t : rest) -> Computing (FrameConstr ann env i rest EmptyStack ctx) env t
+        (t : rest) -> Computing (FrameConstr ann env i rest NilStack ctx) env t
         []         -> Returning ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
@@ -189,20 +189,19 @@ returnCek (FrameAwaitFunValue _ arg ctx) fun =
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
 returnCek (FrameAwaitFunValueN ann args ctx) fun =
     case args of
-      EmptyStack -> returnCek ctx fun
-      ConsStack arg rest ->
+      LastStackNonEmpty arg ->
+        applyEvaluate ctx fun arg
+      ConsStackNonEmpty arg rest ->
         applyEvaluate (FrameAwaitFunValueN ann rest ctx) fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
-    let
-      reverseArgStack = go EmptyStack
-        where
-          go acc EmptyStack       = acc
-          go acc (ConsStack x xs) = go (ConsStack x acc) xs
-      done' = ConsStack e done
     case todo of
-        (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        []             -> returnCek ctx $ VConstr i (reverseArgStack done')
+        (next : todo') ->
+          pure $ Computing (FrameConstr ann env i todo' (ConsStack e done) ctx) env next
+        []             ->
+          let go acc NilStack         = acc
+              go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
+          in pure $ Returning ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
     -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -213,8 +212,9 @@ returnCek (FrameCases ann env cs ctx) e = case e of
                     throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
-              let ctx' = FrameAwaitFunValueN ann args ctx
-              in computeCek ctx' env t
+          case args of
+            EmptyStack      -> computeCek ctx env t
+            MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
