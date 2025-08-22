@@ -152,17 +152,14 @@
     "bls12_381_G1_multiScalarMul": {
         "cpu": {
             "arguments": {
-                "intercept": 0,
-                "slope": 0
+                "intercept": 323821429,
+                "slope": 24899060
             },
-            "type": "min_size"
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": {
-                "intercept": 0,
-                "slope": 0
-            },
-            "type": "min_size"
+            "arguments": 18,
+            "type": "constant_cost"
         }
     },
     "bls12_381_G1_uncompress": {
@@ -244,17 +241,14 @@
     "bls12_381_G2_multiScalarMul": {
         "cpu": {
             "arguments": {
-                "intercept": 0,
-                "slope": 0
+                "intercept": 633711887,
+                "slope": 67883283
             },
-            "type": "min_size"
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": {
-                "intercept": 0,
-                "slope": 0
-            },
-            "type": "min_size"
+            "arguments": 36,
+            "type": "constant_cost"
         }
     },
     "bls12_381_G2_uncompress": {
