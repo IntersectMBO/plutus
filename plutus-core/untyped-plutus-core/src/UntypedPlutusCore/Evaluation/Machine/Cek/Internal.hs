@@ -694,7 +694,7 @@ data Context uni fun ann
     -- ^ @[V _]@
     | FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
-    | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
     -- ^ @[_ V]@
     | FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V1 .. Vn]@
@@ -733,14 +733,6 @@ But in case of 'Spine' the builtins machinery directly produces values, not term
 'Spine' that we get from the builtins machinery isn't reversed, hence we can pass its contents
 directly to the head of the application. Which is why 'transferSpine' is a right fold.
 -}
-
--- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
-transferConstantSpine
-    :: Spine (Some (ValueOf uni))
-    -> Context uni fun ann
-    -> Context uni fun ann
-transferConstantSpine args ctx = foldr (FrameAwaitFunValue . VCon) ctx args
-{-# INLINE transferConstantSpine #-}
 
 runCekM
     :: forall cost uni fun ann
@@ -869,8 +861,15 @@ enterComputeCek = computeCek
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
     -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
-    returnCek (FrameAwaitFunValue arg ctx) fun =
-        applyEvaluate ctx fun arg
+    returnCek (FrameAwaitFunConN args ctx) fun =
+      -- In the future, if we want to revert back to more general
+      -- 'FrameAwaitFunValue (CekValue uni fun ann)', we can use optimization proposed in
+      -- https://github.com/IntersectMBO/plutus/pull/7288.  #7288 have almost equivalent
+      -- performance improvement as using 'FrameAwaitFunConN' while keeping more general
+      -- 'FrameAwaitFunValue'.
+      case args of
+        SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
+        SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
     returnCek (FrameAwaitFunValueN args ctx) fun =
         case args of
@@ -904,7 +903,7 @@ enterComputeCek = computeCek
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
             Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
             Right (HeadOnly fX) -> computeCek ctx env fX
-            Right (HeadSpine f xs) -> computeCek (transferConstantSpine xs ctx) env f
+            Right (HeadSpine f xs) -> computeCek (FrameAwaitFunConN xs ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | @force@ a term and proceed.
