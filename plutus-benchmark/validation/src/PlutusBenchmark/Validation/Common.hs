@@ -1,12 +1,13 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
-module Common (
+module PlutusBenchmark.Validation.Common (
     benchWith
     , unsafeUnflat
     , mkEvalCtx
     , benchTermCek
     , peelDataArguments
     , Term
+    , getScriptDirectory
     ) where
 
 import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx)
