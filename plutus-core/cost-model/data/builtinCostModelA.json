@@ -158,11 +158,8 @@
             "type": "linear_in_x"
         },
         "memory": {
-            "arguments": {
-                "intercept": 1,
-                "slope": 18
-            },
-            "type": "linear_in_x"
+            "arguments": 18,
+            "type": "constant_cost"
         }
     },
     "bls12_381_G1_uncompress": {
@@ -250,11 +247,8 @@
             "type": "linear_in_x"
         },
         "memory": {
-            "arguments": {
-                "intercept": 1,
-                "slope": 36
-            },
-            "type": "linear_in_x"
+            "arguments": 36,
+            "type": "constant_cost"
         }
     },
     "bls12_381_G2_uncompress": {
