@@ -306,7 +306,8 @@ mkVariableLengthScalarLists :: StdGen -> [Int] -> ([[Integer]], StdGen)
 mkVariableLengthScalarLists gen = foldl go ([], gen)
   where
     go (acc, g) size =
-      let (ints, g') = makeSizedIntegers g [1..size]
+      let wordSizes = replicate size 4 -- this is 32 bytes per integer
+          (ints, g') = makeSizedIntegers g wordSizes
       in (acc ++ [ints], g')
 
 blsBenchmarks :: StdGen -> [Benchmark]
