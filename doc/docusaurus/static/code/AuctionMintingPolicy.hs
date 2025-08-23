@@ -18,14 +18,14 @@
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
 module AuctionMintingPolicy where
 
-import PlutusCore.Version (plcVersion100)
+import PlutusCore.Version (plcVersion110)
 import PlutusLedgerApi.V1.Value (flattenValue)
-import PlutusLedgerApi.V2 (PubKeyHash, ScriptContext (..), TxInfo (..))
-import PlutusLedgerApi.V2.Contexts (ownCurrencySymbol, txSignedBy)
+import PlutusLedgerApi.V3 (PubKeyHash, ScriptContext (..), TxInfo (..))
+import PlutusLedgerApi.V3.Contexts (ownCurrencySymbol, txSignedBy)
 import PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -67,4 +67,4 @@ auctionMintingPolicyScript ::
   CompiledCode (BuiltinData -> BuiltinData -> PlutusTx.BuiltinUnit)
 auctionMintingPolicyScript pkh =
   $$(PlutusTx.compile [||auctionUntypedMintingPolicy||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 pkh
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion110 pkh
