@@ -1,0 +1,365 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Core.Plated</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Core.Plated.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Core.Plated</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:termConstants"
+	      >termConstants</a
+	      > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni))</li
+	    ><li class="src short"
+	    ><a href="#v:termBinds"
+	      >termBinds</a
+	      > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) name</li
+	    ><li class="src short"
+	    ><a href="#v:termVars"
+	      >termVars</a
+	      > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) name</li
+	    ><li class="src short"
+	    ><a href="#v:termUniques"
+	      >termUniques</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) &#8658; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:termSubterms"
+	      >termSubterms</a
+	      > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termConstantsDeep"
+	      >termConstantsDeep</a
+	      > &#8759; Fold (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni))</li
+	    ><li class="src short"
+	    ><a href="#v:termSubtermsDeep"
+	      >termSubtermsDeep</a
+	      > &#8759; Fold (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termUniquesDeep"
+	      >termUniquesDeep</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) &#8658; Fold (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann) <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termConstants" class="def"
+	    >termConstants</a
+	    > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni)) <a href="src/UntypedPlutusCore.Core.Plated.html#termConstants" class="link"
+	    >Source</a
+	    > <a href="#v:termConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct constants of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > from <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#v:Constant" title="UntypedPlutusCore.Core.Type"
+		>Constant</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termBinds" class="def"
+	    >termBinds</a
+	    > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) name <a href="src/UntypedPlutusCore.Core.Plated.html#termBinds" class="link"
+	    >Source</a
+	    > <a href="#v:termBinds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child 'name a's of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > from <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#v:LamAbs" title="UntypedPlutusCore.Core.Type"
+		>LamAbs</a
+		></code
+	      >es.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termVars" class="def"
+	    >termVars</a
+	    > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) name <a href="src/UntypedPlutusCore.Core.Plated.html#termVars" class="link"
+	    >Source</a
+	    > <a href="#v:termVars" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child 'name a's of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > from <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#v:Var" title="UntypedPlutusCore.Core.Type"
+		>Var</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termUniques" class="def"
+	    >termUniques</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) &#8658; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/UntypedPlutusCore.Core.Plated.html#termUniques" class="link"
+	    >Source</a
+	    > <a href="#v:termUniques" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubterms" class="def"
+	    >termSubterms</a
+	    > &#8759; Traversal' (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Core.Plated.html#termSubterms" class="link"
+	    >Source</a
+	    > <a href="#v:termSubterms" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >s of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termConstantsDeep" class="def"
+	    >termConstantsDeep</a
+	    > &#8759; Fold (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni)) <a href="src/UntypedPlutusCore.Core.Plated.html#termConstantsDeep" class="link"
+	    >Source</a
+	    > <a href="#v:termConstantsDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#v:Constant" title="UntypedPlutusCore.Core.Type"
+		>Constant</a
+		></code
+	      >s of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubtermsDeep" class="def"
+	    >termSubtermsDeep</a
+	    > &#8759; Fold (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Core.Plated.html#termSubtermsDeep" class="link"
+	    >Source</a
+	    > <a href="#v:termSubtermsDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >s of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termUniquesDeep" class="def"
+	    >termUniquesDeep</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) &#8658; Fold (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/UntypedPlutusCore.Core.Plated.html#termUniquesDeep" class="link"
+	    >Source</a
+	    > <a href="#v:termUniquesDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s of the given <code
+	      ><a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

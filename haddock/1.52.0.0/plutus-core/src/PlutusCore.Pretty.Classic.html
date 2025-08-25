@@ -1,0 +1,1737 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A &quot;classic&quot; (i.e. as seen in the specification) way to pretty-print PLC entities.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Pretty.Classic</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	><span class="hs-identifier"
+	  >PrettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyClassicBy"
+	><span class="hs-identifier"
+	  >PrettyClassicBy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyClassic"
+	><span class="hs-identifier"
+	  >PrettyClassic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Extra.html#PrettyParens"
+	><span class="hs-identifier"
+	  >PrettyParens</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Extra.html#juxtRenderContext"
+	><span class="hs-identifier"
+	  >juxtRenderContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#consAnnIf"
+	><span class="hs-identifier"
+	  >consAnnIf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassic"
+	><span class="hs-identifier"
+	  >prettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassicSimple"
+	><span class="hs-identifier"
+	  >prettyConfigClassicSimple</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#prettyClassic"
+	><span class="hs-identifier"
+	  >prettyClassic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#prettyClassicSimple"
+	><span class="hs-identifier"
+	  >prettyClassicSimple</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty.ConfigName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Extra.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty.Extra</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html"
+	><span class="hs-identifier"
+	  >Prettyprinter.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	><span class="hs-identifier"
+	  >Doc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Empty"
+	><span class="hs-identifier"
+	  >Empty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Configuration for the classic pretty-printing.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="PrettyConfigClassic"
+      ><span class="annot"
+	><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	  ><span class="hs-identifier hs-var"
+	    >PrettyConfigClassic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828821"
+      ><span class="annot"
+	><a href="#local-6989586621681828821"
+	  ><span class="hs-identifier hs-type"
+	    >configName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="PrettyConfigClassic"
+      ><span class="annot"
+	><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	  ><span class="hs-identifier hs-var"
+	    >PrettyConfigClassic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_pccConfigName"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall configName. PrettyConfigClassic configName -&gt; configName
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#_pccConfigName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_pccConfigName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681828821"
+	><span class="hs-identifier hs-type"
+	  >configName</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ How to pretty-print names.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_pccDisplayAnn"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall configName. PrettyConfigClassic configName -&gt; Bool
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#_pccDisplayAnn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_pccDisplayAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Whether to display annotations.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681828879"
+      ><span id="local-6989586621681828886"
+	><span id="local-6989586621681828890"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; PrettyConfigClassic configName -&gt; ShowS
+[PrettyConfigClassic configName] -&gt; ShowS
+PrettyConfigClassic configName -&gt; String
+(Int -&gt; PrettyConfigClassic configName -&gt; ShowS)
+-&gt; (PrettyConfigClassic configName -&gt; String)
+-&gt; ([PrettyConfigClassic configName] -&gt; ShowS)
+-&gt; Show (PrettyConfigClassic configName)
+forall configName.
+Show configName =&gt;
+Int -&gt; PrettyConfigClassic configName -&gt; ShowS
+forall configName.
+Show configName =&gt;
+[PrettyConfigClassic configName] -&gt; ShowS
+forall configName.
+Show configName =&gt;
+PrettyConfigClassic configName -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall configName.
+Show configName =&gt;
+Int -&gt; PrettyConfigClassic configName -&gt; ShowS
+showsPrec :: Int -&gt; PrettyConfigClassic configName -&gt; ShowS
+$cshow :: forall configName.
+Show configName =&gt;
+PrettyConfigClassic configName -&gt; String
+show :: PrettyConfigClassic configName -&gt; String
+$cshowList :: forall configName.
+Show configName =&gt;
+[PrettyConfigClassic configName] -&gt; ShowS
+showList :: [PrettyConfigClassic configName] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="HasPrettyDefaults"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#HasPrettyDefaults"
+	  ><span class="hs-identifier hs-var"
+	    >HasPrettyDefaults</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-type"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The &quot;classically pretty-printable&quot; constraint.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="PrettyClassicBy"
+      ><span class="annot"
+	><a href="PlutusCore.Pretty.Classic.html#PrettyClassicBy"
+	  ><span class="hs-identifier hs-var"
+	    >PrettyClassicBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828894"
+      ><span class="annot"
+	><a href="#local-6989586621681828894"
+	  ><span class="hs-identifier hs-type"
+	    >configName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+	><span class="hs-identifier hs-type"
+	  >PrettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681828894"
+	><span class="hs-identifier hs-type"
+	  >configName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="PrettyClassic"
+      ><span class="annot"
+	><a href="PlutusCore.Pretty.Classic.html#PrettyClassic"
+	  ><span class="hs-identifier hs-var"
+	    >PrettyClassic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyClassicBy"
+	><span class="hs-identifier hs-type"
+	  >PrettyClassicBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html#PrettyConfigName"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681828833"
+      ><span class="annot"
+	><a href="#local-6989586621681828833"
+	  ><span class="hs-identifier hs-type"
+	    >configName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	  ><span class="hs-operator hs-type"
+	    >~</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Pretty.ConfigName.html#PrettyConfigName"
+	  ><span class="hs-identifier hs-type"
+	    >PrettyConfigName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Pretty.ConfigName.html#HasPrettyConfigName"
+	  ><span class="hs-identifier hs-type"
+	    >HasPrettyConfigName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	  ><span class="hs-identifier hs-type"
+	    >PrettyConfigClassic</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681828833"
+	  ><span class="hs-identifier hs-type"
+	    >configName</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828900"
+      ><span class="annot"
+	><span class="annottext"
+	  >toPrettyConfigName :: PrettyConfigClassic configName -&gt; PrettyConfigName
+</span
+	  ><a href="#local-6989586621681828900"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toPrettyConfigName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigClassic configName -&gt; configName
+PrettyConfigClassic configName -&gt; PrettyConfigName
+forall configName. PrettyConfigClassic configName -&gt; configName
+</span
+	><a href="PlutusCore.Pretty.Classic.html#_pccConfigName"
+	><span class="hs-identifier hs-var"
+	  >_pccConfigName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621681828837"
+      ><span class="annot"
+	><a href="PlutusCore.Pretty.Classic.html#isEmptyDoc"
+	  ><span class="hs-identifier hs-type"
+	    >isEmptyDoc</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	  ><span class="hs-identifier hs-type"
+	    >Doc</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681828837"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="isEmptyDoc"
+      ><span class="annot"
+	><span class="annottext"
+	  >isEmptyDoc :: forall ann. Doc ann -&gt; Bool
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#isEmptyDoc"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isEmptyDoc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Empty"
+	><span class="hs-identifier hs-var"
+	  >Empty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#isEmptyDoc"
+	><span class="hs-identifier hs-var"
+	  >isEmptyDoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >-- | Add a pretty-printed annotation to a list of 'Doc's if the given config enables pretty-printing</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- of annotations.</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="local-6989586621681828840"
+      ><span id="local-6989586621681828842"
+	><span id="local-6989586621681828843"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Pretty.Classic.html#consAnnIf"
+	      ><span class="hs-identifier hs-type"
+		>consAnnIf</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681828840"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	      ><span class="hs-identifier hs-type"
+		>PrettyConfigClassic</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681828842"
+	      ><span class="hs-identifier hs-type"
+		>configName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681828840"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	      ><span class="hs-identifier hs-type"
+		>Doc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681828843"
+	      ><span class="hs-identifier hs-type"
+		>dann</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >]</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	      ><span class="hs-identifier hs-type"
+		>Doc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681828843"
+	      ><span class="hs-identifier hs-type"
+		>dann</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >]</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="consAnnIf"
+      ><span class="annot"
+	><span class="annottext"
+	  >consAnnIf :: forall ann configName dann.
+Pretty ann =&gt;
+PrettyConfigClassic configName -&gt; ann -&gt; [Doc dann] -&gt; [Doc dann]
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#consAnnIf"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >consAnnIf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828905"
+      ><span class="annot"
+	><span class="annottext"
+	  >PrettyConfigClassic configName
+</span
+	  ><a href="#local-6989586621681828905"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828906"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681828906"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828907"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Doc dann]
+</span
+	  ><a href="#local-6989586621681828907"
+	  ><span class="hs-identifier hs-var"
+	    >rest</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc dann -&gt; Bool) -&gt; [Doc dann] -&gt; [Doc dann]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#filter"
+	><span class="hs-identifier hs-var"
+	  >filter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool) -&gt; (Doc dann -&gt; Bool) -&gt; Doc dann -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc dann -&gt; Bool
+forall ann. Doc ann -&gt; Bool
+</span
+	><a href="PlutusCore.Pretty.Classic.html#isEmptyDoc"
+	><span class="hs-identifier hs-var"
+	  >isEmptyDoc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; Doc dann
+forall ann. ann -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681828906"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigClassic configName -&gt; Bool
+forall configName. PrettyConfigClassic configName -&gt; Bool
+</span
+	><a href="PlutusCore.Pretty.Classic.html#_pccDisplayAnn"
+	><span class="hs-identifier hs-var"
+	  >_pccDisplayAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigClassic configName
+</span
+	><a href="#local-6989586621681828905"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc dann] -&gt; [Doc dann] -&gt; [Doc dann]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc dann]
+</span
+	><a href="#local-6989586621681828907"
+	><span class="hs-identifier hs-var"
+	  >rest</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassic"
+	><span class="hs-identifier hs-type"
+	  >prettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html#PrettyConfigName"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="prettyConfigClassic"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyConfigClassic :: PrettyConfigClassic PrettyConfigName
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassic"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyConfigClassic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigName -&gt; Bool -&gt; PrettyConfigClassic PrettyConfigName
+forall configName.
+configName -&gt; Bool -&gt; PrettyConfigClassic configName
+</span
+	><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	><span class="hs-identifier hs-var"
+	  >PrettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigName
+</span
+	><a href="PlutusCore.Pretty.ConfigName.html#prettyConfigName"
+	><span class="hs-identifier hs-var"
+	  >prettyConfigName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassicSimple"
+	><span class="hs-identifier hs-type"
+	  >prettyConfigClassicSimple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html#PrettyConfigName"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="prettyConfigClassicSimple"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyConfigClassicSimple :: PrettyConfigClassic PrettyConfigName
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassicSimple"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyConfigClassicSimple</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigName -&gt; Bool -&gt; PrettyConfigClassic PrettyConfigName
+forall configName.
+configName -&gt; Bool -&gt; PrettyConfigClassic configName
+</span
+	><a href="PlutusCore.Pretty.Classic.html#PrettyConfigClassic"
+	><span class="hs-identifier hs-var"
+	  >PrettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigName
+</span
+	><a href="PlutusCore.Pretty.ConfigName.html#prettyConfigNameSimple"
+	><span class="hs-identifier hs-var"
+	  >prettyConfigNameSimple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Pretty-print a value in the default mode using the classic view.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="local-6989586621681828854"
+      ><span id="local-6989586621681828856"
+	><span class="annot"
+	  ><a href="PlutusCore.Pretty.Classic.html#prettyClassic"
+	    ><span class="hs-identifier hs-type"
+	      >prettyClassic</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.Classic.html#PrettyClassic"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyClassic</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681828854"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681828854"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	    ><span class="hs-identifier hs-type"
+	      >Doc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681828856"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="prettyClassic"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyClassic :: forall a ann. PrettyClassic a =&gt; a -&gt; Doc ann
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#prettyClassic"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyClassic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigClassic PrettyConfigName -&gt; a -&gt; Doc ann
+forall ann. PrettyConfigClassic PrettyConfigName -&gt; a -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigClassic PrettyConfigName
+</span
+	><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassic"
+	><span class="hs-identifier hs-var"
+	  >prettyConfigClassic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Pretty-print a value in the simple mode using the classic view.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="local-6989586621681828916"
+      ><span id="local-6989586621681828917"
+	><span class="annot"
+	  ><a href="PlutusCore.Pretty.Classic.html#prettyClassicSimple"
+	    ><span class="hs-identifier hs-type"
+	      >prettyClassicSimple</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.Classic.html#PrettyClassic"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyClassic</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681828916"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681828916"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	    ><span class="hs-identifier hs-type"
+	      >Doc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681828917"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="prettyClassicSimple"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyClassicSimple :: forall a ann. PrettyClassic a =&gt; a -&gt; Doc ann
+</span
+	  ><a href="PlutusCore.Pretty.Classic.html#prettyClassicSimple"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyClassicSimple</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigClassic PrettyConfigName -&gt; a -&gt; Doc ann
+forall ann. PrettyConfigClassic PrettyConfigName -&gt; a -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigClassic PrettyConfigName
+</span
+	><a href="PlutusCore.Pretty.Classic.html#prettyConfigClassicSimple"
+	><span class="hs-identifier hs-var"
+	  >prettyConfigClassicSimple</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

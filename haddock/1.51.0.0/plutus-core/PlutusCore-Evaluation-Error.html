@@ -1,0 +1,1005 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Error</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Error.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Error</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >The exceptions that an abstract machine can throw.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:EvaluationError"
+	      >EvaluationError</a
+	      > structural operational<ul class="subs"
+	      ><li
+		>= <a href="#v:StructuralError"
+		  >StructuralError</a
+		  > !structural</li
+		><li
+		>| <a href="#v:OperationalError"
+		  >OperationalError</a
+		  > !operational</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvaluationError" class="def"
+	    >EvaluationError</a
+	    > structural operational <a href="src/PlutusCore.Evaluation.Error.html#EvaluationError" class="link"
+	    >Source</a
+	    > <a href="#t:EvaluationError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of errors that can occur during evaluation. There are two kinds of errors:</p
+	    ><ol
+	    ><li value="1"
+	      >Structural ones -- these are errors that are indicative of the _structure_ of the program being
+   wrong. For example, a free variable was encountered during evaluation, a non-function was
+   applied to an argument or <code
+		>tailList</code
+		> was applied to a non-list.</li
+	      ><li value="2"
+	      >Operational ones -- these are errors that are indicative of the _logic_ of the program being
+   wrong. For example, <code
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#v:error" title="Prelude"
+		  >error</a
+		  ></code
+		> was executed, <code
+		>tailList</code
+		> was applied to an empty list or evaluation
+   ran out of gas.</li
+	      ></ol
+	    ><p
+	    >On the chain both of these are just regular failures and we don't distinguish between them there:
+if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
+matter why the failure occurred: a structural error may indicate that the test was written
+incorrectly while an operational error may be entirely expected.</p
+	    ><p
+	    >In other words, structural errors are &quot;runtime type errors&quot; and operational errors are regular
+runtime errors. Which means that evaluating an (erased) well-typed program should never produce a
+structural error, only an operational one. This creates a sort of &quot;runtime type system&quot; for UPLC
+and it would be great to stick to it and enforce in tests etc, but we currently don't.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:StructuralError" class="def"
+		  >StructuralError</a
+		  > !structural</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:OperationalError" class="def"
+		  >OperationalError</a
+		  > !operational</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvaluationError"
+	    >Instances</h4
+	    ><details id="i:EvaluationError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Bifoldable:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bifoldable.html#t:Bifoldable" title="Data.Bifoldable"
+		      >Bifoldable</a
+		      > <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-57" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Bifoldable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bifold"
+			  >bifold</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > m m &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bifoldMap"
+			  >bifoldMap</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; (b &#8594; m) &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a b &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifoldMap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bifoldr"
+			  >bifoldr</a
+			  > &#8759; (a &#8594; c &#8594; c) &#8594; (b &#8594; c &#8594; c) &#8594; c &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a b &#8594; c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifoldr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bifoldl"
+			  >bifoldl</a
+			  > &#8759; (c &#8594; a &#8594; c) &#8594; (c &#8594; b &#8594; c) &#8594; c &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a b &#8594; c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifoldl" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Bifunctor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bifunctor.html#t:Bifunctor" title="Data.Bifunctor"
+		      >Bifunctor</a
+		      > <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-52" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Bifunctor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bimap"
+			  >bimap</a
+			  > &#8759; (a &#8594; b) &#8594; (c &#8594; d) &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a c &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > b d <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bimap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:first"
+			  >first</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a c &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > b c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:first" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:second"
+			  >second</a
+			  > &#8759; (b &#8594; c) &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a b &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:second" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Bitraversable:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bitraversable.html#t:Bitraversable" title="Data.Bitraversable"
+		      >Bitraversable</a
+		      > <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-62" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Bitraversable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bitraverse"
+			  >bitraverse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+			  >Applicative</a
+			  > f &#8658; (a &#8594; f c) &#8594; (b &#8594; f d) &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > a b &#8594; f (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > c d) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bitraverse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:PrettyBy:4"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:HasPrettyDefaults" title="PlutusPrelude"
+		      >HasPrettyDefaults</a
+		      > config <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+		      >True</a
+		      >, <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config structural, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > operational) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:PrettyBy:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Functor:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Functor:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural a &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural b &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Generic:6"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Generic:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational) x &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Show:7"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > structural, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > operational) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Show:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:NFData:8"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > structural, <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > operational) &#8658; <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:NFData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Eq:9"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > structural, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > operational) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Eq:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Pretty:10"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > structural, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > operational) &#8658; <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-74" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Pretty:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			  >EvaluationError</a
+			  > structural operational] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:MonadError:11"
+		      ></span
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+		      >ThrowableBuiltins</a
+		      > uni fun &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekEvaluationException</a
+		      > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		      >NamedDeBruijn</a
+		      > uni fun) (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekM</a
+		      > uni fun s)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-479" class="link"
+		    >Source</a
+		    > <a href="#t:MonadError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:MonadError:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekEvaluationException</a
+			  > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > uni fun &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a &#8594; (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekEvaluationException</a
+			  > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > uni fun &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Rep:12"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Rep:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Evaluation-Error.html#t:EvaluationError" title="PlutusCore.Evaluation.Error"
+			>EvaluationError</a
+			> structural operational) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;EvaluationError&quot; &quot;PlutusCore.Evaluation.Error&quot; &quot;plutus-core-1.51.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;StructuralError&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> structural)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;OperationalError&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> operational)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

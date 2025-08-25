@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Algebra.Lattice.Construct.NaturalChoice.MaxOp</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Properties of a max operator derived from a spec over a total</a>
+<a id="171" class="Comment">-- preorder.</a>
+<a id="184" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="258" class="Symbol">{-#</a> <a id="262" class="Keyword">OPTIONS</a> <a id="270" class="Pragma">--cubical-compatible</a> <a id="291" class="Pragma">--safe</a> <a id="298" class="Symbol">#-}</a>
+
+<a id="303" class="Keyword">open</a> <a id="308" class="Keyword">import</a> <a id="315" href="Algebra.Construct.NaturalChoice.Base.html" class="Module">Algebra.Construct.NaturalChoice.Base</a>
+<a id="352" class="Keyword">import</a> <a id="359" href="Algebra.Lattice.Construct.NaturalChoice.MinOp.html" class="Module">Algebra.Lattice.Construct.NaturalChoice.MinOp</a> <a id="405" class="Symbol">as</a> <a id="408" class="Module">MinOp</a>
+<a id="414" class="Keyword">open</a> <a id="419" class="Keyword">import</a> <a id="426" href="Relation.Binary.Bundles.html" class="Module">Relation.Binary.Bundles</a> <a id="450" class="Keyword">using</a> <a id="456" class="Symbol">(</a><a id="457" href="Relation.Binary.Bundles.html#2857" class="Record">TotalPreorder</a><a id="470" class="Symbol">)</a>
+
+<a id="473" class="Keyword">module</a> <a id="480" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html" class="Module">Algebra.Lattice.Construct.NaturalChoice.MaxOp</a>
+  <a id="528" class="Symbol">{</a><a id="529" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#529" class="Bound">a</a> <a id="531" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#531" class="Bound">ℓ₁</a> <a id="534" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#534" class="Bound">ℓ₂</a><a id="536" class="Symbol">}</a> <a id="538" class="Symbol">{</a><a id="539" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#539" class="Bound">O</a> <a id="541" class="Symbol">:</a> <a id="543" href="Relation.Binary.Bundles.html#2857" class="Record">TotalPreorder</a> <a id="557" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#529" class="Bound">a</a> <a id="559" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#531" class="Bound">ℓ₁</a> <a id="562" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#534" class="Bound">ℓ₂</a><a id="564" class="Symbol">}</a> <a id="566" class="Symbol">(</a><a id="567" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#567" class="Bound">maxOp</a> <a id="573" class="Symbol">:</a> <a id="575" href="Algebra.Construct.NaturalChoice.Base.html#1191" class="Record">MaxOperator</a> <a id="587" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#539" class="Bound">O</a><a id="588" class="Symbol">)</a>
+  <a id="592" class="Keyword">where</a>
+
+<a id="599" class="Keyword">private</a>
+  <a id="609" class="Keyword">module</a> <a id="Min"></a><a id="616" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#616" class="Module">Min</a> <a id="620" class="Symbol">=</a> <a id="622" href="Algebra.Lattice.Construct.NaturalChoice.MinOp.html" class="Module">MinOp</a> <a id="628" class="Symbol">(</a><a id="629" href="Algebra.Construct.NaturalChoice.Base.html#1660" class="Function">MaxOp⇒MinOp</a> <a id="641" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#567" class="Bound">maxOp</a><a id="646" class="Symbol">)</a>
+
+<a id="649" class="Keyword">open</a> <a id="654" href="Algebra.Lattice.Construct.NaturalChoice.MaxOp.html#616" class="Module">Min</a> <a id="658" class="Keyword">public</a>
+  <a id="667" class="Keyword">using</a> <a id="673" class="Symbol">()</a>
+  <a id="678" class="Keyword">renaming</a>
+  <a id="689" class="Symbol">(</a> <a id="691" href="Algebra.Lattice.Construct.NaturalChoice.MinOp.html#832" class="Function">⊓-isSemilattice</a>           <a id="717" class="Symbol">to</a>  <a id="721" class="Function">⊔-isSemilattice</a>
+  <a id="739" class="Symbol">;</a> <a id="741" href="Algebra.Lattice.Construct.NaturalChoice.MinOp.html#1025" class="Function">⊓-semilattice</a>             <a id="767" class="Symbol">to</a>  <a id="771" class="Function">⊔-semilattice</a>
+  <a id="787" class="Symbol">)</a>
+</pre></body></html>
