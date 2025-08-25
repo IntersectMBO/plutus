@@ -12,9 +12,9 @@
                             (equalsData r_stake_cred wdrlAtOne)
                             [(lookForCred rest), (constr 0 [])])
                        , (constr 0 []) ])
-                    (force (force fstPair) (force headList rest)))
+                    (case (force headList rest) [(\l r -> l)]))
                  (force tailList wdrl))
-              (force (force fstPair) (force headList wdrl)))
+              (case (force headList wdrl) [(\l r -> l)]))
            (unMapData
               (force headList
                  (force tailList
@@ -23,18 +23,20 @@
                           (force tailList
                              (force tailList
                                 (force tailList
-                                   (force (force sndPair)
+                                   (case
                                       (unConstrData
                                          (force headList
-                                            (force (force sndPair)
-                                               (unConstrData r_ctx))))))))))))))
+                                            (case
+                                               (unConstrData r_ctx)
+                                               [(\l r -> r)])))
+                                      [(\l r -> r)]))))))))))
         ((\s -> s s)
            (\s l ->
               case
                 l
                 [ (\x xs ds ->
                      case
-                       (equalsData r_stake_cred (force (force fstPair) x))
+                       (equalsData r_stake_cred (case x [(\l r -> l)]))
                        [(s s xs), (constr 0 [])])
                 , (\ds ->
                      (\x -> error) (force trace "not found" (constr 0 []))) ]

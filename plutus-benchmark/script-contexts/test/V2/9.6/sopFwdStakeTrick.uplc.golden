@@ -130,14 +130,16 @@
                                                                                                                                                                                         tailList
                                                                                                                                                                                         ds))) ]) ]
                                                                                                                                                                       args)
-                                                                                                                                                                   (force
-                                                                                                                                                                      (force
-                                                                                                                                                                         sndPair)
-                                                                                                                                                                      tup))
-                                                                                                                                                                (force
-                                                                                                                                                                   (force
-                                                                                                                                                                      fstPair)
-                                                                                                                                                                   tup))
+                                                                                                                                                                   (case
+                                                                                                                                                                      tup
+                                                                                                                                                                      [ (\l
+                                                                                                                                                                          r ->
+                                                                                                                                                                           r) ]))
+                                                                                                                                                                (case
+                                                                                                                                                                   tup
+                                                                                                                                                                   [ (\l
+                                                                                                                                                                       r ->
+                                                                                                                                                                        l) ]))
                                                                                                                                                              (unConstrData
                                                                                                                                                                 (force
                                                                                                                                                                    headList
@@ -161,14 +163,16 @@
                                                                                                                                                                                         tailList
                                                                                                                                                                                         ds))) ]) ]
                                                                                                                                                                       args)
-                                                                                                                                                                   (force
-                                                                                                                                                                      (force
-                                                                                                                                                                         sndPair)
-                                                                                                                                                                      tup))
-                                                                                                                                                                (force
-                                                                                                                                                                   (force
-                                                                                                                                                                      fstPair)
-                                                                                                                                                                   tup))
+                                                                                                                                                                   (case
+                                                                                                                                                                      tup
+                                                                                                                                                                      [ (\l
+                                                                                                                                                                          r ->
+                                                                                                                                                                           r) ]))
+                                                                                                                                                                (case
+                                                                                                                                                                   tup
+                                                                                                                                                                   [ (\l
+                                                                                                                                                                       r ->
+                                                                                                                                                                        l) ]))
                                                                                                                                                              (unConstrData
                                                                                                                                                                 (force
                                                                                                                                                                    headList
@@ -186,14 +190,16 @@
                                                                                                                                                                    , (\ds ->
                                                                                                                                                                         True) ]
                                                                                                                                                                    args)
-                                                                                                                                                                (force
-                                                                                                                                                                   (force
-                                                                                                                                                                      sndPair)
-                                                                                                                                                                   tup))
-                                                                                                                                                             (force
-                                                                                                                                                                (force
-                                                                                                                                                                   fstPair)
-                                                                                                                                                                tup))
+                                                                                                                                                                (case
+                                                                                                                                                                   tup
+                                                                                                                                                                   [ (\l
+                                                                                                                                                                       r ->
+                                                                                                                                                                        r) ]))
+                                                                                                                                                             (case
+                                                                                                                                                                tup
+                                                                                                                                                                [ (\l
+                                                                                                                                                                    r ->
+                                                                                                                                                                     l) ]))
                                                                                                                                                           (unConstrData
                                                                                                                                                              d)))
                                                                                                                                                   (\`$dUnsafeFromData`
@@ -216,25 +222,29 @@
                                                                                                                                                                      constr 2
                                                                                                                                                                        [  ]) ]
                                                                                                                                                                 args)
-                                                                                                                                                             (force
-                                                                                                                                                                (force
-                                                                                                                                                                   sndPair)
-                                                                                                                                                                tup))
-                                                                                                                                                          (force
-                                                                                                                                                             (force
-                                                                                                                                                                fstPair)
-                                                                                                                                                             tup))
+                                                                                                                                                             (case
+                                                                                                                                                                tup
+                                                                                                                                                                [ (\l
+                                                                                                                                                                    r ->
+                                                                                                                                                                     r) ]))
+                                                                                                                                                          (case
+                                                                                                                                                             tup
+                                                                                                                                                             [ (\l
+                                                                                                                                                                 r ->
+                                                                                                                                                                  l) ]))
                                                                                                                                                        (unConstrData
                                                                                                                                                           d))) ]
                                                                                                                                            args)
-                                                                                                                                        (force
-                                                                                                                                           (force
-                                                                                                                                              sndPair)
-                                                                                                                                           tup))
-                                                                                                                                     (force
-                                                                                                                                        (force
-                                                                                                                                           fstPair)
-                                                                                                                                        tup))
+                                                                                                                                        (case
+                                                                                                                                           tup
+                                                                                                                                           [ (\l
+                                                                                                                                               r ->
+                                                                                                                                                r) ]))
+                                                                                                                                     (case
+                                                                                                                                        tup
+                                                                                                                                        [ (\l
+                                                                                                                                            r ->
+                                                                                                                                             l) ]))
                                                                                                                                   (unConstrData
                                                                                                                                      (force
                                                                                                                                         headList
@@ -299,14 +309,16 @@
                                                                                            tailList
                                                                                            ds)) ]
                                                                                  args)
-                                                                              (force
-                                                                                 (force
-                                                                                    sndPair)
-                                                                                 tup))
-                                                                           (force
-                                                                              (force
-                                                                                 fstPair)
-                                                                              tup))
+                                                                              (case
+                                                                                 tup
+                                                                                 [ (\l
+                                                                                     r ->
+                                                                                      r) ]))
+                                                                           (case
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   l) ]))
                                                                         (unConstrData
                                                                            (force
                                                                               headList
@@ -348,20 +360,21 @@
                                                                                              headList
                                                                                              ds)) ]) ]
                                                                               args)
-                                                                           (force
-                                                                              (force
-                                                                                 sndPair)
-                                                                              tup))
-                                                                        (force
-                                                                           (force
-                                                                              fstPair)
-                                                                           tup))
+                                                                           (case
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   r) ]))
+                                                                        (case
+                                                                           tup
+                                                                           [ (\l
+                                                                               r ->
+                                                                                l) ]))
                                                                      (unConstrData
                                                                         d))) ]
                                                          args)
-                                                      (force (force sndPair)
-                                                         tup))
-                                                   (force (force fstPair) tup))
+                                                      (case tup [(\l r -> r)]))
+                                                   (case tup [(\l r -> l)]))
                                                 (unConstrData ctx))
                                              [ (\ds
                                                  ds ->
@@ -604,8 +617,8 @@
                                                                  (force tailList
                                                                     ds))) ]) ]
                                                   args)
-                                               (force (force sndPair) tup))
-                                            (force (force fstPair) tup))
+                                               (case tup [(\l r -> r)]))
+                                            (case tup [(\l r -> l)]))
                                          (unConstrData d)))
                                  (\d ->
                                     (\tup ->
@@ -622,8 +635,8 @@
                                                               (force tailList
                                                                  ds))) ]) ]
                                                args)
-                                            (force (force sndPair) tup))
-                                         (force (force fstPair) tup))
+                                            (case tup [(\l r -> r)]))
+                                         (case tup [(\l r -> l)]))
                                       (unConstrData d)))
                               (\d ->
                                  (\tup ->
@@ -634,8 +647,8 @@
                                             [ (\ds ->
                                                  unBData (force headList ds)) ]
                                             args)
-                                         (force (force sndPair) tup))
-                                      (force (force fstPair) tup))
+                                         (case tup [(\l r -> r)]))
+                                      (case tup [(\l r -> l)]))
                                    (unConstrData d)))
                            ((\s ->
                                s s)
@@ -681,14 +694,15 @@
                                                                                          tailList
                                                                                          ds))) ]) ]
                                                                        args)
-                                                                    (force
-                                                                       (force
-                                                                          sndPair)
-                                                                       tup))
-                                                                 (force
-                                                                    (force
-                                                                       fstPair)
-                                                                    tup))
+                                                                    (case
+                                                                       tup
+                                                                       [ (\l
+                                                                           r ->
+                                                                            r) ]))
+                                                                 (case
+                                                                    tup
+                                                                    [ (\l r ->
+                                                                         l) ]))
                                                               (unConstrData
                                                                  (force headList
                                                                     ds)))
@@ -716,14 +730,15 @@
                                                                                    headList
                                                                                    ds) ]) ]
                                                                        args)
-                                                                    (force
-                                                                       (force
-                                                                          sndPair)
-                                                                       tup))
-                                                                 (force
-                                                                    (force
-                                                                       fstPair)
-                                                                    tup))
+                                                                    (case
+                                                                       tup
+                                                                       [ (\l
+                                                                           r ->
+                                                                            r) ]))
+                                                                 (case
+                                                                    tup
+                                                                    [ (\l r ->
+                                                                         l) ]))
                                                               (unConstrData
                                                                  (force headList
                                                                     l)))
@@ -751,18 +766,18 @@
                                                                       constr 1
                                                                         []) ]
                                                                  args)
-                                                              (force
-                                                                 (force sndPair)
-                                                                 tup))
-                                                           (force
-                                                              (force fstPair)
-                                                              tup))
+                                                              (case
+                                                                 tup
+                                                                 [(\l r -> r)]))
+                                                           (case
+                                                              tup
+                                                              [(\l r -> l)]))
                                                         (unConstrData d)))
                                                 (force tailList l))
                                              (force tailList ds)) ]
                                       args)
-                                   (force (force sndPair) tup))
-                                (force (force fstPair) tup))
+                                   (case tup [(\l r -> r)]))
+                                (case tup [(\l r -> l)]))
                              (unConstrData eta)))
                      (\`$dUnsafeFromData` `$dUnsafeFromData` ->
                         (\go d -> go (unMapData d))
@@ -774,10 +789,9 @@
                                        constr 1
                                          [ (constr 0
                                               [ (`$dUnsafeFromData`
-                                                   (force (force fstPair) tup))
+                                                   (case tup [(\l r -> l)]))
                                               , (`$dUnsafeFromData`
-                                                   (force (force sndPair)
-                                                      tup)) ])
+                                                   (case tup [(\l r -> r)])) ])
                                          , (s s tups) ])
                                   , (constr 0 []) ]))))
                   ((\s ->
@@ -829,8 +843,8 @@
                              , (\ds -> constr 3 [])
                              , (\ds -> constr 4 []) ]
                              args)
-                          (force (force sndPair) tup))
-                       (force (force fstPair) tup))
+                          (case tup [(\l r -> r)]))
+                       (case tup [(\l r -> l)]))
                     (unConstrData d)))
             (\d ->
                (\tup ->
@@ -851,8 +865,8 @@
                                          (force headList (force tailList l))) ])
                                  (force tailList ds)) ]
                           args)
-                       (force (force sndPair) tup))
-                    (force (force fstPair) tup))
+                       (case tup [(\l r -> r)]))
+                    (case tup [(\l r -> l)]))
                  (unConstrData d)))
          (\d ->
             (\tup ->
@@ -863,8 +877,8 @@
                        [ (\ds -> constr 0 [(unBData (force headList ds))])
                        , (\ds -> constr 1 [(unBData (force headList ds))]) ]
                        args)
-                    (force (force sndPair) tup))
-                 (force (force fstPair) tup))
+                    (case tup [(\l r -> r)]))
+                 (case tup [(\l r -> l)]))
               (unConstrData d)))
       ((\s -> s s)
          (\s xs ->

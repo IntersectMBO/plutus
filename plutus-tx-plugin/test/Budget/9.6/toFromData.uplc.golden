@@ -33,14 +33,16 @@
                                                                                  , (\ds ->
                                                                                       True) ]
                                                                                  args)
-                                                                              (force
-                                                                                 (force
-                                                                                    sndPair)
-                                                                                 tup))
-                                                                           (force
-                                                                              (force
-                                                                                 fstPair)
-                                                                              tup))
+                                                                              (case
+                                                                                 tup
+                                                                                 [ (\l
+                                                                                     r ->
+                                                                                      r) ]))
+                                                                           (case
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   l) ]))
                                                                         (unConstrData
                                                                            (force
                                                                               headList
@@ -59,14 +61,16 @@
                                                                                  , (\ds ->
                                                                                       True) ]
                                                                                  args)
-                                                                              (force
-                                                                                 (force
-                                                                                    sndPair)
-                                                                                 tup))
-                                                                           (force
-                                                                              (force
-                                                                                 fstPair)
-                                                                              tup))
+                                                                              (case
+                                                                                 tup
+                                                                                 [ (\l
+                                                                                     r ->
+                                                                                      r) ]))
+                                                                           (case
+                                                                              tup
+                                                                              [ (\l
+                                                                                  r ->
+                                                                                   l) ]))
                                                                         (unConstrData
                                                                            (force
                                                                               headList
@@ -76,19 +80,18 @@
                                                                 (force tailList
                                                                    ds)) ]
                                                          args)
-                                                      (force (force sndPair)
-                                                         tup))
-                                                   (force (force fstPair) tup))
+                                                      (case tup [(\l r -> r)]))
+                                                   (case tup [(\l r -> l)]))
                                                 (unConstrData
                                                    (force headList ds))) ])
                                     , (\ds -> constr 1 []) ]
                                     args)
-                                 (force (force sndPair) tup))
-                              (force (force fstPair) tup))
+                                 (case tup [(\l r -> r)]))
+                              (case tup [(\l r -> l)]))
                            (unConstrData (force headList ds))) ]) ]
                args)
-            (force (force sndPair) tup))
-         (force (force fstPair) tup))
+            (case tup [(\l r -> r)]))
+         (case tup [(\l r -> l)]))
       (unConstrData
          (constrData
             1

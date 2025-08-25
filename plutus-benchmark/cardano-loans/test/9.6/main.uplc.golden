@@ -168,14 +168,16 @@
                                                                                                                                                                                                                                                              [  ]) ]) ])
                                                                                                                                                                                                                                           , (constr 1
                                                                                                                                                                                                                                                [  ]) ]) ])
-                                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                                     (force
-                                                                                                                                                                                                                                        sndPair)
-                                                                                                                                                                                                                                     tup))
-                                                                                                                                                                                                                               (force
-                                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                                     fstPair)
-                                                                                                                                                                                                                                  tup))
+                                                                                                                                                                                                                                  (case
+                                                                                                                                                                                                                                     tup
+                                                                                                                                                                                                                                     [ (\l
+                                                                                                                                                                                                                                         r ->
+                                                                                                                                                                                                                                          r) ]))
+                                                                                                                                                                                                                               (case
+                                                                                                                                                                                                                                  tup
+                                                                                                                                                                                                                                  [ (\l
+                                                                                                                                                                                                                                      r ->
+                                                                                                                                                                                                                                       l) ]))
                                                                                                                                                                                                                             (unConstrData
                                                                                                                                                                                                                                d))
                                                                                                                                                                                                                        (\ds ->
@@ -272,14 +274,16 @@
                                                                                                                                                                                                                                                                                   [  ]) ]) ])
                                                                                                                                                                                                                                                                , (constr 1
                                                                                                                                                                                                                                                                     [  ]) ]) ])
-                                                                                                                                                                                                                                                       (force
-                                                                                                                                                                                                                                                          (force
-                                                                                                                                                                                                                                                             sndPair)
-                                                                                                                                                                                                                                                          tup))
-                                                                                                                                                                                                                                                    (force
-                                                                                                                                                                                                                                                       (force
-                                                                                                                                                                                                                                                          fstPair)
-                                                                                                                                                                                                                                                       tup))
+                                                                                                                                                                                                                                                       (case
+                                                                                                                                                                                                                                                          tup
+                                                                                                                                                                                                                                                          [ (\l
+                                                                                                                                                                                                                                                              r ->
+                                                                                                                                                                                                                                                               r) ]))
+                                                                                                                                                                                                                                                    (case
+                                                                                                                                                                                                                                                       tup
+                                                                                                                                                                                                                                                       [ (\l
+                                                                                                                                                                                                                                                           r ->
+                                                                                                                                                                                                                                                            l) ]))
                                                                                                                                                                                                                                                  (unConstrData
                                                                                                                                                                                                                                                     d))
                                                                                                                                                                                                                                             (\ds ->
@@ -513,14 +517,16 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                [  ]) ]) ])
                                                                                                                                                                                                                                                                                                                                                                                                                             , (constr 1
                                                                                                                                                                                                                                                                                                                                                                                                                                  [  ]) ]) ])
-                                                                                                                                                                                                                                                                                                                                                                                                                    (force
-                                                                                                                                                                                                                                                                                                                                                                                                                       (force
-                                                                                                                                                                                                                                                                                                                                                                                                                          sndPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                       tup))
-                                                                                                                                                                                                                                                                                                                                                                                                                 (force
-                                                                                                                                                                                                                                                                                                                                                                                                                    (force
-                                                                                                                                                                                                                                                                                                                                                                                                                       fstPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                    tup))
+                                                                                                                                                                                                                                                                                                                                                                                                                    (case
+                                                                                                                                                                                                                                                                                                                                                                                                                       tup
+                                                                                                                                                                                                                                                                                                                                                                                                                       [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                           r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                            r) ]))
+                                                                                                                                                                                                                                                                                                                                                                                                                 (case
+                                                                                                                                                                                                                                                                                                                                                                                                                    tup
+                                                                                                                                                                                                                                                                                                                                                                                                                    [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                        r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                         l) ]))
                                                                                                                                                                                                                                                                                                                                                                                                               (unConstrData
                                                                                                                                                                                                                                                                                                                                                                                                                  ds))
                                                                                                                                                                                                                                                                                                                                                                                                          (\ds ->
@@ -609,14 +615,16 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                              [  ]) ]) ])
                                                                                                                                                                                                                                                                                                                                                                                                                                           , (constr 1
                                                                                                                                                                                                                                                                                                                                                                                                                                                [  ]) ]) ])
-                                                                                                                                                                                                                                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                     (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                        sndPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                                     tup))
-                                                                                                                                                                                                                                                                                                                                                                                                                               (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                     fstPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                                  tup))
+                                                                                                                                                                                                                                                                                                                                                                                                                                  (case
+                                                                                                                                                                                                                                                                                                                                                                                                                                     tup
+                                                                                                                                                                                                                                                                                                                                                                                                                                     [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                                         r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                                          r) ]))
+                                                                                                                                                                                                                                                                                                                                                                                                                               (case
+                                                                                                                                                                                                                                                                                                                                                                                                                                  tup
+                                                                                                                                                                                                                                                                                                                                                                                                                                  [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                                      r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                                       l) ]))
                                                                                                                                                                                                                                                                                                                                                                                                                             (unConstrData
                                                                                                                                                                                                                                                                                                                                                                                                                                ds))
                                                                                                                                                                                                                                                                                                                                                                                                                        (\ds ->
@@ -646,14 +654,16 @@
                                                                                                                                                                                                                                                                                                                                                                                                            [  ]) ]) ])
                                                                                                                                                                                                                                                                                                                                                                                         , (constr 1
                                                                                                                                                                                                                                                                                                                                                                                              [  ]) ]) ])
-                                                                                                                                                                                                                                                                                                                                                                                (force
-                                                                                                                                                                                                                                                                                                                                                                                   (force
-                                                                                                                                                                                                                                                                                                                                                                                      sndPair)
-                                                                                                                                                                                                                                                                                                                                                                                   tup))
-                                                                                                                                                                                                                                                                                                                                                                             (force
-                                                                                                                                                                                                                                                                                                                                                                                (force
-                                                                                                                                                                                                                                                                                                                                                                                   fstPair)
-                                                                                                                                                                                                                                                                                                                                                                                tup))
+                                                                                                                                                                                                                                                                                                                                                                                (case
+                                                                                                                                                                                                                                                                                                                                                                                   tup
+                                                                                                                                                                                                                                                                                                                                                                                   [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                       r ->
+                                                                                                                                                                                                                                                                                                                                                                                        r) ]))
+                                                                                                                                                                                                                                                                                                                                                                             (case
+                                                                                                                                                                                                                                                                                                                                                                                tup
+                                                                                                                                                                                                                                                                                                                                                                                [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                    r ->
+                                                                                                                                                                                                                                                                                                                                                                                     l) ]))
                                                                                                                                                                                                                                                                                                                                                                           (unConstrData
                                                                                                                                                                                                                                                                                                                                                                              ds))
                                                                                                                                                                                                                                                                                                                                                                      (\ds ->
@@ -955,14 +965,16 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   [  ]) ]) ])
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                , (constr 1
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [  ]) ]) ])))))))))))
-                                                                                                                                                                                                                                                                                                                                                                                                                               (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                     sndPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                                  tup))
-                                                                                                                                                                                                                                                                                                                                                                                                                            (force
-                                                                                                                                                                                                                                                                                                                                                                                                                               (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                  fstPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                               tup))
+                                                                                                                                                                                                                                                                                                                                                                                                                               (case
+                                                                                                                                                                                                                                                                                                                                                                                                                                  tup
+                                                                                                                                                                                                                                                                                                                                                                                                                                  [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                                      r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                                       r) ]))
+                                                                                                                                                                                                                                                                                                                                                                                                                            (case
+                                                                                                                                                                                                                                                                                                                                                                                                                               tup
+                                                                                                                                                                                                                                                                                                                                                                                                                               [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                                   r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                                    l) ]))
                                                                                                                                                                                                                                                                                                                                                                                                                          (unConstrData
                                                                                                                                                                                                                                                                                                                                                                                                                             d))
                                                                                                                                                                                                                                                                                                                                                                                                                     (\ds ->
@@ -1076,14 +1088,16 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     , (constr 0
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          [ (constr 1
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               [  ]) ]) ])
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       sndPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    tup))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 (force
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    fstPair)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 tup))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 (case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    tup
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         r) ]))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              (case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 tup
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 [ (\l
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     r ->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      l) ]))
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            (unConstrData
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               d))
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       (\ds ->
@@ -1241,14 +1255,16 @@
                                                                                                                                                                                                                     [  ]) ]) ])
                                                                                                                                                                                                  , (constr 1
                                                                                                                                                                                                       [  ]) ]) ])
-                                                                                                                                                                                         (force
-                                                                                                                                                                                            (force
-                                                                                                                                                                                               sndPair)
-                                                                                                                                                                                            tup))
-                                                                                                                                                                                      (force
-                                                                                                                                                                                         (force
-                                                                                                                                                                                            fstPair)
-                                                                                                                                                                                         tup))
+                                                                                                                                                                                         (case
+                                                                                                                                                                                            tup
+                                                                                                                                                                                            [ (\l
+                                                                                                                                                                                                r ->
+                                                                                                                                                                                                 r) ]))
+                                                                                                                                                                                      (case
+                                                                                                                                                                                         tup
+                                                                                                                                                                                         [ (\l
+                                                                                                                                                                                             r ->
+                                                                                                                                                                                              l) ]))
                                                                                                                                                                                    (unConstrData
                                                                                                                                                                                       ds))
                                                                                                                                                                               (\ds ->
@@ -1563,14 +1579,16 @@
                                                                                                                                                                                                                                                                                         [  ]) ]) ])
                                                                                                                                                                                                                                                                      , (constr 1
                                                                                                                                                                                                                                                                           [  ]) ]) ])))))))))))
-                                                                                                                                                                                                                     (force
-                                                                                                                                                                                                                        (force
-                                                                                                                                                                                                                           sndPair)
-                                                                                                                                                                                                                        tup))
-                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                     (force
-                                                                                                                                                                                                                        fstPair)
-                                                                                                                                                                                                                     tup))
+                                                                                                                                                                                                                     (case
+                                                                                                                                                                                                                        tup
+                                                                                                                                                                                                                        [ (\l
+                                                                                                                                                                                                                            r ->
+                                                                                                                                                                                                                             r) ]))
+                                                                                                                                                                                                                  (case
+                                                                                                                                                                                                                     tup
+                                                                                                                                                                                                                     [ (\l
+                                                                                                                                                                                                                         r ->
+                                                                                                                                                                                                                          l) ]))
                                                                                                                                                                                                                (unConstrData
                                                                                                                                                                                                                   ds))
                                                                                                                                                                                                           (\ds ->
@@ -1603,14 +1621,16 @@
                                                                                                                                                                                 [  ]) ]) ])
                                                                                                                                                              , (constr 1
                                                                                                                                                                   [  ]) ]) ])
-                                                                                                                                                     (force
-                                                                                                                                                        (force
-                                                                                                                                                           sndPair)
-                                                                                                                                                        tup))
-                                                                                                                                                  (force
-                                                                                                                                                     (force
-                                                                                                                                                        fstPair)
-                                                                                                                                                     tup))
+                                                                                                                                                     (case
+                                                                                                                                                        tup
+                                                                                                                                                        [ (\l
+                                                                                                                                                            r ->
+                                                                                                                                                             r) ]))
+                                                                                                                                                  (case
+                                                                                                                                                     tup
+                                                                                                                                                     [ (\l
+                                                                                                                                                         r ->
+                                                                                                                                                          l) ]))
                                                                                                                                                (unConstrData
                                                                                                                                                   scriptContextData))
                                                                                                                                           (\ds ->
@@ -1817,43 +1837,41 @@
                                                                                                                                                                                                                                              (\cse ->
                                                                                                                                                                                                                                                 (\cse ->
                                                                                                                                                                                                                                                    (\cse ->
-                                                                                                                                                                                                                                                      (\cse ->
-                                                                                                                                                                                                                                                         case
-                                                                                                                                                                                                                                                           (case
-                                                                                                                                                                                                                                                              (equalsInteger
+                                                                                                                                                                                                                                                      case
+                                                                                                                                                                                                                                                        (case
+                                                                                                                                                                                                                                                           (equalsInteger
+                                                                                                                                                                                                                                                              (cse
+                                                                                                                                                                                                                                                                 cse)
+                                                                                                                                                                                                                                                              (cse
                                                                                                                                                                                                                                                                  (cse
-                                                                                                                                                                                                                                                                    cse)
-                                                                                                                                                                                                                                                                 (cse
-                                                                                                                                                                                                                                                                    (cse
-                                                                                                                                                                                                                                                                       cse)))
-                                                                                                                                                                                                                                                              [ (force
-                                                                                                                                                                                                                                                                   trace
-                                                                                                                                                                                                                                                                   "Offer beacons not burned"
-                                                                                                                                                                                                                                                                   False)
-                                                                                                                                                                                                                                                              , True ])
-                                                                                                                                                                                                                                                           [ False
-                                                                                                                                                                                                                                                           , (case
-                                                                                                                                                                                                                                                                (equalsInteger
+                                                                                                                                                                                                                                                                    cse)))
+                                                                                                                                                                                                                                                           [ (force
+                                                                                                                                                                                                                                                                trace
+                                                                                                                                                                                                                                                                "Offer beacons not burned"
+                                                                                                                                                                                                                                                                False)
+                                                                                                                                                                                                                                                           , True ])
+                                                                                                                                                                                                                                                        [ False
+                                                                                                                                                                                                                                                        , (case
+                                                                                                                                                                                                                                                             (equalsInteger
+                                                                                                                                                                                                                                                                (cse
+                                                                                                                                                                                                                                                                   cse)
+                                                                                                                                                                                                                                                                (cse
                                                                                                                                                                                                                                                                    (cse
-                                                                                                                                                                                                                                                                      cse)
-                                                                                                                                                                                                                                                                   (cse
-                                                                                                                                                                                                                                                                      (cse
-                                                                                                                                                                                                                                                                         cse)))
-                                                                                                                                                                                                                                                                [ (force
-                                                                                                                                                                                                                                                                     trace
-                                                                                                                                                                                                                                                                     "Lender IDs not burned"
-                                                                                                                                                                                                                                                                     False)
-                                                                                                                                                                                                                                                                , True ]) ])
-                                                                                                                                                                                                                                                        (uncurry
-                                                                                                                                                                                                                                                           cse))
+                                                                                                                                                                                                                                                                      cse)))
+                                                                                                                                                                                                                                                             [ (force
+                                                                                                                                                                                                                                                                  trace
+                                                                                                                                                                                                                                                                  "Lender IDs not burned"
+                                                                                                                                                                                                                                                                  False)
+                                                                                                                                                                                                                                                             , True ]) ])
                                                                                                                                                                                                                                                      (uncurry
                                                                                                                                                                                                                                                         cse))
-                                                                                                                                                                                                                                                  (negate
-                                                                                                                                                                                                                                                     `$fAdditiveGroupInteger`))
+                                                                                                                                                                                                                                                  (uncurry
+                                                                                                                                                                                                                                                     (valueOf
+                                                                                                                                                                                                                                                        nt)))
                                                                                                                                                                                                                                                (valueOf
                                                                                                                                                                                                                                                   nt))
-                                                                                                                                                                                                                                            (valueOf
-                                                                                                                                                                                                                                               nt)) ])
+                                                                                                                                                                                                                                            (negate
+                                                                                                                                                                                                                                               `$fAdditiveGroupInteger`)) ])
                                                                                                                                                                                                                                     (case
                                                                                                                                                                                                                                        loanDatum
                                                                                                                                                                                                                                        [ (\ds
@@ -2992,14 +3010,16 @@
                                                                                                                                                                                                                               [  ]) ]) ])
                                                                                                                                                                                                            , (constr 1
                                                                                                                                                                                                                 [  ]) ]) ])))))
-                                                                                                                                                                                   (force
-                                                                                                                                                                                      (force
-                                                                                                                                                                                         sndPair)
-                                                                                                                                                                                      tup))
-                                                                                                                                                                                (force
-                                                                                                                                                                                   (force
-                                                                                                                                                                                      fstPair)
-                                                                                                                                                                                   tup))
+                                                                                                                                                                                   (case
+                                                                                                                                                                                      tup
+                                                                                                                                                                                      [ (\l
+                                                                                                                                                                                          r ->
+                                                                                                                                                                                           r) ]))
+                                                                                                                                                                                (case
+                                                                                                                                                                                   tup
+                                                                                                                                                                                   [ (\l
+                                                                                                                                                                                       r ->
+                                                                                                                                                                                        l) ]))
                                                                                                                                                                              (unConstrData
                                                                                                                                                                                 ipv))
                                                                                                                                                                         (\ds ->
@@ -3069,14 +3089,16 @@
                                                                                                                                                                                , (constr 0
                                                                                                                                                                                     [ (constr 2
                                                                                                                                                                                          [  ]) ]) ])
-                                                                                                                                                                            (force
-                                                                                                                                                                               (force
-                                                                                                                                                                                  sndPair)
-                                                                                                                                                                               tup))
-                                                                                                                                                                         (force
-                                                                                                                                                                            (force
-                                                                                                                                                                               fstPair)
-                                                                                                                                                                            tup))
+                                                                                                                                                                            (case
+                                                                                                                                                                               tup
+                                                                                                                                                                               [ (\l
+                                                                                                                                                                                   r ->
+                                                                                                                                                                                    r) ]))
+                                                                                                                                                                         (case
+                                                                                                                                                                            tup
+                                                                                                                                                                            [ (\l
+                                                                                                                                                                                r ->
+                                                                                                                                                                                 l) ]))
                                                                                                                                                                       (unConstrData
                                                                                                                                                                          d))
                                                                                                                                                                  (\ds ->
@@ -3292,14 +3314,16 @@
                                                                                                                                          [ True ]) ])
                                                                                                                                , (constr 0
                                                                                                                                     [ False ]) ])
-                                                                                                                            (force
-                                                                                                                               (force
-                                                                                                                                  sndPair)
-                                                                                                                               tup))
-                                                                                                                         (force
-                                                                                                                            (force
-                                                                                                                               fstPair)
-                                                                                                                            tup))
+                                                                                                                            (case
+                                                                                                                               tup
+                                                                                                                               [ (\l
+                                                                                                                                   r ->
+                                                                                                                                    r) ]))
+                                                                                                                         (case
+                                                                                                                            tup
+                                                                                                                            [ (\l
+                                                                                                                                r ->
+                                                                                                                                 l) ]))
                                                                                                                       (unConstrData
                                                                                                                          d))
                                                                                                                  (\ds ->
@@ -3380,14 +3404,16 @@
                                                                                                                             , (constr 0
                                                                                                                                  [ (constr 1
                                                                                                                                       [  ]) ]) ])
-                                                                                                                         (force
-                                                                                                                            (force
-                                                                                                                               sndPair)
-                                                                                                                            tup))
-                                                                                                                      (force
-                                                                                                                         (force
-                                                                                                                            fstPair)
-                                                                                                                         tup))
+                                                                                                                         (case
+                                                                                                                            tup
+                                                                                                                            [ (\l
+                                                                                                                                r ->
+                                                                                                                                 r) ]))
+                                                                                                                      (case
+                                                                                                                         tup
+                                                                                                                         [ (\l
+                                                                                                                             r ->
+                                                                                                                              l) ]))
                                                                                                                    (unConstrData
                                                                                                                       d))
                                                                                                               (\ds ->
@@ -3655,14 +3681,16 @@
                                                                                                                                                                                                                                                                                            [  ]) ]) ])
                                                                                                                                                                                                                                                                         , (constr 1
                                                                                                                                                                                                                                                                              [  ]) ]) ])
-                                                                                                                                                                                                                                                                (force
-                                                                                                                                                                                                                                                                   (force
-                                                                                                                                                                                                                                                                      sndPair)
-                                                                                                                                                                                                                                                                   tup))
-                                                                                                                                                                                                                                                             (force
-                                                                                                                                                                                                                                                                (force
-                                                                                                                                                                                                                                                                   fstPair)
-                                                                                                                                                                                                                                                                tup))
+                                                                                                                                                                                                                                                                (case
+                                                                                                                                                                                                                                                                   tup
+                                                                                                                                                                                                                                                                   [ (\l
+                                                                                                                                                                                                                                                                       r ->
+                                                                                                                                                                                                                                                                        r) ]))
+                                                                                                                                                                                                                                                             (case
+                                                                                                                                                                                                                                                                tup
+                                                                                                                                                                                                                                                                [ (\l
+                                                                                                                                                                                                                                                                    r ->
+                                                                                                                                                                                                                                                                     l) ]))
                                                                                                                                                                                                                                                           (unConstrData
                                                                                                                                                                                                                                                              ds))
                                                                                                                                                                                                                                                      (\ds ->
@@ -3976,14 +4004,16 @@
                                                                                                                                                                                                                                                                                                            [  ]) ])
                                                                                                                                                                                                                                                                                                , (constr 1
                                                                                                                                                                                                                                                                                                     [  ]) ]) ])
-                                                                                                                                                                                                                                                                                       (force
-                                                                                                                                                                                                                                                                                          (force
-                                                                                                                                                                                                                                                                                             sndPair)
-                                                                                                                                                                                                                                                                                          tup))
-                                                                                                                                                                                                                                                                                    (force
-                                                                                                                                                                                                                                                                                       (force
-                                                                                                                                                                                                                                                                                          fstPair)
-                                                                                                                                                                                                                                                                                       tup))
+                                                                                                                                                                                                                                                                                       (case
+                                                                                                                                                                                                                                                                                          tup
+                                                                                                                                                                                                                                                                                          [ (\l
+                                                                                                                                                                                                                                                                                              r ->
+                                                                                                                                                                                                                                                                                               r) ]))
+                                                                                                                                                                                                                                                                                    (case
+                                                                                                                                                                                                                                                                                       tup
+                                                                                                                                                                                                                                                                                       [ (\l
+                                                                                                                                                                                                                                                                                           r ->
+                                                                                                                                                                                                                                                                                            l) ]))
                                                                                                                                                                                                                                                                                  (unConstrData
                                                                                                                                                                                                                                                                                     ds))
                                                                                                                                                                                                                                                                             (\ds ->
@@ -4041,14 +4071,16 @@
                                                                                                                                                                                                                                                   , (constr 0
                                                                                                                                                                                                                                                        [ (constr 1
                                                                                                                                                                                                                                                             [  ]) ]) ]) ]) ])))))))))))
-                                                                                                                                                                                             (force
-                                                                                                                                                                                                (force
-                                                                                                                                                                                                   sndPair)
-                                                                                                                                                                                                tup))
-                                                                                                                                                                                          (force
-                                                                                                                                                                                             (force
-                                                                                                                                                                                                fstPair)
-                                                                                                                                                                                             tup))
+                                                                                                                                                                                             (case
+                                                                                                                                                                                                tup
+                                                                                                                                                                                                [ (\l
+                                                                                                                                                                                                    r ->
+                                                                                                                                                                                                     r) ]))
+                                                                                                                                                                                          (case
+                                                                                                                                                                                             tup
+                                                                                                                                                                                             [ (\l
+                                                                                                                                                                                                 r ->
+                                                                                                                                                                                                  l) ]))
                                                                                                                                                                                        (unConstrData
                                                                                                                                                                                           ds))
                                                                                                                                                                                   (\ds ->
@@ -4083,14 +4115,16 @@
                                                                                                                                                  [  ]) ]) ])
                                                                                                                               , (constr 1
                                                                                                                                    [  ]) ]) ])
-                                                                                                                      (force
-                                                                                                                         (force
-                                                                                                                            sndPair)
-                                                                                                                         tup))
-                                                                                                                   (force
-                                                                                                                      (force
-                                                                                                                         fstPair)
-                                                                                                                      tup))
+                                                                                                                      (case
+                                                                                                                         tup
+                                                                                                                         [ (\l
+                                                                                                                             r ->
+                                                                                                                              r) ]))
+                                                                                                                   (case
+                                                                                                                      tup
+                                                                                                                      [ (\l
+                                                                                                                          r ->
+                                                                                                                           l) ]))
                                                                                                                 (unConstrData
                                                                                                                    d))
                                                                                                            (\ds ->
@@ -4190,14 +4224,16 @@
                                                                                                                                            [  ]) ]) ])
                                                                                                                         , (constr 1
                                                                                                                              [  ]) ]) ])
-                                                                                                                (force
-                                                                                                                   (force
-                                                                                                                      sndPair)
-                                                                                                                   tup))
-                                                                                                             (force
-                                                                                                                (force
-                                                                                                                   fstPair)
-                                                                                                                tup))
+                                                                                                                (case
+                                                                                                                   tup
+                                                                                                                   [ (\l
+                                                                                                                       r ->
+                                                                                                                        r) ]))
+                                                                                                             (case
+                                                                                                                tup
+                                                                                                                [ (\l
+                                                                                                                    r ->
+                                                                                                                     l) ]))
                                                                                                           (unConstrData
                                                                                                              d))
                                                                                                      (\ds ->
@@ -4226,14 +4262,16 @@
                                                                                                               (\ds ->
                                                                                                                  constr 1
                                                                                                                    [  ])
-                                                                                                                (force
-                                                                                                                   (force
-                                                                                                                      sndPair)
-                                                                                                                   tup))
-                                                                                                             (force
-                                                                                                                (force
-                                                                                                                   fstPair)
-                                                                                                                tup))
+                                                                                                                (case
+                                                                                                                   tup
+                                                                                                                   [ (\l
+                                                                                                                       r ->
+                                                                                                                        r) ]))
+                                                                                                             (case
+                                                                                                                tup
+                                                                                                                [ (\l
+                                                                                                                    r ->
+                                                                                                                     l) ]))
                                                                                                           (unConstrData
                                                                                                              d))
                                                                                                      (\ds ->
@@ -5082,14 +5120,16 @@
                                                                                                                                                                                          , (constr 0
                                                                                                                                                                                               [ (constr 1
                                                                                                                                                                                                    [  ]) ]) ])))
-                                                                                                                                                                              (force
-                                                                                                                                                                                 (force
-                                                                                                                                                                                    sndPair)
-                                                                                                                                                                                 tup))
-                                                                                                                                                                           (force
-                                                                                                                                                                              (force
-                                                                                                                                                                                 fstPair)
-                                                                                                                                                                              tup))
+                                                                                                                                                                              (case
+                                                                                                                                                                                 tup
+                                                                                                                                                                                 [ (\l
+                                                                                                                                                                                     r ->
+                                                                                                                                                                                      r) ]))
+                                                                                                                                                                           (case
+                                                                                                                                                                              tup
+                                                                                                                                                                              [ (\l
+                                                                                                                                                                                  r ->
+                                                                                                                                                                                   l) ]))
                                                                                                                                                                         (unConstrData
                                                                                                                                                                            d))
                                                                                                                                                                    (\ds ->
@@ -5106,14 +5146,16 @@
                                                                                                                                                                         [  ])
                                                                                                                                                                    (constr 0
                                                                                                                                                                       [  ]))))))
-                                                                                                                                                (force
-                                                                                                                                                   (force
-                                                                                                                                                      sndPair)
-                                                                                                                                                   tup))
-                                                                                                                                             (force
-                                                                                                                                                (force
-                                                                                                                                                   fstPair)
-                                                                                                                                                tup))
+                                                                                                                                                (case
+                                                                                                                                                   tup
+                                                                                                                                                   [ (\l
+                                                                                                                                                       r ->
+                                                                                                                                                        r) ]))
+                                                                                                                                             (case
+                                                                                                                                                tup
+                                                                                                                                                [ (\l
+                                                                                                                                                    r ->
+                                                                                                                                                     l) ]))
                                                                                                                                           (unConstrData
                                                                                                                                              d))
                                                                                                                                      (\ds ->
@@ -5130,14 +5172,16 @@
                                                                                                                                           [  ])
                                                                                                                                      (constr 0
                                                                                                                                         [  ]))))))))
-                                                                                                          (force
-                                                                                                             (force
-                                                                                                                sndPair)
-                                                                                                             tup))
-                                                                                                       (force
-                                                                                                          (force
-                                                                                                             fstPair)
-                                                                                                          tup))
+                                                                                                          (case
+                                                                                                             tup
+                                                                                                             [ (\l
+                                                                                                                 r ->
+                                                                                                                  r) ]))
+                                                                                                       (case
+                                                                                                          tup
+                                                                                                          [ (\l
+                                                                                                              r ->
+                                                                                                               l) ]))
                                                                                                     (unConstrData
                                                                                                        d))
                                                                                                (\ds ->
@@ -5253,14 +5297,16 @@
                                                                                                                                            [  ]) ])
                                                                                                                                , (constr 1
                                                                                                                                     [  ]) ]) ])))))
-                                                                                                       (force
-                                                                                                          (force
-                                                                                                             sndPair)
-                                                                                                          tup))
-                                                                                                    (force
-                                                                                                       (force
-                                                                                                          fstPair)
-                                                                                                       tup))
+                                                                                                       (case
+                                                                                                          tup
+                                                                                                          [ (\l
+                                                                                                              r ->
+                                                                                                               r) ]))
+                                                                                                    (case
+                                                                                                       tup
+                                                                                                       [ (\l
+                                                                                                           r ->
+                                                                                                            l) ]))
                                                                                                  (unConstrData
                                                                                                     d))
                                                                                             (\ds ->
@@ -5337,14 +5383,16 @@
                                                                                                                                [  ]) ]) ])
                                                                                                             , (constr 1
                                                                                                                  [  ]) ]) ])
-                                                                                                    (force
-                                                                                                       (force
-                                                                                                          sndPair)
-                                                                                                       tup))
-                                                                                                 (force
-                                                                                                    (force
-                                                                                                       fstPair)
-                                                                                                    tup))
+                                                                                                    (case
+                                                                                                       tup
+                                                                                                       [ (\l
+                                                                                                           r ->
+                                                                                                            r) ]))
+                                                                                                 (case
+                                                                                                    tup
+                                                                                                    [ (\l
+                                                                                                        r ->
+                                                                                                         l) ]))
                                                                                               (unConstrData
                                                                                                  d))
                                                                                          (\ds ->
@@ -5554,14 +5602,16 @@
                                                                                                                                                                                                                                [  ]) ]) ])
                                                                                                                                                                                                             , (constr 1
                                                                                                                                                                                                                  [  ]) ]) ])))
-                                                                                                                                                                                            (force
-                                                                                                                                                                                               (force
-                                                                                                                                                                                                  sndPair)
-                                                                                                                                                                                               tup))
-                                                                                                                                                                                         (force
-                                                                                                                                                                                            (force
-                                                                                                                                                                                               fstPair)
-                                                                                                                                                                                            tup))
+                                                                                                                                                                                            (case
+                                                                                                                                                                                               tup
+                                                                                                                                                                                               [ (\l
+                                                                                                                                                                                                   r ->
+                                                                                                                                                                                                    r) ]))
+                                                                                                                                                                                         (case
+                                                                                                                                                                                            tup
+                                                                                                                                                                                            [ (\l
+                                                                                                                                                                                                r ->
+                                                                                                                                                                                                 l) ]))
                                                                                                                                                                                       (unConstrData
                                                                                                                                                                                          d))
                                                                                                                                                                                  (\ds ->
@@ -5592,14 +5642,16 @@
                                                                                                                                                                 [  ]) ]) ])
                                                                                                                                              , (constr 1
                                                                                                                                                   [  ]) ]) ])
-                                                                                                                                     (force
-                                                                                                                                        (force
-                                                                                                                                           sndPair)
-                                                                                                                                        tup))
-                                                                                                                                  (force
-                                                                                                                                     (force
-                                                                                                                                        fstPair)
-                                                                                                                                     tup))
+                                                                                                                                     (case
+                                                                                                                                        tup
+                                                                                                                                        [ (\l
+                                                                                                                                            r ->
+                                                                                                                                             r) ]))
+                                                                                                                                  (case
+                                                                                                                                     tup
+                                                                                                                                     [ (\l
+                                                                                                                                         r ->
+                                                                                                                                          l) ]))
                                                                                                                                (unConstrData
                                                                                                                                   ds))
                                                                                                                           (\ds ->
@@ -5725,14 +5777,16 @@
                                                                                                                                                                                   , (constr 0
                                                                                                                                                                                        [ (constr 0
                                                                                                                                                                                             [  ]) ]) ])
-                                                                                                                                                                               (force
-                                                                                                                                                                                  (force
-                                                                                                                                                                                     sndPair)
-                                                                                                                                                                                  tup))
-                                                                                                                                                                            (force
-                                                                                                                                                                               (force
-                                                                                                                                                                                  fstPair)
-                                                                                                                                                                               tup))
+                                                                                                                                                                               (case
+                                                                                                                                                                                  tup
+                                                                                                                                                                                  [ (\l
+                                                                                                                                                                                      r ->
+                                                                                                                                                                                       r) ]))
+                                                                                                                                                                            (case
+                                                                                                                                                                               tup
+                                                                                                                                                                               [ (\l
+                                                                                                                                                                                   r ->
+                                                                                                                                                                                    l) ]))
                                                                                                                                                                          (unConstrData
                                                                                                                                                                             ds))
                                                                                                                                                                     (\ds ->
@@ -5787,14 +5841,16 @@
                                                                                                                             [  ]) ]) ])
                                                                                                          , (constr 1
                                                                                                               [  ]) ]) ])
-                                                                                                 (force
-                                                                                                    (force
-                                                                                                       sndPair)
-                                                                                                    tup))
-                                                                                              (force
-                                                                                                 (force
-                                                                                                    fstPair)
-                                                                                                 tup))
+                                                                                                 (case
+                                                                                                    tup
+                                                                                                    [ (\l
+                                                                                                        r ->
+                                                                                                         r) ]))
+                                                                                              (case
+                                                                                                 tup
+                                                                                                 [ (\l
+                                                                                                     r ->
+                                                                                                      l) ]))
                                                                                            (unConstrData
                                                                                               d))
                                                                                       (\ds ->
@@ -5878,14 +5934,16 @@
                                                                                                                           [  ]) ])
                                                                                                               , (constr 1
                                                                                                                    [  ]) ]) ])))
-                                                                                              (force
-                                                                                                 (force
-                                                                                                    sndPair)
-                                                                                                 tup))
-                                                                                           (force
-                                                                                              (force
-                                                                                                 fstPair)
-                                                                                              tup))
+                                                                                              (case
+                                                                                                 tup
+                                                                                                 [ (\l
+                                                                                                     r ->
+                                                                                                      r) ]))
+                                                                                           (case
+                                                                                              tup
+                                                                                              [ (\l
+                                                                                                  r ->
+                                                                                                   l) ]))
                                                                                         (unConstrData
                                                                                            d))
                                                                                    (\ds ->
@@ -5945,14 +6003,16 @@
                                                                                               , (constr 0
                                                                                                    [ (constr 1
                                                                                                         [  ]) ]) ])
-                                                                                           (force
-                                                                                              (force
-                                                                                                 sndPair)
-                                                                                              tup))
-                                                                                        (force
-                                                                                           (force
-                                                                                              fstPair)
-                                                                                           tup))
+                                                                                           (case
+                                                                                              tup
+                                                                                              [ (\l
+                                                                                                  r ->
+                                                                                                   r) ]))
+                                                                                        (case
+                                                                                           tup
+                                                                                           [ (\l
+                                                                                               r ->
+                                                                                                l) ]))
                                                                                      (unConstrData
                                                                                         d))
                                                                                 (\ds ->
@@ -5982,14 +6042,16 @@
                                                                                          (\ds ->
                                                                                             constr 1
                                                                                               [  ])
-                                                                                           (force
-                                                                                              (force
-                                                                                                 sndPair)
-                                                                                              tup))
-                                                                                        (force
-                                                                                           (force
-                                                                                              fstPair)
-                                                                                           tup))
+                                                                                           (case
+                                                                                              tup
+                                                                                              [ (\l
+                                                                                                  r ->
+                                                                                                   r) ]))
+                                                                                        (case
+                                                                                           tup
+                                                                                           [ (\l
+                                                                                               r ->
+                                                                                                l) ]))
                                                                                      (unConstrData
                                                                                         d))
                                                                                 (\ds ->
@@ -6033,17 +6095,19 @@
                                                                                          tups ->
                                                                                           case
                                                                                             (`$dFromData`
-                                                                                               (force
-                                                                                                  (force
-                                                                                                     fstPair)
-                                                                                                  tup))
+                                                                                               (case
+                                                                                                  tup
+                                                                                                  [ (\l
+                                                                                                      r ->
+                                                                                                       l) ]))
                                                                                             [ (\a ->
                                                                                                  case
                                                                                                    (`$dFromData`
-                                                                                                      (force
-                                                                                                         (force
-                                                                                                            sndPair)
-                                                                                                         tup))
+                                                                                                      (case
+                                                                                                         tup
+                                                                                                         [ (\l
+                                                                                                             r ->
+                                                                                                              r) ]))
                                                                                                    [ (\ipv ->
                                                                                                         case
                                                                                                           (s
@@ -6072,10 +6136,11 @@
                                                                                                        s
                                                                                                        tups))
                                                                                                  (`$dFromData`
-                                                                                                    (force
-                                                                                                       (force
-                                                                                                          sndPair)
-                                                                                                       tup))) ])
+                                                                                                    (case
+                                                                                                       tup
+                                                                                                       [ (\l
+                                                                                                           r ->
+                                                                                                            r) ]))) ])
                                                                                      , (constr 0
                                                                                           [ (constr 0
                                                                                                [  ]) ]) ]))))
@@ -6150,14 +6215,16 @@
                                                                           (\ds ->
                                                                              constr 1
                                                                                [  ])
-                                                                            (force
-                                                                               (force
-                                                                                  sndPair)
-                                                                               tup))
-                                                                         (force
-                                                                            (force
-                                                                               fstPair)
-                                                                            tup))
+                                                                            (case
+                                                                               tup
+                                                                               [ (\l
+                                                                                   r ->
+                                                                                    r) ]))
+                                                                         (case
+                                                                            tup
+                                                                            [ (\l
+                                                                                r ->
+                                                                                 l) ]))
                                                                       (unConstrData
                                                                          d))
                                                                  (\ds ->
@@ -6245,14 +6312,16 @@
                                                                                                     [  ]) ]) ])
                                                                                  , (constr 1
                                                                                       [  ]) ]) ])
-                                                                         (force
-                                                                            (force
-                                                                               sndPair)
-                                                                            tup))
-                                                                      (force
-                                                                         (force
-                                                                            fstPair)
-                                                                         tup))
+                                                                         (case
+                                                                            tup
+                                                                            [ (\l
+                                                                                r ->
+                                                                                 r) ]))
+                                                                      (case
+                                                                         tup
+                                                                         [ (\l
+                                                                             r ->
+                                                                              l) ]))
                                                                    (unConstrData
                                                                       d))
                                                               (\ds ->
@@ -6274,14 +6343,16 @@
                                                                     (\ds ->
                                                                        constr 1
                                                                          [])
-                                                                      (force
-                                                                         (force
-                                                                            sndPair)
-                                                                         tup))
-                                                                   (force
-                                                                      (force
-                                                                         fstPair)
-                                                                      tup))
+                                                                      (case
+                                                                         tup
+                                                                         [ (\l
+                                                                             r ->
+                                                                              r) ]))
+                                                                   (case
+                                                                      tup
+                                                                      [ (\l
+                                                                          r ->
+                                                                           l) ]))
                                                                 (unConstrData
                                                                    d))
                                                            (\ds ->
