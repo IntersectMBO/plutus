@@ -24,17 +24,17 @@ import Text.Tabular (Header (..), Properties (NoLine, SingleLine), Table (Table)
 import Text.Tabular.AsciiArt qualified as Tabular
 import UntypedPlutusCore (NamedDeBruijn)
 import UntypedPlutusCore.Core.Type qualified as UPLC
-import UntypedPlutusCore.ASTSize qualified as UPLC
+import UntypedPlutusCore.AstSize qualified as UPLC
 
 -- | Measure the given program's execution budget and size.
 measureProgram
   :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun ()
-  -> IO (ExCPU, ExMemory, UPLC.ASTSize)
+  -> IO (ExCPU, ExMemory, UPLC.AstSize)
 measureProgram program =
   runExceptT (runUPlcFull [program]) >>= \case
     Left err -> fail $ "Error evaluating UPLC program: " <> show err
     Right (_term, ExBudget exCpu exMem, _logs) ->
-      pure (exCpu, exMem, UPLC.programASTSize program)
+      pure (exCpu, exMem, UPLC.programAstSize program)
 
 {-| Compare the output file's contents against the golden file's contents
 after the given action has created the output file.
@@ -104,12 +104,12 @@ goldenUplcMeasurements name goldenPath outputPath act =
               )
 
 aggregateResults
-  :: [(ExCPU, ExMemory, UPLC.ASTSize)]
+  :: [(ExCPU, ExMemory, UPLC.AstSize)]
   -> (Integer, Integer, Integer)
 aggregateResults results =
   ( average (map (\(ExCPU i) -> fromSatInt i) cpus)
   , average (map (\(ExMemory m) -> fromSatInt m) mems)
-  , average (map UPLC.unASTSize sizes)
+  , average (map UPLC.unAstSize sizes)
   )
  where
   (cpus, mems, sizes) = unzip3 results
@@ -137,14 +137,14 @@ createDirectoriesAndWriteFile path bs = do
     dir
   Text.IO.writeFile path bs
 
-parseLine :: Text -> IO (ExCPU, ExMemory, UPLC.ASTSize)
+parseLine :: Text -> IO (ExCPU, ExMemory, UPLC.AstSize)
 parseLine ln =
   case Text.splitOn "\t" ln of
     [cpu, mem, size] ->
       (,,)
         <$> readCpu cpu
         <*> readMem mem
-        <*> readASTSize size
+        <*> readAstSize size
     _ -> throwIO . userError $ "Can't parse line: " <> show ln
  where
   readCpu :: Text -> IO ExCPU
@@ -161,9 +161,9 @@ parseLine ln =
       Nothing ->
         throwIO . userError $ "Can't parse Memory exec units: " <> show t
 
-  readASTSize :: Text -> IO UPLC.ASTSize
-  readASTSize t =
+  readAstSize :: Text -> IO UPLC.AstSize
+  readAstSize t =
     case readMaybe (Text.unpack t) of
-      Just (size :: Integer) -> pure (UPLC.ASTSize size)
+      Just (size :: Integer) -> pure (UPLC.AstSize size)
       Nothing ->
         throwIO . userError $ "Can't parse program size: " <> show t

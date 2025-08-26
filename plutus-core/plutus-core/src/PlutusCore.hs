@@ -115,10 +115,10 @@ module PlutusCore
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
-    , termASTSize
-    , typeASTSize
-    , kindASTSize
-    , programASTSize
+    , termAstSize
+    , typeAstSize
+    , kindAstSize
+    , programAstSize
     ) where
 
 
@@ -137,7 +137,7 @@ import PlutusCore.Normalize
 import PlutusCore.Parser
 import PlutusCore.Quote
 import PlutusCore.Rename
-import PlutusCore.ASTSize
+import PlutusCore.AstSize
 import PlutusCore.Subst
 import PlutusCore.TypeCheck as TypeCheck
 

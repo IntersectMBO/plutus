@@ -163,7 +163,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
     putStrLn ""
     putStrLn $ "startup    " ++ (budgetToString $ getSpent Cek.BStartup)
     putStrLn $ "compute    " ++ budgetToString totalComputeCost
-    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unASTSize $ UPLC.termASTSize term)
+    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unAstSize $ UPLC.termAstSize term)
     putStrLn ""
     case model of
         Default ->

@@ -95,7 +95,7 @@ library
     Data.MultiSet.Lens
     Data.Version.Extras
     PlutusCore
-    PlutusCore.ASTSize
+    PlutusCore.AstSize
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Arity
@@ -198,7 +198,7 @@ library
     Prettyprinter.Custom
     Universe
     UntypedPlutusCore
-    UntypedPlutusCore.ASTSize
+    UntypedPlutusCore.AstSize
     UntypedPlutusCore.Check.Scope
     UntypedPlutusCore.Check.Uniques
     UntypedPlutusCore.Contexts
@@ -509,7 +509,7 @@ library plutus-ir
   hs-source-dirs:  plutus-ir/src
   exposed-modules:
     PlutusIR
-    PlutusIR.ASTSize
+    PlutusIR.AstSize
     PlutusIR.Analysis.Builtins
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize

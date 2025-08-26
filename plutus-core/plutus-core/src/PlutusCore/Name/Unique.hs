@@ -122,9 +122,8 @@ instance Hashable Name where
   hashWithSalt s = hashWithSalt s . _nameUnique
 
 {-| A unique identifier
-We only make use of positive integral numbers. Using `Word` does not buy us much,
-because under- & over-flow could still happen. Using `Natural`s would be nice, but
-then we cannot use the faster `IntMap` implementation for the `UniqueMap`.
+This is normally a positive integral number, except
+in `LetFloatOut.topUnique` where we make use of a negative unique to signify top-level.
 -}
 newtype Unique = Unique {unUnique :: Int}
   deriving stock (Eq, Show, Ord, Lift)

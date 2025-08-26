@@ -10,7 +10,7 @@ import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.ASTSize (termASTSize)
+import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
                                                recordSimplification)
 
@@ -86,7 +86,7 @@ In the above example, the CSE candidates are `(2+x, "0.1")` and `(1+(2+x), "0.1"
 Note that `3+x` is not a CSE candidate, because it has two paths, and neither has a count
 greater than 1. `2+` is also not a CSE candidate, because it is workfree.
 
-The CSE candidates are then processed in descending order of their `termASTSize`s. For each CSE
+The CSE candidates are then processed in descending order of their `termAstSize`s. For each CSE
 candidate, we generate a fresh variable, create a LamAbs for it under its path, and substitute
 it for all occurrences in the original term whose paths are descendents (or self) of
 the candidate's path. The order is because a bigger expression may contain a small subexpression.
@@ -218,9 +218,9 @@ cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
       commonSubexprs =
-        -- Processed the common subexpressions in descending order of `termASTSize`.
+        -- Processed the common subexpressions in descending order of `termAstSize`.
         -- See Note [CSE].
-        sortOn (Down . termASTSize)
+        sortOn (Down . termAstSize)
           . fmap snd3
           -- A subexpression is common if the count is greater than 1.
           . filter ((> 1) . thd3)

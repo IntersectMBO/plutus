@@ -19,7 +19,7 @@ module PlutusTx.Test.Golden (
   goldenUPlc,
   goldenUPlcReadable,
   goldenBudget,
-  goldenASTSize,
+  goldenAstSize,
 
   -- * Golden evaluation testing
   goldenEvalCek,
@@ -51,7 +51,7 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (Doc, Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
                           PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
                           prettyPlcClassicSimple, prettyReadable, prettyReadableSimple)
-import PlutusCore.Test (TestNested, ToUPlc (..), goldenASTSize, goldenTPlc, goldenUPlc,
+import PlutusCore.Test (TestNested, ToUPlc (..), goldenAstSize, goldenTPlc, goldenUPlc,
                         goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM, ppCatch, rethrow,
                         runUPlcBudget)
 import PlutusIR.Core.Type (progTerm)
