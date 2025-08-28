@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingStrategies #-}
 
 module PlutusBenchmark.NaturalSort (naturalSort)
 where
