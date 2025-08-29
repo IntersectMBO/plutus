@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ImportQualifiedPost        #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
@@ -22,12 +23,13 @@
 
 module AuctionMintingPolicy where
 
+import PlutusTx
+import PlutusTx.Prelude
+
 import PlutusCore.Version (plcVersion110)
 import PlutusLedgerApi.V1.Value (flattenValue)
-import PlutusLedgerApi.V3 (PubKeyHash, ScriptContext (..), TxInfo (..))
+import PlutusLedgerApi.V3 (PubKeyHash, ScriptContext (..), TxInfo (..), mintValueMinted)
 import PlutusLedgerApi.V3.Contexts (ownCurrencySymbol, txSignedBy)
-import PlutusTx
-import PlutusTx.Prelude qualified as PlutusTx
 
 -- BLOCK1
 type AuctionMintingParams = PubKeyHash
@@ -39,13 +41,14 @@ auctionTypedMintingPolicy ::
   ScriptContext ->
   Bool
 auctionTypedMintingPolicy pkh _redeemer ctx =
-  txSignedBy txInfo pkh PlutusTx.&& mintedExactlyOneToken
+  txSignedBy txInfo pkh && mintedExactlyOneToken
   where
     txInfo = scriptContextTxInfo ctx
-    mintedExactlyOneToken = case flattenValue (txInfoMint txInfo) of
-      [(currencySymbol, _tokenName, quantity)] ->
-        currencySymbol PlutusTx.== ownCurrencySymbol ctx PlutusTx.&& quantity PlutusTx.== 1
-      _ -> False
+    mintedExactlyOneToken =
+      case flattenValue (mintValueMinted (txInfoMint txInfo)) of
+        [(currencySymbol, _tokenName, quantity)] ->
+          currencySymbol == ownCurrencySymbol ctx && quantity == 1
+        _ -> False
 -- BLOCK2
 {-# INLINEABLE auctionTypedMintingPolicy #-}
 
@@ -53,18 +56,18 @@ auctionUntypedMintingPolicy ::
   AuctionMintingParams ->
   BuiltinData ->
   BuiltinData ->
-  PlutusTx.BuiltinUnit
+  BuiltinUnit
 auctionUntypedMintingPolicy pkh redeemer ctx =
-  PlutusTx.check
+  check
     ( auctionTypedMintingPolicy
         pkh
-        (PlutusTx.unsafeFromBuiltinData redeemer)
-        (PlutusTx.unsafeFromBuiltinData ctx)
+        (unsafeFromBuiltinData redeemer)
+        (unsafeFromBuiltinData ctx)
     )
 
 auctionMintingPolicyScript ::
   AuctionMintingParams ->
-  CompiledCode (BuiltinData -> BuiltinData -> PlutusTx.BuiltinUnit)
+  CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
 auctionMintingPolicyScript pkh =
-  $$(PlutusTx.compile [||auctionUntypedMintingPolicy||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion110 pkh
+  $$(compile [||auctionUntypedMintingPolicy||])
+    `unsafeApplyCode` liftCode plcVersion110 pkh
