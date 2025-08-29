@@ -209,6 +209,9 @@ bls12_381_G1_neg-memory-arguments
 bls12_381_G1_scalarMul-cpu-arguments-intercept
 bls12_381_G1_scalarMul-cpu-arguments-slope
 bls12_381_G1_scalarMul-memory-arguments
+bls12_381_G1_multiScalarMul-cpu-arguments-intercept
+bls12_381_G1_multiScalarMul-cpu-arguments-slope
+bls12_381_G1_multiScalarMul-memory-arguments
 bls12_381_G1_uncompress-cpu-arguments
 bls12_381_G1_uncompress-memory-arguments
 bls12_381_G2_add-cpu-arguments
@@ -225,6 +228,9 @@ bls12_381_G2_neg-memory-arguments
 bls12_381_G2_scalarMul-cpu-arguments-intercept
 bls12_381_G2_scalarMul-cpu-arguments-slope
 bls12_381_G2_scalarMul-memory-arguments
+bls12_381_G2_multiScalarMul-cpu-arguments-intercept
+bls12_381_G2_multiScalarMul-cpu-arguments-slope
+bls12_381_G2_multiScalarMul-memory-arguments
 bls12_381_G2_uncompress-cpu-arguments
 bls12_381_G2_uncompress-memory-arguments
 bls12_381_finalVerify-cpu-arguments
