@@ -18,6 +18,9 @@ index-state:
   -- Bump this if you need newer packages from CHaP
   , cardano-haskell-packages 2025-07-02T14:54:39Z
 
+program-options
+  ghc-options: -Werror
+
 packages: cardano-constitution
           plutus-benchmark
           plutus-conformance
