@@ -22,7 +22,7 @@ import Data.Maybe
 import Data.SatInt
 import Test.QuickCheck.Gen
 import Test.Tasty
-import Test.Tasty.QuickCheck hiding (Some (..))
+import Test.Tasty.QuickCheck
 
 deriving newtype instance Foldable NonEmptyList  -- QuickCheck...
 
