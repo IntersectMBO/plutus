@@ -533,7 +533,9 @@ outOfBoundsErr x branches = fold
 instance AnnotateCaseBuiltin DefaultUni where
     annotateCaseBuiltin ty branches = case ty of
         TyBuiltin _ (SomeTypeIn DefaultUniUnit)    ->
-          Right $ map (, []) branches
+          case branches of
+            [x] -> Right $ [(x, [])]
+            _   -> Left "Casing on unit only allows exactly one branch"
         TyBuiltin _ (SomeTypeIn DefaultUniBool)    ->
           case branches of
             [f]    -> Right $ [(f, [])]
@@ -545,7 +547,7 @@ instance AnnotateCaseBuiltin DefaultUni where
           case branches of
             [cons]      -> Right [(cons, [argTy, listTy])]
             [cons, nil] -> Right [(cons, [argTy, listTy]), (nil, [])]
-            _           -> Left $ "Casing on list requires exactly one branch or two branches"
+            _           -> Left "Casing on list requires exactly one branch or two branches"
         (TyApp _ (TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoPair)) lTyArg) rTyArg) ->
           case branches of
             [f] -> Right [(f, [lTyArg, rTyArg])]
@@ -555,7 +557,7 @@ instance AnnotateCaseBuiltin DefaultUni where
 instance CaseBuiltin DefaultUni where
     caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of
         DefaultUniUnit
-          | 0 < len   -> Right $ HeadOnly $ branches Vector.! 0
+          | 1 == len   -> Right $ HeadOnly $ branches Vector.! 0
           | otherwise -> Left $ outOfBoundsErr someVal branches
         DefaultUniBool -> case x of
             -- We allow there to be only one branch as long as the scrutinee is 'False'.
