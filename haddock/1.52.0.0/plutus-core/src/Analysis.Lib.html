@@ -1,0 +1,2855 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Analysis.Lib</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Numeric.Natural.html"
+	><span class="hs-identifier"
+	  >Numeric.Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier"
+	  >Natural</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier"
+	  >BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier"
+	  >mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyPlcReadable"
+	><span class="hs-identifier"
+	  >prettyPlcReadable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html#freshName"
+	><span class="hs-identifier"
+	  >freshName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html#runQuote"
+	><span class="hs-identifier"
+	  >runQuote</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>def</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.Extras</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html#TestNested"
+	><span class="hs-identifier"
+	  >TestNested</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html#nestedGoldenVsDoc"
+	><span class="hs-identifier"
+	  >nestedGoldenVsDoc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Purity.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Purity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Purity.html#termEvaluationOrder"
+	><span class="hs-identifier"
+	  >termEvaluationOrder</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><a href="Analysis.Lib.html#builtinSemantics"
+	><span class="hs-identifier hs-type"
+	  >builtinSemantics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="builtinSemantics"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinSemantics :: BuiltinSemanticsVariant DefaultFun
+</span
+	  ><a href="Analysis.Lib.html#builtinSemantics"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinSemantics</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><a href="Analysis.Lib.html#goldenEvalOrder"
+	><span class="hs-identifier hs-type"
+	  >goldenEvalOrder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html#TestNested"
+	><span class="hs-identifier hs-type"
+	  >TestNested</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="goldenEvalOrder"
+      ><span class="annot"
+	><span class="annottext"
+	  >goldenEvalOrder :: String -&gt; Term Name DefaultUni DefaultFun () -&gt; TestNested
+</span
+	  ><a href="Analysis.Lib.html#goldenEvalOrder"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goldenEvalOrder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679260886"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679260886"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679260887"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679260887"
+	  ><span class="hs-identifier hs-var"
+	    >tm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679260891"
+      ><span class="annot"
+	><span class="annottext"
+	  >order :: EvalOrder Name DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679260891"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >order</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; EvalOrder Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun a.
+ToBuiltinMeaning uni fun =&gt;
+BuiltinSemanticsVariant fun
+-&gt; Term name uni fun a -&gt; EvalOrder name uni fun a
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Purity.html#termEvaluationOrder"
+	><span class="hs-identifier hs-var"
+	  >termEvaluationOrder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="Analysis.Lib.html#builtinSemantics"
+	><span class="hs-identifier hs-var"
+	  >builtinSemantics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679260887"
+	><span class="hs-identifier hs-var"
+	  >tm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; Doc Any -&gt; TestNested
+forall ann. String -&gt; String -&gt; Doc ann -&gt; TestNested
+</span
+	><a href="../../plutus-core/src/Test.Tasty.Extras.html#nestedGoldenVsDoc"
+	><span class="hs-identifier hs-var"
+	  >nestedGoldenVsDoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679260886"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOrder Name DefaultUni DefaultFun () -&gt; Doc Any
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyPlcReadable"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcReadable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOrder Name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679260891"
+	><span class="hs-identifier hs-var"
+	  >order</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >--------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- Terms for testing -----------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="Analysis.Lib.html#termIfThenElse"
+	><span class="hs-identifier hs-type"
+	  >termIfThenElse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="termIfThenElse"
+      ><span class="annot"
+	><span class="annottext"
+	  >termIfThenElse :: Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="Analysis.Lib.html#termIfThenElse"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termIfThenElse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Force"
+	><span class="hs-identifier hs-var"
+	  >Force</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultFun -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; fun -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-var"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IfThenElse"
+	><span class="hs-identifier hs-var"
+	  >IfThenElse</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Term Name DefaultUni DefaultFun ()
+</span
+	><a href="Analysis.Lib.html#termVar"
+	><span class="hs-identifier hs-var"
+	  >termVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Term Name DefaultUni DefaultFun ()
+</span
+	><a href="Analysis.Lib.html#termVar"
+	><span class="hs-identifier hs-var"
+	  >termVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Term Name DefaultUni DefaultFun ()
+</span
+	><a href="Analysis.Lib.html#termVar"
+	><span class="hs-identifier hs-var"
+	  >termVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>3</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><a href="Analysis.Lib.html#termVar"
+	><span class="hs-identifier hs-type"
+	  >termVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="termVar"
+      ><span class="annot"
+	><span class="annottext"
+	  >termVar :: Natural -&gt; Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="Analysis.Lib.html#termVar"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679260898"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621679260898"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Name -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Unique -&gt; Name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-var"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;var&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#pack"
+	><span class="hs-identifier hs-var"
+	  >Text.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621679260898"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-var"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621679260898"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-comment"
+      >-- that the computation is lazy</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-comment"
+      >-- [ [ n m ] (constr 1 [undefined]) ]</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><a href="Analysis.Lib.html#dangerTerm"
+	><span class="hs-identifier hs-type"
+	  >dangerTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="dangerTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >dangerTerm :: Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="Analysis.Lib.html#dangerTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dangerTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote (Term Name DefaultUni DefaultFun ())
+-&gt; Term Name DefaultUni DefaultFun ()
+forall a. Quote a -&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#runQuote"
+	><span class="hs-identifier hs-var"
+	  >runQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote (Term Name DefaultUni DefaultFun ())
+ -&gt; Term Name DefaultUni DefaultFun ())
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+-&gt; Term Name DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679260905"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679260905"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; QuoteT Identity Name
+forall (m :: * -&gt; *). MonadQuote m =&gt; Text -&gt; m Name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#freshName"
+	><span class="hs-identifier hs-var"
+	  >freshName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679260906"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679260906"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; QuoteT Identity Name
+forall (m :: * -&gt; *). MonadQuote m =&gt; Text -&gt; m Name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#freshName"
+	><span class="hs-identifier hs-var"
+	  >freshName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;m&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- The UPLC term type is strict, so it's hard to hide an undefined in there</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Take advantage of the fact that it's still using lazy lists for constr</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- arguments for now.</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+forall a. a -&gt; QuoteT Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term Name DefaultUni DefaultFun ()
+ -&gt; Quote (Term Name DefaultUni DefaultFun ()))
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Name -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679260905"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Name -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679260906"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Word64
+-&gt; [Term Name DefaultUni DefaultFun ()]
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Word64 -&gt; [Term name uni fun ann] -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-var"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+forall a. HasCallStack =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#undefined"
+	><span class="hs-identifier hs-var"
+	  >undefined</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><a href="Analysis.Lib.html#letFun"
+	><span class="hs-identifier hs-type"
+	  >letFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="letFun"
+      ><span class="annot"
+	><span class="annottext"
+	  >letFun :: Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="Analysis.Lib.html#letFun"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >letFun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote (Term Name DefaultUni DefaultFun ())
+-&gt; Term Name DefaultUni DefaultFun ()
+forall a. Quote a -&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#runQuote"
+	><span class="hs-identifier hs-var"
+	  >runQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote (Term Name DefaultUni DefaultFun ())
+ -&gt; Term Name DefaultUni DefaultFun ())
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+-&gt; Term Name DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679260910"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679260910"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; QuoteT Identity Name
+forall (m :: * -&gt; *). MonadQuote m =&gt; Text -&gt; m Name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#freshName"
+	><span class="hs-identifier hs-var"
+	  >freshName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679260916"
+      ><span class="annot"
+	><span class="annottext"
+	  >intConst :: Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679260916"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >intConst</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Integer -&gt; Term Name DefaultUni DefaultFun ()
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+forall a. a -&gt; QuoteT Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term Name DefaultUni DefaultFun ()
+ -&gt; Quote (Term Name DefaultUni DefaultFun ()))
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Name
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679260910"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+-&gt; [Term Name DefaultUni DefaultFun ()]
+-&gt; Term Name DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier hs-var"
+	  >mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Name -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679260910"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679260916"
+	><span class="hs-identifier hs-var"
+	  >intConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679260916"
+	><span class="hs-identifier hs-var"
+	  >intConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultFun -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; fun -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-var"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AddInteger"
+	><span class="hs-identifier hs-var"
+	  >AddInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="Analysis.Lib.html#letImpure"
+	><span class="hs-identifier hs-type"
+	  >letImpure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="letImpure"
+      ><span class="annot"
+	><span class="annottext"
+	  >letImpure :: Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="Analysis.Lib.html#letImpure"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >letImpure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote (Term Name DefaultUni DefaultFun ())
+-&gt; Term Name DefaultUni DefaultFun ()
+forall a. Quote a -&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#runQuote"
+	><span class="hs-identifier hs-var"
+	  >runQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote (Term Name DefaultUni DefaultFun ())
+ -&gt; Term Name DefaultUni DefaultFun ())
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+-&gt; Term Name DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679260920"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679260920"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; QuoteT Identity Name
+forall (m :: * -&gt; *). MonadQuote m =&gt; Text -&gt; m Name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#freshName"
+	><span class="hs-identifier hs-var"
+	  >freshName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679260921"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679260921"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; QuoteT Identity Name
+forall (m :: * -&gt; *). MonadQuote m =&gt; Text -&gt; m Name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#freshName"
+	><span class="hs-identifier hs-var"
+	  >freshName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;m&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679260926"
+      ><span class="annot"
+	><span class="annottext"
+	  >intConst :: Term Name DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679260926"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >intConst</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Integer -&gt; Term Name DefaultUni DefaultFun ()
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+forall a. a -&gt; QuoteT Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term Name DefaultUni DefaultFun ()
+ -&gt; Quote (Term Name DefaultUni DefaultFun ()))
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Quote (Term Name DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Name
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679260920"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+-&gt; [Term Name DefaultUni DefaultFun ()]
+-&gt; Term Name DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier hs-var"
+	  >mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Name -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679260920"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679260926"
+	><span class="hs-identifier hs-var"
+	  >intConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679260926"
+	><span class="hs-identifier hs-var"
+	  >intConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- don't need this to be well-scoped</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+-&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Name -&gt; Term Name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679260921"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679260926"
+	><span class="hs-identifier hs-var"
+	  >intConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

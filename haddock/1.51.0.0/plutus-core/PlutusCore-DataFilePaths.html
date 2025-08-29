@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.DataFilePaths</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.DataFilePaths.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.DataFilePaths</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Various file paths used in plutus-core, currently all to do with the cost
+ model.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:costModelDataDir"
+	      >costModelDataDir</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinCostModelFileA"
+	      >builtinCostModelFileA</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinCostModelFileB"
+	      >builtinCostModelFileB</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinCostModelFileC"
+	      >builtinCostModelFileC</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:latestBuiltinCostModelFile"
+	      >latestBuiltinCostModelFile</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cekMachineCostsFileA"
+	      >cekMachineCostsFileA</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cekMachineCostsFileB"
+	      >cekMachineCostsFileB</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cekMachineCostsFileC"
+	      >cekMachineCostsFileC</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:latestMachineCostsFile"
+	      >latestMachineCostsFile</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:rModelFile"
+	      >rModelFile</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:benchingResultsFile"
+	      >benchingResultsFile</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:costModelDataDir" class="def"
+	    >costModelDataDir</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#costModelDataDir" class="link"
+	    >Source</a
+	    > <a href="#v:costModelDataDir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinCostModelFileA" class="def"
+	    >builtinCostModelFileA</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#builtinCostModelFileA" class="link"
+	    >Source</a
+	    > <a href="#v:builtinCostModelFileA" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinCostModelFileB" class="def"
+	    >builtinCostModelFileB</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#builtinCostModelFileB" class="link"
+	    >Source</a
+	    > <a href="#v:builtinCostModelFileB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinCostModelFileC" class="def"
+	    >builtinCostModelFileC</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#builtinCostModelFileC" class="link"
+	    >Source</a
+	    > <a href="#v:builtinCostModelFileC" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:latestBuiltinCostModelFile" class="def"
+	    >latestBuiltinCostModelFile</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#latestBuiltinCostModelFile" class="link"
+	    >Source</a
+	    > <a href="#v:latestBuiltinCostModelFile" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cekMachineCostsFileA" class="def"
+	    >cekMachineCostsFileA</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#cekMachineCostsFileA" class="link"
+	    >Source</a
+	    > <a href="#v:cekMachineCostsFileA" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cekMachineCostsFileB" class="def"
+	    >cekMachineCostsFileB</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#cekMachineCostsFileB" class="link"
+	    >Source</a
+	    > <a href="#v:cekMachineCostsFileB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cekMachineCostsFileC" class="def"
+	    >cekMachineCostsFileC</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#cekMachineCostsFileC" class="link"
+	    >Source</a
+	    > <a href="#v:cekMachineCostsFileC" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:latestMachineCostsFile" class="def"
+	    >latestMachineCostsFile</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#latestMachineCostsFile" class="link"
+	    >Source</a
+	    > <a href="#v:latestMachineCostsFile" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rModelFile" class="def"
+	    >rModelFile</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#rModelFile" class="link"
+	    >Source</a
+	    > <a href="#v:rModelFile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The file containing the R models: only needed for cost-model-test.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:benchingResultsFile" class="def"
+	    >benchingResultsFile</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/PlutusCore.DataFilePaths.html#benchingResultsFile" class="link"
+	    >Source</a
+	    > <a href="#v:benchingResultsFile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The file containing the benchmark results for the built-in functions: only
+ needed for cost-model-test.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

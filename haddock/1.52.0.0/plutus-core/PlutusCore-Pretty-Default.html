@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Pretty.Default</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Pretty.Default.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Pretty.Default</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:prettyPlc"
+	      >prettyPlc</a
+	      > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a &#8658; a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:displayPlc"
+	      >displayPlc</a
+	      > &#8759; (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a, <a href="PlutusPrelude.html#t:Render" title="PlutusPrelude"
+	      >Render</a
+	      > str) &#8658; a &#8594; str</li
+	    ><li class="src short"
+	    ><a href="#v:prettyPlcSimple"
+	      >prettyPlcSimple</a
+	      > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a &#8658; a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:displayPlcSimple"
+	      >displayPlcSimple</a
+	      > &#8759; (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a, <a href="PlutusPrelude.html#t:Render" title="PlutusPrelude"
+	      >Render</a
+	      > str) &#8658; a &#8594; str</li
+	    ><li class="src short"
+	    ><a href="#v:displayPlcCondensedErrorClassic"
+	      >displayPlcCondensedErrorClassic</a
+	      > &#8759; (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a, <a href="PlutusPrelude.html#t:Render" title="PlutusPrelude"
+	      >Render</a
+	      > str) &#8658; a &#8594; str</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyPlc" class="def"
+	    >prettyPlc</a
+	    > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a &#8658; a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusCore.Pretty.Default.html#prettyPlc" class="link"
+	    >Source</a
+	    > <a href="#v:prettyPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print a value in the default mode using the classic view.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:displayPlc" class="def"
+	    >displayPlc</a
+	    > &#8759; (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a, <a href="PlutusPrelude.html#t:Render" title="PlutusPrelude"
+	    >Render</a
+	    > str) &#8658; a &#8594; str <a href="src/PlutusCore.Pretty.Default.html#displayPlc" class="link"
+	    >Source</a
+	    > <a href="#v:displayPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Render a value to <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > in the default mode using the classic view.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyPlcSimple" class="def"
+	    >prettyPlcSimple</a
+	    > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a &#8658; a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusCore.Pretty.Default.html#prettyPlcSimple" class="link"
+	    >Source</a
+	    > <a href="#v:prettyPlcSimple" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print a value in the debug mode using the classic view.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:displayPlcSimple" class="def"
+	    >displayPlcSimple</a
+	    > &#8759; (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a, <a href="PlutusPrelude.html#t:Render" title="PlutusPrelude"
+	    >Render</a
+	    > str) &#8658; a &#8594; str <a href="src/PlutusCore.Pretty.Default.html#displayPlcSimple" class="link"
+	    >Source</a
+	    > <a href="#v:displayPlcSimple" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Render a value to <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > in the debug mode using the classic view.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:displayPlcCondensedErrorClassic" class="def"
+	    >displayPlcCondensedErrorClassic</a
+	    > &#8759; (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a, <a href="PlutusPrelude.html#t:Render" title="PlutusPrelude"
+	    >Render</a
+	    > str) &#8658; a &#8594; str <a href="src/PlutusCore.Pretty.Default.html#displayPlcCondensedErrorClassic" class="link"
+	    >Source</a
+	    > <a href="#v:displayPlcCondensedErrorClassic" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Render an error to <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > in the condensed manner using the classic view.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
