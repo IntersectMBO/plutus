@@ -39,11 +39,11 @@ library docusaurus-code
     BasicValidators
 
   build-depends:
-    , base               >=4.9   && <5
-    , plutus-core        ^>=1.52
-    , plutus-ledger-api  ^>=1.52
-    , plutus-tx          ^>=1.52
-    , plutus-tx-plugin   ^>=1.52
+    , base               >=4.9 && <5
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
 
 executable example-cip57
   import:           lang, ghc-version-support, os-support
@@ -52,11 +52,11 @@ executable example-cip57
   default-language: Haskell2010
   other-modules:    Paths_docusaurus_examples
   build-depends:
-    , base               ^>=4.18
+    , base
     , containers
-    , plutus-ledger-api  ^>=1.52
-    , plutus-tx          ^>=1.52
-    , plutus-tx-plugin   ^>=1.52
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
 
 executable example-evaluation
   import:           lang, ghc-version-support, os-support
@@ -65,10 +65,31 @@ executable example-evaluation
   default-language: Haskell2010
   other-modules:    Paths_docusaurus_examples
   build-depends:
-    , base                         ^>=4.18
-    , plutus-ledger-api            ^>=1.52
-    , plutus-tx                    ^>=1.52
-    , plutus-tx-plugin             ^>=1.52
+    , base
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
+    , plutus-tx:plutus-tx-testlib
+    , text
+
+  ghc-options:
+    -Wno-missing-signatures -fno-full-laziness
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -fno-spec-constr -fno-specialise -fno-strictness
+    -fno-unbox-small-strict-fields -fno-unbox-strict-fields
+
+executable example-builtin-array
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Builtin/Array/Main.hs
+  hs-source-dirs:   static/code
+  default-language: Haskell2010
+  other-modules:    Paths_docusaurus_examples
+  build-depends:
+    , base
+    , colourista
+    , plutus-core
+    , plutus-tx
+    , plutus-tx-plugin
     , plutus-tx:plutus-tx-testlib
     , text
 
@@ -85,9 +106,9 @@ executable quickstart
   default-language: Haskell2010
   other-modules:    AuctionValidator
   build-depends:
-    , base               >=4.9   && <5
+    , base
     , base16-bytestring
     , bytestring
-    , plutus-ledger-api  ^>=1.52
-    , plutus-tx          ^>=1.52
-    , plutus-tx-plugin   ^>=1.52
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
