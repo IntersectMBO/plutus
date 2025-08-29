@@ -6,7 +6,7 @@ module PlutusBenchmark.Casing where
 import Control.Monad.Except
 import Data.Either
 import PlutusBenchmark.Common (Term)
-import PlutusCore (DefaultUni (..), SomeTypeIn (..), Type (..), freshName, runQuote, someValueOf)
+import PlutusCore (DefaultUni (..), SomeTypeIn (..), Type (..), freshName, runQuote)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc
@@ -18,37 +18,37 @@ debruijnTermUnsafe =
     fromRight (Prelude.error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm
 
 nonMatchingBranch :: TermLike term tyname name UPLC.DefaultUni UPLC.DefaultFun => term ()
-nonMatchingBranch = constant () $ someValueOf DefaultUniInteger $ -1
+nonMatchingBranch = mkConstant @Integer () (-1)
 
 -- Note that we don't need to generate casings for the none maching branches because
 -- only matching branches get executed.
 -- | Generate a term that does a lot of casing on boolean
 casingBool :: Integer -> Term
-casingBool 0 = constant () $ someValueOf DefaultUniInteger 42
+casingBool 0 = mkConstant @Integer () 42
 casingBool i
   | i `mod` 2 == 0 =
     kase ()
       (TyBuiltin () (SomeTypeIn DefaultUniInteger))
-      (constant () $ someValueOf DefaultUniBool False)
+      (mkConstant @Bool () False)
       [casingBool (i-1), nonMatchingBranch]
   | otherwise =
      kase ()
        (TyBuiltin () (SomeTypeIn DefaultUniInteger))
-       (constant () $ someValueOf DefaultUniBool True)
+       (mkConstant @Bool () True)
        [nonMatchingBranch, casingBool (i-1)]
 
 -- | Generate a term that does a lot of boolean casing with single branch.
 casingBoolOneBranch :: Integer -> Term
-casingBoolOneBranch 0 = constant () $ someValueOf DefaultUniInteger 42
+casingBoolOneBranch 0 = mkConstant @Integer () 42
 casingBoolOneBranch i =
   kase ()
     (TyBuiltin () (SomeTypeIn DefaultUniInteger))
-    (constant () $ someValueOf DefaultUniBool False)
+    (mkConstant @Bool () False)
     [casingBoolOneBranch (i-1)]
 
 -- | Generate a term that does a lot of integer casing.
 casingInteger :: Integer -> Term
-casingInteger 0 = constant () $ someValueOf DefaultUniInteger 42
+casingInteger 0 = mkConstant @Integer () 42
 casingInteger i =
   let
     numBranches = 5
@@ -56,7 +56,7 @@ casingInteger i =
     currentI = i `mod` numBranches
   in kase ()
        (TyBuiltin () (SomeTypeIn DefaultUniInteger))
-       (constant () $ someValueOf DefaultUniInteger currentI)
+       (mkConstant @Integer () currentI)
        (replicate (fromIntegral currentI) nonMatchingBranch
         <> [casingInteger (i-1)]
         <> replicate (fromIntegral $ numBranches - 1 - currentI) nonMatchingBranch
@@ -78,11 +78,7 @@ listConsHandler f = runQuote $ do
 casingList :: Integer -> Term
 casingList i = debruijnTermUnsafe $ go i arg
   where
-    arg =
-      constant () $
-        someValueOf (DefaultUniApply DefaultUniProtoList DefaultUniInteger) $
-          replicate (fromIntegral i) 42
-
+    arg = mkConstant @[Integer] () $ replicate (fromIntegral i) 42
     go 0 t = t
     go n t =
       kase ()
@@ -95,8 +91,8 @@ casingListOneBranch :: Integer -> Term
 casingListOneBranch i = debruijnTermUnsafe $ go i arg
   where
     arg =
-      constant () $
-        someValueOf (DefaultUniApply DefaultUniProtoList DefaultUniInteger) $ replicate (fromIntegral i) 42
+      mkConstant @[Integer] () $
+        replicate (fromIntegral i) 42
 
     go 0 t = t
     go n t =
@@ -110,12 +106,10 @@ casingListOneBranch i = debruijnTermUnsafe $ go i arg
 pairFstSnd :: Integer -> Term
 pairFstSnd i =
   debruijnTermUnsafe $
-    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+    foldr (const comp) (mkConstant @Integer () 0) [1..i]
   where
     intTy = PLC.mkTyBuiltin @_ @Integer ()
-    pairVal =
-      constant () $
-        someValueOf (PLC.DefaultUniPair DefaultUniInteger DefaultUniInteger) (42, 42)
+    pairVal = mkConstant @(Integer, Integer) () (42, 42)
     comp t = runQuote $ do
       x <- freshName "x"
       y <- freshName "y"
@@ -133,12 +127,10 @@ pairFstSnd i =
 pairCasing :: Integer -> Term
 pairCasing i =
   debruijnTermUnsafe $
-    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+    foldr (const comp) (mkConstant @Integer () 0) [1..i]
   where
     intTy = PLC.mkTyBuiltin @_ @Integer ()
-    pairVal =
-      constant () $
-        someValueOf (PLC.DefaultUniPair DefaultUniInteger DefaultUniInteger) (42, 42)
+    pairVal = mkConstant @(Integer, Integer) () (42, 42)
     comp t = runQuote $ do
       x <- freshName "x"
       y <- freshName "y"
@@ -159,10 +151,10 @@ pairCasing i =
 chooseUnit :: Integer -> Term
 chooseUnit i =
   debruijnTermUnsafe $
-    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+    foldr (const comp) (mkConstant @Integer () 0) [1..i]
   where
     intTy = PLC.mkTyBuiltin @_ @Integer ()
-    unitVal = constant () $ someValueOf PLC.DefaultUniUnit ()
+    unitVal = mkConstant () ()
     comp t =
       apply ()
         (apply () (tyInst () (builtin () PLC.ChooseUnit) intTy) unitVal)
@@ -172,10 +164,10 @@ chooseUnit i =
 unitCasing :: Integer -> Term
 unitCasing i =
   debruijnTermUnsafe $
-    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+    foldr (const comp) (mkConstant @Integer () 0) [1..i]
   where
     intTy = PLC.mkTyBuiltin @_ @Integer ()
-    unitVal = constant () $ someValueOf PLC.DefaultUniUnit ()
+    unitVal = mkConstant () ()
     comp t =
       kase () intTy unitVal [t]
 
@@ -183,12 +175,10 @@ unitCasing i =
 headList :: Integer -> Term
 headList i =
   debruijnTermUnsafe $
-    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+    foldr (const comp) (mkConstant @Integer () 0) [1..i]
   where
     intTy = PLC.mkTyBuiltin @_ @Integer ()
-    listVal =
-      constant () $
-        someValueOf (PLC.DefaultUniList DefaultUniInteger) [1, 2, 3]
+    listVal = mkConstant @[Integer] () [1, 2, 3]
     comp t = runQuote $ do
       x <- freshName "x"
       pure $
@@ -200,13 +190,11 @@ headList i =
 headListCasing :: Integer -> Term
 headListCasing i =
   debruijnTermUnsafe $
-    foldr (const comp) (constant () $ someValueOf DefaultUniInteger 0) [1..i]
+    foldr (const comp) (mkConstant @Integer () 0) [1..i]
   where
     intTy = PLC.mkTyBuiltin @_ @Integer ()
     intListTy = PLC.mkTyBuiltin @_ @[Integer] ()
-    listVal =
-      constant () $
-        someValueOf (PLC.DefaultUniList DefaultUniInteger) [1, 2, 3]
+    listVal = mkConstant @[Integer] () [1, 2, 3]
     comp t = runQuote $ do
       x <- freshName "x"
       y <- freshName "y"
