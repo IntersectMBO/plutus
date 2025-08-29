@@ -1156,8 +1156,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !ds : integer = fstPair {integer} {list data} tup
-                 !ds : list data = sndPair {integer} {list data} tup
+                 !ds : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !ds : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                Nothing {bytestring})
             (\(ds : Unit) ->
@@ -1193,8 +1198,13 @@
               (\(ds : Unit) ->
                  let
                    !tup : pair integer (list data) = unConstrData d
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
+                   !index : integer
+                     = case integer tup [(\(l : integer) (r : list data) -> l)]
+                   !args : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  case
                    (all dead. Maybe (Tuple2 a b))
@@ -1281,8 +1291,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !ds : integer = fstPair {integer} {list data} tup
-                 !ds : list data = sndPair {integer} {list data} tup
+                 !ds : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !ds : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                Nothing {integer})
             (\(ds : Unit) ->
@@ -1395,8 +1410,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe bool)
@@ -1429,8 +1449,13 @@
               (\(ds : Unit) ->
                  let
                    !tup : pair integer (list data) = unConstrData d
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
+                   !index : integer
+                     = case integer tup [(\(l : integer) (r : list data) -> l)]
+                   !args : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  case
                    (all dead. Maybe (Extended a))
@@ -1504,8 +1529,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe GovernanceActionId)
@@ -1589,8 +1619,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                  !fail :
                     unit -> Maybe Credential
                    = \(ds : unit) ->
@@ -1669,8 +1704,13 @@
               (\(ds : Unit) ->
                  let
                    !tup : pair integer (list data) = unConstrData d
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
+                   !index : integer
+                     = case integer tup [(\(l : integer) (r : list data) -> l)]
+                   !args : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  case
                    (all dead. Maybe (Maybe a))
@@ -1729,7 +1769,8 @@
                       [ (\(tup : pair data data)
                           (tups : list (pair data data)) ->
                            let
-                             !a : data = fstPair {data} {data} tup
+                             !a : data
+                               = case data tup [(\(l : data) (r : data) -> l)]
                            in
                            Maybe_match
                              {k}
@@ -1738,7 +1779,11 @@
                              (\(a : k) ->
                                 /\dead ->
                                   let
-                                    !a : data = sndPair {data} {data} tup
+                                    !a : data
+                                      = case
+                                          data
+                                          tup
+                                          [(\(l : data) (r : data) -> r)]
                                   in
                                   Maybe_match
                                     {v}
@@ -1771,7 +1816,11 @@
                              (/\dead ->
                                 let
                                   !ds : Maybe v
-                                    = `$dFromData` (sndPair {data} {data} tup)
+                                    = `$dFromData`
+                                        (case
+                                           data
+                                           tup
+                                           [(\(l : data) (r : data) -> r)])
                                   !ds : Maybe (List (Tuple2 k v)) = go tups
                                 in
                                 Nothing {List (Tuple2 k v)})
@@ -1785,8 +1834,16 @@
                 (\(ds : Unit) ->
                    let
                      !tup : pair integer (list data) = unConstrData d
-                     !ds : integer = fstPair {integer} {list data} tup
-                     !ds : list data = sndPair {integer} {list data} tup
+                     !ds : integer
+                       = case
+                           integer
+                           tup
+                           [(\(l : integer) (r : list data) -> l)]
+                     !ds : list data
+                       = case
+                           (list data)
+                           tup
+                           [(\(l : integer) (r : list data) -> r)]
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
                 (\(ds : Unit) ->
@@ -1857,8 +1914,16 @@
                 (\(ds : Unit) ->
                    let
                      !tup : pair integer (list data) = unConstrData d
-                     !ds : integer = fstPair {integer} {list data} tup
-                     !ds : list data = sndPair {integer} {list data} tup
+                     !ds : integer
+                       = case
+                           integer
+                           tup
+                           [(\(l : integer) (r : list data) -> l)]
+                     !ds : list data
+                       = case
+                           (list data)
+                           tup
+                           [(\(l : integer) (r : list data) -> r)]
                    in
                    Nothing {List a})
                 (\(ds : Unit) ->
@@ -1911,8 +1976,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe ProposalProcedure)
@@ -2017,19 +2087,28 @@
                                                                                    ds
                                                                              !index :
                                                                                 integer
-                                                                               = fstPair
-                                                                                   {integer}
-                                                                                   {list
-                                                                                      data}
+                                                                               = case
+                                                                                   integer
                                                                                    tup
+                                                                                   [ (\(l :
+                                                                                          integer)
+                                                                                       (r :
+                                                                                          list
+                                                                                            data) ->
+                                                                                        l) ]
                                                                              !args :
                                                                                 list
                                                                                   data
-                                                                               = sndPair
-                                                                                   {integer}
-                                                                                   {list
-                                                                                      data}
+                                                                               = case
+                                                                                   (list
+                                                                                      data)
                                                                                    tup
+                                                                                   [ (\(l :
+                                                                                          integer)
+                                                                                       (r :
+                                                                                          list
+                                                                                            data) ->
+                                                                                        r) ]
                                                                              !fail :
                                                                                 unit ->
                                                                                 Maybe
@@ -2172,19 +2251,28 @@
                                                                                                                                     ds
                                                                                                                               !index :
                                                                                                                                  integer
-                                                                                                                                = fstPair
-                                                                                                                                    {integer}
-                                                                                                                                    {list
-                                                                                                                                       data}
+                                                                                                                                = case
+                                                                                                                                    integer
                                                                                                                                     tup
+                                                                                                                                    [ (\(l :
+                                                                                                                                           integer)
+                                                                                                                                        (r :
+                                                                                                                                           list
+                                                                                                                                             data) ->
+                                                                                                                                         l) ]
                                                                                                                               !args :
                                                                                                                                  list
                                                                                                                                    data
-                                                                                                                                = sndPair
-                                                                                                                                    {integer}
-                                                                                                                                    {list
-                                                                                                                                       data}
+                                                                                                                                = case
+                                                                                                                                    (list
+                                                                                                                                       data)
                                                                                                                                     tup
+                                                                                                                                    [ (\(l :
+                                                                                                                                           integer)
+                                                                                                                                        (r :
+                                                                                                                                           list
+                                                                                                                                             data) ->
+                                                                                                                                         r) ]
                                                                                                                             in
                                                                                                                             case
                                                                                                                               (all dead.
@@ -3039,19 +3127,28 @@
                                                                                                                                     ds
                                                                                                                               !index :
                                                                                                                                  integer
-                                                                                                                                = fstPair
-                                                                                                                                    {integer}
-                                                                                                                                    {list
-                                                                                                                                       data}
+                                                                                                                                = case
+                                                                                                                                    integer
                                                                                                                                     tup
+                                                                                                                                    [ (\(l :
+                                                                                                                                           integer)
+                                                                                                                                        (r :
+                                                                                                                                           list
+                                                                                                                                             data) ->
+                                                                                                                                         l) ]
                                                                                                                               !args :
                                                                                                                                  list
                                                                                                                                    data
-                                                                                                                                = sndPair
-                                                                                                                                    {integer}
-                                                                                                                                    {list
-                                                                                                                                       data}
+                                                                                                                                = case
+                                                                                                                                    (list
+                                                                                                                                       data)
                                                                                                                                     tup
+                                                                                                                                    [ (\(l :
+                                                                                                                                           integer)
+                                                                                                                                        (r :
+                                                                                                                                           list
+                                                                                                                                             data) ->
+                                                                                                                                         r) ]
                                                                                                                             in
                                                                                                                             case
                                                                                                                               (all dead.
@@ -3507,7 +3604,8 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
                  !fail : unit -> Maybe DRep
                    = \(ds : unit) ->
                        case
@@ -3523,7 +3621,11 @@
                                 {all dead. dead})
                          , (/\dead -> Just {DRep} DRepAlwaysAbstain) ]
                          {all dead. dead}
-                 !args : list data = sndPair {integer} {list data} tup
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe DRep)
@@ -3569,8 +3671,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                  !fail :
                     unit -> Maybe Delegatee
                    = \(ds : unit) ->
@@ -3727,8 +3834,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                  !fail : unit -> Maybe TxCert
                    = \(ds : unit) ->
                        case
@@ -4507,8 +4619,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                  !fail :
                     unit -> Maybe Voter
                    = \(ds : unit) ->
@@ -4613,8 +4730,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe TxOutRef)
@@ -4692,8 +4814,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe TxOut)
@@ -4730,15 +4857,19 @@
                                             !tup : pair integer (list data)
                                               = unConstrData ds
                                             !index : integer
-                                              = fstPair
-                                                  {integer}
-                                                  {list data}
+                                              = case
+                                                  integer
                                                   tup
+                                                  [ (\(l : integer)
+                                                      (r : list data) ->
+                                                       l) ]
                                             !args : list data
-                                              = sndPair
-                                                  {integer}
-                                                  {list data}
+                                              = case
+                                                  (list data)
                                                   tup
+                                                  [ (\(l : integer)
+                                                      (r : list data) ->
+                                                       r) ]
                                           in
                                           case
                                             (all dead. Maybe Address)
@@ -4836,19 +4967,28 @@
                                                                                                 d
                                                                                           !index :
                                                                                              integer
-                                                                                            = fstPair
-                                                                                                {integer}
-                                                                                                {list
-                                                                                                   data}
+                                                                                            = case
+                                                                                                integer
                                                                                                 tup
+                                                                                                [ (\(l :
+                                                                                                       integer)
+                                                                                                    (r :
+                                                                                                       list
+                                                                                                         data) ->
+                                                                                                     l) ]
                                                                                           !args :
                                                                                              list
                                                                                                data
-                                                                                            = sndPair
-                                                                                                {integer}
-                                                                                                {list
-                                                                                                   data}
+                                                                                            = case
+                                                                                                (list
+                                                                                                   data)
                                                                                                 tup
+                                                                                                [ (\(l :
+                                                                                                       integer)
+                                                                                                    (r :
+                                                                                                       list
+                                                                                                         data) ->
+                                                                                                     r) ]
                                                                                           !fail :
                                                                                              unit ->
                                                                                              Maybe
@@ -5309,19 +5449,28 @@
                                                                                         ds
                                                                                   !index :
                                                                                      integer
-                                                                                    = fstPair
-                                                                                        {integer}
-                                                                                        {list
-                                                                                           data}
+                                                                                    = case
+                                                                                        integer
                                                                                         tup
+                                                                                        [ (\(l :
+                                                                                               integer)
+                                                                                            (r :
+                                                                                               list
+                                                                                                 data) ->
+                                                                                             l) ]
                                                                                   !args :
                                                                                      list
                                                                                        data
-                                                                                    = sndPair
-                                                                                        {integer}
-                                                                                        {list
-                                                                                           data}
+                                                                                    = case
+                                                                                        (list
+                                                                                           data)
                                                                                         tup
+                                                                                        [ (\(l :
+                                                                                               integer)
+                                                                                            (r :
+                                                                                               list
+                                                                                                 data) ->
+                                                                                             r) ]
                                                                                   !fail :
                                                                                      unit ->
                                                                                      Maybe
@@ -5555,8 +5704,13 @@
             (\(ds : Unit) ->
                let
                  !tup : pair integer (list data) = unConstrData d
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe TxInInfo)
@@ -6185,8 +6339,13 @@
                let
                  !tup : pair integer (list data)
                    = unConstrData scriptContextData
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
+                 !index : integer
+                   = case integer tup [(\(l : integer) (r : list data) -> l)]
+                 !args : list data
+                   = case
+                       (list data)
+                       tup
+                       [(\(l : integer) (r : list data) -> r)]
                in
                case
                  (all dead. Maybe ScriptContext)
@@ -6223,15 +6382,19 @@
                                             !tup : pair integer (list data)
                                               = unConstrData ds
                                             !index : integer
-                                              = fstPair
-                                                  {integer}
-                                                  {list data}
+                                              = case
+                                                  integer
                                                   tup
+                                                  [ (\(l : integer)
+                                                      (r : list data) ->
+                                                       l) ]
                                             !args : list data
-                                              = sndPair
-                                                  {integer}
-                                                  {list data}
+                                              = case
+                                                  (list data)
                                                   tup
+                                                  [ (\(l : integer)
+                                                      (r : list data) ->
+                                                       r) ]
                                           in
                                           case
                                             (all dead. Maybe TxInfo)
@@ -6818,19 +6981,28 @@
                                                                                                                                                                                                                   ds
                                                                                                                                                                                                             !index :
                                                                                                                                                                                                                integer
-                                                                                                                                                                                                              = fstPair
-                                                                                                                                                                                                                  {integer}
-                                                                                                                                                                                                                  {list
-                                                                                                                                                                                                                     data}
+                                                                                                                                                                                                              = case
+                                                                                                                                                                                                                  integer
                                                                                                                                                                                                                   tup
+                                                                                                                                                                                                                  [ (\(l :
+                                                                                                                                                                                                                         integer)
+                                                                                                                                                                                                                      (r :
+                                                                                                                                                                                                                         list
+                                                                                                                                                                                                                           data) ->
+                                                                                                                                                                                                                       l) ]
                                                                                                                                                                                                             !args :
                                                                                                                                                                                                                list
                                                                                                                                                                                                                  data
-                                                                                                                                                                                                              = sndPair
-                                                                                                                                                                                                                  {integer}
-                                                                                                                                                                                                                  {list
-                                                                                                                                                                                                                     data}
+                                                                                                                                                                                                              = case
+                                                                                                                                                                                                                  (list
+                                                                                                                                                                                                                     data)
                                                                                                                                                                                                                   tup
+                                                                                                                                                                                                                  [ (\(l :
+                                                                                                                                                                                                                         integer)
+                                                                                                                                                                                                                      (r :
+                                                                                                                                                                                                                         list
+                                                                                                                                                                                                                           data) ->
+                                                                                                                                                                                                                       r) ]
                                                                                                                                                                                                           in
                                                                                                                                                                                                           case
                                                                                                                                                                                                             (all dead.
@@ -6922,19 +7094,28 @@
                                                                                                                                                                                                                                              ds
                                                                                                                                                                                                                                        !index :
                                                                                                                                                                                                                                           integer
-                                                                                                                                                                                                                                         = fstPair
-                                                                                                                                                                                                                                             {integer}
-                                                                                                                                                                                                                                             {list
-                                                                                                                                                                                                                                                data}
+                                                                                                                                                                                                                                         = case
+                                                                                                                                                                                                                                             integer
                                                                                                                                                                                                                                              tup
+                                                                                                                                                                                                                                             [ (\(l :
+                                                                                                                                                                                                                                                    integer)
+                                                                                                                                                                                                                                                 (r :
+                                                                                                                                                                                                                                                    list
+                                                                                                                                                                                                                                                      data) ->
+                                                                                                                                                                                                                                                  l) ]
                                                                                                                                                                                                                                        !args :
                                                                                                                                                                                                                                           list
                                                                                                                                                                                                                                             data
-                                                                                                                                                                                                                                         = sndPair
-                                                                                                                                                                                                                                             {integer}
-                                                                                                                                                                                                                                             {list
-                                                                                                                                                                                                                                                data}
+                                                                                                                                                                                                                                         = case
+                                                                                                                                                                                                                                             (list
+                                                                                                                                                                                                                                                data)
                                                                                                                                                                                                                                              tup
+                                                                                                                                                                                                                                             [ (\(l :
+                                                                                                                                                                                                                                                    integer)
+                                                                                                                                                                                                                                                 (r :
+                                                                                                                                                                                                                                                    list
+                                                                                                                                                                                                                                                      data) ->
+                                                                                                                                                                                                                                                  r) ]
                                                                                                                                                                                                                                      in
                                                                                                                                                                                                                                      case
                                                                                                                                                                                                                                        (all dead.
@@ -7160,19 +7341,28 @@
                                                                                                                                                                                                                                                            ds
                                                                                                                                                                                                                                                      !index :
                                                                                                                                                                                                                                                         integer
-                                                                                                                                                                                                                                                       = fstPair
-                                                                                                                                                                                                                                                           {integer}
-                                                                                                                                                                                                                                                           {list
-                                                                                                                                                                                                                                                              data}
+                                                                                                                                                                                                                                                       = case
+                                                                                                                                                                                                                                                           integer
                                                                                                                                                                                                                                                            tup
+                                                                                                                                                                                                                                                           [ (\(l :
+                                                                                                                                                                                                                                                                  integer)
+                                                                                                                                                                                                                                                               (r :
+                                                                                                                                                                                                                                                                  list
+                                                                                                                                                                                                                                                                    data) ->
+                                                                                                                                                                                                                                                                l) ]
                                                                                                                                                                                                                                                      !args :
                                                                                                                                                                                                                                                         list
                                                                                                                                                                                                                                                           data
-                                                                                                                                                                                                                                                       = sndPair
-                                                                                                                                                                                                                                                           {integer}
-                                                                                                                                                                                                                                                           {list
-                                                                                                                                                                                                                                                              data}
+                                                                                                                                                                                                                                                       = case
+                                                                                                                                                                                                                                                           (list
+                                                                                                                                                                                                                                                              data)
                                                                                                                                                                                                                                                            tup
+                                                                                                                                                                                                                                                           [ (\(l :
+                                                                                                                                                                                                                                                                  integer)
+                                                                                                                                                                                                                                                               (r :
+                                                                                                                                                                                                                                                                  list
+                                                                                                                                                                                                                                                                    data) ->
+                                                                                                                                                                                                                                                                r) ]
                                                                                                                                                                                                                                                    in
                                                                                                                                                                                                                                                    case
                                                                                                                                                                                                                                                      (all dead.
@@ -7568,19 +7758,28 @@
                                                                                                                                                                                                                                                              d
                                                                                                                                                                                                                                                        !index :
                                                                                                                                                                                                                                                           integer
-                                                                                                                                                                                                                                                         = fstPair
-                                                                                                                                                                                                                                                             {integer}
-                                                                                                                                                                                                                                                             {list
-                                                                                                                                                                                                                                                                data}
+                                                                                                                                                                                                                                                         = case
+                                                                                                                                                                                                                                                             integer
                                                                                                                                                                                                                                                              tup
+                                                                                                                                                                                                                                                             [ (\(l :
+                                                                                                                                                                                                                                                                    integer)
+                                                                                                                                                                                                                                                                 (r :
+                                                                                                                                                                                                                                                                    list
+                                                                                                                                                                                                                                                                      data) ->
+                                                                                                                                                                                                                                                                  l) ]
                                                                                                                                                                                                                                                        !args :
                                                                                                                                                                                                                                                           list
                                                                                                                                                                                                                                                             data
-                                                                                                                                                                                                                                                         = sndPair
-                                                                                                                                                                                                                                                             {integer}
-                                                                                                                                                                                                                                                             {list
-                                                                                                                                                                                                                                                                data}
+                                                                                                                                                                                                                                                         = case
+                                                                                                                                                                                                                                                             (list
+                                                                                                                                                                                                                                                                data)
                                                                                                                                                                                                                                                              tup
+                                                                                                                                                                                                                                                             [ (\(l :
+                                                                                                                                                                                                                                                                    integer)
+                                                                                                                                                                                                                                                                 (r :
+                                                                                                                                                                                                                                                                    list
+                                                                                                                                                                                                                                                                      data) ->
+                                                                                                                                                                                                                                                                  r) ]
                                                                                                                                                                                                                                                        !fail :
                                                                                                                                                                                                                                                           unit ->
                                                                                                                                                                                                                                                           Maybe
@@ -8398,19 +8597,28 @@
                                                                                                                                                                                                                                                                                                                          d
                                                                                                                                                                                                                                                                                                                    !index :
                                                                                                                                                                                                                                                                                                                       integer
-                                                                                                                                                                                                                                                                                                                     = fstPair
-                                                                                                                                                                                                                                                                                                                         {integer}
-                                                                                                                                                                                                                                                                                                                         {list
-                                                                                                                                                                                                                                                                                                                            data}
+                                                                                                                                                                                                                                                                                                                     = case
+                                                                                                                                                                                                                                                                                                                         integer
                                                                                                                                                                                                                                                                                                                          tup
+                                                                                                                                                                                                                                                                                                                         [ (\(l :
+                                                                                                                                                                                                                                                                                                                                integer)
+                                                                                                                                                                                                                                                                                                                             (r :
+                                                                                                                                                                                                                                                                                                                                list
+                                                                                                                                                                                                                                                                                                                                  data) ->
+                                                                                                                                                                                                                                                                                                                              l) ]
                                                                                                                                                                                                                                                                                                                    !args :
                                                                                                                                                                                                                                                                                                                       list
                                                                                                                                                                                                                                                                                                                         data
-                                                                                                                                                                                                                                                                                                                     = sndPair
-                                                                                                                                                                                                                                                                                                                         {integer}
-                                                                                                                                                                                                                                                                                                                         {list
-                                                                                                                                                                                                                                                                                                                            data}
+                                                                                                                                                                                                                                                                                                                     = case
+                                                                                                                                                                                                                                                                                                                         (list
+                                                                                                                                                                                                                                                                                                                            data)
                                                                                                                                                                                                                                                                                                                          tup
+                                                                                                                                                                                                                                                                                                                         [ (\(l :
+                                                                                                                                                                                                                                                                                                                                integer)
+                                                                                                                                                                                                                                                                                                                             (r :
+                                                                                                                                                                                                                                                                                                                                list
+                                                                                                                                                                                                                                                                                                                                  data) ->
+                                                                                                                                                                                                                                                                                                                              r) ]
                                                                                                                                                                                                                                                                                                                  in
                                                                                                                                                                                                                                                                                                                  case
                                                                                                                                                                                                                                                                                                                    (all dead.
@@ -8909,19 +9117,28 @@
                                                                             ds
                                                                       !index :
                                                                          integer
-                                                                        = fstPair
-                                                                            {integer}
-                                                                            {list
-                                                                               data}
+                                                                        = case
+                                                                            integer
                                                                             tup
+                                                                            [ (\(l :
+                                                                                   integer)
+                                                                                (r :
+                                                                                   list
+                                                                                     data) ->
+                                                                                 l) ]
                                                                       !args :
                                                                          list
                                                                            data
-                                                                        = sndPair
-                                                                            {integer}
-                                                                            {list
-                                                                               data}
+                                                                        = case
+                                                                            (list
+                                                                               data)
                                                                             tup
+                                                                            [ (\(l :
+                                                                                   integer)
+                                                                                (r :
+                                                                                   list
+                                                                                     data) ->
+                                                                                 r) ]
                                                                       !fail :
                                                                          unit ->
                                                                          Maybe
@@ -9623,9 +9840,15 @@
                                  !tup : pair integer (list data)
                                    = unConstrData d
                                  !index : integer
-                                   = fstPair {integer} {list data} tup
+                                   = case
+                                       integer
+                                       tup
+                                       [(\(l : integer) (r : list data) -> l)]
                                  !args : list data
-                                   = sndPair {integer} {list data} tup
+                                   = case
+                                       (list data)
+                                       tup
+                                       [(\(l : integer) (r : list data) -> r)]
                                in
                                case
                                  (all dead. Maybe LoanRedeemer)
@@ -11618,8 +11841,16 @@
                                                  (/\dead -> fail ())
                                                  {all dead. dead}) ]
                                           {all dead. dead})
-                                       (fstPair {integer} {list data} tup)
-                                       (sndPair {integer} {list data} tup))
+                                       (case
+                                          integer
+                                          tup
+                                          [ (\(l : integer) (r : list data) ->
+                                               l) ])
+                                       (case
+                                          (list data)
+                                          tup
+                                          [ (\(l : integer) (r : list data) ->
+                                               r) ]))
                                   (\(ds : Unit) -> Nothing {LoanDatum})
                                   (\(ds : Unit) -> Nothing {LoanDatum})
                                   (\(ds : Unit) -> Nothing {LoanDatum})

@@ -79,8 +79,10 @@ in
    (d : data) ->
     let
       !tup : pair integer (list data) = unConstrData d
-      !index : integer = fstPair {integer} {list data} tup
-      !args : list data = sndPair {integer} {list data} tup
+      !index : integer
+        = case integer tup [(\(l : integer) (r : list data) -> l)]
+      !args : list data
+        = case (list data) tup [(\(l : integer) (r : list data) -> r)]
     in
     case
       (list data -> Either integer b)
@@ -97,8 +99,10 @@ in
      \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
-         !index : integer = fstPair {integer} {list data} tup
-         !args : list data = sndPair {integer} {list data} tup
+         !index : integer
+           = case integer tup [(\(l : integer) (r : list data) -> l)]
+         !args : list data
+           = case (list data) tup [(\(l : integer) (r : list data) -> r)]
        in
        case
          (list data -> Maybe a)
@@ -110,8 +114,10 @@ in
      (\(d : data) ->
         let
           !tup : pair integer (list data) = unConstrData d
-          !index : integer = fstPair {integer} {list data} tup
-          !args : list data = sndPair {integer} {list data} tup
+          !index : integer
+            = case integer tup [(\(l : integer) (r : list data) -> l)]
+          !args : list data
+            = case (list data) tup [(\(l : integer) (r : list data) -> r)]
         in
         case
           (list data -> Tuple3 bool integer bool)
@@ -127,8 +133,13 @@ in
                  (let
                    !tup : pair integer (list data)
                      = unConstrData (headList {data} ds)
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
+                   !index : integer
+                     = case integer tup [(\(l : integer) (r : list data) -> l)]
+                   !args : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  case
                    (list data -> bool)
@@ -139,8 +150,13 @@ in
                  (let
                    !tup : pair integer (list data)
                      = unConstrData (headList {data} (tailList {data} l))
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
+                   !index : integer
+                     = case integer tup [(\(l : integer) (r : list data) -> l)]
+                   !args : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                  in
                  case
                    (list data -> bool)

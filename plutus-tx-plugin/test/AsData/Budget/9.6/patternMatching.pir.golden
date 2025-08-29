@@ -8,7 +8,12 @@ let
 in
 \(d : data) ->
   let
-    !l : list data = sndPair {integer} {list data} (unConstrData d)
+    !l : list data
+      = (let
+            b = list data
+          in
+          \(x : pair integer b) -> case b x [(\(l : integer) (r : b) -> r)])
+          (unConstrData d)
     !l : list data = tailList {data} l
     !l : list data = tailList {data} l
     !x : integer = unIData (headList {data} l)
