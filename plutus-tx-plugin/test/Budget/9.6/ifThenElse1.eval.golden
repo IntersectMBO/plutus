@@ -1,6 +1,6 @@
 CPU:                    16_100
 Memory:                    200
-Term Size:                   1
+AST Size:                    1
 Flat Size:                   7
 
 (con integer 5)

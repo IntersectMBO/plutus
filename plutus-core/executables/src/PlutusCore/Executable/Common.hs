@@ -1,12 +1,10 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE ViewPatterns        #-}
 
 module PlutusCore.Executable.Common
     ( module PlutusCore.Executable.Types
@@ -165,7 +163,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
     putStrLn ""
     putStrLn $ "startup    " ++ (budgetToString $ getSpent Cek.BStartup)
     putStrLn $ "compute    " ++ budgetToString totalComputeCost
-    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unSize $ UPLC.termSize term)
+    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unAstSize $ UPLC.termAstSize term)
     putStrLn ""
     case model of
         Default ->

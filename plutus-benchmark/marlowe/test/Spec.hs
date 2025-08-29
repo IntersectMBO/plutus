@@ -19,7 +19,7 @@ import PlutusLedgerApi.V3 (ExCPU (..), ExMemory (..))
 import System.FilePath ((</>))
 import System.IO (hPutStrLn)
 import Test.Tasty (defaultMain, testGroup)
-import UntypedPlutusCore.Size qualified as UPLC
+import UntypedPlutusCore.AstSize qualified as UPLC
 
 main :: IO ()
 main = withUtf8 $ do
@@ -31,7 +31,7 @@ main = withUtf8 $ do
       actualFileData = dir </> "data.budgets.actual.tsv"
   checkGoldenFileExists goldenFile -- See Note [Paths to golden files]
 
-  -- Measure ExCPU, ExMemory, and UPLC.Size for each "semantics" benchmark
+  -- Measure ExCPU, ExMemory, and UPLC.AstSize for each "semantics" benchmark
   semanticsMeasures <-
     semanticsBenchmarks >>= \case
       Left err -> fail $ "Error generating semantics benchmarks: " <> show err
@@ -48,7 +48,7 @@ main = withUtf8 $ do
           Lib.measureProgram
           [benchmarkToUPLC Data.marloweValidator bench | bench <- semantics]
 
-  -- Measure ExCPU, ExMemory, and UPLC.Size for each "role payout" benchmark
+  -- Measure ExCPU, ExMemory, and UPLC.AstSize for each "role payout" benchmark
   rolePayoutMeasures <-
     rolePayoutBenchmarks >>= \case
       Left err -> fail $ "Error generating role payout benchmarks: " <> show err
@@ -71,13 +71,13 @@ main = withUtf8 $ do
     [ Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
         for_
           (semanticsMeasures <> rolePayoutMeasures)
-          \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
+          \(ExCPU cpu, ExMemory mem, UPLC.AstSize size) ->
             hPutStrLn writeHandle $
               List.intercalate "\t" [show cpu, show mem, show size]
     , Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
         for_
           (dataSemanticsMeasures <> dataRolePayoutMeasures)
-          \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
+          \(ExCPU cpu, ExMemory mem, UPLC.AstSize size) ->
             hPutStrLn writeHandle $
               List.intercalate "\t" [show cpu, show mem, show size]
     ]

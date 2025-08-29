@@ -1,6 +1,6 @@
 CPU:                97_055_103
 Memory:                579_335
-Term Size:                 844
+AST Size:                  844
 Flat Size:               1_204
 
 (con bool True)
