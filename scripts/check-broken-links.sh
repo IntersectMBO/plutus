@@ -32,8 +32,7 @@ valid_links() {
     comm -3 <(echo "$all_links") <(echo "$ignore_links")
 }
 
-valid_links
-# check_links <<< "$(valid_links)"
+check_links <<< "$(valid_links)"
 
 if [[ "$?" != "0" ]]; then
     echo "Found broken links, see output above"
