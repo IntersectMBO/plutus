@@ -1062,3 +1062,9 @@ expModInteger b e m =
 caseInteger :: Integer -> [a] -> a
 caseInteger i b = b !! fromIntegral i
 {-# OPAQUE caseInteger #-}
+
+-- | Case matching on a builtin pair. Continuation is needed here to make
+-- it more efficient on builtin-casing implementation.
+casePair :: forall a b r. BuiltinPair a b -> (a -> b -> r) -> r
+casePair p f = f (PlutusTx.Builtins.Internal.fst p) (PlutusTx.Builtins.Internal.snd p)
+{-# INLINE casePair #-}

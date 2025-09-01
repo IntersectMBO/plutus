@@ -497,11 +497,12 @@ program
           (\(x : pair data data) (xs : list (pair data data)) ->
              Cons
                {Tuple2 data data}
-               (Tuple2
-                  {data}
-                  {data}
-                  (case data x [(\(l : data) (r : data) -> l)])
-                  (case data x [(\(l : data) (r : data) -> r)]))
+               ((let
+                    r = Tuple2 data data
+                  in
+                  \(p : pair data data) (f : data -> data -> r) -> case r p [f])
+                  x
+                  (\(l : data) (r : data) -> Tuple2 {data} {data} l r))
                (matchData_go xs))
   in
   let

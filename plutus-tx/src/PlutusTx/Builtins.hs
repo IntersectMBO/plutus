@@ -77,6 +77,7 @@ module PlutusTx.Builtins (
 
   -- * Pairs
   pairToPair,
+  BI.casePair,
 
   -- * Lists
   mkNil,

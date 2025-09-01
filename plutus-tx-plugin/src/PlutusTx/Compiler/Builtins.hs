@@ -221,6 +221,7 @@ builtinNames =
   , ''Builtins.BuiltinPair
   , 'Builtins.fst
   , 'Builtins.snd
+  , 'Builtins.casePair
   , 'Builtins.mkPairData
   , ''Builtins.BuiltinList
   , 'Builtins.null
@@ -375,6 +376,71 @@ defineBuiltinTerms = do
     PIR.mkConstant annMayInline BLS12_381.G2.compressed_generator
   defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compressed_zero $
     PIR.mkConstant annMayInline BLS12_381.G2.compressed_zero
+
+  defineBuiltinTerm annMayInline 'Builtins.casePair $ case datatypeStyle of
+    style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+      -- > /\a b r ->
+      -- >   \(p : pair a b) (f : a -> b -> r) ->
+      -- >     f (fstPair {a} {b} p) (sndPair {a} {b} p)
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        b <- freshTyName "b"
+        r <- freshTyName "r"
+        p <- freshName "p"
+        f <- freshName "f"
+        let
+          pairTy =
+            PLC.TyApp ()
+              (PLC.TyApp ()
+                 (PLC.mkTyBuiltin @_ @(,) ())
+                  (PLC.TyVar () a))
+              (PLC.TyVar () b)
+          contTy =
+            PLC.TyFun () (PLC.TyVar () a) $
+            PLC.TyFun () (PLC.TyVar () b) (PLC.TyVar () r)
+
+          instFstOrSnd x =
+            PIR.tyInst () (PIR.tyInst () (PIR.builtin () x) (PLC.TyVar () a)) (PLC.TyVar () b)
+
+        pure $
+          PIR.tyAbs () a (PLC.Type ()) $
+          PIR.tyAbs () b (PLC.Type ()) $
+          PIR.tyAbs () r (PLC.Type ()) $
+          PIR.lamAbs () p pairTy $
+          PIR.lamAbs () f contTy $
+          PIR.apply ()
+            (PIR.apply ()
+              (PIR.var () f)
+              (PIR.apply () (instFstOrSnd PLC.FstPair) (PIR.var () p)))
+            (PIR.apply () (instFstOrSnd PLC.SndPair) (PIR.var () p))
+    _BuiltinCasing ->
+      -- > /\a b r ->
+      -- >   \(p : pair a b) (f : a -> b -> r) ->
+      -- >     (case r p f)
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        b <- freshTyName "b"
+        r <- freshTyName "r"
+        p <- freshName "p"
+        f <- freshName "f"
+        let
+          pairTy =
+            PLC.TyApp ()
+              (PLC.TyApp ()
+                 (PLC.mkTyBuiltin @_ @(,) ())
+                  (PLC.TyVar () a))
+              (PLC.TyVar () b)
+          contTy =
+            PLC.TyFun () (PLC.TyVar () a) $
+            PLC.TyFun () (PLC.TyVar () b) (PLC.TyVar () r)
+
+        pure $
+          PIR.tyAbs () a (PLC.Type ()) $
+          PIR.tyAbs () b (PLC.Type ()) $
+          PIR.tyAbs () r (PLC.Type ()) $
+          PIR.lamAbs () p pairTy $
+          PIR.lamAbs () f contTy $
+          PIR.kase () (PLC.TyVar () r) (PIR.Var () p) [PIR.Var () f]
 
   defineBuiltinTerm annMayInline 'Builtins.caseList' $ case datatypeStyle of
     style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
