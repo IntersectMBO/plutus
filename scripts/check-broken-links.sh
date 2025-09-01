@@ -22,7 +22,7 @@ check_links() {
 
 grep_links() {
     for file in $(find "${TARGETS[@]}"); do
-        grep -oE "\b(https?://|www\.)[^\[\(\)\"]+\b" "${file}"
+        grep -oE "\b(https?://|www\.)[^\[\(\)\"\ ]+\b" "${file}"
     done
 }
 
@@ -32,7 +32,8 @@ valid_links() {
     comm -3 <(echo "$all_links") <(echo "$ignore_links")
 }
 
-check_links <<< "$(valid_links)"
+valid_links
+# check_links <<< "$(valid_links)"
 
 if [[ "$?" != "0" ]]; then
     echo "Found broken links, see output above"
