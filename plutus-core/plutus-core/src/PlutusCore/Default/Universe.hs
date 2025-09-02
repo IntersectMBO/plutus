@@ -49,7 +49,7 @@ import PlutusCore.Core.Type (Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Data (Data)
+import PlutusCore.Data (Data (..))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
@@ -544,7 +544,18 @@ instance AnnotateCaseBuiltin DefaultUni where
             [cons]      -> Right [(cons, [argTy, listTy])]
             [cons, nil] -> Right [(cons, [argTy, listTy]), (nil, [])]
             _           -> Left $ "Casing on list requires exactly one branch or two branches"
-        _                 -> Left $ display (() <$ ty) <> " isn't supported in 'case'"
+        TyBuiltin ann (SomeTypeIn DefaultUniData) ->
+          case branches of
+            [constr, maep, list, i , b] ->
+              Right
+                [ (constr, [mkTyBuiltin @_ @Integer ann, mkTyBuiltin @_ @[Data] ann])
+                , (maep, [mkTyBuiltin @_ @[(Data, Data)] ann])
+                , (list, [mkTyBuiltin @_ @[Data] ann])
+                , (i, [mkTyBuiltin @_ @Integer ann])
+                , (b, [mkTyBuiltin @_ @ByteString ann])
+                ]
+            _           -> Left $ "Casing on data requires exactly five branches"
+        _               -> Left $ display (() <$ ty) <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
     caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of
@@ -568,6 +579,20 @@ instance CaseBuiltin DefaultUni where
                 []       -> Right $ HeadOnly $ branches Vector.! 1
                 (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
             | otherwise            -> Left $ outOfBoundsErr someVal branches
+        DefaultUniData
+            | len == 5 ->
+              case x of
+                Constr idx ds ->
+                  Right $ headSpine (branches Vector.! 0) [someValue @Integer idx, someValue @[Data] ds]
+                Map ds ->
+                  Right $ headSpine (branches Vector.! 1) [someValue @[(Data, Data)] ds]
+                List ds ->
+                  Right $ headSpine (branches Vector.! 2) [someValue @[Data] ds]
+                I i ->
+                  Right $ headSpine (branches Vector.! 3) [someValue @Integer i]
+                B b ->
+                  Right $ headSpine (branches Vector.! 4) [someValue @ByteString b]
+            | otherwise -> Left $ outOfBoundsErr someVal branches
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches
