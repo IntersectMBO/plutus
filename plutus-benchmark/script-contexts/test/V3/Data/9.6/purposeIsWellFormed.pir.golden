@@ -344,20 +344,21 @@ let
      all a. (\a -> data -> a) a -> data -> Maybe a
     = /\a ->
         \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer
-              = case integer tup [(\(l : integer) (r : list data) -> l)]
-            !args : list data
-              = case (list data) tup [(\(l : integer) (r : list data) -> r)]
-          in
-          case
-            (list data -> Maybe a)
-            index
-            [ (\(ds : list data) ->
-                 Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-            , (\(ds : list data) -> Nothing {a}) ]
-            args
+          (let
+              b = list data
+            in
+            /\r ->
+              \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
+            {Maybe a}
+            (unConstrData d)
+            (\(index : integer) (args : list data) ->
+               case
+                 (list data -> Maybe a)
+                 index
+                 [ (\(ds : list data) ->
+                      Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+                 , (\(ds : list data) -> Nothing {a}) ]
+                 args)
   !`$mTxCertRegStaking` :
      all r. data -> (data -> Maybe integer -> r) -> (unit -> r) -> r
     = /\r ->

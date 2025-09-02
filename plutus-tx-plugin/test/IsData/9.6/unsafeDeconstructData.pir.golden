@@ -1,11 +1,9 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  !fst : all a b. pair a b -> a
-    = /\a b -> \(x : pair a b) -> case a x [(\(l : a) (r : b) -> l)]
+  !casePair : all a b r. pair a b -> (a -> b -> r) -> r
+    = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
   !head : all a. list a -> a = headList
-  !snd : all a b. pair a b -> b
-    = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   !tail : all a. list a -> list a = tailList
   ~wrapTail : all a. list a -> list a = tail
@@ -17,23 +15,34 @@ let
          (d : data) ->
           let
             !d : data = d
-            !tup : pair integer (list data) = unsafeDataAsConstr d
-            !index : integer = fst {integer} {list data} tup
-            !args : list data = snd {integer} {list data} tup
           in
-          case
-            (list data -> Tuple2 a b)
-            index
-            [ (\(ds : list data) ->
+          casePair
+            {integer}
+            {list data}
+            {Tuple2 a b}
+            (unsafeDataAsConstr d)
+            (\(index : integer) ->
+               let
+                 !index : integer = index
+               in
+               \(args : list data) ->
                  let
-                   !ds : list data = ds
+                   !args : list data = args
                  in
-                 Tuple2
-                   {a}
-                   {b}
-                   (`$dUnsafeFromData` (head {data} ds))
-                   (`$dUnsafeFromData` (head {data} (wrapTail {data} ds)))) ]
-            args
+                 case
+                   (list data -> Tuple2 a b)
+                   index
+                   [ (\(ds : list data) ->
+                        let
+                          !ds : list data = ds
+                        in
+                        Tuple2
+                          {a}
+                          {b}
+                          (`$dUnsafeFromData` (head {data} ds))
+                          (`$dUnsafeFromData`
+                             (head {data} (wrapTail {data} ds)))) ]
+                   args)
   ~`$fUnsafeFromDataTuple2` :
      all a b.
        (\a -> data -> a) a ->
@@ -57,20 +66,30 @@ let
         \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
           let
             !d : data = d
-            !tup : pair integer (list data) = unsafeDataAsConstr d
-            !index : integer = fst {integer} {list data} tup
-            !args : list data = snd {integer} {list data} tup
           in
-          case
-            (list data -> Maybe a)
-            index
-            [ (\(ds : list data) ->
+          casePair
+            {integer}
+            {list data}
+            {Maybe a}
+            (unsafeDataAsConstr d)
+            (\(index : integer) ->
+               let
+                 !index : integer = index
+               in
+               \(args : list data) ->
                  let
-                   !ds : list data = ds
+                   !args : list data = args
                  in
-                 Just {a} (`$dUnsafeFromData` (head {data} ds)))
-            , (\(ds : list data) -> Nothing {a}) ]
-            args
+                 case
+                   (list data -> Maybe a)
+                   index
+                   [ (\(ds : list data) ->
+                        let
+                          !ds : list data = ds
+                        in
+                        Just {a} (`$dUnsafeFromData` (head {data} ds)))
+                   , (\(ds : list data) -> Nothing {a}) ]
+                   args)
   ~`$fUnsafeFromDataMaybe` :
      all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)
     = `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`

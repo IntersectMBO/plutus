@@ -569,7 +569,7 @@ matchData'
 matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
   chooseData
     d
-    (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
+    (\_ -> BI.casePair (BI.unsafeDataAsConstr d) (\l r -> constrCase l r))
     (\_ -> mapCase (BI.unsafeDataAsMap d))
     (\_ -> listCase (BI.unsafeDataAsList d))
     (\_ -> iCase (unsafeDataAsI d))

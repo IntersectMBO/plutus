@@ -188,6 +188,8 @@
               {all dead. dead}
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
+    !casePair : all a b r. pair a b -> (a -> b -> r) -> r
+      = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
     data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
@@ -195,20 +197,19 @@
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-            let
-              !tup : pair integer (list data) = unConstrData d
-              !index : integer
-                = case integer tup [(\(l : integer) (r : list data) -> l)]
-              !args : list data
-                = case (list data) tup [(\(l : integer) (r : list data) -> r)]
-            in
-            case
-              (list data -> Maybe a)
-              index
-              [ (\(ds : list data) ->
-                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-              , (\(ds : list data) -> Nothing {a}) ]
-              args
+            casePair
+              {integer}
+              {list data}
+              {Maybe a}
+              (unConstrData d)
+              (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> Maybe a)
+                   index
+                   [ (\(ds : list data) ->
+                        Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+                   , (\(ds : list data) -> Nothing {a}) ]
+                   args)
     !`$mSpendingScript` :
        all r. data -> (data -> Maybe data -> r) -> (unit -> r) -> r
       = /\r ->
@@ -393,25 +394,18 @@
                  in
                  case
                    (all dead. integer)
-                   (let
-                     !tup : pair integer (list data)
-                       = unConstrData (headList {data} (tailList {data} l))
-                     !index : integer
-                       = case
-                           integer
-                           tup
-                           [(\(l : integer) (r : list data) -> l)]
-                     !args : list data
-                       = case
-                           (list data)
-                           tup
-                           [(\(l : integer) (r : list data) -> r)]
-                   in
-                   case
-                     (list data -> bool)
-                     index
-                     [(\(ds : list data) -> False), (\(ds : list data) -> True)]
-                     args)
+                   (casePair
+                      {integer}
+                      {list data}
+                      {bool}
+                      (unConstrData (headList {data} (tailList {data} l)))
+                      (\(index : integer) (args : list data) ->
+                         case
+                           (list data -> bool)
+                           index
+                           [ (\(ds : list data) -> False)
+                           , (\(ds : list data) -> True) ]
+                           args))
                    [(/\dead -> addInteger 1 posixTime), (/\dead -> posixTime)]
                    {all dead. dead}) ]
             {all dead. dead}
@@ -794,32 +788,28 @@
                        {Unit -> Maybe VestingRedeemer}
                        d
                        (\(ds : Unit) ->
-                          let
-                            !tup : pair integer (list data) = unConstrData d
-                            !index : integer
-                              = case
-                                  integer
-                                  tup
-                                  [(\(l : integer) (r : list data) -> l)]
-                            !args : list data
-                              = case
-                                  (list data)
-                                  tup
-                                  [(\(l : integer) (r : list data) -> r)]
-                          in
-                          case
-                            (all dead. Maybe VestingRedeemer)
-                            (equalsInteger 0 index)
-                            [ (/\dead ->
-                                 case
-                                   (all dead. Maybe VestingRedeemer)
-                                   (equalsInteger 1 index)
-                                   [ (/\dead -> Nothing {VestingRedeemer})
-                                   , (/\dead ->
-                                        Just {VestingRedeemer} FullUnlock) ]
-                                   {all dead. dead})
-                            , (/\dead -> Just {VestingRedeemer} PartialUnlock) ]
-                            {all dead. dead})
+                          casePair
+                            {integer}
+                            {list data}
+                            {Maybe VestingRedeemer}
+                            (unConstrData d)
+                            (\(l : integer) (r : list data) ->
+                               case
+                                 (all dead. Maybe VestingRedeemer)
+                                 (equalsInteger 0 l)
+                                 [ (/\dead ->
+                                      case
+                                        (all dead. Maybe VestingRedeemer)
+                                        (equalsInteger 1 l)
+                                        [ (/\dead -> Nothing {VestingRedeemer})
+                                        , (/\dead ->
+                                             Just
+                                               {VestingRedeemer}
+                                               FullUnlock) ]
+                                        {all dead. dead})
+                                 , (/\dead ->
+                                      Just {VestingRedeemer} PartialUnlock) ]
+                                 {all dead. dead}))
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
@@ -867,80 +857,72 @@
                             !ds : Solo VestingDatum
                               = MkSolo
                                   {VestingDatum}
-                                  (let
-                                    !tup : pair integer (list data)
-                                      = unConstrData ipv
-                                    !index : integer
-                                      = case
-                                          integer
-                                          tup
-                                          [ (\(l : integer) (r : list data) ->
-                                               l) ]
-                                    !args : list data
-                                      = case
-                                          (list data)
-                                          tup
-                                          [ (\(l : integer) (r : list data) ->
-                                               r) ]
-                                  in
-                                  case
-                                    (list data -> VestingDatum)
-                                    index
-                                    [ (\(ds : list data) ->
-                                         let
-                                           !l : list data = tailList {data} ds
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                         in
-                                         VestingDatum
-                                           (headList {data} ds)
-                                           (let
-                                             !tup : pair integer (list data)
-                                               = unConstrData
-                                                   (headList {data} l)
-                                             !index : integer
-                                               = case
-                                                   integer
-                                                   tup
-                                                   [ (\(l : integer)
-                                                       (r : list data) ->
-                                                        l) ]
-                                             !args : list data
-                                               = case
-                                                   (list data)
-                                                   tup
-                                                   [ (\(l : integer)
-                                                       (r : list data) ->
-                                                        r) ]
-                                           in
-                                           case
-                                             (list data ->
-                                              Tuple2 bytestring bytestring)
-                                             index
-                                             [ (\(ds : list data) ->
-                                                  Tuple2
-                                                    {bytestring}
-                                                    {bytestring}
-                                                    (unBData
-                                                       (headList {data} ds))
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (tailList
-                                                             {data}
-                                                             ds)))) ]
-                                             args)
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData
-                                              (headList
-                                                 {data}
-                                                 (tailList {data} l)))) ]
-                                    args)
+                                  (casePair
+                                     {integer}
+                                     {list data}
+                                     {VestingDatum}
+                                     (unConstrData ipv)
+                                     (\(index : integer) (args : list data) ->
+                                        case
+                                          (list data -> VestingDatum)
+                                          index
+                                          [ (\(ds : list data) ->
+                                               let
+                                                 !l : list data
+                                                   = tailList {data} ds
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                               in
+                                               VestingDatum
+                                                 (headList {data} ds)
+                                                 (let
+                                                   !d : data = headList {data} l
+                                                 in
+                                                 casePair
+                                                   {integer}
+                                                   {list data}
+                                                   {Tuple2
+                                                      bytestring
+                                                      bytestring}
+                                                   (unConstrData d)
+                                                   (\(index : integer)
+                                                     (args : list data) ->
+                                                      case
+                                                        (list data ->
+                                                         Tuple2
+                                                           bytestring
+                                                           bytestring)
+                                                        index
+                                                        [ (\(ds : list data) ->
+                                                             Tuple2
+                                                               {bytestring}
+                                                               {bytestring}
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     ds))
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     (tailList
+                                                                        {data}
+                                                                        ds)))) ]
+                                                        args))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData
+                                                    (headList
+                                                       {data}
+                                                       (tailList {data} l)))) ]
+                                          args))
                             !vestingDatum : VestingDatum
                               = Solo_match
                                   {VestingDatum}
@@ -1038,80 +1020,72 @@
                             !ds : Solo VestingDatum
                               = MkSolo
                                   {VestingDatum}
-                                  (let
-                                    !tup : pair integer (list data)
-                                      = unConstrData ipv
-                                    !index : integer
-                                      = case
-                                          integer
-                                          tup
-                                          [ (\(l : integer) (r : list data) ->
-                                               l) ]
-                                    !args : list data
-                                      = case
-                                          (list data)
-                                          tup
-                                          [ (\(l : integer) (r : list data) ->
-                                               r) ]
-                                  in
-                                  case
-                                    (list data -> VestingDatum)
-                                    index
-                                    [ (\(ds : list data) ->
-                                         let
-                                           !l : list data = tailList {data} ds
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                         in
-                                         VestingDatum
-                                           (headList {data} ds)
-                                           (let
-                                             !tup : pair integer (list data)
-                                               = unConstrData
-                                                   (headList {data} l)
-                                             !index : integer
-                                               = case
-                                                   integer
-                                                   tup
-                                                   [ (\(l : integer)
-                                                       (r : list data) ->
-                                                        l) ]
-                                             !args : list data
-                                               = case
-                                                   (list data)
-                                                   tup
-                                                   [ (\(l : integer)
-                                                       (r : list data) ->
-                                                        r) ]
-                                           in
-                                           case
-                                             (list data ->
-                                              Tuple2 bytestring bytestring)
-                                             index
-                                             [ (\(ds : list data) ->
-                                                  Tuple2
-                                                    {bytestring}
-                                                    {bytestring}
-                                                    (unBData
-                                                       (headList {data} ds))
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (tailList
-                                                             {data}
-                                                             ds)))) ]
-                                             args)
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData
-                                              (headList
-                                                 {data}
-                                                 (tailList {data} l)))) ]
-                                    args)
+                                  (casePair
+                                     {integer}
+                                     {list data}
+                                     {VestingDatum}
+                                     (unConstrData ipv)
+                                     (\(index : integer) (args : list data) ->
+                                        case
+                                          (list data -> VestingDatum)
+                                          index
+                                          [ (\(ds : list data) ->
+                                               let
+                                                 !l : list data
+                                                   = tailList {data} ds
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                               in
+                                               VestingDatum
+                                                 (headList {data} ds)
+                                                 (let
+                                                   !d : data = headList {data} l
+                                                 in
+                                                 casePair
+                                                   {integer}
+                                                   {list data}
+                                                   {Tuple2
+                                                      bytestring
+                                                      bytestring}
+                                                   (unConstrData d)
+                                                   (\(index : integer)
+                                                     (args : list data) ->
+                                                      case
+                                                        (list data ->
+                                                         Tuple2
+                                                           bytestring
+                                                           bytestring)
+                                                        index
+                                                        [ (\(ds : list data) ->
+                                                             Tuple2
+                                                               {bytestring}
+                                                               {bytestring}
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     ds))
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     (tailList
+                                                                        {data}
+                                                                        ds)))) ]
+                                                        args))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData
+                                                    (headList
+                                                       {data}
+                                                       (tailList {data} l)))) ]
+                                          args))
                             !vestingDatum : VestingDatum
                               = Solo_match
                                   {VestingDatum}

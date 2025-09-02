@@ -26,7 +26,12 @@ in
       (all dead. bool)
       (equalsInteger
          1
-         (case integer tup [(\(l : integer) (r : list data) -> l)]))
+         ((let
+              b = list data
+            in
+            \(x : pair integer b) ->
+              case integer x [(\(l : integer) (r : b) -> l)])
+            tup))
       [ (/\dead -> False)
       , (/\dead ->
            let
@@ -35,20 +40,20 @@ in
            in
            Maybe_match
              {data}
-             (let
-               !tup : pair integer (list data)
-                 = unConstrData (headList {data} (tailList {data} l))
-               !index : integer
-                 = case integer tup [(\(l : integer) (r : list data) -> l)]
-               !args : list data
-                 = case (list data) tup [(\(l : integer) (r : list data) -> r)]
-             in
-             case
-               (list data -> Maybe data)
-               index
-               [ (\(ds : list data) -> Just {data} (headList {data} ds))
-               , (\(ds : list data) -> Nothing {data}) ]
-               args)
+             ((let
+                  b = list data
+                in
+                /\r ->
+                  \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
+                {Maybe data}
+                (unConstrData (headList {data} (tailList {data} l)))
+                (\(index : integer) (args : list data) ->
+                   case
+                     (list data -> Maybe data)
+                     index
+                     [ (\(ds : list data) -> Just {data} (headList {data} ds))
+                     , (\(ds : list data) -> Nothing {data}) ]
+                     args))
              {all dead. bool}
              (\(ds : data) -> /\dead -> True)
              (/\dead -> False)

@@ -7,19 +7,16 @@
               (equalsInteger 1 (case tup [(\l r -> l)]))
               [ False
               , (case
-                   ((\tup ->
-                       (\index ->
-                          (\args ->
-                             case
-                               index
-                               [ (\ds -> constr 0 [(force headList ds)])
-                               , (\ds -> constr 1 []) ]
-                               args)
-                            (case tup [(\l r -> r)]))
-                         (case tup [(\l r -> l)]))
+                   (case
                       (unConstrData
                          (force headList
-                            (force tailList (case tup [(\l r -> r)])))))
+                            (force tailList (case tup [(\l r -> r)]))))
+                      [ (\index args ->
+                           case
+                             index
+                             [ (\ds -> constr 0 [(force headList ds)])
+                             , (\ds -> constr 1 []) ]
+                             args) ])
                    [(\ds -> True), False]) ])
            (unConstrData
               (force headList
