@@ -1,20 +1,14 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module FFI.Opts where
-
-import Data.Semigroup ((<>))
-import Data.Text qualified as T
-import Data.Text.IO qualified as T
 
 import Data.Foldable (asum)
 import Options.Applicative hiding (asum)
 
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
-
-import System.Exit (exitFailure)
-import System.IO (stderr)
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCostsForTesting)
 import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel

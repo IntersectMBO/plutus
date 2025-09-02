@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
-import Data.Functor.Identity
 import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as T
