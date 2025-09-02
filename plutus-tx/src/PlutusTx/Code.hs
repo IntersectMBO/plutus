@@ -124,7 +124,7 @@ countAstNodes
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
   => CompiledCodeIn uni fun a
   -> Integer
-countAstNodes = UPLC.unSize . UPLC.programSize . getPlc
+countAstNodes = UPLC.unAstSize . UPLC.programAstSize . getPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.

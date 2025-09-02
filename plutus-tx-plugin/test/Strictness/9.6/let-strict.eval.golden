@@ -1,6 +1,6 @@
 CPU:                   205_390
 Memory:                  1_101
-Term Size:                  20
+AST Size:                   20
 Flat Size:                  26
 
 (con integer 1)

@@ -16,7 +16,7 @@ import PlutusCore.Name.UniqueMap (UniqueMap)
 import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote
 import PlutusCore.Rename
-import PlutusCore.Size
+import PlutusCore.AstSize
 import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
@@ -67,7 +67,7 @@ data InlineInfo tyname name uni fun ann = InlineInfo
     -- ^ the semantics variant.
     , _iiInlineConstants      :: Bool
     -- ^ should we inline constants?
-    , _iiInlineCallsiteGrowth :: Size
+    , _iiInlineCallsiteGrowth :: AstSize
     -- ^ inline threshold for callsite inlining
     }
 makeLenses ''InlineInfo
