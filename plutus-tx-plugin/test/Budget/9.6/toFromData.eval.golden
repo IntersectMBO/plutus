@@ -1,7 +1,7 @@
-CPU:                 5_641_857
-Memory:                 20_224
-Term Size:                 205
-Flat Size:                 202
+CPU:                 3_182_422
+Memory:                 13_404
+Term Size:                 140
+Flat Size:                 153
 
 (constr
   1 (constr 0 (constr 0 (con bool True) (con integer 1) (con bool False)))

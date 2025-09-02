@@ -158,6 +158,14 @@ failingEvaluationTests =
   , "test-cases/uplc/evaluation/term/constant-case/list/list-05"
   , "test-cases/uplc/evaluation/term/constant-case/list/list-06"
   , "test-cases/uplc/evaluation/term/constant-case/list/list-07"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-01"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-02"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-03"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-04"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-05"
+  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
+  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
+  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
   ]
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
@@ -224,6 +232,14 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/term/constant-case/list/list-05"
   , "test-cases/uplc/evaluation/term/constant-case/list/list-06"
   , "test-cases/uplc/evaluation/term/constant-case/list/list-07"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-01"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-02"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-03"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-04"
+  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-05"
+  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
+  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
+  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.

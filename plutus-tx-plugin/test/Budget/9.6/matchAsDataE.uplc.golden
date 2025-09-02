@@ -3,8 +3,7 @@
    ((\ds ->
        case
          ((\tup ->
-             constr 0
-               [(force (force fstPair) tup), (force (force sndPair) tup)])
+             constr 0 [(case tup [(\l r -> l)]), (case tup [(\l r -> r)])])
             (unConstrData ds))
          [ (\ds ds ->
               case
@@ -12,8 +11,7 @@
                 [ (case
                      ((\tup ->
                          constr 0
-                           [ (force (force fstPair) tup)
-                           , (force (force sndPair) tup) ])
+                           [(case tup [(\l r -> l)]), (case tup [(\l r -> r)])])
                         (unConstrData ds))
                      [ (\ds ds ->
                           case

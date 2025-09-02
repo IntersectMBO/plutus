@@ -52,7 +52,8 @@ let
        (all a b. (a -> b) -> f a -> f b)
     = /\(f :: * -> *) ->
         \(v : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f) -> v
-  !fst : all a b. pair a b -> a = fstPair
+  !casePair : all a b r. pair a b -> (a -> b -> r) -> r
+    = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
 in
@@ -73,7 +74,6 @@ letrec
              Cons {data} x (matchData_go xs))
 in
 let
-  !snd : all a b. pair a b -> b = sndPair
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~unsafeDataAsConstr : data -> Tuple2 integer (List data)
     = \(d : data) ->
@@ -81,15 +81,20 @@ let
           !d : data = d
           !p : pair integer (list data) = unsafeDataAsConstr d
         in
-        Tuple2
+        casePair
           {integer}
-          {List data}
-          (fst {integer} {list data} p)
-          (let
-            !f : list data -> List data = matchData_go
-            !a : list data = snd {integer} {list data} p
-          in
-          f a)
+          {list data}
+          {Tuple2 integer (List data)}
+          p
+          (\(l : integer) ->
+             let
+               !l : integer = l
+             in
+             \(r : list data) ->
+               let
+                 !r : list data = r
+               in
+               Tuple2 {integer} {List data} l (matchData_go r))
   !unsafeDataAsI : data -> integer = unIData
   ~unsafeDataAsI : data -> integer
     = \(d : data) -> let !d : data = d in unsafeDataAsI d

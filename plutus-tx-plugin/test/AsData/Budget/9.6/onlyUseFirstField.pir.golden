@@ -3,4 +3,11 @@ let
     Unit : Unit
 in
 \(d : data) ->
-  unIData (headList {data} (sndPair {integer} {list data} (unConstrData d)))
+  unIData
+    (headList
+       {data}
+       ((let
+            b = list data
+          in
+          \(x : pair integer b) -> case b x [(\(l : integer) (r : b) -> r)])
+          (unConstrData d)))

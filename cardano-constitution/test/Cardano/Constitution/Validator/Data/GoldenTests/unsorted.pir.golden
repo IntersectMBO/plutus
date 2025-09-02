@@ -417,18 +417,21 @@ program
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-            let
-              !tup : pair integer (list data) = unConstrData d
-              !index : integer = fstPair {integer} {list data} tup
-              !args : list data = sndPair {integer} {list data} tup
-            in
-            case
-              (list data -> Maybe a)
-              index
-              [ (\(ds : list data) ->
-                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-              , (\(ds : list data) -> Nothing {a}) ]
-              args
+            (let
+                b = list data
+              in
+              /\r ->
+                \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
+              {Maybe a}
+              (unConstrData d)
+              (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> Maybe a)
+                   index
+                   [ (\(ds : list data) ->
+                        Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+                   , (\(ds : list data) -> Nothing {a}) ]
+                   args)
   in
   letrec
     ~matchData_go : list (pair data data) -> List (Tuple2 data data)
@@ -442,11 +445,10 @@ program
           (\(x : pair data data) (xs : list (pair data data)) ->
              Cons
                {Tuple2 data data}
-               (Tuple2
-                  {data}
-                  {data}
-                  (fstPair {data} {data} x)
-                  (sndPair {data} {data} x))
+               (case
+                  (Tuple2 data data)
+                  x
+                  [(\(l : data) (r : data) -> Tuple2 {data} {data} l r)])
                (matchData_go xs))
   in
   let
@@ -5220,9 +5222,8 @@ program
                  {data}
                  (tailList
                     {data}
-                    (sndPair
-                       {integer}
-                       {list data}
+                    (case
+                       (list data)
                        (unConstrData
                           (let
                             !tup : pair integer (list data)
@@ -5233,24 +5234,34 @@ program
                                         {data}
                                         (tailList
                                            {data}
-                                           (sndPair
-                                              {integer}
-                                              {list data}
-                                              (unConstrData ds)))))
+                                           (case
+                                              (list data)
+                                              (unConstrData ds)
+                                              [ (\(l : integer)
+                                                  (r : list data) ->
+                                                   r) ]))))
                           in
                           case
                             (all dead. data)
                             (equalsInteger
                                5
-                               (fstPair {integer} {list data} tup))
+                               (case
+                                  integer
+                                  tup
+                                  [(\(l : integer) (r : list data) -> l)]))
                             [ (/\dead -> error {data})
                             , (/\dead ->
                                  headList
                                    {data}
                                    (tailList
                                       {data}
-                                      (sndPair {integer} {list data} tup))) ]
-                            {all dead. dead})))))
+                                      (case
+                                         (list data)
+                                         tup
+                                         [ (\(l : integer) (r : list data) ->
+                                              r) ]))) ]
+                            {all dead. dead}))
+                       [(\(l : integer) (r : list data) -> r)])))
       in
       (let
           r = Maybe (List (Tuple2 data data))
@@ -5263,11 +5274,17 @@ program
           in
           case
             (all dead. r)
-            (equalsInteger 0 (fstPair {integer} {list data} tup))
+            (equalsInteger
+               0
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
             [ (/\dead -> fail ())
             , (/\dead ->
                  let
-                   !l : list data = sndPair {integer} {list data} tup
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
                    !l : list data = tailList {data} l
                  in
                  cont
@@ -5299,11 +5316,17 @@ program
                in
                case
                  (all dead. r)
-                 (equalsInteger 2 (fstPair {integer} {list data} tup))
+                 (equalsInteger
+                    2
+                    (case integer tup [(\(l : integer) (r : list data) -> l)]))
                  [ (/\dead -> fail ())
                  , (/\dead ->
                       let
-                        !l : list data = sndPair {integer} {list data} tup
+                        !l : list data
+                          = case
+                              (list data)
+                              tup
+                              [(\(l : integer) (r : list data) -> r)]
                       in
                       cont
                         (unMapData (headList {data} l))

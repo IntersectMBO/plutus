@@ -271,12 +271,9 @@ unsafeFromDataClause indexedCons = do
             (\(conInfo, _) -> TH.lamCaseE [unsafeReconstructListCase conInfo, finalCase])
             <$> indexedConsSorted
         body =
-          [|
-            -- See Note [Bang patterns in TH quotes]
-            let $(TH.bangP $ TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
-                $(TH.bangP $ TH.varP indexName) = BI.fst $(TH.varE tupName)
-                $(TH.bangP $ TH.varP argsName) = BI.snd $(TH.varE tupName)
-             in (caseInteger $(TH.varE indexName) $kases) $(TH.varE argsName)
+          [| BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
+               \($(TH.varP indexName)) ($(TH.varP argsName)) ->
+                 (caseInteger $(TH.varE indexName) $kases) $(TH.varE argsName)
            |]
 
       TH.clause [TH.varP dName] (TH.normalB body) []

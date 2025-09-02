@@ -15,13 +15,13 @@ module PlutusTx.Builtins.HasOpaque where
 
 import Control.DeepSeq (NFData (..))
 import PlutusCore.Pretty (Pretty (..))
-import PlutusTx.Base (id, ($))
+import PlutusTx.Base (id)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
                                    BuiltinBLS12_381_MlResult, BuiltinByteString (..), BuiltinData,
                                    BuiltinInteger, BuiltinList (..), BuiltinPair,
-                                   BuiltinString (..), BuiltinUnit, caseList', chooseUnit, fst,
-                                   mkCons, mkPairData, snd, unitval)
+                                   BuiltinString (..), BuiltinUnit, caseList', casePair, chooseUnit,
+                                   mkCons, mkPairData, unitval)
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
@@ -298,7 +298,7 @@ instance
   (HasFromOpaque arep a, HasFromOpaque brep b)
   => HasFromOpaque (BuiltinPair arep brep) (a, b)
   where
-  fromOpaque p = (fromOpaque $ fst p, fromOpaque $ snd p)
+  fromOpaque p = casePair p (\l r -> (fromOpaque l, fromOpaque r))
   {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque BuiltinData BuiltinData

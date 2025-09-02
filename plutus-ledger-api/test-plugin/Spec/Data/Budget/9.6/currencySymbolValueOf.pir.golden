@@ -5,7 +5,9 @@ letrec
           integer
           xs
           [ (\(hd : pair data data) (eta : list (pair data data)) ->
-               addInteger (unIData (sndPair {data} {data} hd)) (go eta))
+               addInteger
+                 (unIData (case data hd [(\(l : data) (r : data) -> r)]))
+                 (go eta))
           , 0 ]
 in
 let
@@ -32,11 +34,15 @@ in
               [ (\(hd : pair data data) ->
                    case
                      (all dead. list (pair data data) -> Maybe data)
-                     (equalsData k (fstPair {data} {data} hd))
+                     (equalsData
+                        k
+                        (case data hd [(\(l : data) (r : data) -> l)]))
                      [ (/\dead -> go)
                      , (/\dead ->
                           \(ds : list (pair data data)) ->
-                            Just {data} (sndPair {data} {data} hd)) ]
+                            Just
+                              {data}
+                              (case data hd [(\(l : data) (r : data) -> r)])) ]
                      {all dead. dead})
               , (Nothing {data}) ]
     in

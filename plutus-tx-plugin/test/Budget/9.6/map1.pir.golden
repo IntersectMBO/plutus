@@ -49,11 +49,18 @@ let
                       [ (\(hd : pair data data) ->
                            case
                              (all dead. list (pair data data) -> Maybe data)
-                             (equalsData k (fstPair {data} {data} hd))
+                             (equalsData
+                                k
+                                (case data hd [(\(l : data) (r : data) -> l)]))
                              [ (/\dead -> go)
                              , (/\dead ->
                                   \(ds : list (pair data data)) ->
-                                    Just {data} (sndPair {data} {data} hd)) ]
+                                    Just
+                                      {data}
+                                      (case
+                                         data
+                                         hd
+                                         [(\(l : data) (r : data) -> r)])) ]
                              {all dead. dead})
                       , (Nothing {data}) ]
             in
@@ -105,7 +112,12 @@ in
                                 (all dead.
                                    list (pair data data) ->
                                    list (pair data data))
-                                (equalsData k (fstPair {data} {data} hd))
+                                (equalsData
+                                   k
+                                   (case
+                                      data
+                                      hd
+                                      [(\(l : data) (r : data) -> l)]))
                                 [ (/\dead ->
                                      \(eta : list (pair data data)) ->
                                        mkCons {pair data data} hd (go eta))
@@ -131,7 +143,9 @@ in
                          case
                            (all dead.
                               list (pair data data) -> list (pair data data))
-                           (equalsData k (fstPair {data} {data} hd))
+                           (equalsData
+                              k
+                              (case data hd [(\(l : data) (r : data) -> l)]))
                            [ (/\dead ->
                                 \(eta : list (pair data data)) ->
                                   mkCons {pair data data} hd (go eta))
