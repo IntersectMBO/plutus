@@ -70,7 +70,7 @@ runCek
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term Name uni fun ann
-    -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost, [Text])
+    -> CekReport cost Name uni fun
 runCek = Common.runCek S.runCekDeBruijn
 
 -- | Evaluate a term using the Steppable CEK machine with logging disabled and

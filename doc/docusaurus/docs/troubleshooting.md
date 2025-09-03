@@ -31,7 +31,7 @@ Not only does GHCi often hide unfoldings from the plugin, but it may also introd
 
 ### "Unsupported feature: Cannot case on a value on type: \{type\}"
 
-If `{type}` is a builtin type like `BuiltinBool`: to convert a builtin type to the corresponding Haskell type (such as `BuiltinBool` to `Bool` or `BuiltinList` to a Haskell list) in Plinth, you should use `fromOpaque`.
+If `{type}` is a builtin type like `BuiltinInteger`: to convert a builtin type to the corresponding Haskell type (such as `BuiltinInteger` to `Integer` or `BuiltinList` to a Haskell list) in Plinth, you should use `fromOpaque`.
 Pattern matching on the builtin type or using `fromBuiltin` is not permitted, and will lead to the above error.
 
 If `{type}` is a GHC type like `GHC.Num.Integer.Integer`: you may be using operations from `base` (such as `GHC.Classes.==`) on that type, or using a literal of that type in a pattern.

@@ -1,21 +1,15 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
-  !go : list data -> Bool
+  !go : list data -> bool
     = \(xs : list data) ->
         case
-          Bool
+          bool
           xs
-          [ False
-          , (\(h : data) (t : list data) ->
-               Bool_match
-                 (case Bool (equalsData (I 8) h) [False, True])
-                 {all dead. Bool}
-                 (/\dead -> True)
-                 (/\dead -> go t)
-                 {all dead. dead}) ]
+          [ (\(h : data) (t : list data) ->
+               case
+                 (all dead. bool)
+                 (equalsData (I 8) h)
+                 [(/\dead -> go t), (/\dead -> True)]
+                 {all dead. dead})
+          , False ]
 in
 \(eta : (\a -> list data) integer) -> go eta

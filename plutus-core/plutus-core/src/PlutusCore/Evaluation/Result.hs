@@ -21,8 +21,6 @@ import PlutusCore.Pretty
 import Control.Monad.Except (MonadError, catchError, throwError)
 
 -- | The parameterized type of results various evaluation engines return.
--- On the PLC side this becomes (via @makeKnown@) either a call to 'Error' or
--- a value of the PLC counterpart of type @a@.
 data EvaluationResult a
     = EvaluationSuccess !a
     | EvaluationFailure

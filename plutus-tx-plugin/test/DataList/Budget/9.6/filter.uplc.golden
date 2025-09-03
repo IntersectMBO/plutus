@@ -5,11 +5,11 @@
          (\s ds ->
             case
               ds
-              [ []
-              , (\x eta ->
+              [ (\x eta ->
                    (\h ->
                       case
                         (lessThanInteger h 8)
                         [ ((\nt -> force mkCons (iData h) nt) (s s eta))
                         , (s s eta) ])
-                     (unIData x)) ]))))
+                     (unIData x))
+              , [] ]))))

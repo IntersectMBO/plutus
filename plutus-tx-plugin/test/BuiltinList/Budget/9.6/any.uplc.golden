@@ -3,14 +3,8 @@
    (\xs ->
       (\cse ->
          constr 0
-           [ (cse
-                (\v ->
-                   case (lessThanInteger v 8) [(constr 0 []), (constr 1 [])])
-                xs)
-           , (cse
-                (\v ->
-                   case (lessThanInteger v 12) [(constr 0 []), (constr 1 [])])
-                xs) ])
+           [ (cse (\v -> case (lessThanInteger v 8) [True, False]) xs)
+           , (cse (\v -> case (lessThanInteger v 12) [True, False]) xs) ])
         (\p ->
            force
              ((\f ->
@@ -21,10 +15,9 @@
                      (\xs ->
                         case
                           xs
-                          [ (constr 1 [])
-                          , (\x xs ->
+                          [ (\x xs ->
                                case
                                  (p x)
-                                 [ (constr 0 [])
-                                 , (force (go (delay (\x -> x))) xs) ]) ]))
+                                 [(force (go (delay (\x -> x))) xs), True])
+                          , False ]))
                 (delay (\x -> x))))))

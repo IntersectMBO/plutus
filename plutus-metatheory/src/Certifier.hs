@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall #-}
+
 module Certifier (
   runCertifier
   , mkCertifier
@@ -6,14 +8,13 @@ module Certifier (
   , CertifierError (..)
   ) where
 
-import Control.Monad ((>=>))
 import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
 import Control.Monad.IO.Class (liftIO)
 import Data.Char (toUpper)
 import Data.List (find)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
-import Data.Maybe (fromJust)
+import Data.Maybe (fromMaybe)
 import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import System.Directory (createDirectory)
 import System.FilePath ((</>))
@@ -35,9 +36,7 @@ data CertifierError
   | InvalidCompilerOutput
   | ValidationError CertName
 
-newtype CertifierSuccess = CertifierSuccess
-  { certDir :: CertDir
-  }
+newtype CertifierSuccess = CertifierSuccess CertDir
 
 prettyCertifierError :: CertifierError -> String
 prettyCertifierError (InvalidCertificate certDir) =
@@ -140,10 +139,10 @@ mkCertificate certName rawTrace =
           -> [(SimplifierStage, (UTerm, UTerm))]
           -> [(SimplifierStage, (TermWithId, TermWithId))]
         go _ [] = []
-        go id ((stage, (before, after)) : rest) =
-          let beforeWithId = TermWithId id before
-              afterWithId = TermWithId (id + 1) after
-           in (stage, (beforeWithId, afterWithId)) : go (id + 2) rest
+        go id' ((stage, (before, after)) : rest) =
+          let beforeWithId = TermWithId id' before
+              afterWithId = TermWithId (id' + 1) after
+           in (stage, (beforeWithId, afterWithId)) : go (id' + 2) rest
 
     extractTermWithIds
       :: [(SimplifierStage, (TermWithId, TermWithId))]
@@ -163,8 +162,11 @@ mkCertificate certName rawTrace =
     getRepresentatives :: [NonEmpty Ast] -> [Ast]
     getRepresentatives = fmap NE.head
 
-    mkAsts :: [TermWithId] -> [Ast]
-    mkAsts = findEquivClasses >=> NE.toList
+    errorMessage :: String
+    errorMessage =
+      "Internal error: could not find AST.\
+      \ This is an issue in the certifier, please open a bug report at\
+      \ https://github.com/IntersectMBO/plutus/issues"
 
     mkAstTrace
       :: [Ast]
@@ -172,8 +174,12 @@ mkCertificate certName rawTrace =
       -> [(SimplifierStage, (Ast, Ast))]
     mkAstTrace _ [] = []
     mkAstTrace allAsts ((stage, (rawBefore, rawAfter)) : rest) =
-      let Just processedBefore = find (\ast -> getTermId ast == termId rawBefore) allAsts
-          Just processedAfter = find (\ast -> getTermId ast == termId rawAfter) allAsts
+      let processedBefore =
+            fromMaybe (error errorMessage)
+            $ find (\ast -> getTermId ast == termId rawBefore) allAsts
+          processedAfter =
+            fromMaybe (error errorMessage)
+            $ find (\ast -> getTermId ast == termId rawAfter) allAsts
        in (stage, (processedBefore, processedAfter)) : mkAstTrace allAsts rest
 
 mkAstModuleName :: Ast -> String
@@ -306,8 +312,6 @@ writeCertificateProject
   = liftIO $ do
       let (mainModulePath, mainModuleContents) = mainModule
           (agdalibPath, agdalibContents) = agdalib
-          astModulePaths = fmap fst astModules
-          astModuleContents = fmap snd astModules
       time <- systemNanoseconds <$> getSystemTime
       let actualProjectDir = projectDir <> "-" <> show time
       createDirectory actualProjectDir

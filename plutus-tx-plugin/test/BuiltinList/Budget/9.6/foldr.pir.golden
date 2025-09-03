@@ -10,7 +10,7 @@ let
   ~`+` : all a. (\a -> a -> a -> a) a -> a -> a -> a
     = /\a -> \(v : (\a -> a -> a -> a) a) -> v
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   ~foldr : all a b. (a -> b -> b) -> b -> list a -> b
     = /\a b ->
         \(f : a -> b -> b) ->

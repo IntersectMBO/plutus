@@ -44,7 +44,9 @@
     "estree-util-value-to-estree": "3.3.3",
     "http-proxy-middleware": "2.0.9",
     "webpack-dev-server": "5.2.1",
-    "brace-expansion": "1.1.12"
+    "brace-expansion": "1.1.12",
+    "on-headers": "1.1.0",
+    "mermaid": "11.10.0"
   },
   "browserslist": {
     "production": [

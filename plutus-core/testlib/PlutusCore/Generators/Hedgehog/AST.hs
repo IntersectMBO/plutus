@@ -185,8 +185,12 @@ subset1 s
     where xs = Set.toList s
 
 -- See Note [Name mangling]
-genNameMangler :: Set Name -> AstGen (Name -> AstGen (Maybe Name))
-genNameMangler names = Gen.justT $ do
+-- Returns a 'Maybe' instead of doing 'Gen.justT' at the end so that if the original term is hard to
+-- mangle (few names and they clash with what 'genNames' produces), then the caller can pick a
+-- different term instead of repeatedly trying to mangle the original one until Hedgehog runs out of
+-- steam.
+genNameMangler :: Set Name -> AstGen (Maybe (Name -> AstGen (Maybe Name)))
+genNameMangler names = do
     mayNamesMangle <- subset1 names
     for mayNamesMangle $ \namesMangle -> do
         let isNew name = not $ name `Set.member` namesMangle
@@ -212,7 +216,7 @@ allTermNames = setOf $ vTerm <^> tvTerm . coerced
 -- See Note [Name mangling]
 mangleNames
     :: Term TyName Name DefaultUni DefaultFun ()
-    -> AstGen (Term TyName Name DefaultUni DefaultFun ())
+    -> AstGen (Maybe (Term TyName Name DefaultUni DefaultFun ()))
 mangleNames term = do
-    mang <- genNameMangler $ allTermNames term
-    substAllNames mang term
+    mayMang <- genNameMangler $ allTermNames term
+    for mayMang $ \mang -> substAllNames mang term

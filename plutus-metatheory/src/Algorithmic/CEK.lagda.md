@@ -190,6 +190,8 @@ discharge (V-constr i Tss s refl) = constr i Tss refl (dischargeStack s)
 
 ## Builtin Semantics
 
+If a builtin returns a value, then this function produces a `Value`, otherwise it produces
+a type that could be used in constructing the error term.
 ```
 BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
 BUILTIN addInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i + i'))
@@ -286,6 +288,13 @@ BUILTIN tailList (Λ̂ A $ V-con []) = inj₁ (con (ne ((^ list) · A)))
 BUILTIN tailList (Λ̂ A $ V-con (_ ∷ xs)) = inj₂ (V-con xs)
 BUILTIN nullList (Λ̂ B $ V-con []) = inj₂ (V-con true)
 BUILTIN nullList (Λ̂ B $ V-con (_ ∷ _)) = inj₂ (V-con false)
+BUILTIN lengthOfArray (Λ̂ A $ V-con as) = inj₂ (V-con (Utils.HSlengthOfArray as))
+BUILTIN listToArray (Λ̂ A $ V-con ls) = inj₂ (V-con (Utils.HSlistToArray ls))
+BUILTIN indexArray {A = A'} (Λ̂ A $ V-con as $ V-con i) with Data.Integer.ℤ.pos 0 ≤? i
+... | no  _ = inj₁ (con A)
+... | yes _ with i <? Utils.HSlengthOfArray as
+... | no _  = inj₁ (con A)
+... | yes _ = inj₂ (V-con (Utils.HSindexArray as i))
 BUILTIN chooseData (Λ̂ A $ V-con (ConstrDATA _ _) $ c $ _ $ _ $ _ $ _) = inj₂ c
 BUILTIN chooseData (Λ̂ A $ V-con (MapDATA _)      $ _ $ m $ _ $ _ $ _) = inj₂ m
 BUILTIN chooseData (Λ̂ A $ V-con (ListDATA _)     $ _ $ _ $ l $ _ $ _) = inj₂ l

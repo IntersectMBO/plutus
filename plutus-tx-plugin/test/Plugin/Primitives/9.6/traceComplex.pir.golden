@@ -1,7 +1,4 @@
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !trace : all a. string -> a -> a = trace
   ~trace : all a. string -> a -> a = trace
   data Unit | Unit_match where
@@ -17,13 +14,12 @@ let
           in
           error {a} unitval
 in
-\(ds : Bool) ->
+\(ds : bool) ->
   let
-    !ds : Bool = ds
+    !ds : bool = ds
   in
-  Bool_match
+  case
+    (all dead. Unit)
     ds
-    {all dead. Unit}
-    (/\dead -> trace {Unit} "yes" Unit)
-    (/\dead -> traceError {Unit} "no")
+    [(/\dead -> traceError {Unit} "no"), (/\dead -> trace {Unit} "yes" Unit)]
     {all dead. dead}

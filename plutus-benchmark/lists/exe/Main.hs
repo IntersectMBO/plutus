@@ -20,7 +20,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 getBudgetUsage :: Term -> Maybe Integer
 getBudgetUsage term =
-    case (\ (fstT,sndT,_) -> (fstT,sndT) ) $
+    case (\(Cek.CekReport fstT sndT _) -> (Cek.cekResultToEither fstT, sndT)) $
       Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.counting Cek.noEmitter term
     of
       (Left _, _)                 -> Nothing
@@ -29,7 +29,7 @@ getBudgetUsage term =
 
 getCekSteps :: Term -> Maybe Integer
 getCekSteps term =
-    case (\ (fstT,sndT,_) -> (fstT,sndT) ) $
+    case (\(Cek.CekReport fstT sndT _) -> (Cek.cekResultToEither fstT, sndT)) $
       Cek.runCekDeBruijn PLC.unitCekParameters Cek.tallying Cek.noEmitter term
     of
       (Left _, _)                   -> Nothing

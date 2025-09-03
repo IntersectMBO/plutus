@@ -101,7 +101,8 @@ cekResultMatchesHaskellValue actual matches expected =
   unsafeRunTermCek :: Term -> EvaluationResult Term
   unsafeRunTermCek =
     unsafeSplitStructuralOperational
-      . (\(res, _, _) -> res)
+      . Cek.cekResultToEither
+      . _cekReportResult
       . runCekDeBruijn
         PLC.defaultCekParametersForTesting
         Cek.restrictingEnormous

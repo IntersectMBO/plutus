@@ -41,18 +41,18 @@ d_byteStringSize_6 ::
 d_byteStringSize_6 = size
 -- Cost.Size.g1ElementSize
 d_g1ElementSize_8 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_624 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_640 -> Integer
 d_g1ElementSize_8 = size
 -- Cost.Size.g2ElementSize
 d_g2ElementSize_10 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_628 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_644 -> Integer
 d_g2ElementSize_10 = size
 -- Cost.Size.mlResultElementSize
 d_mlResultElementSize_12 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_632 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_648 -> Integer
 d_mlResultElementSize_12 = size
 -- Cost.Size.dataSize
-d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_478 -> Integer
+d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_494 -> Integer
 d_dataSize_14 = size
 -- Cost.Size.boolSize
 d_boolSize_16 :: Bool -> Integer
@@ -67,10 +67,10 @@ d_stringSize_20 ::
 d_stringSize_20 = size
 -- Cost.Size.defaultConstantMeasure
 d_defaultConstantMeasure_22 ::
-  MAlonzo.Code.RawU.T_TmCon_198 -> Integer
+  MAlonzo.Code.RawU.T_TmCon_202 -> Integer
 d_defaultConstantMeasure_22 v0
   = case coe v0 of
-      MAlonzo.Code.RawU.C_tmCon_202 v1 v2
+      MAlonzo.Code.RawU.C_tmCon_206 v1 v2
         -> case coe v1 of
              MAlonzo.Code.Builtin.Signature.C_atomic_12 v4
                -> case coe v4 of
@@ -99,19 +99,27 @@ d_defaultConstantMeasure_22 v0
                     (case coe v2 of
                        MAlonzo.Code.Utils.C_'91''93'_388 -> coe (1 :: Integer)
                        _ -> coe v5)
-             MAlonzo.Code.Builtin.Signature.C_pair_20 v4 v5
+             MAlonzo.Code.Builtin.Signature.C_array_20 v4
+               -> let v5
+                        = coe MAlonzo.Code.Utils.d_HSlengthOfArray_482 erased v2 in
+                  coe
+                    (case coe v5 of
+                       0 -> coe (1 :: Integer)
+                       _ | coe geqInt (coe v5) (coe (1 :: Integer)) -> coe v5
+                       _ -> coe (1 :: Integer))
+             MAlonzo.Code.Builtin.Signature.C_pair_24 v4 v5
                -> coe seq (coe v2) (coe (1 :: Integer))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Size.defaultValueMeasure
-d_defaultValueMeasure_56 ::
+d_defaultValueMeasure_80 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_defaultValueMeasure_56 v0
+d_defaultValueMeasure_80 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
          MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
            -> coe
                 d_defaultConstantMeasure_22
-                (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v2) (coe v3))
+                (coe MAlonzo.Code.RawU.C_tmCon_206 (coe v2) (coe v3))
          _ -> coe v1)

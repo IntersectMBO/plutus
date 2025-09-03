@@ -14,22 +14,22 @@
                                  (\s xs ->
                                     case
                                       xs
-                                      [ (constr 1 [])
-                                      , (\x xs ->
+                                      [ (\x xs ->
                                            case
                                              (equalsData
                                                 obsScriptCred
-                                                (force (force fstPair) x))
-                                             [(s s xs), (constr 0 [])]) ])
+                                                (case x [(\l r -> l)]))
+                                             [(s s xs), True])
+                                      , False ])
                                  rest)
-                              [ (constr 0 [])
-                              , ((\x -> error)
-                                   (force trace "not found" (constr 0 []))) ])
+                              [ ((\x -> error)
+                                   (force trace "not found" (constr 0 [])))
+                              , (constr 0 []) ])
                          , (constr 0 []) ])
                     , (constr 0 []) ])
-                 (force (force fstPair) (force headList rest)))
+                 (case (force headList rest) [(\l r -> l)]))
               (force tailList ds))
-           (force (force fstPair) (force headList ds)))
+           (case (force headList ds) [(\l r -> l)]))
         (unMapData
            (force headList
               (force tailList
@@ -38,8 +38,10 @@
                        (force tailList
                           (force tailList
                              (force tailList
-                                (force (force sndPair)
+                                (case
                                    (unConstrData
                                       (force headList
-                                         (force (force sndPair)
-                                            (unConstrData ctx)))))))))))))))
+                                         (case
+                                            (unConstrData ctx)
+                                            [(\l r -> r)])))
+                                   [(\l r -> r)])))))))))))

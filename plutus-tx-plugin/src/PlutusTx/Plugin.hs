@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -23,6 +24,7 @@ import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
+import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
@@ -70,8 +72,10 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
+import Data.Maybe (mapMaybe)
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Text qualified as Text
 import GHC.Num.Integer qualified
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -404,6 +408,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'GHC.Num.Integer.integerNegate
            , '(PlutusTx.Bool.&&)
            , '(PlutusTx.Bool.||)
+           , '(PlutusTx.List.!!)
            , 'PlutusTx.AsData.Internal.wrapTail
            , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
            , 'PlutusTx.Function.fix
@@ -488,6 +493,26 @@ runCompiler
   -> GHC.CoreExpr
   -> m (PIRProgram uni fun, UPLCProgram uni fun)
 runCompiler moduleName opts expr = do
+  GHC.DynFlags {GHC.extensions = extensions} <- asks ccFlags
+  let
+    enabledExtensions =
+      mapMaybe
+        (\case
+            GHC.On a -> Just a
+            GHC.Off _ -> Nothing)
+        extensions
+    extensionBlacklist =
+      [ GADTs
+      , PolyKinds
+      ]
+    unsupportedExtensions =
+      filter (`elem` extensionBlacklist) enabledExtensions
+
+  when (not $ null unsupportedExtensions) $
+    throwPlain $ UnsupportedError $
+      "Following extensions are not supported: "
+      <> Text.intercalate ", " (Text.pack . show <$> unsupportedExtensions)
+
   -- Plc configuration
   plcTcConfig <-
     modifyError (NoContext . PIRError . PIR.PLCTypeError) $

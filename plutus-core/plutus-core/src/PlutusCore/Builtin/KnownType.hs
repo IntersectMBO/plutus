@@ -385,7 +385,8 @@ makeKnownOrFail x = case makeKnown x of
 readKnownSelf
     :: (ReadKnown val a, BuiltinErrorToEvaluationError structural operational)
     => val -> Either (ErrorWithCause (EvaluationError structural operational) val) a
-readKnownSelf val = fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
+readKnownSelf val =
+    fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where

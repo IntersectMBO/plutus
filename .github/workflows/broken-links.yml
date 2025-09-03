@@ -7,10 +7,9 @@ name: "🔗 Broken Links"
 
 on:
   workflow_dispatch: 
-  pull_request:
   push:
     branches:
-      master
+      - master
       
 jobs:
   check:
@@ -18,7 +17,7 @@ jobs:
     runs-on: [plutus-ci, self-hosted]
     steps:
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.0
 
       - name: Run Linkchecker
         run: |

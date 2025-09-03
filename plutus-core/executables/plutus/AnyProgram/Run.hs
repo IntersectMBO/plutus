@@ -61,7 +61,8 @@ runPlc (PLC.Program _ _ t)
 runUplc :: (?opts :: Opts, Typeable a)
         => UPLC.UnrestrictedProgram NamedDeBruijn DefaultUni DefaultFun a -> IO ()
 runUplc (UPLC.UnrestrictedProgram (UPLC.Program _ _ t)) =
-    case UPLC.runCekDeBruijn defaultCekParametersForTesting exBudgetMode logEmitter t of
+    case (\(UPLC.CekReport res cost logs) -> (UPLC.cekResultToEither res, cost, logs)) $
+            UPLC.runCekDeBruijn defaultCekParametersForTesting exBudgetMode logEmitter t of
         (Left errorWithCause, _, logs) -> do
             for_ logs (printE . unpack)
             failE $ show errorWithCause

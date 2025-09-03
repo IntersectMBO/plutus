@@ -1,9 +1,4 @@
-(let
-    !checkValid_f : bytestring -> integer = byteStringToInteger False
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-  in
-  letrec
+(letrec
     data (List :: * -> *) a | List_match where
       Nil : List a
       Cons : a -> List a -> List a
@@ -19,43 +14,40 @@
             (\(d : integer) (ds : List integer) ->
                mkCons {integer} d (goList ds))
   in
+  letrec
+    !goList : List integer -> list integer
+      = \(ds : List integer) ->
+          List_match
+            {integer}
+            ds
+            {list integer}
+            []
+            (\(d : integer) (ds : List integer) ->
+               mkCons {integer} d (goList ds))
+  in
   let
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
-    !writeBits : bytestring -> List integer -> Bool -> bytestring
-      = \(bs : bytestring) (ixes : List integer) (bit : Bool) ->
-          writeBits
-            bs
-            (goList ixes)
-            (Bool_match
-               bit
-               {all dead. bool}
-               (/\dead -> True)
-               (/\dead -> False)
-               {all dead. dead})
-    !even : integer -> Bool
-      = \(n : integer) ->
-          case Bool (equalsInteger 0 (modInteger n 2)) [False, True]
+    !checkValid_f : bytestring -> integer = byteStringToInteger False
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
   in
   letrec
     !expModManual : integer -> integer -> integer -> integer
       = \(b' : integer) (e : integer) (m : integer) ->
-          Bool_match
-            (case Bool (equalsInteger 0 e) [False, True])
-            {all dead. integer}
-            (/\dead -> 1)
-            (/\dead ->
-               let
-                 !reduced : integer = expModManual b' (divideInteger e 2) m
-                 !t : integer = modInteger (multiplyInteger reduced reduced) m
-               in
-               Bool_match
-                 (even e)
-                 {all dead. integer}
-                 (/\dead -> t)
-                 (/\dead -> modInteger (multiplyInteger t b') m)
-                 {all dead. dead})
+          case
+            (all dead. integer)
+            (equalsInteger 0 e)
+            [ (/\dead ->
+                 let
+                   !reduced : integer = expModManual b' (divideInteger e 2) m
+                   !t : integer = modInteger (multiplyInteger reduced reduced) m
+                 in
+                 case
+                   (all dead. integer)
+                   (equalsInteger 0 (modInteger e 2))
+                   [ (/\dead -> modInteger (multiplyInteger t b') m)
+                   , (/\dead -> t) ]
+                   {all dead. dead})
+            , (/\dead -> 1) ]
             {all dead. dead}
   in
   let
@@ -108,87 +100,68 @@
               = subtractInteger
                   57896044618658097711785492504343953926634992332820282019728792003956564819949
                   x
-            !`$j` : Bool -> integer
-              = \(cond : Bool) ->
+            !`$j` : bool -> integer
+              = \(cond : bool) ->
                   let
-                    !`$j` : Bool -> integer
-                      = \(cond : Bool) ->
-                          Bool_match
-                            (Bool_match
+                    !`$j` : bool -> integer
+                      = \(cond : bool) ->
+                          case
+                            (all dead. integer)
+                            (case
+                               (all dead. bool)
                                cond
-                               {all dead. Bool}
-                               (/\dead ->
-                                  Bool_match
-                                    cond
-                                    {all dead. Bool}
-                                    (/\dead -> False)
-                                    (/\dead -> True)
-                                    {all dead. dead})
-                               (/\dead -> False)
+                               [ (/\dead -> False)
+                               , (/\dead -> case bool cond [True, False]) ]
                                {all dead. dead})
-                            {all dead. integer}
-                            (/\dead -> xA)
-                            (/\dead ->
-                               Bool_match
-                                 (Bool_match
-                                    cond
-                                    {all dead. Bool}
-                                    (/\dead -> cond)
-                                    (/\dead -> False)
-                                    {all dead. dead})
-                                 {all dead. integer}
-                                 (/\dead -> xAB)
-                                 (/\dead ->
-                                    Bool_match
-                                      (Bool_match
-                                         (Bool_match
-                                            cond
-                                            {all dead. Bool}
-                                            (/\dead -> False)
-                                            (/\dead -> True)
-                                            {all dead. dead})
-                                         {all dead. Bool}
-                                         (/\dead -> cond)
-                                         (/\dead -> False)
-                                         {all dead. dead})
-                                      {all dead. integer}
-                                      (/\dead -> xB)
-                                      (/\dead -> x)
+                            [ (/\dead ->
+                                 case
+                                   (all dead. integer)
+                                   (case
+                                      (all dead. bool)
+                                      cond
+                                      [(/\dead -> False), (/\dead -> cond)]
                                       {all dead. dead})
-                                 {all dead. dead})
+                                   [ (/\dead ->
+                                        case
+                                          (all dead. integer)
+                                          (case
+                                             (all dead. bool)
+                                             (case bool cond [True, False])
+                                             [ (/\dead -> False)
+                                             , (/\dead -> cond) ]
+                                             {all dead. dead})
+                                          [(/\dead -> x), (/\dead -> xB)]
+                                          {all dead. dead})
+                                   , (/\dead -> xAB) ]
+                                   {all dead. dead})
+                            , (/\dead -> xA) ]
                             {all dead. dead}
                   in
-                  Bool_match
+                  case
+                    (all dead. integer)
                     cond
-                    {all dead. integer}
-                    (/\dead ->
-                       Bool_match
-                         (even xA)
-                         {all dead. integer}
-                         (/\dead -> `$j` False)
-                         (/\dead -> `$j` True)
-                         {all dead. dead})
-                    (/\dead ->
-                       Bool_match
-                         (even x)
-                         {all dead. integer}
-                         (/\dead -> `$j` False)
-                         (/\dead -> `$j` True)
-                         {all dead. dead})
+                    [ (/\dead ->
+                         case
+                           (all dead. integer)
+                           (equalsInteger 0 (modInteger x 2))
+                           [(/\dead -> `$j` True), (/\dead -> `$j` False)]
+                           {all dead. dead})
+                    , (/\dead ->
+                         case
+                           (all dead. integer)
+                           (equalsInteger 0 (modInteger xA 2))
+                           [(/\dead -> `$j` True), (/\dead -> `$j` False)]
+                           {all dead. dead}) ]
                     {all dead. dead}
           in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger
-                  0
-                  (modInteger
-                     (subtractInteger (multiplyInteger x x) xx)
-                     57896044618658097711785492504343953926634992332820282019728792003956564819949))
-               [False, True])
-            {all dead. integer}
-            (/\dead -> `$j` False)
-            (/\dead -> `$j` True)
+          case
+            (all dead. integer)
+            (equalsInteger
+               0
+               (modInteger
+                  (subtractInteger (multiplyInteger x x) xx)
+                  57896044618658097711785492504343953926634992332820282019728792003956564819949))
+            [(/\dead -> `$j` True), (/\dead -> `$j` False)]
             {all dead. dead}
     !decodePoint :
        bytestring -> Tuple2 integer integer
@@ -196,50 +169,51 @@
           let
             !yInt : integer
               = checkValid_f
-                  (writeBits
-                     bs
-                     ((let
-                          a = List integer
-                        in
-                        \(c : integer -> a -> a) (n : a) -> c 7 n)
-                        (\(ds : integer) (ds : List integer) ->
-                           Cons {integer} ds ds)
-                        (Nil {integer}))
-                     False)
+                  (let
+                    !ixes : List integer
+                      = (let
+                            a = List integer
+                          in
+                          \(c : integer -> a -> a) (n : a) -> c 7 n)
+                          (\(ds : integer) (ds : List integer) ->
+                             Cons {integer} ds ds)
+                          (Nil {integer})
+                  in
+                  writeBits bs (goList ixes) False)
             !x : integer = xRecover yInt
-            !x_ : Bool = case Bool (readBit bs 7) [False, True]
+            !x_ : bool = readBit bs 7
           in
-          Bool_match
-            (even x)
-            {all dead. Tuple2 integer integer}
-            (/\dead ->
-               Bool_match
-                 x_
-                 {all dead. Tuple2 integer integer}
-                 (/\dead ->
-                    Tuple2
-                      {integer}
-                      {integer}
-                      (subtractInteger
-                         57896044618658097711785492504343953926634992332820282019728792003956564819949
-                         x)
-                      yInt)
-                 (/\dead -> Tuple2 {integer} {integer} x yInt)
-                 {all dead. dead})
-            (/\dead ->
-               Bool_match
-                 x_
-                 {all dead. Tuple2 integer integer}
-                 (/\dead -> Tuple2 {integer} {integer} x yInt)
-                 (/\dead ->
-                    Tuple2
-                      {integer}
-                      {integer}
-                      (subtractInteger
-                         57896044618658097711785492504343953926634992332820282019728792003956564819949
-                         x)
-                      yInt)
-                 {all dead. dead})
+          case
+            (all dead. Tuple2 integer integer)
+            (equalsInteger 0 (modInteger x 2))
+            [ (/\dead ->
+                 case
+                   (all dead. Tuple2 integer integer)
+                   x_
+                   [ (/\dead ->
+                        Tuple2
+                          {integer}
+                          {integer}
+                          (subtractInteger
+                             57896044618658097711785492504343953926634992332820282019728792003956564819949
+                             x)
+                          yInt)
+                   , (/\dead -> Tuple2 {integer} {integer} x yInt) ]
+                   {all dead. dead})
+            , (/\dead ->
+                 case
+                   (all dead. Tuple2 integer integer)
+                   x_
+                   [ (/\dead -> Tuple2 {integer} {integer} x yInt)
+                   , (/\dead ->
+                        Tuple2
+                          {integer}
+                          {integer}
+                          (subtractInteger
+                             57896044618658097711785492504343953926634992332820282019728792003956564819949
+                             x)
+                          yInt) ]
+                   {all dead. dead}) ]
             {all dead. dead}
     data SHA512Sched | SHA512Sched_match where
       SHA512Sched :
@@ -370,21 +344,18 @@
       = \(state : SHA512State)
          (next : bytestring -> SHA512State -> Tuple2 SHA512State bytestring)
          (input : bytestring) ->
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 0 (lengthOfByteString input))
-               [False, True])
-            {all dead. SHA512State}
-            (/\dead -> state)
-            (/\dead ->
-               Tuple2_match
-                 {SHA512State}
-                 {bytestring}
-                 (next input state)
-                 {SHA512State}
-                 (\(ipv : SHA512State) (ipv : bytestring) ->
-                    runSha ipv next ipv))
+          case
+            (all dead. SHA512State)
+            (equalsInteger 0 (lengthOfByteString input))
+            [ (/\dead ->
+                 Tuple2_match
+                   {SHA512State}
+                   {bytestring}
+                   (next input state)
+                   {SHA512State}
+                   (\(ipv : SHA512State) (ipv : bytestring) ->
+                      runSha ipv next ipv))
+            , (/\dead -> state) ]
             {all dead. dead}
   in
   let
@@ -456,21 +427,21 @@
   letrec
     !scalarMult : Tuple2 integer integer -> integer -> Tuple2 integer integer
       = \(p : Tuple2 integer integer) (e : integer) ->
-          Bool_match
-            (case Bool (equalsInteger 0 e) [False, True])
-            {all dead. Tuple2 integer integer}
-            (/\dead -> Tuple2 {integer} {integer} 0 1)
-            (/\dead ->
-               let
-                 !nt : Tuple2 integer integer = scalarMult p (divideInteger e 2)
-                 !nt : Tuple2 integer integer = edwards nt nt
-               in
-               Bool_match
-                 (even e)
-                 {all dead. Tuple2 integer integer}
-                 (/\dead -> nt)
-                 (/\dead -> edwards nt p)
-                 {all dead. dead})
+          case
+            (all dead. Tuple2 integer integer)
+            (equalsInteger 0 e)
+            [ (/\dead ->
+                 let
+                   !nt : Tuple2 integer integer
+                     = scalarMult p (divideInteger e 2)
+                   !nt : Tuple2 integer integer = edwards nt nt
+                 in
+                 case
+                   (all dead. Tuple2 integer integer)
+                   (equalsInteger 0 (modInteger e 2))
+                   [(/\dead -> edwards nt p), (/\dead -> nt)]
+                   {all dead. dead})
+            , (/\dead -> Tuple2 {integer} {integer} 0 1) ]
             {all dead. dead}
   in
   let
@@ -481,18 +452,15 @@
             !yI : integer = byteStringToInteger True y
             !added : integer = addInteger (byteStringToInteger True x) yI
           in
-          Bool_match
-            (case
-               Bool
-               (lessThanInteger 18446744073709551615 added)
-               [False, True])
-            {all dead. bytestring}
-            (/\dead ->
-               g
-                 (subtractInteger
-                    (subtractInteger added 18446744073709551615)
-                    1))
-            (/\dead -> g added)
+          case
+            (all dead. bytestring)
+            (lessThanInteger 18446744073709551615 added)
+            [ (/\dead -> g added)
+            , (/\dead ->
+                 g
+                   (subtractInteger
+                      (subtractInteger added 18446744073709551615)
+                      1)) ]
             {all dead. dead}
     !step : SHA512State -> integer -> bytestring -> SHA512State
       = \(ds : SHA512State) (k : integer) (w : bytestring) ->
@@ -578,22 +546,19 @@
                    {bytestring}
                    (\(x : integer) (y : integer) ->
                       let
-                        !xLSBVal : Bool
-                          = case
-                              Bool
-                              (readBit (integerToByteString False 32 x) 248)
-                              [False, True]
+                        !xLSBVal : bool
+                          = readBit (integerToByteString False 32 x) 248
+                        !yBS : bytestring = integerToByteString False 32 y
+                        !ixes : List integer
+                          = (let
+                                a = List integer
+                              in
+                              \(c : integer -> a -> a) (n : a) -> c 7 n)
+                              (\(ds : integer) (ds : List integer) ->
+                                 Cons {integer} ds ds)
+                              (Nil {integer})
                       in
-                      writeBits
-                        (integerToByteString False 32 y)
-                        ((let
-                             a = List integer
-                           in
-                           \(c : integer -> a -> a) (n : a) -> c 7 n)
-                           (\(ds : integer) (ds : List integer) ->
-                              Cons {integer} ds ds)
-                           (Nil {integer}))
-                        xLSBVal))
+                      writeBits yBS (goList ixes) xLSBVal))
                 (appendByteString pubKey message)
         in
         byteStringToInteger
@@ -2227,11 +2192,10 @@
                         (subtractInteger 896 (modInteger lenBits 1024))
                         1
                 in
-                Bool_match
-                  (case Bool (lessThanEqualsInteger r -1) [False, True])
-                  {all dead. bytestring}
-                  (/\dead -> `$j` (addInteger 1024 r))
-                  (/\dead -> `$j` r)
+                case
+                  (all dead. bytestring)
+                  (lessThanEqualsInteger r -1)
+                  [(/\dead -> `$j` r), (/\dead -> `$j` (addInteger 1024 r))]
                   {all dead. dead}))
              {bytestring}
              (\(x : bytestring)
@@ -2272,19 +2236,18 @@
       {integer}
       {integer}
       ds
-      {Bool}
+      {bool}
       (\(x : integer) (y : integer) ->
          Tuple2_match
            {integer}
            {integer}
            ds
-           {Bool}
+           {bool}
            (\(x : integer) (y : integer) ->
-              Bool_match
-                (case Bool (equalsInteger x x) [False, True])
-                {all dead. Bool}
-                (/\dead -> case Bool (equalsInteger y y) [False, True])
-                (/\dead -> False)
+              case
+                (all dead. bool)
+                (equalsInteger x x)
+                [(/\dead -> False), (/\dead -> equalsInteger y y)]
                 {all dead. dead})))
   (B #c080c2932178c2adc2a7c3917a6009c3b37cc383245824c3a9c2a6c3aac080c286c2986c14c3b334c39915c298c2b47b244dc3a352c396c39a25c3b1c29d050e0509c298c28cc2abc3b0c38866c2b8c285c38bc3a37ac2a3c080c2b9c29b59c28bc2b2c3b902)
   (B #68656c6c6f20776f726c64)

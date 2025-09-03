@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name:          plutus-metatheory
-version:       1.49.0.0
+version:       1.52.0.0
 synopsis:      Command line tool for running plutus core programs
 homepage:      https://github.com/IntersectMBO/plutus
 license:       Apache-2.0
@@ -79,12 +79,13 @@ library
     , memory
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.52
     , plutus-core:plutus-core-execlib
     , process
     , text
     , time
     , transformers
+    , vector                           ^>=0.13.2
 
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
@@ -353,6 +354,7 @@ library
     MAlonzo.Code.Untyped
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.CEKWithCost
+    MAlonzo.Code.Untyped.Equality
     MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Untyped.RenamingSubstitution
@@ -362,7 +364,6 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Certificate
-    MAlonzo.Code.VerifiedCompilation.Equality
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UCSE
@@ -380,7 +381,7 @@ executable plc-agda
   main-is:        Main.hs
   build-depends:
     , base
-    , plutus-metatheory  ^>=1.49
+    , plutus-metatheory  ^>=1.52
 
 test-suite test-NEAT
   import:         lang, os-support, ghc-version-support
@@ -393,9 +394,9 @@ test-suite test-NEAT
     , data-default-class
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.52
     , plutus-core:plutus-core-testlib
-    , plutus-metatheory                ^>=1.49
+    , plutus-metatheory                ^>=1.52
     , size-based
     , Stream
     , tasty
@@ -417,7 +418,7 @@ test-suite test-certifier
     , plutus-core
     , plutus-core:plutus-core-testlib
     , plutus-core:untyped-plutus-core-testlib
-    , plutus-metatheory                        ^>=1.49
+    , plutus-metatheory                        ^>=1.52
     , process
     , tasty
     , tasty-hunit

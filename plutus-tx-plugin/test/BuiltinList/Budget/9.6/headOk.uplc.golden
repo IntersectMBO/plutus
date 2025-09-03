@@ -3,6 +3,6 @@
    (\xs ->
       case
         xs
-        [ (\ds -> (\x -> error) (force trace "PT23" (constr 0 [])))
-        , (\x xs ds -> x) ]
+        [ (\x xs ds -> x)
+        , (\ds -> (\x -> error) (force trace "PT23" (constr 0 []))) ]
         (constr 0 [])))

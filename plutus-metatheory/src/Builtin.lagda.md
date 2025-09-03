@@ -36,7 +36,7 @@ open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
                  using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
-open _⊢♯ renaming (pair to bpair; list to blist)
+open _⊢♯ renaming (pair to bpair; list to blist; array to barray)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType
 
@@ -96,6 +96,10 @@ data Builtin : Set where
   headList                        : Builtin
   tailList                        : Builtin
   nullList                        : Builtin
+  -- Arrays
+  lengthOfArray             : Builtin
+  listToArray                  : Builtin
+  indexArray                  : Builtin
   -- Data
   chooseData                      : Builtin
   constrData                      : Builtin
@@ -210,6 +214,9 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
 
     list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     list a = (blist a) ↑
+
+    array :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
+    array a = (barray a) ↑
 ```
 
 ### Operators for constructing signatures
@@ -292,6 +299,9 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature headList                        = ∀a [ list a ]⟶ a ↑
     signature tailList                        = ∀a [ list a ]⟶ list a
     signature nullList                        = ∀a [ list a ]⟶ bool ↑
+    signature lengthOfArray              = ∀a [ array a ]⟶ integer ↑
+    signature listToArray                   = ∀a [ list a ]⟶ array a
+    signature indexArray                    = ∀a [ array a , integer ↑ ]⟶ a ↑
     signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A ]⟶ A
     signature constrData                      = ∙ [ integer ↑ , list pdata ]⟶ pdata ↑
     signature mapData                         = ∙ [ list (bpair pdata pdata) ]⟶ pdata ↑
@@ -398,6 +408,9 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | HeadList
                                           | TailList
                                           | NullList
+                                          | LengthOfArray
+                                          | ListToArray
+                                          | IndexArray
                                           | ChooseData
                                           | ConstrData
                                           | MapData

@@ -1,152 +1,165 @@
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-  !`$fEqCredential_$c==` : data -> data -> Bool
+  !`$fEqCredential_$c==` : data -> data -> bool
     = \(ds : data) (ds : data) ->
         let
-          !fail : unit -> Bool
+          !fail : unit -> bool
             = \(ds : unit) ->
                 let
                   !tup : pair integer (list data) = unConstrData ds
                 in
-                Bool_match
-                  (case
-                     Bool
-                     (equalsInteger 1 (fstPair {integer} {list data} tup))
-                     [False, True])
-                  {all dead. Bool}
-                  (/\dead ->
-                     let
-                       !tup : pair integer (list data) = unConstrData ds
-                     in
-                     Bool_match
-                       (case
-                          Bool
-                          (equalsInteger 1 (fstPair {integer} {list data} tup))
-                          [False, True])
-                       {all dead. Bool}
-                       (/\dead ->
-                          case
-                            Bool
-                            (equalsByteString
-                               (unBData
-                                  (headList
-                                     {data}
-                                     (sndPair {integer} {list data} tup)))
-                               (unBData
-                                  (headList
-                                     {data}
-                                     (sndPair {integer} {list data} tup))))
-                            [False, True])
-                       (/\dead -> False)
-                       {all dead. dead})
-                  (/\dead -> False)
+                case
+                  (all dead. bool)
+                  (equalsInteger
+                     1
+                     (case integer tup [(\(l : integer) (r : list data) -> l)]))
+                  [ (/\dead -> False)
+                  , (/\dead ->
+                       let
+                         !tup : pair integer (list data) = unConstrData ds
+                       in
+                       case
+                         (all dead. bool)
+                         (equalsInteger
+                            1
+                            (case
+                               integer
+                               tup
+                               [(\(l : integer) (r : list data) -> l)]))
+                         [ (/\dead -> False)
+                         , (/\dead ->
+                              equalsByteString
+                                (unBData
+                                   (headList
+                                      {data}
+                                      (case
+                                         (list data)
+                                         tup
+                                         [ (\(l : integer) (r : list data) ->
+                                              r) ])))
+                                (unBData
+                                   (headList
+                                      {data}
+                                      (case
+                                         (list data)
+                                         tup
+                                         [ (\(l : integer) (r : list data) ->
+                                              r) ])))) ]
+                         {all dead. dead}) ]
                   {all dead. dead}
           !tup : pair integer (list data) = unConstrData ds
         in
-        Bool_match
-          (case
-             Bool
-             (equalsInteger 0 (fstPair {integer} {list data} tup))
-             [False, True])
-          {all dead. Bool}
-          (/\dead ->
-             let
-               !tup : pair integer (list data) = unConstrData ds
-             in
-             Bool_match
-               (case
-                  Bool
-                  (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  [False, True])
-               {all dead. Bool}
-               (/\dead ->
-                  case
-                    Bool
-                    (equalsByteString
-                       (unBData
-                          (headList {data} (sndPair {integer} {list data} tup)))
-                       (unBData
-                          (headList
-                             {data}
-                             (sndPair {integer} {list data} tup))))
-                    [False, True])
-               (/\dead -> fail ())
-               {all dead. dead})
-          (/\dead -> fail ())
+        case
+          (all dead. bool)
+          (equalsInteger
+             0
+             (case integer tup [(\(l : integer) (r : list data) -> l)]))
+          [ (/\dead -> fail ())
+          , (/\dead ->
+               let
+                 !tup : pair integer (list data) = unConstrData ds
+               in
+               case
+                 (all dead. bool)
+                 (equalsInteger
+                    0
+                    (case integer tup [(\(l : integer) (r : list data) -> l)]))
+                 [ (/\dead -> fail ())
+                 , (/\dead ->
+                      equalsByteString
+                        (unBData
+                           (headList
+                              {data}
+                              (case
+                                 (list data)
+                                 tup
+                                 [(\(l : integer) (r : list data) -> r)])))
+                        (unBData
+                           (headList
+                              {data}
+                              (case
+                                 (list data)
+                                 tup
+                                 [(\(l : integer) (r : list data) -> r)])))) ]
+                 {all dead. dead}) ]
           {all dead. dead}
-  !`$fEqDRep0_$c==` : data -> data -> Bool
+  !`$fEqDRep0_$c==` : data -> data -> bool
     = \(ds : data) (ds : data) ->
         let
-          !fail : unit -> Bool
+          !fail : unit -> bool
             = \(ds : unit) ->
-                Bool_match
-                  (case
-                     Bool
-                     (equalsInteger
-                        2
-                        (fstPair {integer} {list data} (unConstrData ds)))
-                     [False, True])
-                  {all dead. Bool}
-                  (/\dead ->
-                     case
-                       Bool
-                       (equalsInteger
-                          2
-                          (fstPair {integer} {list data} (unConstrData ds)))
-                       [False, True])
-                  (/\dead -> False)
+                case
+                  (all dead. bool)
+                  (equalsInteger
+                     2
+                     (case
+                        integer
+                        (unConstrData ds)
+                        [(\(l : integer) (r : list data) -> l)]))
+                  [ (/\dead -> False)
+                  , (/\dead ->
+                       equalsInteger
+                         2
+                         (case
+                            integer
+                            (unConstrData ds)
+                            [(\(l : integer) (r : list data) -> l)])) ]
                   {all dead. dead}
-          !fail : unit -> Bool
+          !fail : unit -> bool
             = \(ds : unit) ->
-                Bool_match
-                  (case
-                     Bool
-                     (equalsInteger
-                        1
-                        (fstPair {integer} {list data} (unConstrData ds)))
-                     [False, True])
-                  {all dead. Bool}
-                  (/\dead ->
-                     Bool_match
-                       (case
-                          Bool
-                          (equalsInteger
-                             1
-                             (fstPair {integer} {list data} (unConstrData ds)))
-                          [False, True])
-                       {all dead. Bool}
-                       (/\dead -> True)
-                       (/\dead -> fail ())
-                       {all dead. dead})
-                  (/\dead -> fail ())
+                case
+                  (all dead. bool)
+                  (equalsInteger
+                     1
+                     (case
+                        integer
+                        (unConstrData ds)
+                        [(\(l : integer) (r : list data) -> l)]))
+                  [ (/\dead -> fail ())
+                  , (/\dead ->
+                       case
+                         (all dead. bool)
+                         (equalsInteger
+                            1
+                            (case
+                               integer
+                               (unConstrData ds)
+                               [(\(l : integer) (r : list data) -> l)]))
+                         [(/\dead -> fail ()), (/\dead -> True)]
+                         {all dead. dead}) ]
                   {all dead. dead}
           !tup : pair integer (list data) = unConstrData ds
         in
-        Bool_match
-          (case
-             Bool
-             (equalsInteger 0 (fstPair {integer} {list data} tup))
-             [False, True])
-          {all dead. Bool}
-          (/\dead ->
-             let
-               !tup : pair integer (list data) = unConstrData ds
-             in
-             Bool_match
-               (case
-                  Bool
-                  (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  [False, True])
-               {all dead. Bool}
-               (/\dead ->
-                  `$fEqCredential_$c==`
-                    (headList {data} (sndPair {integer} {list data} tup))
-                    (headList {data} (sndPair {integer} {list data} tup)))
-               (/\dead -> fail ())
-               {all dead. dead})
-          (/\dead -> fail ())
+        case
+          (all dead. bool)
+          (equalsInteger
+             0
+             (case integer tup [(\(l : integer) (r : list data) -> l)]))
+          [ (/\dead -> fail ())
+          , (/\dead ->
+               let
+                 !tup : pair integer (list data) = unConstrData ds
+               in
+               case
+                 (all dead. bool)
+                 (equalsInteger
+                    0
+                    (case integer tup [(\(l : integer) (r : list data) -> l)]))
+                 [ (/\dead -> fail ())
+                 , (/\dead ->
+                      `$fEqCredential_$c==`
+                        (headList
+                           {data}
+                           (case
+                              (list data)
+                              tup
+                              [(\(l : integer) (r : list data) -> r)]))
+                        (headList
+                           {data}
+                           (case
+                              (list data)
+                              tup
+                              [(\(l : integer) (r : list data) -> r)]))) ]
+                 {all dead. dead}) ]
           {all dead. dead}
   !`$mDelegStakeVote` :
      all r. data -> (bytestring -> data -> r) -> (unit -> r) -> r
@@ -155,168 +168,145 @@ let
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 2 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-               in
-               cont
-                 (unBData (headList {data} l))
-                 (headList {data} (tailList {data} l)))
-            (/\dead -> fail ())
+          case
+            (all dead. r)
+            (equalsInteger
+               2
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
+            [ (/\dead -> fail ())
+            , (/\dead ->
+                 let
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
+                 in
+                 cont
+                   (unBData (headList {data} l))
+                   (headList {data} (tailList {data} l))) ]
             {all dead. dead}
-  !`$fEqDelegatee0_$c==` : data -> data -> Bool
+  !`$fEqDelegatee0_$c==` : data -> data -> bool
     = \(ds : data) (ds : data) ->
         let
-          !fail : unit -> Bool
+          !fail : unit -> bool
             = \(ds : unit) ->
                 `$mDelegStakeVote`
-                  {Bool}
+                  {bool}
                   ds
                   (\(a : bytestring) (b : data) ->
                      `$mDelegStakeVote`
-                       {Bool}
+                       {bool}
                        ds
                        (\(a' : bytestring) (b' : data) ->
-                          Bool_match
-                            (case Bool (equalsByteString a a') [False, True])
-                            {all dead. Bool}
-                            (/\dead -> `$fEqDRep0_$c==` b b')
-                            (/\dead -> False)
+                          case
+                            (all dead. bool)
+                            (equalsByteString a a')
+                            [ (/\dead -> False)
+                            , (/\dead -> `$fEqDRep0_$c==` b b') ]
                             {all dead. dead})
                        (\(void : unit) -> False))
                   (\(void : unit) -> False)
-          !fail : unit -> Bool
+          !fail : unit -> bool
             = \(ds : unit) ->
                 let
                   !tup : pair integer (list data) = unConstrData ds
                 in
-                Bool_match
-                  (case
-                     Bool
-                     (equalsInteger 1 (fstPair {integer} {list data} tup))
-                     [False, True])
-                  {all dead. Bool}
-                  (/\dead ->
-                     let
-                       !tup : pair integer (list data) = unConstrData ds
-                     in
-                     Bool_match
-                       (case
-                          Bool
-                          (equalsInteger 1 (fstPair {integer} {list data} tup))
-                          [False, True])
-                       {all dead. Bool}
-                       (/\dead ->
-                          `$fEqDRep0_$c==`
-                            (headList
-                               {data}
-                               (sndPair {integer} {list data} tup))
-                            (headList
-                               {data}
-                               (sndPair {integer} {list data} tup)))
-                       (/\dead -> fail ())
-                       {all dead. dead})
-                  (/\dead -> fail ())
+                case
+                  (all dead. bool)
+                  (equalsInteger
+                     1
+                     (case integer tup [(\(l : integer) (r : list data) -> l)]))
+                  [ (/\dead -> fail ())
+                  , (/\dead ->
+                       let
+                         !tup : pair integer (list data) = unConstrData ds
+                       in
+                       case
+                         (all dead. bool)
+                         (equalsInteger
+                            1
+                            (case
+                               integer
+                               tup
+                               [(\(l : integer) (r : list data) -> l)]))
+                         [ (/\dead -> fail ())
+                         , (/\dead ->
+                              `$fEqDRep0_$c==`
+                                (headList
+                                   {data}
+                                   (case
+                                      (list data)
+                                      tup
+                                      [(\(l : integer) (r : list data) -> r)]))
+                                (headList
+                                   {data}
+                                   (case
+                                      (list data)
+                                      tup
+                                      [ (\(l : integer) (r : list data) ->
+                                           r) ]))) ]
+                         {all dead. dead}) ]
                   {all dead. dead}
           !tup : pair integer (list data) = unConstrData ds
         in
-        Bool_match
-          (case
-             Bool
-             (equalsInteger 0 (fstPair {integer} {list data} tup))
-             [False, True])
-          {all dead. Bool}
-          (/\dead ->
-             let
-               !tup : pair integer (list data) = unConstrData ds
-             in
-             Bool_match
-               (case
-                  Bool
-                  (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  [False, True])
-               {all dead. Bool}
-               (/\dead ->
-                  case
-                    Bool
-                    (equalsByteString
-                       (unBData
-                          (headList {data} (sndPair {integer} {list data} tup)))
-                       (unBData
-                          (headList
-                             {data}
-                             (sndPair {integer} {list data} tup))))
-                    [False, True])
-               (/\dead -> fail ())
-               {all dead. dead})
-          (/\dead -> fail ())
+        case
+          (all dead. bool)
+          (equalsInteger
+             0
+             (case integer tup [(\(l : integer) (r : list data) -> l)]))
+          [ (/\dead -> fail ())
+          , (/\dead ->
+               let
+                 !tup : pair integer (list data) = unConstrData ds
+               in
+               case
+                 (all dead. bool)
+                 (equalsInteger
+                    0
+                    (case integer tup [(\(l : integer) (r : list data) -> l)]))
+                 [ (/\dead -> fail ())
+                 , (/\dead ->
+                      equalsByteString
+                        (unBData
+                           (headList
+                              {data}
+                              (case
+                                 (list data)
+                                 tup
+                                 [(\(l : integer) (r : list data) -> r)])))
+                        (unBData
+                           (headList
+                              {data}
+                              (case
+                                 (list data)
+                                 tup
+                                 [(\(l : integer) (r : list data) -> r)])))) ]
+                 {all dead. dead}) ]
           {all dead. dead}
-  !`$mTxCertAuthHotCommittee` :
-     all r. data -> (data -> data -> r) -> (unit -> r) -> r
-    = /\r ->
-        \(scrut : data) (cont : data -> data -> r) (fail : unit -> r) ->
-          let
-            !tup : pair integer (list data) = unConstrData scrut
-          in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 9 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-               in
-               cont (headList {data} l) (headList {data} (tailList {data} l)))
-            (/\dead -> fail ())
-            {all dead. dead}
-  !`$mTxCertDelegStaking` :
-     all r. data -> (data -> data -> r) -> (unit -> r) -> r
-    = /\r ->
-        \(scrut : data) (cont : data -> data -> r) (fail : unit -> r) ->
-          let
-            !tup : pair integer (list data) = unConstrData scrut
-          in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 2 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-               in
-               cont (headList {data} l) (headList {data} (tailList {data} l)))
-            (/\dead -> fail ())
-            {all dead. dead}
   !`$mTxCertRegDRep` : all r. data -> (data -> integer -> r) -> (unit -> r) -> r
     = /\r ->
         \(scrut : data) (cont : data -> integer -> r) (fail : unit -> r) ->
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 4 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-               in
-               cont
-                 (headList {data} l)
-                 (unIData (headList {data} (tailList {data} l))))
-            (/\dead -> fail ())
+          case
+            (all dead. r)
+            (equalsInteger
+               4
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
+            [ (/\dead -> fail ())
+            , (/\dead ->
+                 let
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
+                 in
+                 cont
+                   (headList {data} l)
+                   (unIData (headList {data} (tailList {data} l)))) ]
             {all dead. dead}
   !`$mTxCertRegDeleg` :
      all r. data -> (data -> data -> integer -> r) -> (unit -> r) -> r
@@ -327,53 +317,48 @@ let
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 3 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-                 !l : list data = tailList {data} l
-               in
-               cont
-                 (headList {data} l)
-                 (headList {data} l)
-                 (unIData (headList {data} (tailList {data} l))))
-            (/\dead -> fail ())
+          case
+            (all dead. r)
+            (equalsInteger
+               3
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
+            [ (/\dead -> fail ())
+            , (/\dead ->
+                 let
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
+                   !l : list data = tailList {data} l
+                 in
+                 cont
+                   (headList {data} l)
+                   (headList {data} l)
+                   (unIData (headList {data} (tailList {data} l)))) ]
             {all dead. dead}
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Unit | Unit_match where
-    Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
   !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
      all a. (\a -> data -> a) a -> data -> Maybe a
     = /\a ->
         \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
-          in
-          Bool_match
-            (case Bool (equalsInteger 1 index) [False, True])
-            {all dead. Maybe a}
-            (/\dead -> Nothing {a})
-            (/\dead ->
-               Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
-                 {all dead. Maybe a}
-                 (/\dead ->
-                    Just {a} (`$dUnsafeFromData` (headList {data} args)))
-                 (/\dead -> traceError {Maybe a} "PT1")
-                 {all dead. dead})
-            {all dead. dead}
+          (let
+              b = list data
+            in
+            /\r ->
+              \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
+            {Maybe a}
+            (unConstrData d)
+            (\(index : integer) (args : list data) ->
+               case
+                 (list data -> Maybe a)
+                 index
+                 [ (\(ds : list data) ->
+                      Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+                 , (\(ds : list data) -> Nothing {a}) ]
+                 args)
   !`$mTxCertRegStaking` :
      all r. data -> (data -> Maybe integer -> r) -> (unit -> r) -> r
     = /\r ->
@@ -383,23 +368,26 @@ let
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 0 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-               in
-               cont
-                 (headList {data} l)
-                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                    {integer}
-                    unIData
-                    (headList {data} (tailList {data} l))))
-            (/\dead -> fail ())
+          case
+            (all dead. r)
+            (equalsInteger
+               0
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
+            [ (/\dead -> fail ())
+            , (/\dead ->
+                 let
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
+                 in
+                 cont
+                   (headList {data} l)
+                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                      {integer}
+                      unIData
+                      (headList {data} (tailList {data} l)))) ]
             {all dead. dead}
   !`$mTxCertUnRegDRep` :
      all r. data -> (data -> integer -> r) -> (unit -> r) -> r
@@ -408,20 +396,23 @@ let
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 6 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-               in
-               cont
-                 (headList {data} l)
-                 (unIData (headList {data} (tailList {data} l))))
-            (/\dead -> fail ())
+          case
+            (all dead. r)
+            (equalsInteger
+               6
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
+            [ (/\dead -> fail ())
+            , (/\dead ->
+                 let
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
+                 in
+                 cont
+                   (headList {data} l)
+                   (unIData (headList {data} (tailList {data} l)))) ]
             {all dead. dead}
   !`$mTxCertUnRegStaking` :
      all r. data -> (data -> Maybe integer -> r) -> (unit -> r) -> r
@@ -432,23 +423,26 @@ let
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          Bool_match
-            (case
-               Bool
-               (equalsInteger 1 (fstPair {integer} {list data} tup))
-               [False, True])
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-               in
-               cont
-                 (headList {data} l)
-                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                    {integer}
-                    unIData
-                    (headList {data} (tailList {data} l))))
-            (/\dead -> fail ())
+          case
+            (all dead. r)
+            (equalsInteger
+               1
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
+            [ (/\dead -> fail ())
+            , (/\dead ->
+                 let
+                   !l : list data
+                     = case
+                         (list data)
+                         tup
+                         [(\(l : integer) (r : list data) -> r)]
+                 in
+                 cont
+                   (headList {data} l)
+                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                      {integer}
+                      unIData
+                      (headList {data} (tailList {data} l)))) ]
             {all dead. dead}
   !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
     = \(d : data) -> d
@@ -456,60 +450,57 @@ let
      all a.
        (\a -> data -> a) a ->
        (\a -> a -> data) a ->
-       (a -> Bool) ->
+       (a -> bool) ->
        (\a -> list data) a ->
        (\a -> list data) a
     = /\a ->
         \(`$dUnsafeFromData` : (\a -> data -> a) a)
          (`$dToData` : (\a -> a -> data) a)
-         (pred : a -> Bool) ->
+         (pred : a -> bool) ->
           letrec
             !go : (\a -> list data) a -> (\a -> list data) a
               = \(ds : (\a -> list data) a) ->
                   case
                     ((\a -> list data) a)
                     ds
-                    [ []
-                    , (\(x : data) (eta : list data) ->
+                    [ (\(x : data) (eta : list data) ->
                          let
                            !h : a = `$dUnsafeFromData` x
                          in
-                         Bool_match
+                         case
+                           (all dead. (\a -> list data) a)
                            (pred h)
-                           {all dead. (\a -> list data) a}
-                           (/\dead ->
-                              let
-                                !nt : list data = go eta
-                              in
-                              mkCons {data} (`$dToData` h) nt)
-                           (/\dead -> go eta)
-                           {all dead. dead}) ]
+                           [ (/\dead -> go eta)
+                           , (/\dead ->
+                                let
+                                  !nt : list data = go eta
+                                in
+                                mkCons {data} (`$dToData` h) nt) ]
+                           {all dead. dead})
+                    , [] ]
           in
           \(eta : (\a -> list data) a) -> go eta
   !member :
      all k a.
-       (\a -> a -> data) k -> k -> (\k a -> list (pair data data)) k a -> Bool
+       (\a -> a -> data) k -> k -> (\k a -> list (pair data data)) k a -> bool
     = /\k a ->
         \(`$dToData` : (\a -> a -> data) k) (ds : k) ->
           letrec
-            !go : list (pair data data) -> Bool
+            !go : list (pair data data) -> bool
               = \(xs : list (pair data data)) ->
                   case
-                    Bool
+                    bool
                     xs
-                    [ False
-                    , (\(hd : pair data data) ->
-                         Bool_match
-                           (case
-                              Bool
-                              (equalsData
-                                 (`$dToData` ds)
-                                 (fstPair {data} {data} hd))
-                              [False, True])
-                           {all dead. list (pair data data) -> Bool}
-                           (/\dead -> \(ds : list (pair data data)) -> True)
-                           (/\dead -> go)
-                           {all dead. dead}) ]
+                    [ (\(hd : pair data data) ->
+                         case
+                           (all dead. list (pair data data) -> bool)
+                           (equalsData
+                              (`$dToData` ds)
+                              (case data hd [(\(l : data) (r : data) -> l)]))
+                           [ (/\dead -> go)
+                           , (/\dead -> \(ds : list (pair data data)) -> True) ]
+                           {all dead. dead})
+                    , False ]
           in
           \(ds : (\k a -> list (pair data data)) k a) -> go ds
   !mapMaybe :
@@ -529,11 +520,15 @@ let
                   case
                     (list (pair data data))
                     xs
-                    [ []
-                    , (\(hd : pair data data) ->
+                    [ (\(hd : pair data data) ->
                          Maybe_match
                            {b}
-                           (f (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                           (f
+                              (`$dUnsafeFromData`
+                                 (case
+                                    data
+                                    hd
+                                    [(\(l : data) (r : data) -> r)])))
                            {all dead.
                               list (pair data data) -> list (pair data data)}
                            (\(v' : b) ->
@@ -542,21 +537,30 @@ let
                                   mkCons
                                     {pair data data}
                                     (mkPairData
-                                       (fstPair {data} {data} hd)
+                                       (case
+                                          data
+                                          hd
+                                          [(\(l : data) (r : data) -> l)])
                                        (`$dToData` v'))
                                     (go eta))
                            (/\dead -> go)
-                           {all dead. dead}) ]
+                           {all dead. dead})
+                    , [] ]
           in
           go
-  !null : all a. (\a -> list data) a -> Bool
-    = /\a ->
-        \(eta : (\a -> list data) a) ->
-          case Bool (nullList {data} eta) [False, True]
+  !null : all a. (\a -> list data) a -> bool
+    = /\a -> \(eta : (\a -> list data) a) -> nullList {data} eta
+  data Unit | Unit_match where
+    Unit : Unit
   !txOutRefId : data -> bytestring
     = \(ds : data) ->
         unBData
-          (headList {data} (sndPair {integer} {list data} (unConstrData ds)))
+          (headList
+             {data}
+             (case
+                (list data)
+                (unConstrData ds)
+                [(\(l : integer) (r : list data) -> r)]))
   !txOutRefIdx : data -> integer
     = \(ds : data) ->
         unIData
@@ -564,603 +568,838 @@ let
              {data}
              (tailList
                 {data}
-                (sndPair {integer} {list data} (unConstrData ds))))
+                (case
+                   (list data)
+                   (unConstrData ds)
+                   [(\(l : integer) (r : list data) -> r)])))
 in
 \(ds : data) ->
   let
-    !l : list data = sndPair {integer} {list data} (unConstrData ds)
+    !l : list data
+      = case
+          (list data)
+          (unConstrData ds)
+          [(\(l : integer) (r : list data) -> r)]
     !scriptInfo : data = headList {data} (tailList {data} (tailList {data} l))
     !l : list data
-      = sndPair {integer} {list data} (unConstrData (headList {data} l))
+      = case
+          (list data)
+          (unConstrData (headList {data} l))
+          [(\(l : integer) (r : list data) -> r)]
     !l : list data
       = tailList {data} (tailList {data} (tailList {data} (tailList {data} l)))
     !l : list data = tailList {data} l
     !l : list data = tailList {data} l
   in
-  Bool_match
+  case
+    (all dead. unit)
     (let
       !tup : pair integer (list data) = unConstrData scriptInfo
     in
-    Bool_match
-      (case
-         Bool
-         (equalsInteger 0 (fstPair {integer} {list data} tup))
-         [False, True])
-      {all dead. Bool}
-      (/\dead ->
-         (let
-             a
-               = (\k a -> list (pair data data))
-                   bytestring
-                   ((\k a -> list (pair data data)) bytestring integer)
+    case
+      (all dead. bool)
+      (equalsInteger
+         0
+         (case integer tup [(\(l : integer) (r : list data) -> l)]))
+      [ (/\dead ->
+           let
+             !tup : pair integer (list data) = unConstrData scriptInfo
            in
-           /\b -> \(f : a -> b) (x : a) -> f x)
-           {Bool}
-           ((let
-                b
-                  = (\k a -> list (pair data data))
-                      bytestring
-                      ((\k a -> list (pair data data)) bytestring integer)
-              in
-              /\c a -> \(f : b -> c) (g : a -> b) (x : a) -> f (g x))
-              {Bool}
-              {(\k a -> list (pair data data))
-                 bytestring
-                 ((\k a -> list (pair data data)) bytestring integer)}
-              (member
-                 {bytestring}
-                 {(\k a -> list (pair data data)) bytestring integer}
-                 bData
-                 (unBData
-                    (headList {data} (sndPair {integer} {list data} tup))))
-              (\(ds :
-                   (\k a -> list (pair data data))
-                     bytestring
-                     ((\k a -> list (pair data data)) bytestring integer)) ->
-                 ds))
-           (mapMaybe
-              {bytestring}
-              {(\k a -> list (pair data data)) bytestring integer}
-              {(\k a -> list (pair data data)) bytestring integer}
-              (\(eta : data) -> unMapData eta)
-              (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
-                 mapData ds)
-              (\(map : (\k a -> list (pair data data)) bytestring integer) ->
-                 let
-                   !l : list (pair data data)
-                     = mapMaybe
-                         {bytestring}
-                         {integer}
-                         {integer}
-                         unIData
-                         (\(i : integer) -> iData i)
-                         (\(x : integer) ->
-                            Bool_match
+           case
+             (all dead. bool)
+             (equalsInteger
+                1
+                (case integer tup [(\(l : integer) (r : list data) -> l)]))
+             [ (/\dead ->
+                  let
+                    !tup : pair integer (list data) = unConstrData scriptInfo
+                  in
+                  case
+                    (all dead. bool)
+                    (equalsInteger
+                       2
+                       (case
+                          integer
+                          tup
+                          [(\(l : integer) (r : list data) -> l)]))
+                    [ (/\dead ->
+                         let
+                           !tup : pair integer (list data)
+                             = unConstrData scriptInfo
+                         in
+                         case
+                           (all dead. bool)
+                           (equalsInteger
+                              3
                               (case
-                                 Bool
-                                 (lessThanEqualsInteger x 0)
-                                 [True, False])
-                              {all dead. Maybe integer}
-                              (/\dead -> Just {integer} x)
-                              (/\dead -> Nothing {integer})
-                              {all dead. dead})
-                         map
-                 in
-                 Bool_match
-                   (case Bool (nullList {pair data data} l) [False, True])
-                   {all dead.
-                      Maybe
-                        ((\k a -> list (pair data data)) bytestring integer)}
-                   (/\dead ->
-                      Nothing
-                        {(\k a -> list (pair data data)) bytestring integer})
-                   (/\dead ->
-                      Just
-                        {(\k a -> list (pair data data)) bytestring integer}
-                        l)
-                   {all dead. dead})
-              (unMapData (headList {data} l))))
-      (/\dead ->
-         let
-           !tup : pair integer (list data) = unConstrData scriptInfo
-         in
-         Bool_match
-           (case
-              Bool
-              (equalsInteger 1 (fstPair {integer} {list data} tup))
-              [False, True])
-           {all dead. Bool}
-           (/\dead ->
-              let
-                !l : list data = sndPair {integer} {list data} tup
-              in
-              Maybe_match
-                {data}
-                (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                   {data}
-                   `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                   (headList {data} (tailList {data} l)))
-                {all dead. Bool}
-                (\(ds : data) -> /\dead -> False)
-                (/\dead ->
-                   (let
-                       a = (\a -> list data) data
-                     in
-                     /\b -> \(f : a -> b) (x : a) -> f x)
-                     {Bool}
-                     (null {data})
-                     (filter
-                        {data}
-                        `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                        (\(x : data) -> x)
-                        (\(x : data) ->
-                           let
-                             !v : data
-                               = headList
-                                   {data}
-                                   (sndPair
-                                      {integer}
-                                      {list data}
-                                      (unConstrData x))
-                             !l : data = headList {data} l
-                           in
-                           Bool_match
-                             (case
-                                Bool
-                                (equalsByteString (txOutRefId l) (txOutRefId v))
-                                [False, True])
-                             {all dead. Bool}
-                             (/\dead ->
-                                case
-                                  Bool
-                                  (equalsInteger
-                                     (txOutRefIdx l)
-                                     (txOutRefIdx v))
-                                  [False, True])
-                             (/\dead -> False)
-                             {all dead. dead})
-                        (unListData (headList {data} l))))
-                {all dead. dead})
-           (/\dead ->
-              let
-                !tup : pair integer (list data) = unConstrData scriptInfo
-              in
-              Bool_match
-                (case
-                   Bool
-                   (equalsInteger 2 (fstPair {integer} {list data} tup))
-                   [False, True])
-                {all dead. Bool}
-                (/\dead ->
-                   member
-                     {data}
-                     {integer}
-                     (\(x : data) -> x)
-                     (headList {data} (sndPair {integer} {list data} tup))
-                     (unMapData (headList {data} l)))
-                (/\dead ->
-                   let
-                     !tup : pair integer (list data) = unConstrData scriptInfo
-                   in
-                   Bool_match
-                     (case
-                        Bool
-                        (equalsInteger 3 (fstPair {integer} {list data} tup))
-                        [False, True])
-                     {all dead. Bool}
-                     (/\dead ->
-                        let
-                          !l : list data = sndPair {integer} {list data} tup
-                        in
-                        (let
-                            a = (\a -> list data) data
-                          in
-                          /\b -> \(f : a -> b) (x : a) -> f x)
-                          {Bool}
-                          (null {data})
-                          (filter
-                             {data}
-                             `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                             (\(x : data) -> x)
-                             (\(v : data) ->
+                                 integer
+                                 tup
+                                 [(\(l : integer) (r : list data) -> l)]))
+                           [ (/\dead ->
                                 let
-                                  !eta : data
-                                    = headList {data} (tailList {data} l)
-                                  !fail : unit -> Bool
-                                    = \(ds : unit) ->
+                                  !tup : pair integer (list data)
+                                    = unConstrData scriptInfo
+                                in
+                                case
+                                  (all dead. bool)
+                                  (equalsInteger
+                                     4
+                                     (case
+                                        integer
+                                        tup
+                                        [ (\(l : integer) (r : list data) ->
+                                             l) ]))
+                                  [ (/\dead ->
+                                       let
+                                         !tup : pair integer (list data)
+                                           = unConstrData scriptInfo
+                                       in
+                                       case
+                                         (all dead. bool)
+                                         (equalsInteger
+                                            5
+                                            (case
+                                               integer
+                                               tup
+                                               [ (\(l : integer)
+                                                   (r : list data) ->
+                                                    l) ]))
+                                         [ (/\dead ->
+                                              let
+                                                !defaultBody : bool
+                                                  = error {bool}
+                                              in
+                                              Unit_match
+                                                (error {Unit})
+                                                {bool}
+                                                defaultBody)
+                                         , (/\dead ->
+                                              let
+                                                !l : list data
+                                                  = case
+                                                      (list data)
+                                                      tup
+                                                      [ (\(l : integer)
+                                                          (r : list data) ->
+                                                           r) ]
+                                              in
+                                              True) ]
+                                         {all dead. dead})
+                                  , (/\dead ->
+                                       member
+                                         {data}
+                                         {(\k a -> list (pair data data))
+                                            data
+                                            data}
+                                         (\(x : data) -> x)
+                                         (headList
+                                            {data}
+                                            (case
+                                               (list data)
+                                               tup
+                                               [ (\(l : integer)
+                                                   (r : list data) ->
+                                                    r) ]))
+                                         (unMapData
+                                            (headList
+                                               {data}
+                                               (tailList
+                                                  {data}
+                                                  (tailList
+                                                     {data}
+                                                     (tailList
+                                                        {data}
+                                                        (tailList
+                                                           {data}
+                                                           (tailList
+                                                              {data}
+                                                              (tailList
+                                                                 {data}
+                                                                 l))))))))) ]
+                                  {all dead. dead})
+                           , (/\dead ->
+                                let
+                                  !l : list data
+                                    = case
+                                        (list data)
+                                        tup
+                                        [(\(l : integer) (r : list data) -> r)]
+                                in
+                                (let
+                                    a = (\a -> list data) data
+                                  in
+                                  /\b -> \(f : a -> b) (x : a) -> f x)
+                                  {bool}
+                                  (null {data})
+                                  (filter
+                                     {data}
+                                     `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                     (\(x : data) -> x)
+                                     (\(v : data) ->
                                         let
-                                          !tup : pair integer (list data)
-                                            = unConstrData eta
-                                        in
-                                        Bool_match
-                                          (case
-                                             Bool
-                                             (equalsInteger
-                                                10
-                                                (fstPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup))
-                                             [False, True])
-                                          {all dead. Bool}
-                                          (/\dead ->
-                                             let
-                                               !tup : pair integer (list data)
-                                                 = unConstrData v
-                                             in
-                                             Bool_match
-                                               (case
-                                                  Bool
+                                          !eta : data
+                                            = headList
+                                                {data}
+                                                (tailList {data} l)
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                let
+                                                  !tup :
+                                                     pair integer (list data)
+                                                    = unConstrData eta
+                                                in
+                                                case
+                                                  (all dead. bool)
                                                   (equalsInteger
                                                      10
-                                                     (fstPair
-                                                        {integer}
-                                                        {list data}
-                                                        tup))
-                                                  [False, True])
-                                               {all dead. Bool}
-                                               (/\dead ->
-                                                  `$fEqCredential_$c==`
-                                                    (headList
-                                                       {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup))
-                                                    (headList
-                                                       {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup)))
-                                               (/\dead -> False)
-                                               {all dead. dead})
-                                          (/\dead -> False)
-                                          {all dead. dead}
-                                  !fail : unit -> Bool
-                                    = \(ds : unit) ->
-                                        `$mTxCertAuthHotCommittee`
-                                          {Bool}
-                                          eta
-                                          (\(a : data) (b : data) ->
-                                             `$mTxCertAuthHotCommittee`
-                                               {Bool}
-                                               v
-                                               (\(a' : data) (b' : data) ->
-                                                  Bool_match
-                                                    (`$fEqCredential_$c==` a a')
-                                                    {all dead. Bool}
-                                                    (/\dead ->
-                                                       `$fEqCredential_$c==`
-                                                         b
-                                                         b')
-                                                    (/\dead -> False)
-                                                    {all dead. dead})
-                                               (\(void : unit) -> fail ()))
-                                          (\(void : unit) -> fail ())
-                                  !fail : unit -> Bool
-                                    = \(ds : unit) ->
-                                        `$mTxCertUnRegDRep`
-                                          {Bool}
-                                          eta
-                                          (\(a : data) (b : integer) ->
-                                             `$mTxCertUnRegDRep`
-                                               {Bool}
-                                               v
-                                               (\(a' : data) (b' : integer) ->
-                                                  Bool_match
-                                                    (`$fEqCredential_$c==` a a')
-                                                    {all dead. Bool}
-                                                    (/\dead ->
+                                                     (case
+                                                        integer
+                                                        tup
+                                                        [ (\(l : integer)
+                                                            (r : list data) ->
+                                                             l) ]))
+                                                  [ (/\dead -> False)
+                                                  , (/\dead ->
+                                                       let
+                                                         !tup :
+                                                            pair
+                                                              integer
+                                                              (list data)
+                                                           = unConstrData v
+                                                       in
                                                        case
-                                                         Bool
-                                                         (equalsInteger b b')
-                                                         [False, True])
-                                                    (/\dead -> False)
-                                                    {all dead. dead})
-                                               (\(void : unit) -> fail ()))
-                                          (\(void : unit) -> fail ())
-                                  !fail : unit -> Bool
-                                    = \(ds : unit) ->
-                                        let
-                                          !tup : pair integer (list data)
-                                            = unConstrData eta
-                                        in
-                                        Bool_match
-                                          (case
-                                             Bool
-                                             (equalsInteger
-                                                5
-                                                (fstPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup))
-                                             [False, True])
-                                          {all dead. Bool}
-                                          (/\dead ->
-                                             let
-                                               !tup : pair integer (list data)
-                                                 = unConstrData v
-                                             in
-                                             Bool_match
-                                               (case
-                                                  Bool
+                                                         (all dead. bool)
+                                                         (equalsInteger
+                                                            10
+                                                            (case
+                                                               integer
+                                                               tup
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    l) ]))
+                                                         [ (/\dead -> False)
+                                                         , (/\dead ->
+                                                              `$fEqCredential_$c==`
+                                                                (headList
+                                                                   {data}
+                                                                   (case
+                                                                      (list
+                                                                         data)
+                                                                      tup
+                                                                      [ (\(l :
+                                                                             integer)
+                                                                          (r :
+                                                                             list
+                                                                               data) ->
+                                                                           r) ]))
+                                                                (headList
+                                                                   {data}
+                                                                   (case
+                                                                      (list
+                                                                         data)
+                                                                      tup
+                                                                      [ (\(l :
+                                                                             integer)
+                                                                          (r :
+                                                                             list
+                                                                               data) ->
+                                                                           r) ]))) ]
+                                                         {all dead. dead}) ]
+                                                  {all dead. dead}
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                let
+                                                  !tup :
+                                                     pair integer (list data)
+                                                    = unConstrData eta
+                                                in
+                                                case
+                                                  (all dead. bool)
+                                                  (equalsInteger
+                                                     9
+                                                     (case
+                                                        integer
+                                                        tup
+                                                        [ (\(l : integer)
+                                                            (r : list data) ->
+                                                             l) ]))
+                                                  [ (/\dead -> fail ())
+                                                  , (/\dead ->
+                                                       let
+                                                         !l : list data
+                                                           = case
+                                                               (list data)
+                                                               tup
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    r) ]
+                                                         !tup :
+                                                            pair
+                                                              integer
+                                                              (list data)
+                                                           = unConstrData v
+                                                       in
+                                                       case
+                                                         (all dead. bool)
+                                                         (equalsInteger
+                                                            9
+                                                            (case
+                                                               integer
+                                                               tup
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    l) ]))
+                                                         [ (/\dead -> fail ())
+                                                         , (/\dead ->
+                                                              let
+                                                                !l :
+                                                                   list data
+                                                                  = case
+                                                                      (list
+                                                                         data)
+                                                                      tup
+                                                                      [ (\(l :
+                                                                             integer)
+                                                                          (r :
+                                                                             list
+                                                                               data) ->
+                                                                           r) ]
+                                                              in
+                                                              case
+                                                                (all dead. bool)
+                                                                (`$fEqCredential_$c==`
+                                                                   (headList
+                                                                      {data}
+                                                                      l)
+                                                                   (headList
+                                                                      {data}
+                                                                      l))
+                                                                [ (/\dead ->
+                                                                     False)
+                                                                , (/\dead ->
+                                                                     `$fEqCredential_$c==`
+                                                                       (headList
+                                                                          {data}
+                                                                          (tailList
+                                                                             {data}
+                                                                             l))
+                                                                       (headList
+                                                                          {data}
+                                                                          (tailList
+                                                                             {data}
+                                                                             l))) ]
+                                                                {all dead.
+                                                                   dead}) ]
+                                                         {all dead. dead}) ]
+                                                  {all dead. dead}
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                `$mTxCertUnRegDRep`
+                                                  {bool}
+                                                  eta
+                                                  (\(a : data)
+                                                    (b : integer) ->
+                                                     `$mTxCertUnRegDRep`
+                                                       {bool}
+                                                       v
+                                                       (\(a' : data)
+                                                         (b' : integer) ->
+                                                          case
+                                                            (all dead. bool)
+                                                            (`$fEqCredential_$c==`
+                                                               a
+                                                               a')
+                                                            [ (/\dead -> False)
+                                                            , (/\dead ->
+                                                                 equalsInteger
+                                                                   b
+                                                                   b') ]
+                                                            {all dead. dead})
+                                                       (\(void : unit) ->
+                                                          fail ()))
+                                                  (\(void : unit) -> fail ())
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                let
+                                                  !tup :
+                                                     pair integer (list data)
+                                                    = unConstrData eta
+                                                in
+                                                case
+                                                  (all dead. bool)
                                                   (equalsInteger
                                                      5
-                                                     (fstPair
-                                                        {integer}
-                                                        {list data}
-                                                        tup))
-                                                  [False, True])
-                                               {all dead. Bool}
-                                               (/\dead ->
-                                                  `$fEqCredential_$c==`
-                                                    (headList
-                                                       {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup))
-                                                    (headList
-                                                       {data}
-                                                       (sndPair
-                                                          {integer}
-                                                          {list data}
-                                                          tup)))
-                                               (/\dead -> fail ())
-                                               {all dead. dead})
-                                          (/\dead -> fail ())
-                                          {all dead. dead}
-                                  !fail : unit -> Bool
-                                    = \(ds : unit) ->
-                                        `$mTxCertRegDRep`
-                                          {Bool}
-                                          eta
-                                          (\(a : data) (b : integer) ->
-                                             `$mTxCertRegDRep`
-                                               {Bool}
-                                               v
-                                               (\(a' : data) (b' : integer) ->
-                                                  Bool_match
-                                                    (`$fEqCredential_$c==` a a')
-                                                    {all dead. Bool}
-                                                    (/\dead ->
+                                                     (case
+                                                        integer
+                                                        tup
+                                                        [ (\(l : integer)
+                                                            (r : list data) ->
+                                                             l) ]))
+                                                  [ (/\dead -> fail ())
+                                                  , (/\dead ->
+                                                       let
+                                                         !tup :
+                                                            pair
+                                                              integer
+                                                              (list data)
+                                                           = unConstrData v
+                                                       in
                                                        case
-                                                         Bool
-                                                         (equalsInteger b b')
-                                                         [False, True])
-                                                    (/\dead -> False)
-                                                    {all dead. dead})
-                                               (\(void : unit) -> fail ()))
-                                          (\(void : unit) -> fail ())
-                                  !fail : unit -> Bool
-                                    = \(ds : unit) ->
-                                        `$mTxCertRegDeleg`
-                                          {Bool}
-                                          eta
-                                          (\(a : data)
-                                            (b : data)
-                                            (c : integer) ->
-                                             `$mTxCertRegDeleg`
-                                               {Bool}
-                                               v
-                                               (\(a' : data)
-                                                 (b' : data)
-                                                 (c' : integer) ->
-                                                  Bool_match
-                                                    (`$fEqCredential_$c==` a a')
-                                                    {all dead. Bool}
-                                                    (/\dead ->
-                                                       Bool_match
-                                                         (`$fEqDelegatee0_$c==`
-                                                            b
-                                                            b')
-                                                         {all dead. Bool}
-                                                         (/\dead ->
-                                                            case
-                                                              Bool
-                                                              (equalsInteger
-                                                                 c
-                                                                 c')
-                                                              [False, True])
-                                                         (/\dead -> False)
-                                                         {all dead. dead})
-                                                    (/\dead -> False)
-                                                    {all dead. dead})
-                                               (\(void : unit) -> fail ()))
-                                          (\(void : unit) -> fail ())
-                                  !fail : unit -> Bool
-                                    = \(ds : unit) ->
-                                        `$mTxCertDelegStaking`
-                                          {Bool}
-                                          eta
-                                          (\(a : data) (b : data) ->
-                                             `$mTxCertDelegStaking`
-                                               {Bool}
-                                               v
-                                               (\(a' : data) (b' : data) ->
-                                                  Bool_match
-                                                    (`$fEqCredential_$c==` a a')
-                                                    {all dead. Bool}
-                                                    (/\dead ->
-                                                       `$fEqDelegatee0_$c==`
-                                                         b
-                                                         b')
-                                                    (/\dead -> False)
-                                                    {all dead. dead})
-                                               (\(void : unit) -> fail ()))
-                                          (\(void : unit) -> fail ())
-                                  !fail :
-                                     unit -> Bool
-                                    = \(ds : unit) ->
-                                        `$mTxCertUnRegStaking`
-                                          {Bool}
+                                                         (all dead. bool)
+                                                         (equalsInteger
+                                                            5
+                                                            (case
+                                                               integer
+                                                               tup
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    l) ]))
+                                                         [ (/\dead -> fail ())
+                                                         , (/\dead ->
+                                                              `$fEqCredential_$c==`
+                                                                (headList
+                                                                   {data}
+                                                                   (case
+                                                                      (list
+                                                                         data)
+                                                                      tup
+                                                                      [ (\(l :
+                                                                             integer)
+                                                                          (r :
+                                                                             list
+                                                                               data) ->
+                                                                           r) ]))
+                                                                (headList
+                                                                   {data}
+                                                                   (case
+                                                                      (list
+                                                                         data)
+                                                                      tup
+                                                                      [ (\(l :
+                                                                             integer)
+                                                                          (r :
+                                                                             list
+                                                                               data) ->
+                                                                           r) ]))) ]
+                                                         {all dead. dead}) ]
+                                                  {all dead. dead}
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                `$mTxCertRegDRep`
+                                                  {bool}
+                                                  eta
+                                                  (\(a : data)
+                                                    (b : integer) ->
+                                                     `$mTxCertRegDRep`
+                                                       {bool}
+                                                       v
+                                                       (\(a' : data)
+                                                         (b' : integer) ->
+                                                          case
+                                                            (all dead. bool)
+                                                            (`$fEqCredential_$c==`
+                                                               a
+                                                               a')
+                                                            [ (/\dead -> False)
+                                                            , (/\dead ->
+                                                                 equalsInteger
+                                                                   b
+                                                                   b') ]
+                                                            {all dead. dead})
+                                                       (\(void : unit) ->
+                                                          fail ()))
+                                                  (\(void : unit) -> fail ())
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                `$mTxCertRegDeleg`
+                                                  {bool}
+                                                  eta
+                                                  (\(a : data)
+                                                    (b : data)
+                                                    (c : integer) ->
+                                                     `$mTxCertRegDeleg`
+                                                       {bool}
+                                                       v
+                                                       (\(a' : data)
+                                                         (b' : data)
+                                                         (c' : integer) ->
+                                                          case
+                                                            (all dead. bool)
+                                                            (`$fEqCredential_$c==`
+                                                               a
+                                                               a')
+                                                            [ (/\dead -> False)
+                                                            , (/\dead ->
+                                                                 case
+                                                                   (all dead.
+                                                                      bool)
+                                                                   (`$fEqDelegatee0_$c==`
+                                                                      b
+                                                                      b')
+                                                                   [ (/\dead ->
+                                                                        False)
+                                                                   , (/\dead ->
+                                                                        equalsInteger
+                                                                          c
+                                                                          c') ]
+                                                                   {all dead.
+                                                                      dead}) ]
+                                                            {all dead. dead})
+                                                       (\(void : unit) ->
+                                                          fail ()))
+                                                  (\(void : unit) -> fail ())
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                let
+                                                  !tup :
+                                                     pair integer (list data)
+                                                    = unConstrData eta
+                                                in
+                                                case
+                                                  (all dead. bool)
+                                                  (equalsInteger
+                                                     2
+                                                     (case
+                                                        integer
+                                                        tup
+                                                        [ (\(l : integer)
+                                                            (r : list data) ->
+                                                             l) ]))
+                                                  [ (/\dead -> fail ())
+                                                  , (/\dead ->
+                                                       let
+                                                         !l : list data
+                                                           = case
+                                                               (list data)
+                                                               tup
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    r) ]
+                                                         !tup :
+                                                            pair
+                                                              integer
+                                                              (list data)
+                                                           = unConstrData v
+                                                       in
+                                                       case
+                                                         (all dead. bool)
+                                                         (equalsInteger
+                                                            2
+                                                            (case
+                                                               integer
+                                                               tup
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    l) ]))
+                                                         [ (/\dead -> fail ())
+                                                         , (/\dead ->
+                                                              let
+                                                                !l :
+                                                                   list data
+                                                                  = case
+                                                                      (list
+                                                                         data)
+                                                                      tup
+                                                                      [ (\(l :
+                                                                             integer)
+                                                                          (r :
+                                                                             list
+                                                                               data) ->
+                                                                           r) ]
+                                                              in
+                                                              case
+                                                                (all dead. bool)
+                                                                (`$fEqCredential_$c==`
+                                                                   (headList
+                                                                      {data}
+                                                                      l)
+                                                                   (headList
+                                                                      {data}
+                                                                      l))
+                                                                [ (/\dead ->
+                                                                     False)
+                                                                , (/\dead ->
+                                                                     `$fEqDelegatee0_$c==`
+                                                                       (headList
+                                                                          {data}
+                                                                          (tailList
+                                                                             {data}
+                                                                             l))
+                                                                       (headList
+                                                                          {data}
+                                                                          (tailList
+                                                                             {data}
+                                                                             l))) ]
+                                                                {all dead.
+                                                                   dead}) ]
+                                                         {all dead. dead}) ]
+                                                  {all dead. dead}
+                                          !fail :
+                                             unit -> bool
+                                            = \(ds : unit) ->
+                                                `$mTxCertUnRegStaking`
+                                                  {bool}
+                                                  eta
+                                                  (\(a : data)
+                                                    (b : Maybe integer) ->
+                                                     `$mTxCertUnRegStaking`
+                                                       {bool}
+                                                       v
+                                                       (\(a' : data)
+                                                         (b' : Maybe integer) ->
+                                                          case
+                                                            (all dead. bool)
+                                                            (`$fEqCredential_$c==`
+                                                               a
+                                                               a')
+                                                            [ (/\dead -> False)
+                                                            , (/\dead ->
+                                                                 Maybe_match
+                                                                   {integer}
+                                                                   b
+                                                                   {all dead.
+                                                                      bool}
+                                                                   (\(a :
+                                                                        integer) ->
+                                                                      /\dead ->
+                                                                        Maybe_match
+                                                                          {integer}
+                                                                          b'
+                                                                          {bool}
+                                                                          (\(a :
+                                                                               integer) ->
+                                                                             equalsInteger
+                                                                               a
+                                                                               a)
+                                                                          False)
+                                                                   (/\dead ->
+                                                                      Maybe_match
+                                                                        {integer}
+                                                                        b'
+                                                                        {bool}
+                                                                        (\(ipv :
+                                                                             integer) ->
+                                                                           False)
+                                                                        True)
+                                                                   {all dead.
+                                                                      dead}) ]
+                                                            {all dead. dead})
+                                                       (\(void : unit) ->
+                                                          fail ()))
+                                                  (\(void : unit) -> fail ())
+                                        in
+                                        `$mTxCertRegStaking`
+                                          {bool}
                                           eta
                                           (\(a : data)
                                             (b : Maybe integer) ->
-                                             `$mTxCertUnRegStaking`
-                                               {Bool}
+                                             `$mTxCertRegStaking`
+                                               {bool}
                                                v
                                                (\(a' : data)
                                                  (b' : Maybe integer) ->
-                                                  Bool_match
+                                                  case
+                                                    (all dead. bool)
                                                     (`$fEqCredential_$c==` a a')
-                                                    {all dead. Bool}
-                                                    (/\dead ->
-                                                       Maybe_match
-                                                         {integer}
-                                                         b
-                                                         {all dead. Bool}
-                                                         (\(a : integer) ->
-                                                            /\dead ->
+                                                    [ (/\dead -> False)
+                                                    , (/\dead ->
+                                                         Maybe_match
+                                                           {integer}
+                                                           b
+                                                           {all dead. bool}
+                                                           (\(a : integer) ->
+                                                              /\dead ->
+                                                                Maybe_match
+                                                                  {integer}
+                                                                  b'
+                                                                  {bool}
+                                                                  (\(a :
+                                                                       integer) ->
+                                                                     equalsInteger
+                                                                       a
+                                                                       a)
+                                                                  False)
+                                                           (/\dead ->
                                                               Maybe_match
                                                                 {integer}
                                                                 b'
-                                                                {all dead. Bool}
-                                                                (\(a :
+                                                                {bool}
+                                                                (\(ipv :
                                                                      integer) ->
-                                                                   /\dead ->
-                                                                     case
-                                                                       Bool
-                                                                       (equalsInteger
-                                                                          a
-                                                                          a)
-                                                                       [ False
-                                                                       , True ])
-                                                                (/\dead ->
                                                                    False)
-                                                                {all dead.
-                                                                   dead})
-                                                         (/\dead ->
-                                                            Maybe_match
-                                                              {integer}
-                                                              b'
-                                                              {all dead. Bool}
-                                                              (\(ipv :
-                                                                   integer) ->
-                                                                 /\dead ->
-                                                                   False)
-                                                              (/\dead -> True)
-                                                              {all dead. dead})
-                                                         {all dead. dead})
-                                                    (/\dead -> False)
+                                                                True)
+                                                           {all dead. dead}) ]
                                                     {all dead. dead})
                                                (\(void : unit) -> fail ()))
-                                          (\(void : unit) -> fail ())
-                                in
-                                `$mTxCertRegStaking`
-                                  {Bool}
-                                  eta
-                                  (\(a : data) (b : Maybe integer) ->
-                                     `$mTxCertRegStaking`
-                                       {Bool}
-                                       v
-                                       (\(a' : data) (b' : Maybe integer) ->
-                                          Bool_match
-                                            (`$fEqCredential_$c==` a a')
-                                            {all dead. Bool}
-                                            (/\dead ->
-                                               Maybe_match
-                                                 {integer}
-                                                 b
-                                                 {all dead. Bool}
-                                                 (\(a : integer) ->
-                                                    /\dead ->
-                                                      Maybe_match
-                                                        {integer}
-                                                        b'
-                                                        {all dead. Bool}
-                                                        (\(a : integer) ->
-                                                           /\dead ->
-                                                             case
-                                                               Bool
-                                                               (equalsInteger
-                                                                  a
-                                                                  a)
-                                                               [False, True])
-                                                        (/\dead -> False)
-                                                        {all dead. dead})
-                                                 (/\dead ->
-                                                    Maybe_match
-                                                      {integer}
-                                                      b'
-                                                      {all dead. Bool}
-                                                      (\(ipv : integer) ->
-                                                         /\dead -> False)
-                                                      (/\dead -> True)
-                                                      {all dead. dead})
-                                                 {all dead. dead})
-                                            (/\dead -> False)
-                                            {all dead. dead})
-                                       (\(void : unit) -> fail ()))
-                                  (\(void : unit) -> fail ()))
-                             (unListData (headList {data} l))))
-                     (/\dead ->
-                        let
-                          !tup : pair integer (list data)
-                            = unConstrData scriptInfo
-                        in
-                        Bool_match
-                          (case
-                             Bool
-                             (equalsInteger
-                                4
-                                (fstPair {integer} {list data} tup))
-                             [False, True])
-                          {all dead. Bool}
-                          (/\dead ->
-                             member
-                               {data}
-                               {(\k a -> list (pair data data)) data data}
-                               (\(x : data) -> x)
-                               (headList
-                                  {data}
-                                  (sndPair {integer} {list data} tup))
-                               (unMapData
-                                  (headList
-                                     {data}
-                                     (tailList
-                                        {data}
-                                        (tailList
-                                           {data}
-                                           (tailList
-                                              {data}
-                                              (tailList
-                                                 {data}
-                                                 (tailList
-                                                    {data}
-                                                    (tailList {data} l)))))))))
-                          (/\dead ->
-                             let
-                               !tup : pair integer (list data)
-                                 = unConstrData scriptInfo
-                             in
-                             Bool_match
-                               (case
-                                  Bool
-                                  (equalsInteger
-                                     5
-                                     (fstPair {integer} {list data} tup))
-                                  [False, True])
-                               {all dead. Bool}
-                               (/\dead ->
-                                  let
-                                    !l : list data
-                                      = sndPair {integer} {list data} tup
-                                  in
-                                  True)
-                               (/\dead ->
-                                  let
-                                    !defaultBody : Bool = error {Bool}
-                                  in
-                                  Unit_match (error {Unit}) {Bool} defaultBody)
-                               {all dead. dead})
-                          {all dead. dead})
+                                          (\(void : unit) -> fail ()))
+                                     (unListData (headList {data} l)))) ]
+                           {all dead. dead})
+                    , (/\dead ->
+                         member
+                           {data}
+                           {integer}
+                           (\(x : data) -> x)
+                           (headList
+                              {data}
+                              (case
+                                 (list data)
+                                 tup
+                                 [(\(l : integer) (r : list data) -> r)]))
+                           (unMapData (headList {data} l))) ]
+                    {all dead. dead})
+             , (/\dead ->
+                  let
+                    !l : list data
+                      = case
+                          (list data)
+                          tup
+                          [(\(l : integer) (r : list data) -> r)]
+                  in
+                  Maybe_match
+                    {data}
+                    (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                       {data}
+                       `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                       (headList {data} (tailList {data} l)))
+                    {all dead. bool}
+                    (\(ds : data) -> /\dead -> False)
+                    (/\dead ->
+                       (let
+                           a = (\a -> list data) data
+                         in
+                         /\b -> \(f : a -> b) (x : a) -> f x)
+                         {bool}
+                         (null {data})
+                         (filter
+                            {data}
+                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                            (\(x : data) -> x)
+                            (\(x : data) ->
+                               let
+                                 !v : data
+                                   = headList
+                                       {data}
+                                       (case
+                                          (list data)
+                                          (unConstrData x)
+                                          [ (\(l : integer) (r : list data) ->
+                                               r) ])
+                                 !l : data = headList {data} l
+                               in
+                               case
+                                 (all dead. bool)
+                                 (equalsByteString
+                                    (txOutRefId l)
+                                    (txOutRefId v))
+                                 [ (/\dead -> False)
+                                 , (/\dead ->
+                                      equalsInteger
+                                        (txOutRefIdx l)
+                                        (txOutRefIdx v)) ]
+                                 {all dead. dead})
+                            (unListData (headList {data} l))))
+                    {all dead. dead}) ]
+             {all dead. dead})
+      , (/\dead ->
+           (let
+               a
+                 = (\k a -> list (pair data data))
+                     bytestring
+                     ((\k a -> list (pair data data)) bytestring integer)
+             in
+             /\b -> \(f : a -> b) (x : a) -> f x)
+             {bool}
+             ((let
+                  b
+                    = (\k a -> list (pair data data))
+                        bytestring
+                        ((\k a -> list (pair data data)) bytestring integer)
+                in
+                /\c a -> \(f : b -> c) (g : a -> b) (x : a) -> f (g x))
+                {bool}
+                {(\k a -> list (pair data data))
+                   bytestring
+                   ((\k a -> list (pair data data)) bytestring integer)}
+                (member
+                   {bytestring}
+                   {(\k a -> list (pair data data)) bytestring integer}
+                   bData
+                   (unBData
+                      (headList
+                         {data}
+                         (case
+                            (list data)
+                            tup
+                            [(\(l : integer) (r : list data) -> r)]))))
+                (\(ds :
+                     (\k a -> list (pair data data))
+                       bytestring
+                       ((\k a -> list (pair data data)) bytestring integer)) ->
+                   ds))
+             (mapMaybe
+                {bytestring}
+                {(\k a -> list (pair data data)) bytestring integer}
+                {(\k a -> list (pair data data)) bytestring integer}
+                (\(eta : data) -> unMapData eta)
+                (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
+                   mapData ds)
+                (\(map : (\k a -> list (pair data data)) bytestring integer) ->
+                   let
+                     !l : list (pair data data)
+                       = mapMaybe
+                           {bytestring}
+                           {integer}
+                           {integer}
+                           unIData
+                           (\(i : integer) -> iData i)
+                           (\(x : integer) ->
+                              case
+                                (all dead. Maybe integer)
+                                (case
+                                   bool
+                                   (lessThanEqualsInteger x 0)
+                                   [True, False])
+                                [ (/\dead -> Nothing {integer})
+                                , (/\dead -> Just {integer} x) ]
+                                {all dead. dead})
+                           map
+                   in
+                   case
+                     (all dead.
+                        Maybe
+                          ((\k a -> list (pair data data)) bytestring integer))
+                     (nullList {pair data data} l)
+                     [ (/\dead ->
+                          Just
+                            {(\k a -> list (pair data data)) bytestring integer}
+                            l)
+                     , (/\dead ->
+                          Nothing
+                            {(\k a -> list (pair data data))
+                               bytestring
+                               integer}) ]
                      {all dead. dead})
-                {all dead. dead})
-           {all dead. dead})
+                (unMapData (headList {data} l)))) ]
       {all dead. dead})
-    {all dead. unit}
-    (/\dead -> ())
-    (/\dead -> traceError {unit} "PT5")
+    [ (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
+    , (/\dead -> ()) ]
     {all dead. dead}

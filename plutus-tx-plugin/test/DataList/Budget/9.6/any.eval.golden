@@ -3,4 +3,4 @@ Memory:                 15_764
 Term Size:                  34
 Flat Size:                  80
 
-(constr 0)
+(con bool True)

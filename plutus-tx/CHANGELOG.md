@@ -1,4 +1,19 @@
 
+<a id='changelog-1.51.0.0'></a>
+# 1.51.0.0 — 2025-07-30
+
+## Changed
+
+- Renamed `PlutusTx.Test.Util.compiledCodeToHask` to `PlutusTx.Test.Util.applyCodeN`
+- Renamed `PlutusTx.Test.Util.compiledCodeToHaskUnsafe` to `PlutusTx.Test.Util.unsafeApplyCodeN`
+
+<a id='changelog-1.50.0.0'></a>
+# 1.50.0.0 — 2025-07-22
+
+## Added
+
+- Module 'PlutusTx.Test.Util.Compiled' of the 'plutus-tx-testlib' package got a new function 'countFlatBytes' that counts the size of a 'CompiledCode' in Flat bytes.
+
 <a id='changelog-1.49.0.0'></a>
 # 1.49.0.0 — 2025-07-08
 

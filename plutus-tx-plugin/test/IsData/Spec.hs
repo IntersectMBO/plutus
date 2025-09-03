@@ -132,7 +132,7 @@ tests =
       , assertResult "tuple" (plc (Proxy @"tuple") (isDataRoundtrip (1 :: Integer, 2 :: Integer)))
       , assertResult
           "tupleInterop"
-          ( compiledCodeToHaskUnsafe
+          ( unsafeApplyCodeN
               ( plc (Proxy @"tupleInterop")
                   ( \(d :: P.BuiltinData) ->
                       case IsData.fromBuiltinData d of
@@ -144,7 +144,7 @@ tests =
           )
       , assertResult
           "unsafeTupleInterop"
-          ( compiledCodeToHaskUnsafe
+          ( unsafeApplyCodeN
               ( plc (Proxy @"unsafeTupleInterop")
                   (\(d :: P.BuiltinData) ->
                      IsData.unsafeFromBuiltinData d P.== (1 :: Integer, 2 :: Integer)
@@ -155,7 +155,7 @@ tests =
       , assertResult "unit" (plc (Proxy @"unit") (isDataRoundtrip ()))
       , assertResult
           "unitInterop"
-          ( compiledCodeToHaskUnsafe
+          ( unsafeApplyCodeN
               ( plc (Proxy @"unitInterop")
                   (\(d :: P.BuiltinData) ->
                      case IsData.fromBuiltinData d of
@@ -185,7 +185,7 @@ tests =
       , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
       , goldenPirReadable "matchAsData" matchAsData
       , goldenUEval "matchAsDataE"
-          [ compiledCodeToHaskUnsafe
+          [ unsafeApplyCodeN
               matchAsData
               (plc (Proxy @"test") (P.unsafeFromBuiltinData $ P.toBuiltinData $ SecondC 3))
           ]

@@ -8,6 +8,8 @@ module UntypedPlutusCore.Generators.Hedgehog.AST
   , mangleNames
   ) where
 
+import PlutusPrelude
+
 import PlutusCore.Generators.Hedgehog.AST qualified as PLC
 
 import PlutusCore.Compiler.Erase
@@ -37,7 +39,9 @@ genProgram
 genProgram = fmap eraseProgram PLC.genProgram
 
 -- See Note [Name mangling]
-mangleNames :: Term Name DefaultUni DefaultFun () -> PLC.AstGen (Term Name DefaultUni DefaultFun ())
+mangleNames
+    :: Term Name DefaultUni DefaultFun ()
+    -> PLC.AstGen (Maybe (Term Name DefaultUni DefaultFun ()))
 mangleNames term = do
-    mang <- PLC.genNameMangler $ setOf vTerm term
-    termSubstNamesM (fmap (fmap $ UPLC.Var ()) . mang) term
+    mayMang <- PLC.genNameMangler $ setOf vTerm term
+    for mayMang $ \mang -> termSubstNamesM (fmap (fmap $ UPLC.Var ()) . mang) term

@@ -41,7 +41,8 @@ testCekInternalFree = testGroup "cekInternal" $ fmap (uncurry testCase)
   where
       evalV = toFakeTerm
              >>> runCekDeBruijn PLC.defaultCekParametersForTesting counting noEmitter
-             >>> (\(res,_,_) -> res)
+             >>> _cekReportResult
+             >>> cekResultToEither
 
       eval = evalV
              >>> isRight
@@ -61,7 +62,7 @@ testDischargeFree = testGroup "discharge" $ fmap (uncurry testCase)
         dis (VDelay (toFakeTerm fun0var0)
             []) -- empty env
         @?=
-        toFakeTerm (Delay () fun0var0)
+        DischargeNonConstant (toFakeTerm $ Delay () fun0var0)
 
     freeRemains2 =
         -- dis( y:unit |- \x-> x y var0) ) === (\x -> x unit var0)
@@ -78,7 +79,7 @@ testDischargeFree = testGroup "discharge" $ fmap (uncurry testCase)
              [VCon $ someValue ()] -- env has y
             )
          @?=
-         (toFakeTerm $ lamAbs0 $
+         DischargeNonConstant (toFakeTerm . lamAbs0 $
              v 1 @@ -- x
              [ Constant () (someValue ()) -- substituted y
              , var0 -- free

@@ -1,18 +1,3 @@
-(let
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
-  in
-  \(x : integer) ->
-    Bool_match
-      (Bool_match
-         (case Bool (lessThanInteger 0 x) [False, True])
-         {all dead. Bool}
-         (/\dead -> False)
-         (/\dead -> True)
-         {all dead. dead})
-      {all dead. Bool}
-      (/\dead -> False)
-      (/\dead -> True)
-      {all dead. dead})
+(\(x : integer) ->
+   case bool (case bool (lessThanInteger 0 x) [True, False]) [True, False])
   1
