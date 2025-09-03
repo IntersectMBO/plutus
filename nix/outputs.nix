@@ -43,7 +43,7 @@ let
     uplc = project.flake'.packages."plutus-executables:exe:uplc";
     plc = project.flake'.packages."plutus-executables:exe:plc";
     pir = project.flake'.packages."plutus-executables:exe:pir";
-    plutus = project.flake'.packages."plutus-executables:exe:plutus";
+    plutus = project.flake'.packages."plutus-core:exe:plutus";
   };
 
   static-haskell-packages = {
