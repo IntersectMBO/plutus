@@ -1,23 +1,17 @@
 let
   data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
     Tuple3 : a -> b -> c -> Tuple3 a b c
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data (Either :: * -> * -> *) a b | Either_match where
     Left : a -> Either a b
     Right : b -> Either a b
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Unit | Unit_match where
-    Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
+  !casePair : all a b r. pair a b -> (a -> b -> r) -> r
+    = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
   !d : data
     = (let
-          b = Maybe (Tuple3 Bool integer Bool)
+          b = Maybe (Tuple3 bool integer bool)
         in
         \(`$dToData` : (\a -> a -> data) integer)
          (`$dToData` : (\a -> a -> data) b)
@@ -32,7 +26,7 @@ let
             (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) [])))
         (\(i : integer) -> iData i)
         ((let
-             a = Tuple3 Bool integer Bool
+             a = Tuple3 bool integer bool
            in
            \(`$dToData` : (\a -> a -> data) a) (ds : Maybe a) ->
              Maybe_match
@@ -43,143 +37,128 @@ let
                   /\dead -> constrData 0 (mkCons {data} (`$dToData` arg) []))
                (/\dead -> Constr 1 [])
                {all dead. dead})
-           (\(ds : Tuple3 Bool integer Bool) ->
+           (\(ds : Tuple3 bool integer bool) ->
               Tuple3_match
-                {Bool}
+                {bool}
                 {integer}
-                {Bool}
+                {bool}
                 ds
                 {data}
-                (\(arg : Bool) (arg : integer) (arg : Bool) ->
+                (\(arg : bool) (arg : integer) (arg : bool) ->
                    constrData
                      0
                      (mkCons
                         {data}
-                        (Bool_match
+                        (case
+                           (all dead. data)
                            arg
-                           {all dead. data}
-                           (/\dead -> Constr 1 [])
-                           (/\dead -> Constr 0 [])
+                           [(/\dead -> Constr 0 []), (/\dead -> Constr 1 [])]
                            {all dead. dead})
                         (mkCons
                            {data}
                            (iData arg)
                            (mkCons
                               {data}
-                              (Bool_match
+                              (case
+                                 (all dead. data)
                                  arg
-                                 {all dead. data}
-                                 (/\dead -> Constr 1 [])
-                                 (/\dead -> Constr 0 [])
+                                 [ (/\dead -> Constr 0 [])
+                                 , (/\dead -> Constr 1 []) ]
                                  {all dead. dead})
                               []))))))
         (Right
            {integer}
-           {Maybe (Tuple3 Bool integer Bool)}
+           {Maybe (Tuple3 bool integer bool)}
            (Just
-              {Tuple3 Bool integer Bool}
-              (Tuple3 {Bool} {integer} {Bool} True 1 False)))
+              {Tuple3 bool integer bool}
+              (Tuple3 {bool} {integer} {bool} True 1 False)))
 in
 (let
-    b = Maybe (Tuple3 Bool integer Bool)
+    b = Maybe (Tuple3 bool integer bool)
   in
   \(`$dUnsafeFromData` : (\a -> data -> a) integer)
    (`$dUnsafeFromData` : (\a -> data -> a) b)
    (d : data) ->
-    let
-      !tup : pair integer (list data) = unConstrData d
-      !index : integer = fstPair {integer} {list data} tup
-      !args : list data = sndPair {integer} {list data} tup
-    in
-    Bool_match
-      (case Bool (equalsInteger 0 index) [False, True])
-      {all dead. Either integer b}
-      (/\dead -> Left {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
-      (/\dead ->
-         Bool_match
-           (case Bool (equalsInteger 1 index) [False, True])
-           {all dead. Either integer b}
-           (/\dead ->
-              Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
-           (/\dead -> traceError {Either integer b} "PT1")
-           {all dead. dead})
-      {all dead. dead})
+    casePair
+      {integer}
+      {list data}
+      {Either integer b}
+      (unConstrData d)
+      (\(index : integer) (args : list data) ->
+         case
+           (list data -> Either integer b)
+           index
+           [ (\(ds : list data) ->
+                Left {integer} {b} (`$dUnsafeFromData` (headList {data} ds)))
+           , (\(ds : list data) ->
+                Right {integer} {b} (`$dUnsafeFromData` (headList {data} ds))) ]
+           args))
   unIData
   ((let
-       a = Tuple3 Bool integer Bool
+       a = Tuple3 bool integer bool
      in
      \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-       let
-         !tup : pair integer (list data) = unConstrData d
-         !index : integer = fstPair {integer} {list data} tup
-         !args : list data = sndPair {integer} {list data} tup
-       in
-       Bool_match
-         (case Bool (equalsInteger 1 index) [False, True])
-         {all dead. Maybe a}
-         (/\dead -> Nothing {a})
-         (/\dead ->
-            Bool_match
-              (case Bool (equalsInteger 0 index) [False, True])
-              {all dead. Maybe a}
-              (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
-              (/\dead -> traceError {Maybe a} "PT1")
-              {all dead. dead})
-         {all dead. dead})
+       casePair
+         {integer}
+         {list data}
+         {Maybe a}
+         (unConstrData d)
+         (\(index : integer) (args : list data) ->
+            case
+              (list data -> Maybe a)
+              index
+              [ (\(ds : list data) ->
+                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+              , (\(ds : list data) -> Nothing {a}) ]
+              args))
      (\(d : data) ->
-        let
-          !tup : pair integer (list data) = unConstrData d
-          !index : integer = fstPair {integer} {list data} tup
-          !args : list data = sndPair {integer} {list data} tup
-        in
-        Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
-          {all dead. Tuple3 Bool integer Bool}
-          (/\dead ->
-             let
-               !l : list data = tailList {data} args
-             in
-             Tuple3
-               {Bool}
-               {integer}
-               {Bool}
-               (let
-                 !tup : pair integer (list data)
-                   = unConstrData (headList {data} args)
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
-               in
-               Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
-                 {all dead. Bool}
-                 (/\dead -> False)
-                 (/\dead ->
-                    Bool_match
-                      (case Bool (equalsInteger 1 index) [False, True])
-                      {all dead. Bool}
-                      (/\dead -> True)
-                      (/\dead -> traceError {Bool} "PT1")
-                      {all dead. dead})
-                 {all dead. dead})
-               (unIData (headList {data} l))
-               (let
-                 !tup : pair integer (list data)
-                   = unConstrData (headList {data} (tailList {data} l))
-                 !index : integer = fstPair {integer} {list data} tup
-                 !args : list data = sndPair {integer} {list data} tup
-               in
-               Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
-                 {all dead. Bool}
-                 (/\dead -> False)
-                 (/\dead ->
-                    Bool_match
-                      (case Bool (equalsInteger 1 index) [False, True])
-                      {all dead. Bool}
-                      (/\dead -> True)
-                      (/\dead -> traceError {Bool} "PT1")
-                      {all dead. dead})
-                 {all dead. dead}))
-          (/\dead -> traceError {Tuple3 Bool integer Bool} "PT1")
-          {all dead. dead}))
+        casePair
+          {integer}
+          {list data}
+          {Tuple3 bool integer bool}
+          (unConstrData d)
+          (\(index : integer) (args : list data) ->
+             case
+               (list data -> Tuple3 bool integer bool)
+               index
+               [ (\(ds : list data) ->
+                    let
+                      !l : list data = tailList {data} ds
+                    in
+                    Tuple3
+                      {bool}
+                      {integer}
+                      {bool}
+                      (let
+                        !d : data = headList {data} ds
+                      in
+                      casePair
+                        {integer}
+                        {list data}
+                        {bool}
+                        (unConstrData d)
+                        (\(index : integer) (args : list data) ->
+                           case
+                             (list data -> bool)
+                             index
+                             [ (\(ds : list data) -> False)
+                             , (\(ds : list data) -> True) ]
+                             args))
+                      (unIData (headList {data} l))
+                      (let
+                        !d : data = headList {data} (tailList {data} l)
+                      in
+                      casePair
+                        {integer}
+                        {list data}
+                        {bool}
+                        (unConstrData d)
+                        (\(index : integer) (args : list data) ->
+                           case
+                             (list data -> bool)
+                             index
+                             [ (\(ds : list data) -> False)
+                             , (\(ds : list data) -> True) ]
+                             args))) ]
+               args)))
   d

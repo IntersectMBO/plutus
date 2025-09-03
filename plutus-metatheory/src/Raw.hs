@@ -5,18 +5,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# OPTIONS_GHC -Wall #-}
+
 module Raw where
 
-import Data.ByteString as BS hiding (map)
 import Data.Text qualified as T
 import PlutusCore
-import PlutusCore.Data hiding (Constr)
 import PlutusCore.DeBruijn
-import PlutusCore.Default
-import PlutusCore.Parser
-import PlutusCore.Pretty
 
-import Data.Either
 import PlutusCore.Error (ParserErrorBundle)
 
 data KIND = Star | Sharp | Arrow KIND KIND
@@ -45,6 +41,7 @@ data AtomicTyCon = ATyConInt
 
 data RTyCon = RTyConAtom AtomicTyCon
             | RTyConList
+            | RTyConArray
             | RTyConPair
             deriving Show
 
@@ -97,10 +94,9 @@ convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyCo
 convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
 convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
+convTyCon (SomeTypeIn DefaultUniProtoArray)           = RTyCon RTyConArray
 convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
 convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
--- TODO: this should be fixed once the metatheory supports builtin arrays
-convTyCon (SomeTypeIn DefaultUniProtoArray)           = error "unsupported builtin array"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
@@ -136,7 +132,7 @@ unconvT i (RTyPi k t)       =
 unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
 
 unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
-unconvT i (RTyCon c)        = TyBuiltin () (unconvTyCon c)
+unconvT _ (RTyCon c)        = TyBuiltin () (unconvTyCon c)
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 unconvT i (RTySOP xss)      = TySOP () (map (map (unconvT i)) xss)
 
@@ -154,9 +150,11 @@ unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
 unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult)
                                     = SomeTypeIn DefaultUniBLS12_381_MlResult
 unconvTyCon RTyConList              = SomeTypeIn DefaultUniProtoList
+unconvTyCon RTyConArray             = SomeTypeIn DefaultUniProtoArray
 unconvTyCon RTyConPair              = SomeTypeIn DefaultUniProtoPair
 
 
+tmnames, tynames :: String
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
 tynames = ['A' .. 'Z']
@@ -168,9 +166,9 @@ unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) (unconvK k) (u
 unconv i (RTApp t ty)      = TyInst () (unconv i t) (unconvT i ty)
 unconv i (RLambda ty tm)   = LamAbs () (varTm i) (unconvT (i+1) ty) (unconv (i+1) tm)
 unconv i (RApp t u)        = Apply () (unconv i t) (unconv i u)
-unconv i (RCon c)          = Constant () c
+unconv _ (RCon c)          = Constant () c
 unconv i (RError ty)       = Error () (unconvT i ty)
-unconv i (RBuiltin b)      = Builtin () b
+unconv _ (RBuiltin b)      = Builtin () b
 unconv i (RWrap tyA tyB t) = IWrap () (unconvT i tyA) (unconvT i tyB) (unconv i t)
 unconv i (RUnWrap t)       = Unwrap () (unconv i t)
 unconv i (RConstr ty j cs) = Constr () (unconvT i ty) (fromInteger j) (fmap (unconv i) cs)

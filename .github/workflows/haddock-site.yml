@@ -67,8 +67,27 @@ jobs:
     environment:
       name: github-pages
     steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4.3.0
+        with:
+          ref: gh-pages
+
+      - name: Delete Oldest Build
+        run: |
+          # Delete the oldest haddock build if there are more than 11 builds.
+          if [[ $(ls -1A haddock | wc -l) -gt 11 ]]; then
+            OLDEST_BUILD=$(ls -1A haddock | sort | head -n 1)
+            rm -rf haddock/$OLDEST_BUILD
+
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git rm -r --cached haddock/$OLDEST_BUILD || true
+            git commit -am "Delete oldest haddock build $OLDEST_BUILD"
+            git push origin gh-pages
+          fi  
+
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.0
         with:
           ref: ${{ inputs.ref || github.ref_name }}
 

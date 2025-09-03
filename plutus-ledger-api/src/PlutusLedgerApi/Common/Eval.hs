@@ -1,9 +1,11 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module PlutusLedgerApi.Common.Eval
     ( EvaluationError (..)
@@ -21,7 +23,7 @@ module PlutusLedgerApi.Common.Eval
     ) where
 
 import PlutusCore
-import PlutusCore.Builtin (CaserBuiltin, readKnown)
+import PlutusCore.Builtin (CaserBuiltin)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -155,6 +157,8 @@ data EvaluationContext = EvaluationContext
       -- doesn't depend on the 'PlutusLedgerLanguage' or the AST version: deserialisation of a 1.0.0
       -- AST fails upon encountering a 'Case' node anyway, so we can safely assume here that 'case'
       -- is available.
+      -- FIXME: do we need to test that it fails for older PVs?  We can't submit
+      -- transactions in old PVs, so maybe it doesn't matter.
     , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
       -- ^ Specifies how to get a semantics variant for this ledger language given a
       -- 'MajorProtocolVersion'.
@@ -191,7 +195,7 @@ mkDynEvaluationContext ll toCaser semVars toSemVar newCMP = do
     machPars <- mkMachineVariantParametersFor semVars newCMP
     pure $ EvaluationContext ll toCaser toSemVar machPars
 
--- FIXME: remove this function
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1726): remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModelForTesting
 
@@ -203,12 +207,7 @@ evaluateTerm
     -> VerboseMode
     -> EvaluationContext
     -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-    -> ( Either
-            (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
-            (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
-       , cost
-       , [Text]
-       )
+    -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun
 evaluateTerm budgetMode pv verbose ectx =
     UPLC.runCekDeBruijn
         (toMachineParameters pv ectx)
@@ -239,7 +238,7 @@ evaluateScriptRestricting
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate ll pv p args
-    let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
+    let UPLC.CekReport res (UPLC.RestrictingSt (ExRestrictingBudget final)) logs =
             evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
     processLogsAndErrors ll logs res
     pure (budget `minusExBudget` final)
@@ -261,7 +260,7 @@ evaluateScriptCounting
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate ll pv p args
-    let (res, UPLC.CountingSt final, logs) =
+    let UPLC.CekReport res (UPLC.CountingSt final) logs =
             evaluateTerm UPLC.counting pv verbose ectx appliedTerm
     processLogsAndErrors ll logs res
     pure final
@@ -271,27 +270,20 @@ processLogsAndErrors ::
     (MonadError EvaluationError m, MonadWriter LogOutput m) =>
     PlutusLedgerLanguage ->
     LogOutput ->
-    Either
-        (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
-        (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) ->
+    UPLC.CekResult NamedDeBruijn DefaultUni DefaultFun ->
     m ()
 processLogsAndErrors ll logs res = do
     tell logs
     case res of
-        Left e  -> throwError (CekError e)
-        Right v -> unless (isResultValid ll v) (throwError InvalidReturnValue)
+        UPLC.CekFailure err                                        -> throwError $ CekError err
+        -- If evaluation result is '()', then that's correct for all Plutus versions.
+        UPLC.CekSuccessConstant (Some (ValueOf DefaultUniUnit ())) -> pure ()
+        -- If evaluation result is any other constant or term, then it's only correct for V1 and V2.
+        UPLC.CekSuccessConstant{}                                  -> handleOldVersions
+        UPLC.CekSuccessNonConstant{}                               -> handleOldVersions
+  where
+    handleOldVersions = unless (ll == PlutusV1 || ll == PlutusV2) $ throwError InvalidReturnValue
 {-# INLINE processLogsAndErrors #-}
-
-isResultValid ::
-    PlutusLedgerLanguage ->
-    UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () ->
-    Bool
-isResultValid ll res = ll == PlutusV1 || ll == PlutusV2 || isBuiltinUnit res
-    where
-        isBuiltinUnit t = case readKnown t of
-            Right () -> True
-            _        -> False
-{-# INLINE isResultValid #-}
 
 {- Note [Checking the Plutus Core language version]
 Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.

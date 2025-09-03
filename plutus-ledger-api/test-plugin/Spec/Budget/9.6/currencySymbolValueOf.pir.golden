@@ -26,11 +26,6 @@ letrec
                  (\(ds : bytestring) (amt : integer) -> addInteger amt (go xs)))
           {all dead. dead}
 in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 \(value :
     (\k v -> List (Tuple2 k v))
       bytestring
@@ -68,11 +63,10 @@ in
                    {integer}
                    (\(c' : bytestring)
                      (i : (\k v -> List (Tuple2 k v)) bytestring integer) ->
-                      Bool_match
-                        (case Bool (equalsByteString c' cur) [False, True])
-                        {all dead. integer}
-                        (/\dead -> go i)
-                        (/\dead -> go xs')
+                      case
+                        (all dead. integer)
+                        (equalsByteString c' cur)
+                        [(/\dead -> go xs'), (/\dead -> go i)]
                         {all dead. dead}))
             {all dead. dead}
   in

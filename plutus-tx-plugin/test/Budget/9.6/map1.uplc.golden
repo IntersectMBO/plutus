@@ -17,14 +17,14 @@
                           (\s xs ->
                              case
                                xs
-                               [ (constr 1 [])
-                               , (\hd ->
+                               [ (\hd ->
                                     case
-                                      (equalsData k (force (force fstPair) hd))
+                                      (equalsData k (case hd [(\l r -> l)]))
                                       [ (\x -> s s x)
                                       , (\ds ->
                                            constr 0
-                                             [(force (force sndPair) hd)]) ]) ])
+                                             [(case hd [(\l r -> r)])]) ])
+                               , (constr 1 []) ])
                           ds)
                        (`$dToData` ds))
                     [(\a -> constr 0 [(`$dUnsafeFromData` a)]), (constr 1 [])]))
@@ -33,12 +33,11 @@
                   (\s xs ->
                      case
                        xs
-                       [ []
-                       , (\hd ->
+                       [ (\hd ->
                             case
-                              (equalsData k (force (force fstPair) hd))
-                              [ (\eta -> force mkCons hd (s s eta))
-                              , (\x -> x) ]) ]))
+                              (equalsData k (case hd [(\l r -> l)]))
+                              [(\eta -> force mkCons hd (s s eta)), (\x -> x)])
+                       , [] ]))
                (iData (addInteger 5 n))
                nt))
          ((\z ->
@@ -57,21 +56,20 @@
                                           (\s xs ->
                                              case
                                                xs
-                                               [ nilCase
-                                               , (\hd ->
+                                               [ (\hd ->
                                                     case
                                                       (equalsData
                                                          k
-                                                         (force (force fstPair)
-                                                            hd))
+                                                         (case
+                                                            hd
+                                                            [(\l r -> l)]))
                                                       [ (\eta ->
                                                            force mkCons
                                                              hd
                                                              (s s eta))
                                                       , (force mkCons
-                                                           (mkPairData
-                                                              k
-                                                              a)) ]) ])
+                                                           (mkPairData k a)) ])
+                                               , nilCase ])
                                           ds)
                                        (force mkCons (mkPairData k a) []))
                                     (iData y))

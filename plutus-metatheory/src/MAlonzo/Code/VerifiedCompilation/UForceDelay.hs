@@ -24,10 +24,10 @@ import qualified MAlonzo.Code.Data.Irrelevant
 import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Untyped.Equality
 import qualified MAlonzo.Code.Untyped.Purity
 import qualified MAlonzo.Code.Untyped.RenamingSubstitution
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
-import qualified MAlonzo.Code.VerifiedCompilation.Equality
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 
@@ -78,8 +78,8 @@ d_forceappdelay_62
                   MAlonzo.Code.Untyped.C_'96'_18
                   (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))
                (coe
-                  MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
-                  (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128)))))
+                  MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
+                  (coe MAlonzo.Code.Untyped.Equality.d_EmptyEq_152)))))
       (coe
          C_translationfd_42
          (coe
@@ -107,13 +107,13 @@ d_forceappdelay_62
 -- VerifiedCompilation.UForceDelay.test4
 d_test4_78 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> T_pureFD_8
 d_test4_78 ~v0 v1 v2 v3 v4 = du_test4_78 v1 v2 v3 v4
 du_test4_78 ::
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> T_pureFD_8
@@ -173,8 +173,7 @@ du_test4_78 v0 v1 v2 v3
                      (coe
                         MAlonzo.Code.Untyped.RenamingSubstitution.du_weaken_88 (coe v3)))
                   (coe
-                     MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
-                     (coe v0))))
+                     MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146 (coe v0))))
             (coe
                C_translationfd_42
                (coe
@@ -216,9 +215,9 @@ du_test4_78 v0 v1 v2 v3
                                        MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
                                        (coe MAlonzo.Code.Untyped.C_delay_26 (coe v1))
                                        (coe
-                                          MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                          MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                           (coe
-                                             MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                             MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                              (coe v0)))))
                                  (coe
                                     C_translationfd_42
@@ -228,7 +227,7 @@ du_test4_78 v0 v1 v2 v3
                                           MAlonzo.Code.Untyped.RenamingSubstitution.du_weaken_88
                                           (coe v3))
                                        (coe
-                                          MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                          MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                           (coe v0))))))))
                      (coe
                         MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
@@ -273,9 +272,9 @@ du_test4_78 v0 v1 v2 v3
                                                       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
                                                       (coe v1)
                                                       (coe
-                                                         MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                                         MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                                          (coe
-                                                            MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                                            MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                                             (coe v0)))))))))
                                     (coe
                                        MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
@@ -283,7 +282,7 @@ du_test4_78 v0 v1 v2 v3
                                           MAlonzo.Code.Untyped.RenamingSubstitution.du_weaken_88
                                           (coe v3))
                                        (coe
-                                          MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                          MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                           (coe v0)))))))
                         (coe
                            MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
@@ -324,7 +323,7 @@ data T_FD_120
 -- VerifiedCompilation.UForceDelay.ForceDelay
 d_ForceDelay_148 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
 d_ForceDelay_148 = erased
@@ -440,11 +439,11 @@ d_forceDelaySimpleBefore_156
                                           MAlonzo.Code.Untyped.C_'96'_18
                                           (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))))))
                   (coe
-                     MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer)))))
+                     MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer)))))
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (3 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (3 :: Integer)))
 -- VerifiedCompilation.UForceDelay.forceDelaySimpleAfter
 d_forceDelaySimpleAfter_158 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_forceDelaySimpleAfter_158
@@ -464,11 +463,11 @@ d_forceDelaySimpleAfter_158
                         MAlonzo.Code.Untyped.C_'96'_18
                         (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer))))
+            MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (3 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (3 :: Integer)))
 -- VerifiedCompilation.UForceDelay.forceDelaySimple
 d_forceDelaySimple_160 :: T_FD_120
 d_forceDelaySimple_160
@@ -503,18 +502,18 @@ d_forceDelaySimple_160
                   (coe
                      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
                      (coe
-                        MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer)))
-                     (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))))
+                        MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer)))
+                     (coe MAlonzo.Code.Untyped.Equality.d_EmptyEq_152))))
             (coe
                MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
                (coe
-                  MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))
-               (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))))
+                  MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))
+               (coe MAlonzo.Code.Untyped.Equality.d_EmptyEq_152))))
       (coe
          MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (3 :: Integer)))
-         (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))
+            MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (3 :: Integer)))
+         (coe MAlonzo.Code.Untyped.Equality.d_EmptyEq_152))
 -- VerifiedCompilation.UForceDelay.lastDelayBreak
 d_lastDelayBreak_162 ::
   T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -540,15 +539,15 @@ d_ast0_182
                      MAlonzo.Code.Untyped.C_builtin_44
                      (coe MAlonzo.Code.Builtin.C_ifThenElse_60)))
                (coe
-                  MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+                  MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
             (coe
                MAlonzo.Code.Untyped.C_delay_26
                (coe
-                  MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer)))))
+                  MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer)))))
          (coe
             MAlonzo.Code.Untyped.C_delay_26
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))))
 -- VerifiedCompilation.UForceDelay.ast1
 d_ast1_184 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_ast1_184
@@ -564,11 +563,11 @@ d_ast1_184
                   MAlonzo.Code.Untyped.C_builtin_44
                   (coe MAlonzo.Code.Builtin.C_ifThenElse_60)))
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+            MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))
 -- VerifiedCompilation.UForceDelay.ifThenElseProof
 d_ifThenElseProof_186 :: T_FD_120
 d_ifThenElseProof_186
@@ -595,13 +594,13 @@ d_ifThenElseProof_186
 -- VerifiedCompilation.UForceDelay.isForceDelay?
 d_isForceDelay'63'_192 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
 d_isForceDelay'63'_192 ~v0 v1 = du_isForceDelay'63'_192 v1
 du_isForceDelay'63'_192 ::
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
@@ -614,14 +613,14 @@ du_isForceDelay'63'_192 v0
 -- VerifiedCompilation.UForceDelay.isFD?
 d_isFD'63'_200 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
 d_isFD'63'_200 ~v0 v1 v2 v3 v4 = du_isFD'63'_200 v1 v2 v3 v4
 du_isFD'63'_200 ::
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1107,13 +1106,13 @@ du_isFD'63'_200 v0 v1 v2 v3
                                                                                                                                                                                                                                                                                                                                               = coe
                                                                                                                                                                                                                                                                                                                                                   MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
                                                                                                                                                                                                                                                                                                                                                   (coe
-                                                                                                                                                                                                                                                                                                                                                     MAlonzo.Code.Builtin.d_decBuiltin_404
+                                                                                                                                                                                                                                                                                                                                                     MAlonzo.Code.Builtin.d_decBuiltin_418
                                                                                                                                                                                                                                                                                                                                                      (coe
                                                                                                                                                                                                                                                                                                                                                         v53)
                                                                                                                                                                                                                                                                                                                                                      (coe
                                                                                                                                                                                                                                                                                                                                                         v69))
                                                                                                                                                                                                                                                                                                                                                   (coe
-                                                                                                                                                                                                                                                                                                                                                     MAlonzo.Code.Builtin.d_decBuiltin_404
+                                                                                                                                                                                                                                                                                                                                                     MAlonzo.Code.Builtin.d_decBuiltin_418
                                                                                                                                                                                                                                                                                                                                                      (coe
                                                                                                                                                                                                                                                                                                                                                         v53)
                                                                                                                                                                                                                                                                                                                                                      (coe
@@ -1413,7 +1412,7 @@ du_isFD'63'_200 v0 v1 v2 v3
                                                                                   = coe
                                                                                       du_isFD'63'_200
                                                                                       (coe
-                                                                                         MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                                                                         MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                                                                          (coe v0))
                                                                                       (coe
                                                                                          du_zipwk_94
@@ -1435,7 +1434,7 @@ du_isFD'63'_200 v0 v1 v2 v3
                                                                                                    = coe
                                                                                                        du_isForceDelay'63'_192
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
+                                                                                                          MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                                                                                           (coe
                                                                                                              v0))
                                                                                                        v14
@@ -1839,13 +1838,13 @@ du_isFD'63'_200 v0 v1 v2 v3
                                                                                                                                                                                                                                                                                                                                                                                                                    = coe
                                                                                                                                                                                                                                                                                                                                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
                                                                                                                                                                                                                                                                                                                                                                                                                        (coe
-                                                                                                                                                                                                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.d_decBuiltin_404
+                                                                                                                                                                                                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.d_decBuiltin_418
                                                                                                                                                                                                                                                                                                                                                                                                                           (coe
                                                                                                                                                                                                                                                                                                                                                                                                                              v64)
                                                                                                                                                                                                                                                                                                                                                                                                                           (coe
                                                                                                                                                                                                                                                                                                                                                                                                                              v80))
                                                                                                                                                                                                                                                                                                                                                                                                                        (coe
-                                                                                                                                                                                                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.d_decBuiltin_404
+                                                                                                                                                                                                                                                                                                                                                                                                                          MAlonzo.Code.Builtin.d_decBuiltin_418
                                                                                                                                                                                                                                                                                                                                                                                                                           (coe
                                                                                                                                                                                                                                                                                                                                                                                                                              v64)
                                                                                                                                                                                                                                                                                                                                                                                                                           (coe
@@ -2271,7 +2270,7 @@ du_isFD'63'_200 v0 v1 v2 v3
 -- VerifiedCompilation.UForceDelay.ForceFDNeverITE
 d_ForceFDNeverITE_218 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -2284,7 +2283,7 @@ d_ForceFDNeverITE_218 = erased
 d_'46'extendedlambda2_264 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2300,7 +2299,7 @@ d_'46'extendedlambda3_338 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_FD_120 ->
   (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
@@ -2320,7 +2319,7 @@ d_'46'extendedlambda4_366 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
@@ -2341,7 +2340,7 @@ d_'46'extendedlambda5_380 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda5_380 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda6
@@ -2349,7 +2348,7 @@ d_'46'extendedlambda6_494 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2373,7 +2372,7 @@ d_'46'extendedlambda7_536 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   T_FD_120 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -2396,7 +2395,7 @@ d_'46'extendedlambda8_652 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   (MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
@@ -2424,7 +2423,7 @@ d_'46'extendedlambda9_706 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
   (MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
@@ -2452,7 +2451,7 @@ d_'46'extendedlambda10_768 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
@@ -2485,7 +2484,7 @@ d_'46'extendedlambda11_832 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
@@ -2517,7 +2516,7 @@ d_'46'extendedlambda12_898 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
@@ -2553,7 +2552,7 @@ d_'46'extendedlambda13_1052 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
   MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
@@ -2578,7 +2577,7 @@ d_'46'extendedlambda14_1092 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2594,7 +2593,7 @@ d_'46'extendedlambda15_1208 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2617,7 +2616,7 @@ d_'46'extendedlambda16_1232 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2634,7 +2633,7 @@ d_'46'extendedlambda17_1256 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
@@ -2658,7 +2657,7 @@ d_'46'extendedlambda18_1286 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda18_1286 = erased
@@ -2667,7 +2666,7 @@ d_'46'extendedlambda19_1358 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2686,7 +2685,7 @@ d_'46'extendedlambda20_1472 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2708,7 +2707,7 @@ d_'46'extendedlambda21_1498 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -2724,7 +2723,7 @@ d_'46'extendedlambda22_1524 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
@@ -2741,7 +2740,7 @@ d_'46'extendedlambda23_1592 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
@@ -2765,7 +2764,7 @@ d_'46'extendedlambda24_1626 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -2777,7 +2776,7 @@ d_'46'extendedlambda25_1716 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_FD_120 ->
@@ -2801,7 +2800,7 @@ d_'46'extendedlambda26_1750 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->

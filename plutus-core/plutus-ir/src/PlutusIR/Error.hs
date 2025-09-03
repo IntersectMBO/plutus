@@ -52,7 +52,8 @@ instance (PLC.PrettyUni uni, Pretty ann) =>
 instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) => Show (Error uni fun ann) where
     show = show . PP.pretty
 
--- FIXME: we get rid of this when our TestLib stops using rethrow
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1732): we get rid of this
+-- when our TestLib stops using rethrow
 deriving anyclass instance
     (PLC.ThrowableBuiltins uni fun, PP.Pretty ann, Typeable ann) => Exception (Error uni fun ann)
 

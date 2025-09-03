@@ -1,24 +1,21 @@
 let
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-  ~elemBy : all a. (a -> a -> Bool) -> a -> list a -> Bool
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
+  ~elemBy : all a. (a -> a -> bool) -> a -> list a -> bool
     = /\a ->
-        \(eq : a -> a -> Bool) ->
+        \(eq : a -> a -> bool) ->
           let
-            !eq : a -> a -> Bool = eq
+            !eq : a -> a -> bool = eq
           in
           \(y : a) ->
             let
               !y : a = y
             in
             letrec
-              ~go : list a -> Bool
+              ~go : list a -> bool
                 = caseList'
                     {a}
-                    {Bool}
+                    {bool}
                     False
                     (\(x : a) ->
                        let
@@ -28,28 +25,20 @@ let
                          let
                            !xs : list a = xs
                          in
-                         Bool_match
+                         case
+                           (all dead. bool)
                            (eq x y)
-                           {all dead. Bool}
-                           (/\dead -> True)
-                           (/\dead -> go xs)
+                           [(/\dead -> go xs), (/\dead -> True)]
                            {all dead. dead})
             in
             go
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
-  ~lessThanEqualsInteger : integer -> integer -> Bool
+  ~lessThanEqualsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-            !b : bool = lessThanEqualsInteger x y
-          in
-          ifThenElse {Bool} b True False
+        \(y : integer) -> let !y : integer = y in lessThanEqualsInteger x y
 in
 \(xs : list integer) ->
   let
