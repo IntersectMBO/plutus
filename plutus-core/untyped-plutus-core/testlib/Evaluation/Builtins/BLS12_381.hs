@@ -23,9 +23,9 @@ import Data.ByteString as BS (empty, length, pack)
 import Data.List as List (foldl', genericReplicate, length, nub)
 import Text.Printf (printf)
 
-import Test.QuickCheck hiding (Some (..))
+import Test.QuickCheck
 import Test.Tasty
-import Test.Tasty.QuickCheck hiding (Some (..))
+import Test.Tasty.QuickCheck
 
 -- QuickCheck utilities
 
