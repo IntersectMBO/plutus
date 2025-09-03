@@ -15,6 +15,8 @@ module PlutusCore.Pretty.PrettyConst where
 
 import PlutusCore.Data
 import PlutusCore.Pretty.Readable
+import PlutusCore.Value (Value (..))
+import PlutusCore.Value qualified as Value
 
 import Control.Lens hiding (List)
 import Data.ByteString qualified as BS
@@ -156,6 +158,9 @@ instance PrettyBy ConstConfig Data where
         List ds     ->  "List" :| [prettyArg ds]
         I i         ->  ("I" <+> prettyArg i) :| []
         B b         ->  ("B" <+> prettyArg b) :| []
+
+instance PrettyBy ConstConfig Value where
+    prettyBy config = prettyBy config . Value.toList
 
 instance PrettyBy ConstConfig BS.ByteString where
     prettyBy _ b = "#" <> toBytes b
