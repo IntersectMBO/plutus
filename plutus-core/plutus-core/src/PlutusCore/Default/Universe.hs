@@ -49,7 +49,7 @@ import PlutusCore.Core.Type (Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Data (Data)
+import PlutusCore.Data (Data (Constr))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
@@ -584,6 +584,16 @@ instance CaseBuiltin DefaultUni where
               case x of
                 (l, r) -> Right $ headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
             | otherwise -> Left $ outOfBoundsErr someVal branches
+        DefaultUniData ->
+          case x of
+            Constr ix ds
+              | 0 <= ix && ix < toInteger len ->
+                Right $
+                  headSpine
+                    (branches Vector.! (fromIntegral ix))
+                    (someValueOf DefaultUniData <$> ds)
+              | otherwise -> Left $ outOfBoundsErr someVal branches
+            _ -> Left "Only 'Constr' constructor can be cased"
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches
