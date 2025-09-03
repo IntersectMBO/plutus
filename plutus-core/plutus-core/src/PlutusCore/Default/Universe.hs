@@ -53,7 +53,7 @@ import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
-import PlutusCore.Value qualified as PLC
+import PlutusCore.Value (Value)
 
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
@@ -111,7 +111,7 @@ data DefaultUni a where
     DefaultUniString :: DefaultUni (Esc Text)
     DefaultUniUnit :: DefaultUni (Esc ())
     DefaultUniBool :: DefaultUni (Esc Bool)
-    DefaultUniValue :: DefaultUni (Esc PLC.Value)
+    DefaultUniValue :: DefaultUni (Esc Value)
     DefaultUniProtoArray :: DefaultUni (Esc Strict.Vector)
     DefaultUniProtoList :: DefaultUni (Esc [])
     DefaultUniProtoPair :: DefaultUni (Esc (,))
@@ -270,7 +270,7 @@ instance DefaultUni `Contains` () where
     knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool where
     knownUni = DefaultUniBool
-instance DefaultUni `Contains` PLC.Value where
+instance DefaultUni `Contains` Value where
     knownUni = DefaultUniValue
 instance DefaultUni `Contains` [] where
     knownUni = DefaultUniProtoList
@@ -297,8 +297,8 @@ instance KnownBuiltinTypeAst tyname DefaultUni () =>
     KnownTypeAst tyname DefaultUni ()
 instance KnownBuiltinTypeAst tyname DefaultUni Bool =>
     KnownTypeAst tyname DefaultUni Bool
-instance KnownBuiltinTypeAst tyname DefaultUni PLC.Value =>
-    KnownTypeAst tyname DefaultUni PLC.Value
+instance KnownBuiltinTypeAst tyname DefaultUni Value =>
+    KnownTypeAst tyname DefaultUni Value
 instance KnownBuiltinTypeAst tyname DefaultUni [a] =>
     KnownTypeAst tyname DefaultUni [a]
 instance KnownBuiltinTypeAst tyname DefaultUni (Strict.Vector a) =>
@@ -324,8 +324,8 @@ instance KnownBuiltinTypeIn DefaultUni term () =>
     ReadKnownIn DefaultUni term ()
 instance KnownBuiltinTypeIn DefaultUni term Bool =>
     ReadKnownIn DefaultUni term Bool
-instance KnownBuiltinTypeIn DefaultUni term PLC.Value =>
-    ReadKnownIn DefaultUni term PLC.Value
+instance KnownBuiltinTypeIn DefaultUni term Value =>
+    ReadKnownIn DefaultUni term Value
 instance KnownBuiltinTypeIn DefaultUni term Data =>
     ReadKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
@@ -351,8 +351,8 @@ instance KnownBuiltinTypeIn DefaultUni term () =>
     MakeKnownIn DefaultUni term ()
 instance KnownBuiltinTypeIn DefaultUni term Bool =>
     MakeKnownIn DefaultUni term Bool
-instance KnownBuiltinTypeIn DefaultUni term PLC.Value =>
-    MakeKnownIn DefaultUni term PLC.Value
+instance KnownBuiltinTypeIn DefaultUni term Value =>
+    MakeKnownIn DefaultUni term Value
 instance KnownBuiltinTypeIn DefaultUni term Data =>
     MakeKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
@@ -619,7 +619,7 @@ instance Closed DefaultUni where
         , constr `Permits` Text
         , constr `Permits` ()
         , constr `Permits` Bool
-        , constr `Permits` PLC.Value
+        , constr `Permits` Value
         , constr `Permits` []
         , constr `Permits` Strict.Vector
         , constr `Permits` (,)

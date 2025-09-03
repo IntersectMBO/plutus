@@ -20,10 +20,12 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
+import PlutusCore.Value
 
 import Data.ByteString (ByteString, empty)
 import Data.Int
 import Data.Kind qualified as GHC
+import Data.Map (Map)
 import Data.Maybe
 import Data.Proxy
 import Data.Text (Text)
@@ -241,6 +243,10 @@ instance ArbitraryBuiltin Data where
 instance Arbitrary Data where
     arbitrary = arbitraryBuiltin
     shrink = shrinkBuiltin
+
+deriving via Map ByteString (Map ByteString Integer) instance Arbitrary Value
+
+instance ArbitraryBuiltin Value
 
 instance ArbitraryBuiltin BLS12_381.G1.Element where
     arbitraryBuiltin =

@@ -57,6 +57,7 @@ import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
+import PlutusCore.Value qualified as PLC
 import Prettyprinter (viaShow)
 
 {-
@@ -645,6 +646,13 @@ does not uses Generic version.
 serialiseData :: BuiltinData -> BuiltinByteString
 serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
 {-# OPAQUE serialiseData #-}
+
+{-
+Value
+-}
+
+data BuiltinValue = BuiltinValue ~PLC.Value
+  deriving stock (Generic)
 
 {-
 ARRAY

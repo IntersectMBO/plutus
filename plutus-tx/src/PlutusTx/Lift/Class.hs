@@ -30,10 +30,12 @@ import PlutusCore.Crypto.BLS12_381.G2 (Element)
 import PlutusCore.Crypto.BLS12_381.Pairing (MlResult)
 import PlutusCore.Data
 import PlutusCore.Quote
+import PlutusCore.Value
 import PlutusIR.MkPir
 import PlutusTx.Builtins
 import PlutusTx.Builtins.HasBuiltin (FromBuiltin, HasFromBuiltin)
-import PlutusTx.Builtins.Internal (BuiltinInteger, BuiltinList, BuiltinPair, BuiltinUnit)
+import PlutusTx.Builtins.Internal (BuiltinInteger, BuiltinList, BuiltinPair, BuiltinUnit,
+                                   BuiltinValue)
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
@@ -222,8 +224,16 @@ instance
 instance (uni `PLC.HasTypeLevel` Data) => Typeable uni BuiltinData where
   typeRep _ = typeRepBuiltin (Proxy @Data)
 
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1703)
+instance Typeable uni BuiltinValue where
+  typeRep = Haskell.error "Not Implemented"
+
 -- See Note [Lift and Typeable instances for builtins]
 instance (uni `PLC.HasTermLevel` Data) => Lift uni BuiltinData where
+  lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance (uni `PLC.HasTermLevel` Value) => Lift uni BuiltinValue where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
