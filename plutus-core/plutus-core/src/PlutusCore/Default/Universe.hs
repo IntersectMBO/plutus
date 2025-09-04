@@ -111,7 +111,6 @@ data DefaultUni a where
     DefaultUniString :: DefaultUni (Esc Text)
     DefaultUniUnit :: DefaultUni (Esc ())
     DefaultUniBool :: DefaultUni (Esc Bool)
-    DefaultUniValue :: DefaultUni (Esc Value)
     DefaultUniProtoArray :: DefaultUni (Esc Strict.Vector)
     DefaultUniProtoList :: DefaultUni (Esc [])
     DefaultUniProtoPair :: DefaultUni (Esc (,))
@@ -120,6 +119,7 @@ data DefaultUni a where
     DefaultUniBLS12_381_G1_Element :: DefaultUni (Esc BLS12_381.G1.Element)
     DefaultUniBLS12_381_G2_Element :: DefaultUni (Esc BLS12_381.G2.Element)
     DefaultUniBLS12_381_MlResult :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
+    DefaultUniValue :: DefaultUni (Esc Value)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -158,9 +158,6 @@ instance GEq DefaultUni where
         geqStep DefaultUniBool a2 = do
             DefaultUniBool <- Just a2
             Just Refl
-        geqStep DefaultUniValue a2 = do
-            DefaultUniValue <- Just a2
-            Just Refl
         geqStep DefaultUniProtoList a2 = do
             DefaultUniProtoList <- Just a2
             Just Refl
@@ -187,6 +184,9 @@ instance GEq DefaultUni where
         geqStep DefaultUniBLS12_381_MlResult a2 = do
             DefaultUniBLS12_381_MlResult <- Just a2
             Just Refl
+        geqStep DefaultUniValue a2 = do
+            DefaultUniValue <- Just a2
+            Just Refl
         {-# INLINE geqStep #-}
 
         geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
@@ -203,7 +203,6 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniString               = knownKind
     toSingKind DefaultUniUnit                 = knownKind
     toSingKind DefaultUniBool                 = knownKind
-    toSingKind DefaultUniValue                = knownKind
     toSingKind DefaultUniProtoList            = knownKind
     toSingKind DefaultUniProtoArray           = knownKind
     toSingKind DefaultUniProtoPair            = knownKind
@@ -212,6 +211,7 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniBLS12_381_G1_Element = knownKind
     toSingKind DefaultUniBLS12_381_G2_Element = knownKind
     toSingKind DefaultUniBLS12_381_MlResult   = knownKind
+    toSingKind DefaultUniValue                = knownKind
 
 instance HasUniApply DefaultUni where
     uniApply = DefaultUniApply
@@ -229,7 +229,6 @@ instance PrettyBy RenderContext (DefaultUni a) where
         DefaultUniString               -> "string"
         DefaultUniUnit                 -> "unit"
         DefaultUniBool                 -> "bool"
-        DefaultUniValue                -> "value"
         DefaultUniProtoList            -> "list"
         DefaultUniProtoArray           -> "array"
         DefaultUniProtoPair            -> "pair"
@@ -238,6 +237,7 @@ instance PrettyBy RenderContext (DefaultUni a) where
         DefaultUniBLS12_381_G1_Element -> "bls12_381_G1_element"
         DefaultUniBLS12_381_G2_Element -> "bls12_381_G2_element"
         DefaultUniBLS12_381_MlResult   -> "bls12_381_mlresult"
+        DefaultUniValue                -> "value"
 
 instance PrettyBy RenderContext (SomeTypeIn DefaultUni) where
     prettyBy config (SomeTypeIn uni) = prettyBy config uni
@@ -297,8 +297,6 @@ instance KnownBuiltinTypeAst tyname DefaultUni () =>
     KnownTypeAst tyname DefaultUni ()
 instance KnownBuiltinTypeAst tyname DefaultUni Bool =>
     KnownTypeAst tyname DefaultUni Bool
-instance KnownBuiltinTypeAst tyname DefaultUni Value =>
-    KnownTypeAst tyname DefaultUni Value
 instance KnownBuiltinTypeAst tyname DefaultUni [a] =>
     KnownTypeAst tyname DefaultUni [a]
 instance KnownBuiltinTypeAst tyname DefaultUni (Strict.Vector a) =>
@@ -313,6 +311,8 @@ instance KnownBuiltinTypeAst tyname DefaultUni BLS12_381.G2.Element =>
     KnownTypeAst tyname DefaultUni BLS12_381.G2.Element
 instance KnownBuiltinTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult =>
     KnownTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult
+instance KnownBuiltinTypeAst tyname DefaultUni Value =>
+    KnownTypeAst tyname DefaultUni Value
 
 instance KnownBuiltinTypeIn DefaultUni term Integer =>
     ReadKnownIn DefaultUni term Integer
@@ -324,8 +324,6 @@ instance KnownBuiltinTypeIn DefaultUni term () =>
     ReadKnownIn DefaultUni term ()
 instance KnownBuiltinTypeIn DefaultUni term Bool =>
     ReadKnownIn DefaultUni term Bool
-instance KnownBuiltinTypeIn DefaultUni term Value =>
-    ReadKnownIn DefaultUni term Value
 instance KnownBuiltinTypeIn DefaultUni term Data =>
     ReadKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
@@ -340,6 +338,8 @@ instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =>
     ReadKnownIn DefaultUni term BLS12_381.G2.Element
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =>
     ReadKnownIn DefaultUni term BLS12_381.Pairing.MlResult
+instance KnownBuiltinTypeIn DefaultUni term Value =>
+    ReadKnownIn DefaultUni term Value
 
 instance KnownBuiltinTypeIn DefaultUni term Integer =>
     MakeKnownIn DefaultUni term Integer
@@ -351,8 +351,6 @@ instance KnownBuiltinTypeIn DefaultUni term () =>
     MakeKnownIn DefaultUni term ()
 instance KnownBuiltinTypeIn DefaultUni term Bool =>
     MakeKnownIn DefaultUni term Bool
-instance KnownBuiltinTypeIn DefaultUni term Value =>
-    MakeKnownIn DefaultUni term Value
 instance KnownBuiltinTypeIn DefaultUni term Data =>
     MakeKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
@@ -367,6 +365,8 @@ instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =>
     MakeKnownIn DefaultUni term BLS12_381.G2.Element
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =>
     MakeKnownIn DefaultUni term BLS12_381.Pairing.MlResult
+instance KnownBuiltinTypeIn DefaultUni term Value =>
+    MakeKnownIn DefaultUni term Value
 
 -- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
@@ -677,7 +677,6 @@ instance Closed DefaultUni where
     bring _ DefaultUniString r = r
     bring _ DefaultUniUnit r = r
     bring _ DefaultUniBool r = r
-    bring _ DefaultUniValue r = r
     bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
         bring p uniA r
     bring p (DefaultUniProtoArray `DefaultUniApply` uniA) r =
@@ -690,3 +689,4 @@ instance Closed DefaultUni where
     bring _ DefaultUniBLS12_381_G1_Element r = r
     bring _ DefaultUniBLS12_381_G2_Element r = r
     bring _ DefaultUniBLS12_381_MlResult r = r
+    bring _ DefaultUniValue r = r
