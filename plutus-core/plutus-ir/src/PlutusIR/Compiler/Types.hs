@@ -78,7 +78,7 @@ newtype DatatypeCompilationOpts = DatatypeCompilationOpts
 makeLenses ''DatatypeCompilationOpts
 
 defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
-defaultDatatypeCompilationOpts = DatatypeCompilationOpts BuiltinCasing
+defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
 
 data CompilationOpts a = CompilationOpts {
     _coOptimize                         :: Bool
