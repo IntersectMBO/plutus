@@ -307,9 +307,6 @@ testBuiltinAvailabilityCompatibility =
                       , ComplementByteString , ReadBit, WriteBits
                       , ReplicateByte , ShiftByteString, RotateByteString
                       , CountSetBits, FindFirstSetBit, Ripemd_160 ])
-                   , ((PlutusV3, futurePV), Set.fromList
-                      [ ExpModInteger, DropList
-                      , ListToArray, IndexArray, LengthOfArray ])
                    ]
         builtinsAvailableIn_old
             :: PlutusLedgerLanguage
