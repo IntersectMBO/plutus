@@ -40,6 +40,10 @@ let
     plutus-ir-test = project.flake'.packages."plutus-core:test:plutus-ir-test";
     cardano-constitution-test = project.flake'.packages."cardano-constitution:test:cardano-constitution-test"; # editorconfig-checker-disable-line
     cost-model-budgeting-bench = project.flake'.packages."plutus-core:exe:cost-model-budgeting-bench"; # editorconfig-checker-disable-line
+    uplc = project.flake'.packages."plutus-executables:exe:uplc";
+    plc = project.flake'.packages."plutus-executables:exe:plc";
+    pir = project.flake'.packages."plutus-executables:exe:pir";
+    plutus = project.flake'.packages."plutus-core:exe:plutus";
   };
 
   static-haskell-packages = {
@@ -82,8 +86,8 @@ let
   };
 
   packages =
+    lib.optionalAttrs pkgs.stdenv.isLinux static-haskell-packages //
     exposed-haskell-packages //
-    static-haskell-packages //
     extra-artifacts;
 
   non-profiled-shells = rec {
@@ -151,3 +155,5 @@ in
   inherit checks;
   inherit hydraJobs;
 }
+
+
