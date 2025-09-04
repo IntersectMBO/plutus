@@ -34,6 +34,8 @@ let
         # We need one of these for each source-repository-package stanza in cabal.project.
         "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" =
           "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7";
+        "https://github.com/zeme-wana/flat"."3014e2dde892635c4f46037ba929ec514e0f130f" =
+          "sha256-o6xW+CfrGfbZPBT4Bt1osZ+8vscPGd/mkqrA2esV/BY=";
       };
 
       modules = [
