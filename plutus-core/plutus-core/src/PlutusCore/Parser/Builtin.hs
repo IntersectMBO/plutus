@@ -90,15 +90,7 @@ conArray uniA = Vector.fromList <$> conList uniA
 
 -- | Parser for values.
 conValue :: Parser PLC.Value
-conValue =
-  Value.fromList
-  <$> conList
-        (DefaultUniPair
-          DefaultUniByteString
-          (DefaultUniList
-            (DefaultUniPair DefaultUniByteString DefaultUniInteger)
-          )
-        )
+conValue = Value.fromList <$> conList knownUni
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
