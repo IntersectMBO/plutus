@@ -1,4 +1,11 @@
 
+<a id='changelog-1.53.0.0'></a>
+# 1.53.0.0 — 2025-09-04
+
+## Added
+
+- Added Plinth builtin `caseInteger :: forall a. Integer -> [a] -> a`. Which will generate `Case` node that will case with the given integer as scrutinee and list as branches. This function expects it's second argument to be the Haskell list constructors. For example, `caseInteger 1 [1, 2, 3, 4]` will work, but `caseInteger 1 (id [1, 2, 3, 4])` won't work because the second argument is not a Haskell list constructor.
+
 <a id='changelog-1.51.0.0'></a>
 # 1.51.0.0 — 2025-07-30
 
