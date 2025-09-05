@@ -12,7 +12,7 @@ import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
 import UntypedPlutusCore.Size (termSize)
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
-                                               recordSimplification)
+                                               initSimplifierTerm, recordSimplification)
 
 import Control.Arrow ((>>>))
 import Control.Lens (foldrOf, transformOf)
@@ -232,7 +232,10 @@ cse builtinSemanticsVariant t0 = do
           . Map.elems
           $ countOccs builtinSemanticsVariant annotated
   result <- mkCseTerm commonSubexprs annotated
-  recordSimplification t0 CSE result
+  recordSimplification
+    (initSimplifierTerm t0)
+    CSE
+    (initSimplifierTerm result)
   return result
 
 -- | The second pass. See Note [CSE].
