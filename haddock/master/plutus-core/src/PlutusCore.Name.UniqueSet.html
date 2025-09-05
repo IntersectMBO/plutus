@@ -1,0 +1,3480 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A type for sets of things identified by 'Unique's, usually names.
+ This approach is preferred when it is more efficient to compare the associated
+ 'Unique's instead of the underlying type.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Name.UniqueSet</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#insertByUnique"
+	><span class="hs-identifier"
+	  >insertByUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#insertByName"
+	><span class="hs-identifier"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#singletonName"
+	><span class="hs-identifier"
+	  >singletonName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#fromFoldable"
+	><span class="hs-identifier"
+	  >fromFoldable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#fromUniques"
+	><span class="hs-identifier"
+	  >fromUniques</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#fromNames"
+	><span class="hs-identifier"
+	  >fromNames</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#memberByUnique"
+	><span class="hs-identifier"
+	  >memberByUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#memberByName"
+	><span class="hs-identifier"
+	  >memberByName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#notMemberByName"
+	><span class="hs-identifier"
+	  >notMemberByName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#%5C%5C"
+	><span class="hs-operator"
+	  >(\\)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#union"
+	><span class="hs-identifier"
+	  >union</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#setOfByUnique"
+	><span class="hs-identifier"
+	  >setOfByUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#setOfByName"
+	><span class="hs-identifier"
+	  >setOfByName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Getting</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>view</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens.Getter</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>views</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Coerce.html"
+	><span class="hs-identifier"
+	  >Data.Coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	><span class="hs-identifier"
+	  >Coercible</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier"
+	  >coerce</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntSet.html"
+	><span class="hs-identifier"
+	  >Data.IntSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>IS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.IntSet.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>IS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.html"
+	><span class="hs-identifier"
+	  >Data.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>List</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldl%27"
+	><span class="hs-identifier"
+	  >foldl'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A set containing 'Unique's. Since 'Unique' is equivalent to 'Int'
+ (see &quot;PlutusCore.Name.Unique&quot;), we can use an 'IntSet' representation for this type.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="UniqueSet"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-var"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836427"
+      ><span class="annot"
+	><a href="#local-6989586621681836427"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="UniqueSet"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-var"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unUniqueSet"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall unique. UniqueSet unique -&gt; IntSet
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#unUniqueSet"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unUniqueSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntSet.Internal.html#IntSet"
+	><span class="hs-identifier hs-type"
+	  >IS.IntSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681836551"
+      ><span id="local-6989586621681836557"
+	><span id="local-6989586621681836561"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; UniqueSet unique -&gt; ShowS
+[UniqueSet unique] -&gt; ShowS
+UniqueSet unique -&gt; String
+(Int -&gt; UniqueSet unique -&gt; ShowS)
+-&gt; (UniqueSet unique -&gt; String)
+-&gt; ([UniqueSet unique] -&gt; ShowS)
+-&gt; Show (UniqueSet unique)
+forall unique. Int -&gt; UniqueSet unique -&gt; ShowS
+forall unique. [UniqueSet unique] -&gt; ShowS
+forall unique. UniqueSet unique -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall unique. Int -&gt; UniqueSet unique -&gt; ShowS
+showsPrec :: Int -&gt; UniqueSet unique -&gt; ShowS
+$cshow :: forall unique. UniqueSet unique -&gt; String
+show :: UniqueSet unique -&gt; String
+$cshowList :: forall unique. [UniqueSet unique] -&gt; ShowS
+showList :: [UniqueSet unique] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681836565"
+      ><span id="local-6989586621681836569"
+	><span class="annot"
+	  ><span class="annottext"
+	    >UniqueSet unique -&gt; UniqueSet unique -&gt; Bool
+(UniqueSet unique -&gt; UniqueSet unique -&gt; Bool)
+-&gt; (UniqueSet unique -&gt; UniqueSet unique -&gt; Bool)
+-&gt; Eq (UniqueSet unique)
+forall unique. UniqueSet unique -&gt; UniqueSet unique -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall unique. UniqueSet unique -&gt; UniqueSet unique -&gt; Bool
+== :: UniqueSet unique -&gt; UniqueSet unique -&gt; Bool
+$c/= :: forall unique. UniqueSet unique -&gt; UniqueSet unique -&gt; Bool
+/= :: UniqueSet unique -&gt; UniqueSet unique -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681836574"
+      ><span id="local-6989586621681836579"
+	><span id="local-6989586621681836585"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty (UniqueSet unique) -&gt; UniqueSet unique
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+(UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; (NonEmpty (UniqueSet unique) -&gt; UniqueSet unique)
+-&gt; (forall b.
+    Integral b =&gt;
+    b -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; Semigroup (UniqueSet unique)
+forall b. Integral b =&gt; b -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall unique. NonEmpty (UniqueSet unique) -&gt; UniqueSet unique
+forall unique.
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+forall unique b.
+Integral b =&gt;
+b -&gt; UniqueSet unique -&gt; UniqueSet unique
+$c&lt;&gt; :: forall unique.
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+&lt;&gt; :: UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+$csconcat :: forall unique. NonEmpty (UniqueSet unique) -&gt; UniqueSet unique
+sconcat :: NonEmpty (UniqueSet unique) -&gt; UniqueSet unique
+$cstimes :: forall unique b.
+Integral b =&gt;
+b -&gt; UniqueSet unique -&gt; UniqueSet unique
+stimes :: forall b. Integral b =&gt; b -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681836595"
+      ><span id="local-6989586621681836600"
+	><span id="local-6989586621681836604"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup (UniqueSet unique)
+UniqueSet unique
+Semigroup (UniqueSet unique) =&gt;
+UniqueSet unique
+-&gt; (UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; ([UniqueSet unique] -&gt; UniqueSet unique)
+-&gt; Monoid (UniqueSet unique)
+[UniqueSet unique] -&gt; UniqueSet unique
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall unique. Semigroup (UniqueSet unique)
+forall unique. UniqueSet unique
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+forall unique. [UniqueSet unique] -&gt; UniqueSet unique
+forall unique.
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+$cmempty :: forall unique. UniqueSet unique
+mempty :: UniqueSet unique
+$cmappend :: forall unique.
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+mappend :: UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+$cmconcat :: forall unique. [UniqueSet unique] -&gt; UniqueSet unique
+mconcat :: [UniqueSet unique] -&gt; UniqueSet unique
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert a @unique@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="local-6989586621681836450"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#insertByUnique"
+	  ><span class="hs-identifier hs-type"
+	    >insertByUnique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	>
+</span
+	><span id="line-42"
+	></span
+	><span
+	>  </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	  ><span class="hs-identifier hs-type"
+	    >Coercible</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836450"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Unique"
+	  ><span class="hs-identifier hs-type"
+	    >Unique</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	>
+</span
+	><span id="line-43"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><a href="#local-6989586621681836450"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	>
+</span
+	><span id="line-44"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836450"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	>
+</span
+	><span id="line-45"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836450"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="insertByUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertByUnique :: forall unique.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#insertByUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertByUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntSet -&gt; IntSet) -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((IntSet -&gt; IntSet) -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; (unique -&gt; IntSet -&gt; IntSet)
+-&gt; unique
+-&gt; UniqueSet unique
+-&gt; UniqueSet unique
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; IntSet -&gt; IntSet
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntSet.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >IS.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; IntSet -&gt; IntSet)
+-&gt; (unique -&gt; Int) -&gt; unique -&gt; IntSet -&gt; IntSet
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; Int
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert the @unique@ associated to the @name@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="local-6989586621681836456"
+      ><span id="local-6989586621681836457"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#insertByName"
+	    ><span class="hs-identifier hs-type"
+	      >insertByName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	    ><span class="hs-identifier hs-type"
+	      >HasUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836456"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836457"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836456"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836457"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836457"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="insertByName"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertByName :: forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#insertByName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertByName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall unique.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#insertByUnique"
+	><span class="hs-identifier hs-var"
+	  >insertByUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; (name -&gt; unique) -&gt; name -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique -&gt; name -&gt; unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Create the singleton set of the @unique@ associated to the @name@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="local-6989586621681836472"
+      ><span id="local-6989586621681836473"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#singletonName"
+	    ><span class="hs-identifier hs-type"
+	      >singletonName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	    ><span class="hs-identifier hs-type"
+	      >HasUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836472"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836473"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836472"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836473"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span id="singletonName"
+      ><span class="annot"
+	><span class="annottext"
+	  >singletonName :: forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#singletonName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >singletonName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836630"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681836630"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#insertByName"
+	><span class="hs-identifier hs-var"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681836630"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueSet unique
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'Foldable' into a 'UniqueSet' using the given insertion function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="local-6989586621681836476"
+      ><span id="local-6989586621681836477"
+	><span id="local-6989586621681836478"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#fromFoldable"
+	      ><span class="hs-identifier hs-type"
+		>fromFoldable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    >
+</span
+	    ><span id="line-58"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+	      ><span class="hs-identifier hs-type"
+		>Foldable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836476"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-59"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836477"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	      ><span class="hs-identifier hs-type"
+		>UniqueSet</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836478"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	      ><span class="hs-identifier hs-type"
+		>UniqueSet</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836478"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-60"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836476"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836477"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-61"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	      ><span class="hs-identifier hs-type"
+		>UniqueSet</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836478"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="fromFoldable"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromFoldable :: forall (f :: * -&gt; *) i unique.
+Foldable f =&gt;
+(i -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; f i -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#fromFoldable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromFoldable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836634"
+      ><span class="annot"
+	><span class="annottext"
+	  >i -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	  ><a href="#local-6989586621681836634"
+	  ><span class="hs-identifier hs-var"
+	    >ins</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueSet unique -&gt; i -&gt; UniqueSet unique)
+-&gt; UniqueSet unique -&gt; f i -&gt; UniqueSet unique
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; f a -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldl%27"
+	><span class="hs-identifier hs-var"
+	  >List.foldl'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(i -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; UniqueSet unique -&gt; i -&gt; UniqueSet unique
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>i -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	><a href="#local-6989586621681836634"
+	><span class="hs-identifier hs-var"
+	  >ins</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueSet unique
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'Foldable' with uniques into a 'UniqueSet'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="local-6989586621681836488"
+      ><span id="local-6989586621681836489"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#fromUniques"
+	    ><span class="hs-identifier hs-type"
+	      >fromUniques</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+	    ><span class="hs-identifier hs-type"
+	      >Foldable</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836488"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	    ><span class="hs-identifier hs-type"
+	      >Coercible</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Unique"
+	    ><span class="hs-identifier hs-type"
+	      >Unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836489"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836488"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836489"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836489"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="fromUniques"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromUniques :: forall (f :: * -&gt; *) unique.
+(Foldable f, Coercible Unique unique) =&gt;
+f unique -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#fromUniques"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromUniques</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; f unique -&gt; UniqueSet unique
+forall (f :: * -&gt; *) i unique.
+Foldable f =&gt;
+(i -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; f i -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#fromFoldable"
+	><span class="hs-identifier hs-var"
+	  >fromFoldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall unique.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#insertByUnique"
+	><span class="hs-identifier hs-var"
+	  >insertByUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'Foldable' with names into a 'UniqueSet'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621681836492"
+      ><span id="local-6989586621681836493"
+	><span id="local-6989586621681836494"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#fromNames"
+	      ><span class="hs-identifier hs-type"
+		>fromNames</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+	      ><span class="hs-identifier hs-type"
+		>Foldable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836492"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836493"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836494"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836492"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836493"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	      ><span class="hs-identifier hs-type"
+		>UniqueSet</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836494"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="fromNames"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromNames :: forall (f :: * -&gt; *) name unique.
+(Foldable f, HasUnique name unique) =&gt;
+f name -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#fromNames"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromNames</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(name -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; f name -&gt; UniqueSet unique
+forall (f :: * -&gt; *) i unique.
+Foldable f =&gt;
+(i -&gt; UniqueSet unique -&gt; UniqueSet unique)
+-&gt; f i -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#fromFoldable"
+	><span class="hs-identifier hs-var"
+	  >fromFoldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; UniqueSet unique -&gt; UniqueSet unique
+forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#insertByName"
+	><span class="hs-identifier hs-var"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Is the @unique@ a member of the set?</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="local-6989586621681836498"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#memberByUnique"
+	  ><span class="hs-identifier hs-type"
+	    >memberByUnique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	  ><span class="hs-identifier hs-type"
+	    >Coercible</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836498"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Unique"
+	  ><span class="hs-identifier hs-type"
+	    >Unique</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836498"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836498"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="memberByUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >memberByUnique :: forall unique.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueSet unique -&gt; Bool
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#memberByUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >memberByUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836652"
+      ><span class="annot"
+	><span class="annottext"
+	  >unique
+</span
+	  ><a href="#local-6989586621681836652"
+	  ><span class="hs-identifier hs-var"
+	    >uniq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; IntSet -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntSet.Internal.html#member"
+	><span class="hs-identifier hs-var"
+	  >IS.member</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; Int
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique
+</span
+	><a href="#local-6989586621681836652"
+	><span class="hs-identifier hs-var"
+	  >uniq</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntSet -&gt; Bool)
+-&gt; (UniqueSet unique -&gt; IntSet) -&gt; UniqueSet unique -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueSet unique -&gt; IntSet
+forall unique. UniqueSet unique -&gt; IntSet
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#unUniqueSet"
+	><span class="hs-identifier hs-var"
+	  >unUniqueSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Is the @name@ associated to the @unique@ a member of the set?</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="local-6989586621681836500"
+      ><span id="local-6989586621681836501"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#memberByName"
+	    ><span class="hs-identifier hs-type"
+	      >memberByName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	    ><span class="hs-identifier hs-type"
+	      >HasUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836500"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836501"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836500"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836501"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	    ><span class="hs-identifier hs-type"
+	      >Bool</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="memberByName"
+      ><span class="annot"
+	><span class="annottext"
+	  >memberByName :: forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique -&gt; Bool
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#memberByName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >memberByName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique -&gt; UniqueSet unique -&gt; Bool
+forall unique.
+Coercible unique Unique =&gt;
+unique -&gt; UniqueSet unique -&gt; Bool
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#memberByUnique"
+	><span class="hs-identifier hs-var"
+	  >memberByUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; UniqueSet unique -&gt; Bool)
+-&gt; (name -&gt; unique) -&gt; name -&gt; UniqueSet unique -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique -&gt; name -&gt; unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | The negation of 'memberByName', useful for converting to operator form,
+ e.g. @name `notMemberByName` set@.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="local-6989586621681836660"
+      ><span id="local-6989586621681836661"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#notMemberByName"
+	    ><span class="hs-identifier hs-type"
+	      >notMemberByName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	    ><span class="hs-identifier hs-type"
+	      >HasUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836660"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836661"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836660"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836661"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	    ><span class="hs-identifier hs-type"
+	      >Bool</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="notMemberByName"
+      ><span class="annot"
+	><span class="annottext"
+	  >notMemberByName :: forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique -&gt; Bool
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#notMemberByName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >notMemberByName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836664"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681836664"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool)
+-&gt; (UniqueSet unique -&gt; Bool) -&gt; UniqueSet unique -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; UniqueSet unique -&gt; Bool
+forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique -&gt; Bool
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#memberByName"
+	><span class="hs-identifier hs-var"
+	  >memberByName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681836664"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The difference of two 'UniqueSet's.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="local-6989586621681836666"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#%5C%5C"
+	  ><span class="hs-operator hs-type"
+	    >(\\)</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836666"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836666"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836666"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="%5C%5C"
+      ><span class="annot"
+	><span class="annottext"
+	  >\\ :: forall unique.
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#%5C%5C"
+	  ><span class="hs-operator hs-var hs-var"
+	    >(\\)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-type"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836667"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntSet
+</span
+	  ><a href="#local-6989586621681836667"
+	  ><span class="hs-identifier hs-var"
+	    >s1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-type"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836668"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntSet
+</span
+	  ><a href="#local-6989586621681836668"
+	  ><span class="hs-identifier hs-var"
+	    >s2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet -&gt; UniqueSet unique
+forall unique. IntSet -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-var"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntSet -&gt; UniqueSet unique) -&gt; IntSet -&gt; UniqueSet unique
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet
+</span
+	><a href="#local-6989586621681836667"
+	><span class="hs-identifier hs-var"
+	  >s1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet -&gt; IntSet -&gt; IntSet
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntSet.Internal.html#%5C%5C"
+	><span class="hs-operator hs-var"
+	  >IS.\\</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet
+</span
+	><a href="#local-6989586621681836668"
+	><span class="hs-identifier hs-var"
+	  >s2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The union of two 'UniqueSet's.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="local-6989586621681836670"
+      ><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#union"
+	  ><span class="hs-identifier hs-type"
+	    >union</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836670"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836670"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681836670"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span id="union"
+      ><span class="annot"
+	><span class="annottext"
+	  >union :: forall unique.
+UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#union"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >union</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-type"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836671"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntSet
+</span
+	  ><a href="#local-6989586621681836671"
+	  ><span class="hs-identifier hs-var"
+	    >s1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-type"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836672"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntSet
+</span
+	  ><a href="#local-6989586621681836672"
+	  ><span class="hs-identifier hs-var"
+	    >s2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet -&gt; UniqueSet unique
+forall unique. IntSet -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-var"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntSet -&gt; UniqueSet unique) -&gt; IntSet -&gt; UniqueSet unique
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet
+</span
+	><a href="#local-6989586621681836671"
+	><span class="hs-identifier hs-var"
+	  >s1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet -&gt; IntSet -&gt; IntSet
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntSet.Internal.html#union"
+	><span class="hs-operator hs-var"
+	  >`IS.union`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet
+</span
+	><a href="#local-6989586621681836672"
+	><span class="hs-identifier hs-var"
+	  >s2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Build a set of @unique@s from the 'Getting'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span id="local-6989586621681836511"
+      ><span id="local-6989586621681836512"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#setOfByUnique"
+	    ><span class="hs-identifier hs-type"
+	      >setOfByUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  >
+</span
+	  ><span id="line-96"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	    ><span class="hs-identifier hs-type"
+	      >Coercible</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836511"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Unique"
+	    ><span class="hs-identifier hs-type"
+	      >Unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  >
+</span
+	  ><span id="line-97"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Getting</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836511"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836512"
+	    ><span class="hs-identifier hs-type"
+	      >s</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836511"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  >
+</span
+	  ><span id="line-98"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836512"
+	    ><span class="hs-identifier hs-type"
+	      >s</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  >
+</span
+	  ><span id="line-99"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	    ><span class="hs-identifier hs-type"
+	      >UniqueSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681836511"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="setOfByUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >setOfByUnique :: forall unique s.
+Coercible unique Unique =&gt;
+Getting (UniqueSet unique) s unique -&gt; s -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#setOfByUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setOfByUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836681"
+      ><span class="annot"
+	><span class="annottext"
+	  >Getting (UniqueSet unique) s unique
+</span
+	  ><a href="#local-6989586621681836681"
+	  ><span class="hs-identifier hs-var"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntSet -&gt; UniqueSet unique
+forall unique. IntSet -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	><span class="hs-identifier hs-var"
+	  >UniqueSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntSet -&gt; UniqueSet unique)
+-&gt; (s -&gt; IntSet) -&gt; s -&gt; UniqueSet unique
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting IntSet s Int -&gt; s -&gt; IntSet
+forall s. Getting IntSet s Int -&gt; s -&gt; IntSet
+</span
+	><span class="hs-identifier hs-var"
+	>IS.setOf</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (UniqueSet unique) s unique -&gt; Getting IntSet s Int
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (UniqueSet unique) s unique
+</span
+	><a href="#local-6989586621681836681"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Build a set of @unique@s associated to the names in the 'Getting'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span id="local-6989586621681836520"
+      ><span id="local-6989586621681836521"
+	><span id="local-6989586621681836522"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#setOfByName"
+	      ><span class="hs-identifier hs-type"
+		>setOfByName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    >
+</span
+	    ><span id="line-104"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836520"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836521"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-105"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >Getting</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	      ><span class="hs-identifier hs-type"
+		>UniqueSet</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836521"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836522"
+	      ><span class="hs-identifier hs-type"
+		>s</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836520"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-106"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836522"
+	      ><span class="hs-identifier hs-type"
+		>s</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-107"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.UniqueSet.html#UniqueSet"
+	      ><span class="hs-identifier hs-type"
+		>UniqueSet</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681836521"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="setOfByName"
+      ><span class="annot"
+	><span class="annottext"
+	  >setOfByName :: forall name unique s.
+HasUnique name unique =&gt;
+Getting (UniqueSet unique) s name -&gt; s -&gt; UniqueSet unique
+</span
+	  ><a href="PlutusCore.Name.UniqueSet.html#setOfByName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setOfByName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681836687"
+      ><span class="annot"
+	><span class="annottext"
+	  >Getting (UniqueSet unique) s name
+</span
+	  ><a href="#local-6989586621681836687"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (UniqueSet unique) s name
+-&gt; (name -&gt; UniqueSet unique) -&gt; s -&gt; UniqueSet unique
+forall s (m :: * -&gt; *) r a.
+MonadReader s m =&gt;
+LensLike' (Const r) s a -&gt; (a -&gt; r) -&gt; m r
+</span
+	><span class="hs-identifier hs-var"
+	>views</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (UniqueSet unique) s name
+</span
+	><a href="#local-6989586621681836687"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; UniqueSet unique
+forall name unique.
+HasUnique name unique =&gt;
+name -&gt; UniqueSet unique
+</span
+	><a href="PlutusCore.Name.UniqueSet.html#singletonName"
+	><span class="hs-identifier hs-var"
+	  >singletonName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
