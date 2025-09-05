@@ -14,6 +14,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans             #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches      #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.NoFib.Queens where
 
