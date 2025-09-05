@@ -53,6 +53,7 @@ import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
+import PlutusCore.Value (Value)
 
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
@@ -118,6 +119,7 @@ data DefaultUni a where
     DefaultUniBLS12_381_G1_Element :: DefaultUni (Esc BLS12_381.G1.Element)
     DefaultUniBLS12_381_G2_Element :: DefaultUni (Esc BLS12_381.G2.Element)
     DefaultUniBLS12_381_MlResult :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
+    DefaultUniValue :: DefaultUni (Esc Value)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -182,6 +184,9 @@ instance GEq DefaultUni where
         geqStep DefaultUniBLS12_381_MlResult a2 = do
             DefaultUniBLS12_381_MlResult <- Just a2
             Just Refl
+        geqStep DefaultUniValue a2 = do
+            DefaultUniValue <- Just a2
+            Just Refl
         {-# INLINE geqStep #-}
 
         geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
@@ -206,6 +211,7 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniBLS12_381_G1_Element = knownKind
     toSingKind DefaultUniBLS12_381_G2_Element = knownKind
     toSingKind DefaultUniBLS12_381_MlResult   = knownKind
+    toSingKind DefaultUniValue                = knownKind
 
 instance HasUniApply DefaultUni where
     uniApply = DefaultUniApply
@@ -231,6 +237,7 @@ instance PrettyBy RenderContext (DefaultUni a) where
         DefaultUniBLS12_381_G1_Element -> "bls12_381_G1_element"
         DefaultUniBLS12_381_G2_Element -> "bls12_381_G2_element"
         DefaultUniBLS12_381_MlResult   -> "bls12_381_mlresult"
+        DefaultUniValue                -> "value"
 
 instance PrettyBy RenderContext (SomeTypeIn DefaultUni) where
     prettyBy config (SomeTypeIn uni) = prettyBy config uni
@@ -263,6 +270,8 @@ instance DefaultUni `Contains` () where
     knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool where
     knownUni = DefaultUniBool
+instance DefaultUni `Contains` Value where
+    knownUni = DefaultUniValue
 instance DefaultUni `Contains` [] where
     knownUni = DefaultUniProtoList
 instance DefaultUni `Contains` Strict.Vector where
@@ -302,6 +311,8 @@ instance KnownBuiltinTypeAst tyname DefaultUni BLS12_381.G2.Element =>
     KnownTypeAst tyname DefaultUni BLS12_381.G2.Element
 instance KnownBuiltinTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult =>
     KnownTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult
+instance KnownBuiltinTypeAst tyname DefaultUni Value =>
+    KnownTypeAst tyname DefaultUni Value
 
 instance KnownBuiltinTypeIn DefaultUni term Integer =>
     ReadKnownIn DefaultUni term Integer
@@ -327,6 +338,8 @@ instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =>
     ReadKnownIn DefaultUni term BLS12_381.G2.Element
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =>
     ReadKnownIn DefaultUni term BLS12_381.Pairing.MlResult
+instance KnownBuiltinTypeIn DefaultUni term Value =>
+    ReadKnownIn DefaultUni term Value
 
 instance KnownBuiltinTypeIn DefaultUni term Integer =>
     MakeKnownIn DefaultUni term Integer
@@ -352,6 +365,8 @@ instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =>
     MakeKnownIn DefaultUni term BLS12_381.G2.Element
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =>
     MakeKnownIn DefaultUni term BLS12_381.Pairing.MlResult
+instance KnownBuiltinTypeIn DefaultUni term Value =>
+    MakeKnownIn DefaultUni term Value
 
 -- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
@@ -604,6 +619,7 @@ instance Closed DefaultUni where
         , constr `Permits` Text
         , constr `Permits` ()
         , constr `Permits` Bool
+        , constr `Permits` Value
         , constr `Permits` []
         , constr `Permits` Strict.Vector
         , constr `Permits` (,)
@@ -628,6 +644,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniBLS12_381_G2_Element = [10]
     encodeUni DefaultUniBLS12_381_MlResult   = [11]
     encodeUni DefaultUniProtoArray           = [12]
+    encodeUni DefaultUniValue                = [13]
 
     -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
@@ -649,6 +666,7 @@ instance Closed DefaultUni where
         10 -> k DefaultUniBLS12_381_G2_Element
         11 -> k DefaultUniBLS12_381_MlResult
         12 -> k DefaultUniProtoArray
+        13 -> k DefaultUniValue
         _  -> empty
 
     bring
@@ -671,3 +689,4 @@ instance Closed DefaultUni where
     bring _ DefaultUniBLS12_381_G1_Element r = r
     bring _ DefaultUniBLS12_381_G2_Element r = r
     bring _ DefaultUniBLS12_381_MlResult r = r
+    bring _ DefaultUniValue r = r

@@ -6,6 +6,8 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wall #-}
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Raw where
 
