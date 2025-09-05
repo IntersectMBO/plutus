@@ -24,6 +24,7 @@ import PlutusCore.Value
 
 import Data.ByteString qualified as BS
 import Data.Functor
+import Data.Map.Strict qualified as Map
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
@@ -369,12 +370,12 @@ instance ExMemoryUsage Data where
             I n        -> memoryUsage n
             B b        -> memoryUsage b
 
--- TODO: we'll need two newtypes for Value.
--- One for the total number of coins, useful for operations like `unionValue`.
--- The other for the max size of inner maps, useful for operations like `insertCoin`
--- and `deleteCoin`.
 instance ExMemoryUsage Value where
-    memoryUsage = singletonRose . fromIntegral . totalSize
+    memoryUsage (Value v) = case Map.toList v of
+        []     -> CostRose 0 []
+        x : xs -> CostRose (f x) (flip CostRose [] . f <$> xs)
+      where
+        f = fromIntegral . Map.size . snd
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
