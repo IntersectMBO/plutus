@@ -1,4 +1,4 @@
-# Releasing new built-in functions in Plutus Core
+# Enabling new UPLC builtins on the chain
 
 The process of releasing new builtins (or other Plutus Core features such as new
 AST nodes, like `constr` and `case`) is quite complex and has to take place in
