@@ -78,6 +78,7 @@ common lang
 ---------------- Common code for benchmarking ----------------
 
 library plutus-benchmark-common
+  visibility:      public
   import:          lang, os-support
   hs-source-dirs:  common
   exposed-modules:

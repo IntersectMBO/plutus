@@ -1,5 +1,5 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE LambdaCase          #-}
 
 {- | Miscellaneous shared code for benchmarking-related things. -}
 module PlutusBenchmark.Common
@@ -245,16 +245,17 @@ checkGoldenFileExists path = do
   fullPath <- makeAbsolute path
   fileExists <- doesFileExist path
   if not fileExists
-  then errorWithExplanation $ "golden file " ++ fullPath ++ " does not exist."
-  else do
-    perms <- getPermissions path
-    if not (writable perms)
-    then errorWithExplanation $ "golden file " ++ fullPath ++ " is not writable."
-    else pure ()
-    where errorWithExplanation s =
-              let msg = "\n* ERROR: " ++ s ++ "\n"
-                        ++ "* To ensure that the correct path is used, either use `cabal test` "
-                        ++ "or run the test in the root directory of the relevant package.\n"
-                        ++ "* If this is the first time this test has been run, create an "
-                        ++ "initial golden file manually."
-              in error msg
+    then errorWithExplanation $ "golden file " ++ fullPath ++ " does not exist."
+    else do
+      perms <- getPermissions path
+      if not (writable perms)
+        then errorWithExplanation $ "golden file " ++ fullPath ++ " is not writable."
+        else pure ()
+  where
+    errorWithExplanation s =
+      let msg = "\n* ERROR: " ++ s ++ "\n"
+              ++ "* To ensure that the correct path is used, either use `cabal test` "
+              ++ "or run the test in the root directory of the relevant package.\n"
+              ++ "* If this is the first time this test has been run, create an "
+              ++ "initial golden file manually."
+      in error msg
