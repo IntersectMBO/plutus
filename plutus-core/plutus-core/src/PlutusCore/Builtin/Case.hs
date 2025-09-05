@@ -17,6 +17,12 @@ import NoThunks.Class
 import Text.PrettyBy (display)
 import Universe
 
+data BranchArgShape term uni ann
+  = FixedArityBranch term [Type TyName uni ann]
+    -- ^ Each branch has an exact list of argument types.
+  | VariableArityBranch term (Type TyName uni ann)
+    -- ^ Each branch has one type, to be repeated for arbitrary arity.
+
 class AnnotateCaseBuiltin uni where
     -- | Given a tag for a built-in type and a list of branches, annotate each of the branches with
     -- its expected argument types or fail if casing on values of the built-in type isn't supported.
@@ -26,7 +32,7 @@ class AnnotateCaseBuiltin uni where
         :: UniOf term ~ uni
         => Type TyName uni ann
         -> [term]
-        -> Either Text [(term, [Type TyName uni ann])]
+        -> Either Text [BranchArgShape term uni ann]
 
 class CaseBuiltin uni where
     -- | Given a constant with its type tag and a vector of branches, choose the appropriate branch

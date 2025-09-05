@@ -531,27 +531,29 @@ outOfBoundsErr x branches = fold
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
-    annotateCaseBuiltin ty branches = case ty of
+  annotateCaseBuiltin ty branches = case ty of
         TyBuiltin _ (SomeTypeIn DefaultUniUnit)    ->
           case branches of
-            [x] -> Right $ [(x, [])]
+            [x] -> Right $ [FixedArityBranch x []]
             _   -> Left "Casing on unit only allows exactly one branch"
         TyBuiltin _ (SomeTypeIn DefaultUniBool)    ->
           case branches of
-            [f]    -> Right $ [(f, [])]
-            [f, t] -> Right $ [(f, []), (t, [])]
+            [f]    -> Right $ [FixedArityBranch f []]
+            [f, t] -> Right $ [FixedArityBranch f [], FixedArityBranch t []]
             _      -> Left "Casing on bool requires exactly one branch or two branches"
         TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
-          Right $ map (, []) branches
+          Right $ map (flip FixedArityBranch []) branches
         listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
           case branches of
-            [cons]      -> Right [(cons, [argTy, listTy])]
-            [cons, nil] -> Right [(cons, [argTy, listTy]), (nil, [])]
+            [cons]      -> Right [FixedArityBranch cons [argTy, listTy]]
+            [cons, nil] -> Right [FixedArityBranch cons [argTy, listTy], FixedArityBranch nil []]
             _           -> Left "Casing on list requires exactly one branch or two branches"
         (TyApp _ (TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoPair)) lTyArg) rTyArg) ->
           case branches of
-            [f] -> Right [(f, [lTyArg, rTyArg])]
+            [f] -> Right [FixedArityBranch f [lTyArg, rTyArg]]
             _   -> Left "Casing on pair requires exactly one branch"
+        TyBuiltin _ (SomeTypeIn DefaultUniData) ->
+          Right $ map (flip VariableArityBranch ty) branches
         _                 -> Left $ display (() <$ ty) <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
