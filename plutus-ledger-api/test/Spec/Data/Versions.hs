@@ -266,6 +266,7 @@ testPermittedBuiltins =
    the new version returns the empty set in this case: to avoid this we only
    test pairs where LL was available in PV.
 -}
+{- DON'T CHANGE THIS: it tests only up to PV10 and should never need to be extended. -}
 testBuiltinAvailabilityCompatibility :: TestTree
 testBuiltinAvailabilityCompatibility =
     testCase "Old and new versions of builtinsAvailableIn are compatible" $
