@@ -27,7 +27,7 @@ open import Data.List using (List; []; _∷_; sum; map)
 open import Data.Nat using (ℕ; _+_; zero; suc)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Untyped.Purity using (Pure)
-open import Untyped.Annotation using (weakenAnnotation; Annotation; Annotation′; strip; read; ` ; ƛ; _·_; con; force; delay; constr; case)
+open import Untyped.Annotation using (unannotated; weakenAnnotation; Annotation; Annotation′; strip; read; ` ; ƛ; _·_; con; force; delay; constr; case; PointwiseAllᵣ)
 open import Data.Product using (_,_)
 open import Data.List.Relation.Unary.All using (All;toList)
 ```
@@ -51,14 +51,27 @@ by weakening the right hand side term to bring the scopes into line, rather
 than by trying to "strengthen" a subset of variables in an even more confusing
 fashion.
 
-A list of terms is fine for tracking unbound applications.
+We use a Zipper to track applied but not yet bound variables. We need two
+constructors to track "complete" (i.e. deleted) and "partial" applications.
 ```
 variable
   X Y : Set
 
+data Zipper X : Set where
+  □ : Zipper X
+  _·_ : Zipper X → (X ⊢) → Zipper X
+  _∘_ : Zipper X → (X ⊢) → Zipper X
+
+zipWeaken : Zipper X → Zipper (Maybe X)
+zipWeaken □ = □
+zipWeaken (z · x) = zipWeaken z · weaken x
+zipWeaken (z ∘ x) = zipWeaken z ∘ weaken x
+
+{-
 listWeaken : List (X ⊢) → List ((Maybe X) ⊢)
 listWeaken [] = []
 listWeaken (v ∷ vs) = ((weaken v) ∷ (listWeaken vs))
+-}
 ```
 Where a term is bound by a lambda, we need to enforce rules about the scopes.
 Particularly, we need to enforce the `Maybe` system of de Bruijn indexing, so
@@ -116,68 +129,121 @@ scope of the terms in `a` and `e`. Consequently we have to introduce a
 new scope `Y`, but will only have constructors for places where this
 matches the scope of the environment.
 
-[]
-<>
-0
-((ƛ ƛ (` 1)) · a · b) ~ (2 , a)
-
-= c· =>
-[b]
-<>
-1
-((ƛ ƛ (` 1)) · a) ~ (1 , a)
+□
+∅
+((ƛ ƛ (` 1)) · a · b) ~ ((∅ , a , b) , a)
 
 = c· =>
 
-[a , b]
-2
-((ƛ ƛ (` 1))) ~ (0 , a)
+(□ · b)
+∅
+((ƛ ƛ (` 1)) · a) ~ ((∅ , a) , a)
+
+= c· =>
+
+(□ · b · a)
+∅
+((ƛ ƛ (` 1))) ~ (∅ , a)
 
 = cƛ =>
 
-[b]
-<a>
-1
-( ƛ (` 1)) ~ (0 , a)
+(□ · b)                          (ƛ a) · b
+(∅ , a)            (ƛ a) --->
+( ƛ (` 1)) ---->
+~ (∅ , a)
 
 = cƛ =>
 
-[]
-<b , a>
-0
-(` 1) ~ (0 , a)
+□
+(∅ , a , b)
+(` 1) ~ (∅ , a)
+
+= sub =>
+
+□
+(∅ , a , b)
+(` 1) ~ (∅ , a)
+
+
+---
+\PhilBreak
+
+A new example :)
+
+Inlined
+□
+∅
+((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0))) · a · b · c)
+(∅ , ((∅  , a , b)) , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)) · c))
+
+
+= _·_ =>
+
+(□ · c)
+∅
+((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0))) · a · b) ~ ((∅ , a , b)) , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
+
+= c· =>
+
+(□ · c ∘ b)
+∅
+((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0))) · a) ~ ((∅ , a)) , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
+
+= c· =>
+
+(□ · c ∘ b ∘ a)
+∅
+((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0)))) ~ ((∅ , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
+
+= ∘ƛ =>
+
+(□ · c ∘ b)
+(∅ , a)
+((ƛ ƛ (f · (` 0) · (` 1) · (` 0)))) ~ ((∅ , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
+
+= ∘ƛ =>
+
+(□ · c)
+(∅ , a , b)
+((ƛ (f · (` 0) · (` 1) · (` 0)))) ~ ((∅ , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
+
+= bƛ =>
+
+(□)
+(∅ , a , b , c)
+((f · (` 0) · (` 1) · (` 0))) ~ ((∅ , (∅ , (∅ , (f · c)) · b) · (` 0))
+
 
 ```
 
-data Inlined : List (X ⊢) → Bind X → {t₂ : X ⊢} → ℕ → (t₁ : X ⊢) → Annotation ℕ t₂ → Set₁ where
-  sub : {{ _ : DecEq X}} {v : X} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
-          → {a : Annotation ℕ t} {a' : Annotation ℕ t'}
+data Inlined : Zipper X → Bind X → (t₁ : X ⊢) → {t₂ : X ⊢} → Annotation ℕ t₂ → Set₁ where
+  sub : {{ _ : DecEq X}} {v : X} {e : Zipper X} {b : Bind X} {t t' : X ⊢}
+          → {a' : Annotation ℕ t'}
           → (get b v) ≡ just t
-          → Inlined e b 0 t' a'
-          → Inlined e b 0 (` v) a'
+          → Inlined e b t' a'
+          → Inlined e b (` v) a'
 
-  c· : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' v : X ⊢}
+  c· : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t t' v : X ⊢}
           → {a' : Annotation′ ℕ t'}
-          → {n m : ℕ}
-          → Inlined (v ∷ e) b (suc n) t (m , a')
-          → Inlined e b n (t · v) (suc m , a')
+          → {m : ℕ}
+          → Inlined (e ∘ v) b t (m , a')
+          → Inlined e b (t · v) (suc m , a')
 
-  _·_ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
+  _·_ : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
           → {a₂ : Annotation ℕ t₂} {av₂ : Annotation ℕ v₂}
-          → Inlined (v₂ ∷ e) b 0 t₁ a₂
-          → Inlined [] b 0 v₁ av₂
-          → Inlined e b 0 (t₁ · v₁) (0 , a₂ · av₂)
+          → Inlined (e · v₂) b t₁ a₂
+          → Inlined □ b v₁ av₂
+          → Inlined e b (t₁ · v₁) (0 , a₂ · av₂)
 
-  cƛ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
-          → {a₂ : Annotation ℕ t₂} {av : Annotation ℕ v}
-          → {n : ℕ}
-          → Inlined (listWeaken e) (bind b v) n t₁ (weakenAnnotation a₂)
-          → Inlined (v ∷ e) b (suc n) (ƛ t₁) a₂
-
-  ƛb : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
+  cƛ : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
           → {a₂ : Annotation ℕ t₂}
-          → Inlined (listWeaken e) (bind b v) 0 t₁ a₂
-          → Inlined (v ∷ e) b 0 (ƛ t₁) (0 , (ƛ a₂))
+          → Inlined (zipWeaken e) (bind b v) t₁ (weakenAnnotation a₂)
+          → Inlined (e ∘ v) b (ƛ t₁) a₂
+
+  ƛb : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
+          → {a₂ : Annotation ℕ t₂}
+          → Inlined (zipWeaken e) (bind b v) t₁ a₂
+          → Inlined (e · v) b (ƛ t₁) (0 , (ƛ a₂))
 
   -- We can't recurse through Translation because it will become non-terminating,
   -- so traversing other AST nodes is done below.
@@ -189,36 +255,35 @@ data Inlined : List (X ⊢) → Bind X → {t₂ : X ⊢} → ℕ → (t₁ : X 
   -- somewhat tautological (` nothing) term as the new zeroth value.
   ƛ : {{ _ : DecEq X}} {b : Bind X}{t t' : (Maybe X) ⊢}
           → {a' : Annotation ℕ t'}
-          → Inlined [] (b , (` nothing)) 0 t a'
-          → Inlined [] b 0 (ƛ t) (0 , (ƛ a'))
+          → Inlined □ (b , (` nothing)) t a'
+          → Inlined □ b (ƛ t) (0 , (ƛ a'))
   -- We don't need a case for _·_ because we can always use the one above
   -- and use the binding zero times.
-  force : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
+  force : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t t' : X ⊢}
           → {a' : Annotation ℕ t'}
-          → Inlined e b 0 t a'
-          → Inlined e b 0 (force t) (0 , (force a'))
-  delay : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
+          → Inlined e b t a'
+          → Inlined e b (force t) (0 , (force a'))
+  delay : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t t' : X ⊢}
           → {a' : Annotation ℕ t'}
-          → Inlined e b 0 t a'
-          → Inlined e b 0 (delay t) (0 , (delay a'))
+          → Inlined e b t a'
+          → Inlined e b (delay t) (0 , (delay a'))
 
-{- FIXME: These need fillint in but that will require some operations over list based annotations...
-constr : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {i : ℕ} {xs xs' : List (X ⊢)}
-          → {a : Annotation ℕ (constr i xs)} {a' : Annotation ℕ (constr i xs')}
-          → {as : All (Annotation ℕ) xs} {as' : All (Annotation ℕ) xs'}
-          → Pointwise (Inlined e b) (toList as) (toList as')
-          → Inlined e b a a'
-  case :  {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢} {ts ts' : List (X ⊢)}
-          → Inlined e b t t'
-          → Pointwise (Inlined e b) ts ts'
-          → Inlined e b (case t ts) (case t' ts')
--}
-  refl : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t : X ⊢}
+  constr : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {i : ℕ} {xs xs' : List (X ⊢)}
+          → {as' : All (Annotation ℕ) xs'}
+          → PointwiseAllᵣ (Inlined □ b) xs as'
+          → Inlined e b (constr i xs) (0 , (constr i as'))
+  case :  {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t t' : X ⊢} {ts ts' : List (X ⊢)}
+          → {a' : Annotation ℕ t'} {as' : All (Annotation ℕ) ts'}
+          → Inlined e b t a'
+          → PointwiseAllᵣ (Inlined e b) ts as' -- This won't work because the constr might have n arguments
+          → Inlined e b (case t ts) (0 , (case a' as'))
+
+  refl : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t : X ⊢}
           → {a′ : Annotation′ ℕ t}
-          → Inlined e b 0 t (0 , a′)
+          → Inlined e b t (0 , a′)
 
 Inline : {X : Set} {{ _ : DecEq X}} → (X ⊢) → {t : X ⊢} → Annotation ℕ t → Set₁
-Inline t a = Inlined [] □ 0 t a
+Inline t a = Inlined □ □ t a
 
 ```
 # Examples
@@ -239,14 +304,8 @@ instance
 
 [ (\a -> a) 1 ] becomes just 1
 ```
---simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) (con One)
-{-
-simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) ((ƛ (con One)) · (con One))
-simple = ƛb (sub refl refl) · refl
-
-simple-clean : Clean {⊥} ((ƛ (con One)) · (con One)) (con One)
-simple-clean = clean Pure.con refl
--}
+simple : Inlined {X = ⊥} □ □ ((ƛ (` nothing)) · (con One)) (1 , (con One))
+simple = c· (cƛ (sub refl refl))
 
 ```
 
@@ -258,18 +317,15 @@ Nearly as simple, but now both sides end up with application structure:
 beforeEx1 : Vars ⊢
 beforeEx1 = (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b))
 
-uncleanEx1 : Vars ⊢
-uncleanEx1 = (((ƛ (ƛ ((weaken (weaken (` a))) · (weaken (weaken (` b)))))) · (` a)) · (` b))
-
 afterEx1 : Vars ⊢
 afterEx1 = ((` a) · (` b))
-{-
-ex1 : Inlined {X = Vars} [] □ beforeEx1 uncleanEx1
-ex1 = ((ƛb (ƛb ((sub refl refl) · (sub refl refl)))) · refl) · refl --complete (complete (ƛ+ (ƛ+ (partial (sub refl) (sub refl)))))
 
-ex1-clean : Clean uncleanEx1 afterEx1
-ex1-clean = {!!}
--}
+a-afterEx1 : Annotation ℕ afterEx1
+a-afterEx1 = (2 , ((0 , ` a) · (0 , ` b)))
+
+ex1 : Inlined □ □ beforeEx1 a-afterEx1
+ex1 = c· (c· (cƛ (cƛ ((sub refl refl) · (sub refl refl)))))
+
 ```
 Partial inlining is allowed, so  `(\a -> f (a 0 1) (a 2)) g` can become  `(\a -> f (g 0 1) (a 2)) g`
 ```
@@ -279,13 +335,42 @@ beforeEx2 = (ƛ (((` (just f)) · (((` nothing) · (con Zero)) · (con One))) ·
 afterEx2 : Vars ⊢
 afterEx2 = (ƛ (((` (just f)) · (((` (just g)) · (con Zero)) · (con One))) · ((` nothing) · (con Two)) )) · (` g)
 
-{-
-ex2 : Inlined {X = Vars} [] □ beforeEx2 afterEx2
-ex2 = {!!} -- partial (ƛb (partial (partial refl (partial (partial (sub refl) refl) refl)) refl)) refl
--}
+-- Nothing is deleted, so all the annotations are zero.
+-- Writing them out is an ... exercise in ... something.
+a-afterEx2 : Annotation ℕ afterEx2
+a-afterEx2 =
+  (0 ,
+    (0 ,
+      (ƛ
+         (0 ,
+           (0 ,
+             (0 , (` (just f)))
+             ·
+             (0 ,
+               (0 ,
+                  (0 , (` (just g)))
+                 ·
+                  (0 , (con Zero))
+               )
+             ·
+               (0 , (con One))
+             )
+           )
+         ·
+           (0 , (0 , (` nothing)) · (0 , (con Two)))
+         )
+      )
+    )
+    ·
+    (0 , (` g))
+  )
+ex2 : Inlined □ □ beforeEx2 a-afterEx2
+ex2 = (ƛb ((refl · (((sub refl refl) · refl) · refl)) · refl)) · refl
+
 ```
 Interleaved inlining and not inlining should also work, along with correcting the scopes
 as lambdas are removed.
+
 ```
 Ex3Vars = Maybe (Maybe ⊥)
 
@@ -294,6 +379,12 @@ beforeEx3 = (ƛ ((ƛ ((` (just nothing)) · (` nothing))) · (` (just nothing)))
 
 afterEx3 : Ex3Vars ⊢
 afterEx3 = (ƛ ((` (just nothing)) · (` nothing))) · (` nothing)
+
+a-afterEx3 : Annotation ℕ afterEx3
+a-afterEx3 = ({!!} , {!!})
+
+ex3 : Inlined □ □ beforeEx3 a-afterEx3
+ex3 = {!!}
 
 {-
 ex3 : Inlined {X = Ex3Vars} [] □ beforeEx3 afterEx3
