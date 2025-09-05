@@ -1,4 +1,4 @@
-# Enabling new Plutus Core builtins on the chain
+# Enabling new Plutus Core builtins in `plutus-ledger-api`
 
 The process of releasing new builtins (or other Plutus Core features such as new
 AST nodes, like `constr` and `case`) is quite complex and has to take place in
