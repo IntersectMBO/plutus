@@ -338,32 +338,8 @@ afterEx2 = (ƛ (((` (just f)) · (((` (just g)) · (con Zero)) · (con One))) ·
 -- Nothing is deleted, so all the annotations are zero.
 -- Writing them out is an ... exercise in ... something.
 a-afterEx2 : Annotation ℕ afterEx2
-a-afterEx2 =
-  (0 ,
-    (0 ,
-      (ƛ
-         (0 ,
-           (0 ,
-             (0 , (` (just f)))
-             ·
-             (0 ,
-               (0 ,
-                  (0 , (` (just g)))
-                 ·
-                  (0 , (con Zero))
-               )
-             ·
-               (0 , (con One))
-             )
-           )
-         ·
-           (0 , (0 , (` nothing)) · (0 , (con Two)))
-         )
-      )
-    )
-    ·
-    (0 , (` g))
-  )
+a-afterEx2 = unannotated 0 afterEx2
+
 ex2 : Inlined □ □ beforeEx2 a-afterEx2
 ex2 = (ƛb ((refl · (((sub refl refl) · refl) · refl)) · refl)) · refl
 
@@ -381,15 +357,11 @@ afterEx3 : Ex3Vars ⊢
 afterEx3 = (ƛ ((` (just nothing)) · (` nothing))) · (` nothing)
 
 a-afterEx3 : Annotation ℕ afterEx3
-a-afterEx3 = ({!!} , {!!})
+a-afterEx3 = (1 , (unannotated 0  (ƛ ((` (just nothing)) · (` nothing))) · ((0 , (` nothing)))))
 
 ex3 : Inlined □ □ beforeEx3 a-afterEx3
-ex3 = {!!}
+ex3 = c· (cƛ ((ƛb ((sub refl refl) · refl)) · refl))
 
-{-
-ex3 : Inlined {X = Ex3Vars} [] □ beforeEx3 afterEx3
-ex3 = {!!} -- complete (ƛ+ (partial (ƛb (partial (sub refl) refl)) refl))
--}
 ```
 The `callsiteInline` example from the test suite:
 
@@ -438,81 +410,16 @@ open import Agda.Builtin.Sigma using (_,_)
 open Eq using (trans; sym; subst)
 open import Data.Maybe.Properties using (just-injective)
 
-postulate
-  isInline? : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → {ast' : X ⊢} → (a' : Annotation ℕ ast') → ProofOrCE (Inline ast a')
+isInline? : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → {ast' : X ⊢} → (a' : Annotation ℕ ast') → ProofOrCE (Inline ast a')
 
---{-# TERMINATING #-}
-{-
-isIl? : {X : Set} {{_ : DecEq X}} → (e : List (X ⊢)) → (b : Bind X) → (ast ast' : X ⊢) → ProofOrCE (Inlined e b ast ast')
-isIl? e b ast ast' = {!!}
--}
-{-
-isIl? e b ast ast' with ast ≟ ast'
+isIl? : {X : Set} {{_ : DecEq X}} → (e : Zipper X) → (b : Bind X) → (ast : X ⊢) → {ast'  : X ⊢} → (a' : Annotation ℕ ast') → ProofOrCE (Inlined e b ast a')
+isIl? e b ast (0 , a') with ast ≟ (strip (0 , a'))
 ... | yes refl = proof refl
-isIl? e b (` v₁) ast' | no ast≠ast' with get b v₁ in get-v
-... | nothing = ce (λ { (sub x) → contradiction (trans (sym get-v) x) λ () ; refl → ast≠ast' refl} ) inlineT (` v₁) ast'
-... | just t with t ≟ ast'
-...     | yes refl = proof (sub get-v)
-...     | no ¬t=ast' = ce (λ { (sub x) → contradiction (trans (sym get-v) x) λ { refl → ¬t=ast' refl}  ; refl → ast≠ast' refl} ) inlineT t ast'
-{-
-...    | proof p = proof (sub get-v)
-...    | ce ¬p tag bf af = ce (λ { (sub x xx) → contradiction (subst (λ t → Inlined e b t ast') (just-injective (trans (sym x) get-v))) λ z → ¬p (z xx) ; refl → ast≠ast' refl } ) inlineT t ast'
--}
-isIl? e b (ƛ t₁) ast' | no ast≠ast' with isLambda? isTerm? ast'
-isIl? (v ∷ e) b (ƛ t₁) ast' | no ast≠ast' | no ¬ƛ with isIl? (listWeaken e) (bind b v) t₁ (weaken ast')
-...   | ce ¬p t b a = ce (λ { (ƛb x) → ¬ƛ (islambda (isterm _)) ; (ƛ+ x) → ¬p x ; refl → ast≠ast' refl} ) t b a
-...   | proof p = proof (ƛ+ p)
-isIl? [] b (ƛ t₁) ast' | no ast≠ast' | no ¬ƛ = ce (λ { (ƛ x) → ¬ƛ (islambda (isterm _)) ; refl → ast≠ast' refl }) inlineT (ƛ t₁) ast'
-isIl? {X} [] b (ƛ t₁) ast' | no ast≠ast' | yes (islambda (isterm t₂)) with isIl? [] (b , (` nothing)) t₁ t₂
-... | ce ¬p t b a = ce (λ { (ƛ x) → ¬p x ; refl → ast≠ast' refl} ) t b a
-... | proof p = proof (ƛ {X = X} p)
-isIl? (v ∷ e) b (ƛ t₁) ast' | no ast≠ast' | yes (islambda (isterm t₂)) with isIl? (listWeaken e) (bind b v) t₁ t₂
-... | proof p = proof (ƛb p)
-... | ce ¬pb t bf af with isIl? (listWeaken e) (bind b v) t₁ (weaken ast')
-...    | proof p = proof (ƛ+ p)
-...    | ce ¬p t b a = ce (λ { (ƛb x) → ¬pb x ; (ƛ+ x) → ¬p x ; refl → ast≠ast' refl} ) t bf af
-isIl? {X} ⦃ de ⦄ e b (t₁ · t₂) ast' | no ast≠ast' with (isApp? isTerm? isTerm?) ast'
-... | yes (isapp (isterm t₁') (isterm t₂')) with isIl? e b t₂ t₂'
-...    | proof pt₂' with isIl? (t₂' ∷ e) b t₁ t₁'
-...       | proof p = proof (partial p pt₂')
-...       | ce ¬pf t bf af with isIl? (t₂ ∷ e) b t₁ ast'
-...          | proof p = proof (complete p)
-...          | ce ¬p t b a = ce (λ  { (complete x) → ¬p x ; (partial x x₁) → ¬pf x ; refl → ast≠ast' refl } ) t bf af
-isIl? e b (t₁ · t₂) ast' | no ast≠ast' | yes (isapp (isterm t₁') (isterm t₂')) | ce ¬pf t bf af with isIl? (t₂ ∷ e) b t₁ ast'
-... | proof p = proof (complete p)
-... | ce ¬p t b a = ce (λ { (complete x) → ¬p x ; (partial x x₁) → ¬pf x₁ ; refl → ast≠ast' refl }) t b a
-isIl? e b (t₁ · t₂) ast' | no ast≠ast' | no ¬app with isIl? (t₂ ∷ e) b t₁ ast'
-...    | ce ¬p t b a = ce (λ { (complete x) → ¬p x ; (partial x x₁) → ¬app (isapp (isterm _) (isterm _)) ; refl → ast≠ast' refl }) t b a
-...    | proof p = proof (complete p)
-isIl? e b (force ast) ast' | no ast≠ast' with (isForce? isTerm?) ast'
-... | no ¬force = ce (λ { (force x) → ¬force (isforce (isterm _)) ; refl → ast≠ast' refl} ) inlineT (force ast) ast'
-... | yes (isforce (isterm x)) with isIl? e b ast x
-...    | proof pp = proof (force pp)
-...    | ce ¬p t b a = ce (λ { (force xx) → ¬p xx ; refl → ast≠ast' refl }) t b a
-isIl? e b (delay ast) ast' | no ast≠ast' with (isDelay? isTerm?) ast'
-... | no ¬delay = ce (λ { (delay xx) → ¬delay (isdelay (isterm _)) ; refl → ast≠ast' refl }) inlineT (delay ast) ast'
-... | yes (isdelay (isterm x)) with isIl? e b ast x
-...    | ce ¬p t b a = ce (λ { (delay xx) → ¬p xx ; refl → ast≠ast' refl }) t b a
-...    | proof p = proof (delay p)
-isIl? {X} e b (con x) ast' | no ast≠ast' = ce (λ { refl → ast≠ast' refl} ) inlineT (con {X} x) ast'
-isIl? e b (constr i xs) ast' | no ast≠ast' with (isConstr? allTerms?) ast'
-... | no ¬constr = ce (λ { (constr x) → ¬constr (isconstr i (allterms _)) ; refl → ast≠ast' refl}) inlineT (constr i xs) ast'
-... | yes (isconstr i₁ (allterms xs')) with i ≟ i₁
-... | no i≠i₁ = ce (λ { (constr x) → i≠i₁ refl ; refl → i≠i₁ refl} ) inlineT (constr i xs) ast'
-... | yes refl with pcePointwise inlineT (isIl? e b) xs xs'
-...    | proof pp = proof (constr pp)
-...    | ce ¬p t b a = ce (λ { (constr x) → ¬p x ; refl → ast≠ast' refl} ) t b a
-isIl? e b (case t ts) ast' | no ast≠ast' with (isCase? isTerm? allTerms?) ast'
-... | no ¬case = ce (λ { (case x xs) → ¬case (iscase (isterm _) (allterms _)) ; refl → ast≠ast' refl}) inlineT (case t ts) ast'
-... | yes (iscase (isterm t₁) (allterms ts₁)) with isIl? e b t t₁
-...   | ce ¬p t b a = ce (λ { (case x x₁) → ¬p x ; refl → ast≠ast' refl} ) t b a
-...   | proof p with pcePointwise inlineT (isIl? e b) ts ts₁
-...     | ce ¬p t b a = ce (λ { (case x x₁) → ¬p x₁ ; refl → ast≠ast' refl} ) t b a
-...     | proof ps = proof (case p ps)
-isIl? {X} e b (builtin b₁) ast' | no ast≠ast' = ce (λ { refl → ast≠ast' refl} ) inlineT (builtin {X} b₁) ast'
-isIl? {X} e b error ast' | no ast≠ast' = ce (λ { refl → ast≠ast' refl} ) inlineT (error {X}) ast'
+... | no ¬refl = {!!}
+isIl? e b ast (suc n , a') = {!!}
 
-isInline? = translation? inlineT (λ {Y} → isIl? {Y} [] □)
--}
+isInline? ast a' with (isIl? □ □ ast a')
+... | proof p = proof p
+... | ce ¬p tag before after = ce ¬p tag before after
 
 ```
