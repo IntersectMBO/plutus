@@ -377,26 +377,11 @@ in
          \(d : (\k a -> list (pair data data)) integer a) -> go d)
        unIData
        (\(d : data) ->
-          (let
-              b = list data
-            in
-            /\r ->
-              \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-            {These integer integer}
-            (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> These integer integer)
-                 index
-                 [ (\(ds : list data) ->
-                      This {integer} {integer} (unIData (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      That {integer} {integer} (unIData (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      These
-                        {integer}
-                        {integer}
-                        (unIData (headList {data} ds))
-                        (unIData (headList {data} (tailList {data} ds)))) ]
-                 args))
+          case
+            (These integer integer)
+            d
+            [ (\(ds : data) -> This {integer} {integer} (unIData ds))
+            , (\(ds : data) -> That {integer} {integer} (unIData ds))
+            , (\(ds : data) (ds : data) ->
+                 These {integer} {integer} (unIData ds) (unIData ds)) ])
        nt)

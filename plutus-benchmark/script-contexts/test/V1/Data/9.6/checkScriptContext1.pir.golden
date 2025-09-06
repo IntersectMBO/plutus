@@ -69,24 +69,10 @@
                         (headList {data} l)
                         (unListData (headList {data} l))
                         (unListData (headList {data} l))
-                        (let
-                          !d : data = headList {data} (tailList {data} l)
-                        in
-                        (let
-                            b = list data
-                          in
-                          /\r ->
-                            \(p : pair integer b) (f : integer -> b -> r) ->
-                              case r p [f])
-                          {bytestring}
-                          (unConstrData d)
-                          (\(index : integer) (args : list data) ->
-                             case
-                               (list data -> bytestring)
-                               index
-                               [ (\(ds : list data) ->
-                                    unBData (headList {data} ds)) ]
-                               args)))
+                        (case
+                           bytestring
+                           (headList {data} (tailList {data} l))
+                           [(\(ds : data) -> unBData ds)]))
                     (headList
                        {data}
                        (case

@@ -88,6 +88,8 @@ import Data.Traversable (for)
 import Data.Tuple.Extra
 import Data.Word (Word8)
 
+import Debug.Trace qualified as DT
+
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
 
@@ -864,7 +866,7 @@ compileHaskellList
   :: forall uni fun m ann
    . (CompilingDefault uni fun m ann)
   => GHC.CoreExpr
-  -> m [PIRTerm uni fun]
+  -> m [GHC.CoreExpr]
 compileHaskellList = buildList . strip
   where
     err =
@@ -874,7 +876,7 @@ compileHaskellList = buildList . strip
     -- This is when the list is a single element and GHC will specialize list builder directly.
     -- GHC will generate core that looks like below:
     -- (:) @resTy e ([] @resTy)
-    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = traverse compileExpr [e]
+    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = pure [e]
     -- This is when the list has more than one elements. GHC will generate core that looks like below:
     -- build @resTy (\con nil -> con e1 (con e2 (... nil)))
     -- 'build' is some special function that abstracts the list type.
@@ -888,7 +890,7 @@ compileHaskellList = buildList . strip
           | nil' == nil = pure []
           | otherwise = err
         consume _ = err
-      in consume li >>= traverse compileExpr
+      in consume li
     buildList _ = err
 
 compileExpr :: (CompilingDefault uni fun m ann) => GHC.CoreExpr -> m (PIRTerm uni fun)
@@ -922,16 +924,36 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
 
+  caseDataConstr <- lookupGhcName 'BI.caseDataConstr
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   listIndexId <- lookupGhcId '(PlutusTx.List.!!)
 
+
   case e of
+    -- case Data.Constr
+    GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
+      | GHC.getName var == caseDataConstr  && coDatatypeStyle opts == PIR.BuiltinCasing -> do
+        --DT.trace ("hERE : " <> GHC.showPprUnsafe e) $ pure ()
+        resTy' <- compileTypeNorm resTy
+        scrut' <- compileExpr scrut
+        let
+          removeExistential (GHC.App (GHC.App _ _) x) = pure x
+          removeExistential _ =
+              throwPlain $
+                CompilationError "Unexpected expression where existential wrapper is expected"
+        branches  <-
+          compileHaskellList li
+          >>= traverse (removeExistential . strip)
+          >>= traverse compileExpr
+        pure $ PIR.kase annAlwaysInline resTy' scrut' branches
+      | GHC.getName var == caseDataConstr -> do
+        undefined
     -- case integer
     GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
       | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
         resTy' <- compileTypeNorm resTy
         scrut' <- compileExpr scrut
-        branches <- compileHaskellList li
+        branches <- compileHaskellList li >>= traverse compileExpr
         pure $ PIR.kase annAlwaysInline resTy' scrut' branches
       | GHC.getName var == caseIntegerName ->
         -- This is when we don't have bultin casing. We have to use something

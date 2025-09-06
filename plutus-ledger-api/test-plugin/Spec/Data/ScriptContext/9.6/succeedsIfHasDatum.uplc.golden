@@ -8,15 +8,8 @@
               [ False
               , (case
                    (case
-                      (unConstrData
-                         (force headList
-                            (force tailList (case tup [(\l r -> r)]))))
-                      [ (\index args ->
-                           case
-                             index
-                             [ (\ds -> constr 0 [(force headList ds)])
-                             , (\ds -> constr 1 []) ]
-                             args) ])
+                      (force headList (force tailList (case tup [(\l r -> r)])))
+                      [(\ds -> constr 0 [ds]), (constr 1 [])])
                    [(\ds -> True), False]) ])
            (unConstrData
               (force headList

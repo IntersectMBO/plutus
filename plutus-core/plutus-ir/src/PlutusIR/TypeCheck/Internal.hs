@@ -35,7 +35,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
 import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
-import PlutusCore.Builtin (annotateCaseBuiltin)
+import PlutusCore.Builtin (BranchArgShape (..), annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
@@ -289,10 +289,28 @@ inferTypeM (Case ann resTy scrut branches) = do
             -- for the number of branches
             Nothing -> throwError $ PLCTypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
         vTy -> case annotateCaseBuiltin vTy branches of
-              Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) -> do
+              Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \case
+                FixedArityBranch c argTypes -> do
                   vArgTypes <- traverse (fmap unNormalized . normalizeTypeM) argTypes
                   -- made of sub-parts of a normalized type, so normalized
                   checkTypeM ann c (Normalized $ mkIterTyFun () vArgTypes (unNormalized vResTy))
+                VariableArityBranch c argType -> do
+                  cTy <- inferTypeM c
+                  let
+                    checkVariableArityType t =
+                      case t of
+                        -- Make sure result type is correct
+                        t' | t' == (unNormalized vResTy) -> pure ()
+                        -- If it is function type, make sure argument is 'argType'.
+                        TyFun _ at t'
+                          | at == argType -> checkVariableArityType t'
+                          | otherwise ->
+                              throwError $ PLCTypeError $
+                                TypeMismatch ann (void c) (ExpectedExact $ unNormalized vResTy) cTy
+                        _ ->
+                          throwError $ PLCTypeError $
+                            TypeMismatch ann (void c) (ExpectedExact $ unNormalized vResTy) cTy
+                  checkVariableArityType (unNormalized cTy)
               Left err -> throwError $ PLCTypeError (UnsupportedCaseBuiltin ann err)
 
     -- If we got through all that, then every case type is correct, including that

@@ -38,7 +38,7 @@ tests =
         assertBool "Size V2 script" $ sizeV2 Haskell.< 100
     , testCase "V3 Script Size" do
         let sizeV3 = SBS.length (V3.serialiseCompiledCode codeV3)
-        assertBool "Size V3 script" $ sizeV3 Haskell.> 1700
+        assertBool "Size V3 script" $ sizeV3 Haskell.> 1000
     , testCase "V3 Script Size (lazy decoding)" do
         let sizeV3s = SBS.length (V3.serialiseCompiledCode codeV3lazy)
         assertBool "Size V3 script with a lazy decoding" $ sizeV3s Haskell.< 100
