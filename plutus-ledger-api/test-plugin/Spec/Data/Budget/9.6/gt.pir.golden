@@ -56,29 +56,17 @@ let
         \(`$dUnsafeFromData` : (\a -> data -> a) a)
          (`$dUnsafeFromData` : (\a -> data -> a) b)
          (d : data) ->
-          (let
-              b = list data
-            in
-            /\r ->
-              \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-            {These a b}
-            (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> These a b)
-                 index
-                 [ (\(ds : list data) ->
-                      This {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      That {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      These
-                        {a}
-                        {b}
-                        (`$dUnsafeFromData` (headList {data} ds))
-                        (`$dUnsafeFromData`
-                           (headList {data} (tailList {data} ds)))) ]
-                 args)
+          case
+            (These a b)
+            d
+            [ (\(ds : data) -> This {a} {b} (`$dUnsafeFromData` ds))
+            , (\(ds : data) -> That {a} {b} (`$dUnsafeFromData` ds))
+            , (\(ds : data) (ds : data) ->
+                 These
+                   {a}
+                   {b}
+                   (`$dUnsafeFromData` ds)
+                   (`$dUnsafeFromData` ds)) ]
 in
 letrec
   !go : list (pair data data) -> bool

@@ -251,6 +251,7 @@ builtinNames =
   , 'Builtins.unsafeDataAsList
   , 'Builtins.unsafeDataAsB
   , 'Builtins.unsafeDataAsI
+  , 'Builtins.caseDataConstr
   , ''Builtins.BuiltinBLS12_381_G1_Element
   , 'Builtins.bls12_381_G1_equals
   , 'Builtins.bls12_381_G1_add

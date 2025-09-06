@@ -1,12 +1,6 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  !casePair : all a b r. pair a b -> (a -> b -> r) -> r
-    = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
-  !head : all a. list a -> a = headList
-  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
-  !tail : all a. list a -> list a = tailList
-  ~wrapTail : all a. list a -> list a = tail
   ~`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> Tuple2 a b
     = /\a b ->
@@ -16,33 +10,22 @@ let
           let
             !d : data = d
           in
-          casePair
-            {integer}
-            {list data}
-            {Tuple2 a b}
-            (unsafeDataAsConstr d)
-            (\(index : integer) ->
-               let
-                 !index : integer = index
-               in
-               \(args : list data) ->
+          case
+            (Tuple2 a b)
+            d
+            [ (\(ds : data) ->
                  let
-                   !args : list data = args
+                   !ds : data = ds
                  in
-                 case
-                   (list data -> Tuple2 a b)
-                   index
-                   [ (\(ds : list data) ->
-                        let
-                          !ds : list data = ds
-                        in
-                        Tuple2
-                          {a}
-                          {b}
-                          (`$dUnsafeFromData` (head {data} ds))
-                          (`$dUnsafeFromData`
-                             (head {data} (wrapTail {data} ds)))) ]
-                   args)
+                 \(ds : data) ->
+                   let
+                     !ds : data = ds
+                   in
+                   Tuple2
+                     {a}
+                     {b}
+                     (`$dUnsafeFromData` ds)
+                     (`$dUnsafeFromData` ds)) ]
   ~`$fUnsafeFromDataTuple2` :
      all a b.
        (\a -> data -> a) a ->
@@ -67,29 +50,15 @@ let
           let
             !d : data = d
           in
-          casePair
-            {integer}
-            {list data}
-            {Maybe a}
-            (unsafeDataAsConstr d)
-            (\(index : integer) ->
-               let
-                 !index : integer = index
-               in
-               \(args : list data) ->
+          case
+            (Maybe a)
+            d
+            [ (\(ds : data) ->
                  let
-                   !args : list data = args
+                   !ds : data = ds
                  in
-                 case
-                   (list data -> Maybe a)
-                   index
-                   [ (\(ds : list data) ->
-                        let
-                          !ds : list data = ds
-                        in
-                        Just {a} (`$dUnsafeFromData` (head {data} ds)))
-                   , (\(ds : list data) -> Nothing {a}) ]
-                   args)
+                 Just {a} (`$dUnsafeFromData` ds))
+            , (Nothing {a}) ]
   ~`$fUnsafeFromDataMaybe` :
      all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)
     = `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
