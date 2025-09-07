@@ -6,6 +6,7 @@ module PlutusBenchmark.Common
     ( module Export
     , Program
     , Term
+    , LedgerApi.EvaluationContext
     , getConfig
     , toAnonDeBruijnTerm
     , toNamedDeBruijnTerm

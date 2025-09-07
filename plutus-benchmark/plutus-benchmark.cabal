@@ -836,3 +836,47 @@ test-suite cardano-loans-test
     , plutus-core:plutus-core-testlib  ^>=1.53
     , plutus-tx:plutus-tx-testlib
     , tasty
+
+executable budgeting-bench
+  import:         lang
+  main-is:        Main.hs
+  other-modules:
+    Benchmarks.Arrays
+    Benchmarks.Bitwise
+    Benchmarks.Bool
+    Benchmarks.ByteStrings
+    Benchmarks.Crypto
+    Benchmarks.Data
+    Benchmarks.Integers
+    Benchmarks.Lists
+    Benchmarks.Misc
+    Benchmarks.Nops
+    Benchmarks.Pairs
+    Benchmarks.Strings
+    Benchmarks.Tracing
+    Benchmarks.Unit
+    Common
+    CriterionExtensions
+    Generators
+
+  hs-source-dirs: budgeting-bench
+  build-depends:
+    , base                     >=4.9   && <5
+    , bytestring
+    , cardano-crypto-class
+    , criterion
+    , criterion-measurement
+    , deepseq
+    , directory
+    , filepath
+    , hedgehog
+    , mtl
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.53
+    , QuickCheck
+    , quickcheck-instances
+    , random
+    , text
+    , time
+    , vector
