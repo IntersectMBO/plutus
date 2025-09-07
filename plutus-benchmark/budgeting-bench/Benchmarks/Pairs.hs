@@ -13,7 +13,7 @@ import System.Random (StdGen)
 -- giving it a list of pairs whose components are of increasing size.
 benchPairOp :: EvaluationContext -> StdGen -> DefaultFun -> Benchmark
 benchPairOp evalCtx gen fun =
-    createOneTermBuiltinBench fun [integer, bytestring] pairs
+    createOneTermBuiltinBench evalCtx fun [integer, bytestring] pairs
         where pairs = zip ints bytestrings
               (ints, _)   = makeSizedIntegers gen [1..100]
               bytestrings = makeSizedByteStrings seedA [1..100]

@@ -27,7 +27,7 @@ makeLargeIntegerArgs gen = makeSizedIntegers gen [1, 70..1000] -- 15 entries
 
 benchTwoIntegers :: EvaluationContext -> StdGen -> (StdGen -> ([Integer], StdGen)) -> DefaultFun -> Benchmark
 benchTwoIntegers evalCtx gen makeArgs builtinName =
-  createTwoTermBuiltinBench builtinName [] inputs inputs'
+  createTwoTermBuiltinBench evalCtx builtinName [] inputs inputs'
     where
       (inputs, gen') = makeArgs gen
       (inputs', _)   = makeArgs gen'
@@ -42,7 +42,7 @@ makeBiggerIntegerArgs gen = makeSizedIntegers gen [1, 3..101]
 
 benchSameTwoIntegers :: EvaluationContext -> StdGen -> DefaultFun -> Benchmark
 benchSameTwoIntegers evalCtx gen builtinName =
-   createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
+   createTwoTermBuiltinBenchElementwise evalCtx builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
 {- `expModInteger a e m` calculates `a^e` modulo `m`; if `e` is negative then the
@@ -83,7 +83,7 @@ benchExpModInteger evalCtx _gen =
        [bgroup (showMemoryUsage e)
          [mkBM a e m | a <- [m `div` 3] ] | e <- es ] | m <- moduli ]
   where mkBM a e m =
-          benchDefault (showMemoryUsage m) $
+          benchWithCtx evalCtx (showMemoryUsage m) $
           mkApp3 ExpModInteger [] a e m
 
 makeBenchmarks :: EvaluationContext -> StdGen -> [Benchmark]

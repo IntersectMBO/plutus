@@ -15,12 +15,12 @@ import System.Random (StdGen)
 -- with a selection of different sizes just to make sure.
 benchMkPairData :: EvaluationContext -> Benchmark
 benchMkPairData evalCtx =
-    createTwoTermBuiltinBench MkPairData [] l1 l2
+    createTwoTermBuiltinBench evalCtx MkPairData [] l1 l2
         where l1 = take 20 dataSample
               l2 = take 20 (drop 20 dataSample)
 
 benchUnitArgBuiltin :: EvaluationContext -> DefaultFun -> Benchmark
-benchUnitArgBuiltin evalCtx fun = createOneTermBuiltinBench fun [] (take 100 $ repeat ())
+benchUnitArgBuiltin evalCtx fun = createOneTermBuiltinBench evalCtx fun [] (take 100 $ repeat ())
 
 makeBenchmarks :: EvaluationContext -> StdGen -> [Benchmark]
 makeBenchmarks evalCtx _gen =

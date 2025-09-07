@@ -29,19 +29,19 @@ largerByteStrings21 seed = makeSizedByteStrings seed $ fmap (250*) [0..20]
 
 benchTwoByteStrings :: EvaluationContext -> DefaultFun -> Benchmark
 benchTwoByteStrings evalCtx name =
-    createTwoTermBuiltinBench name [] (largerByteStrings21 seedA) (largerByteStrings21 seedB)
+    createTwoTermBuiltinBench evalCtx name [] (largerByteStrings21 seedA) (largerByteStrings21 seedB)
 
 benchLengthOfByteString :: EvaluationContext -> Benchmark
 benchLengthOfByteString evalCtx =
     bgroup (show name) $ fmap mkBM (smallerByteStrings150 seedA)
-        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
+        where mkBM b = benchWithCtx evalCtx (showMemoryUsage b) $ mkApp1 name [] b
               name = LengthOfByteString
 
 -- Copy the byteString here, because otherwise it'll be exactly the same and the equality will
 -- short-circuit.
 benchSameTwoByteStrings :: EvaluationContext -> DefaultFun -> Benchmark
 benchSameTwoByteStrings evalCtx name =
-    createTwoTermBuiltinBenchElementwise name [] $ pairWith BS.copy inputs
+    createTwoTermBuiltinBenchElementwise evalCtx name [] $ pairWith BS.copy inputs
     where inputs = smallerByteStrings150 seedA
 
 -- Here we benchmark different pairs of bytestrings elementwise.  This is used
@@ -49,14 +49,14 @@ benchSameTwoByteStrings evalCtx name =
 -- constant since the equality test returns quickly in that case.
 benchDifferentByteStringsElementwise :: EvaluationContext -> DefaultFun -> Benchmark
 benchDifferentByteStringsElementwise evalCtx name =
-    createTwoTermBuiltinBenchElementwise name [] $ zip inputs1 inputs2
+    createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip inputs1 inputs2
     where inputs1 = smallerByteStrings150 seedA
           inputs2 = smallerByteStrings150 seedB
 
 -- This is constant, even for large inputs
 benchIndexByteString :: EvaluationContext -> StdGen -> Benchmark
 benchIndexByteString evalCtx gen =
-    createTwoTermBuiltinBenchElementwise
+    createTwoTermBuiltinBenchElementwise evalCtx
         IndexByteString [] $ zip bytestrings (randomIndices gen bytestrings)
     where bytestrings = smallerByteStrings150 seedA
           randomIndices gen1 l =
@@ -81,7 +81,7 @@ benchSliceByteString evalCtx =
         mkBMsFor b =
             [bgroup (showMemoryUsage start)
              [bgroup (showMemoryUsage len)
-              [benchDefault (showMemoryUsage b) $ mkApp3 name [] start len b] |
+              [benchWithCtx evalCtx (showMemoryUsage b) $ mkApp3 name [] start len b] |
               len <- quarters (blen - start)] |
              start <- quarters blen]
             where blen = integerLength b
@@ -90,7 +90,7 @@ benchSliceByteString evalCtx =
 
 benchConsByteString :: EvaluationContext -> Benchmark
 benchConsByteString evalCtx =
-    createTwoTermBuiltinBench ConsByteString [] [n] (smallerByteStrings150 seedA)
+    createTwoTermBuiltinBench evalCtx ConsByteString [] [n] (smallerByteStrings150 seedA)
         where n = 123 :: Integer
         -- The precise numbers don't seem to matter here, as long as they are in
         -- the range of [0..255] (Word8). Otherwise

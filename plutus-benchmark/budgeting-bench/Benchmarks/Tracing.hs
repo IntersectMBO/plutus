@@ -14,7 +14,7 @@ import System.Random (StdGen)
 -- multiple input sizes to be sure.
 benchTracing :: EvaluationContext -> StdGen -> Benchmark
 benchTracing evalCtx gen =
-    createTwoTermBuiltinBench name [bytestring] inputs1 inputs2
+    createTwoTermBuiltinBench evalCtx name [bytestring] inputs1 inputs2
         where name = Trace
               inputs1 = makeSizedTextStrings seedA [10, 20, 30, 40, 50, 100, 200, 300, 400, 500]
               -- The numbers above are the approximate number of characters in the trace message

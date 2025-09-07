@@ -136,24 +136,24 @@ twoArgumentSizes = [0, 250..5000]  -- 21 entries
    data produced by G.utf8 (see above). -}
 benchOneUtf8ByteString :: EvaluationContext -> DefaultFun -> Benchmark
 benchOneUtf8ByteString evalCtx name =
-    createOneTermBuiltinBench name [] $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
+    createOneTermBuiltinBench evalCtx name [] $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
 
 benchOneTextString :: EvaluationContext -> DefaultFun -> Benchmark
 benchOneTextString evalCtx name =
-    createOneTermBuiltinBench name [] $ makeSizedTextStrings seedA oneArgumentSizes
+    createOneTermBuiltinBench evalCtx name [] $ makeSizedTextStrings seedA oneArgumentSizes
 
 benchTwoTextStrings :: EvaluationContext -> DefaultFun -> Benchmark
 benchTwoTextStrings evalCtx name =
     let s1 = makeSizedTextStrings seedA twoArgumentSizes
         s2 = makeSizedTextStrings seedB twoArgumentSizes
-    in createTwoTermBuiltinBench name [] s1 s2
+    in createTwoTermBuiltinBench evalCtx name [] s1 s2
 
 -- Benchmark times for a function applied to equal arguments.  This is used for
 -- benchmarking EqualsString on the diagonal.  Copy the string here, because
 -- otherwise it'll be exactly the same and the equality will short-circuit.
 benchSameTwoTextStrings :: EvaluationContext -> DefaultFun -> Benchmark
 benchSameTwoTextStrings evalCtx name =
-    createTwoTermBuiltinBenchElementwise name [] $ pairWith T.copy inputs
+    createTwoTermBuiltinBenchElementwise evalCtx name [] $ pairWith T.copy inputs
     where inputs = makeSizedTextStrings seedA oneArgumentSizes
 
 makeBenchmarks :: EvaluationContext -> StdGen -> [Benchmark]

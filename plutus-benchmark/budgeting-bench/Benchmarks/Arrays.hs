@@ -32,7 +32,7 @@ makeBenchmarks evalCtx gen =
 
 benchLengthOfArray :: EvaluationContext -> StdGen -> Benchmark
 benchLengthOfArray evalCtx gen =
-  createOneTermBuiltinBench LengthOfArray [tyArrayOfBS] listOfArrays
+  createOneTermBuiltinBench evalCtx LengthOfArray [tyArrayOfBS] listOfArrays
   where
     listOfArrays :: [Vector ByteString] =
       runStateGen_ gen \g -> replicateM 100 do
@@ -43,7 +43,7 @@ benchLengthOfArray evalCtx gen =
 
 benchListToArray :: EvaluationContext -> StdGen -> Benchmark
 benchListToArray evalCtx gen =
-  createOneTermBuiltinBench ListToArray [tyListOfBS] listOfLists
+  createOneTermBuiltinBench evalCtx ListToArray [tyListOfBS] listOfLists
  where
   listOfLists :: [[ByteString]] =
     runStateGen_ gen \g -> replicateM 100 do
@@ -54,7 +54,7 @@ benchListToArray evalCtx gen =
 
 benchIndexArray :: EvaluationContext -> StdGen -> Benchmark
 benchIndexArray evalCtx gen =
-  createTwoTermBuiltinBenchElementwise
+  createTwoTermBuiltinBenchElementwise evalCtx
     IndexArray
     [tyArrayOfBS]
     (zip arrays idxs)

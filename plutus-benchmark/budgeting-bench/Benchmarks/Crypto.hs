@@ -95,13 +95,13 @@ benchVerifyEd25519Signature :: EvaluationContext -> Benchmark
 benchVerifyEd25519Signature evalCtx =
     let name = VerifyEd25519Signature
         inputs = mkDsignBmInputs @Ed25519DSIGN id Arbitrary
-    in createThreeTermBuiltinBenchElementwise name [] inputs
+    in createThreeTermBuiltinBenchElementwise evalCtx name [] inputs
 
 benchVerifyEcdsaSecp256k1Signature :: EvaluationContext -> Benchmark
 benchVerifyEcdsaSecp256k1Signature evalCtx =
     let name = VerifyEcdsaSecp256k1Signature
         inputs = mkDsignBmInputs @EcdsaSecp256k1DSIGN toMsg (Fixed 32)
-    in createThreeTermBuiltinBenchElementwise name [] inputs
+    in createThreeTermBuiltinBenchElementwise evalCtx name [] inputs
         where toMsg b =
                   case toMessageHash b of
                     Just m  -> m
@@ -113,7 +113,7 @@ benchVerifySchnorrSecp256k1Signature :: EvaluationContext -> Benchmark
 benchVerifySchnorrSecp256k1Signature evalCtx =
     let name = VerifySchnorrSecp256k1Signature
         inputs = mkDsignBmInputs @SchnorrSecp256k1DSIGN id Arbitrary
-    in createThreeTermBuiltinBenchElementwise name [] inputs
+    in createThreeTermBuiltinBenchElementwise evalCtx name [] inputs
 
 
 ---------------- Hashing functions ----------------
@@ -121,7 +121,7 @@ benchVerifySchnorrSecp256k1Signature evalCtx =
 benchByteStringOneArgOp :: EvaluationContext -> DefaultFun -> Benchmark
 benchByteStringOneArgOp evalCtx name =
     bgroup (show name) $ fmap mkBM (mediumByteStrings seedA)
-           where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
+           where mkBM b = benchWithCtx evalCtx (showMemoryUsage b) $ mkApp1 name [] b
 
 
 ---------------- BLS12_381 buitlins ----------------
@@ -179,26 +179,26 @@ gtinputsB = zipWith Pairing.millerLoop g1inputsB g2inputsB
 benchBls12_381_G1_add :: EvaluationContext -> Benchmark
 benchBls12_381_G1_add evalCtx =
   let name = Bls12_381_G1_add
-  in createTwoTermBuiltinBenchElementwise name [] $ zip g1inputsA g1inputsB
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip g1inputsA g1inputsB
   -- constant time
   -- Two arguments, points on G1
 
 benchBls12_381_G1_neg :: EvaluationContext -> Benchmark
 benchBls12_381_G1_neg evalCtx =
   let name = Bls12_381_G1_neg
-  in createOneTermBuiltinBench name [] g1inputsA
+  in createOneTermBuiltinBench evalCtx name [] g1inputsA
   -- constant time
 
 benchBls12_381_G1_scalarMul :: EvaluationContext -> [Integer] -> Benchmark
 benchBls12_381_G1_scalarMul evalCtx multipliers =
   let name = Bls12_381_G1_scalarMul
-  in createTwoTermBuiltinBenchElementwise name [] $ zip multipliers g1inputsA
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip multipliers g1inputsA
   -- linear in x (size of scalar)
 
 benchBls12_381_G1_equal :: EvaluationContext -> Benchmark
 benchBls12_381_G1_equal evalCtx =
   let name = Bls12_381_G1_equal
-  in createTwoTermBuiltinBenchElementwise name [] $ zip g1inputsA g1inputsA
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip g1inputsA g1inputsA
   -- Same arguments twice
   -- constant time
 
@@ -209,44 +209,44 @@ benchBls12_381_G1_hashToGroup evalCtx =
       -- The maximum length of a DST is 255 bytes, so let's use that for all
       -- cases (DST size shouldn't make much difference anyway).
       dsts = listOfByteStringsOfLength 100 255
-  in createTwoTermBuiltinBenchElementwise name [] $ zip inputs dsts
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip inputs dsts
   -- linear in input size
 
 benchBls12_381_G1_compress :: EvaluationContext -> Benchmark
 benchBls12_381_G1_compress evalCtx =
   let name = Bls12_381_G1_compress
-  in createOneTermBuiltinBench name [] g1inputsA
+  in createOneTermBuiltinBench evalCtx name [] g1inputsA
   -- constant time
 
 benchBls12_381_G1_uncompress :: EvaluationContext -> Benchmark
 benchBls12_381_G1_uncompress evalCtx =
   let name = Bls12_381_G1_uncompress
       inputs = fmap G1.compress g1inputsA
-  in createOneTermBuiltinBench name [] inputs
+  in createOneTermBuiltinBench evalCtx name [] inputs
   -- constant time
 
 benchBls12_381_G2_add :: EvaluationContext -> Benchmark
 benchBls12_381_G2_add evalCtx =
   let name = Bls12_381_G2_add
-  in createTwoTermBuiltinBenchElementwise name [] $ zip g2inputsA g2inputsB
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip g2inputsA g2inputsB
   -- constant time
 
 benchBls12_381_G2_neg :: EvaluationContext -> Benchmark
 benchBls12_381_G2_neg evalCtx =
   let name = Bls12_381_G2_neg
-  in createOneTermBuiltinBench name [] g2inputsB
+  in createOneTermBuiltinBench evalCtx name [] g2inputsB
   -- constant time
 
 benchBls12_381_G2_scalarMul :: EvaluationContext -> [Integer] -> Benchmark
 benchBls12_381_G2_scalarMul evalCtx multipliers =
   let name = Bls12_381_G2_scalarMul
-  in createTwoTermBuiltinBenchElementwise name [] $ zip multipliers g2inputsA
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip multipliers g2inputsA
   -- linear in x (size of scalar)
 
 benchBls12_381_G2_equal :: EvaluationContext -> Benchmark
 benchBls12_381_G2_equal evalCtx =
   let name = Bls12_381_G2_equal
-  in createTwoTermBuiltinBenchElementwise name [] $ zip g2inputsA g2inputsA
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip g2inputsA g2inputsA
   -- Same arguments twice
   -- constant time
 
@@ -255,38 +255,38 @@ benchBls12_381_G2_hashToGroup evalCtx =
   let name = Bls12_381_G2_hashToGroup
       inputs = listOfByteStrings 100
       dsts = listOfByteStringsOfLength 100 255
-  in createTwoTermBuiltinBenchElementwise name [] $ zip inputs dsts
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip inputs dsts
   -- linear in size of input
 
 benchBls12_381_G2_compress :: EvaluationContext -> Benchmark
 benchBls12_381_G2_compress evalCtx =
   let name = Bls12_381_G2_compress
-  in createOneTermBuiltinBench name [] g2inputsA
+  in createOneTermBuiltinBench evalCtx name [] g2inputsA
   -- constant time
 
 benchBls12_381_G2_uncompress :: EvaluationContext -> Benchmark
 benchBls12_381_G2_uncompress evalCtx =
   let name = Bls12_381_G2_uncompress
       inputs = fmap G2.compress g2inputsA
-  in createOneTermBuiltinBench name [] inputs
+  in createOneTermBuiltinBench evalCtx name [] inputs
   -- constant time
 
 benchBls12_381_millerLoop :: EvaluationContext -> Benchmark
 benchBls12_381_millerLoop evalCtx =
   let name = Bls12_381_millerLoop
-  in createTwoTermBuiltinBenchElementwise name [] $ zip g1inputsA g2inputsA
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip g1inputsA g2inputsA
   -- constant time
 
 benchBls12_381_mulMlResult :: EvaluationContext -> Benchmark
 benchBls12_381_mulMlResult evalCtx =
   let name = Bls12_381_mulMlResult
-  in createTwoTermBuiltinBenchElementwise name [] $ zip gtinputsA gtinputsB
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip gtinputsA gtinputsB
   -- constant time
 
 benchBls12_381_finalVerify :: EvaluationContext -> Benchmark
 benchBls12_381_finalVerify evalCtx =
   let name = Bls12_381_finalVerify
-  in createTwoTermBuiltinBenchElementwise name [] $ zip gtinputsA gtinputsB
+  in createTwoTermBuiltinBenchElementwise evalCtx name [] $ zip gtinputsA gtinputsB
   -- constant time
 
 

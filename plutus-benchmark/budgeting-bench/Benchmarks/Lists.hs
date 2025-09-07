@@ -73,7 +73,7 @@ benchChooseList evalCtx gen =
         bsInputs  = take 10 $ byteStringLists seedA
         mkBMs tys inputs = [ bgroup (showMemoryUsage x)
                            [ bgroup (showMemoryUsage r1)
-                            [ benchDefault (showMemoryUsage r2) $ mkApp3 name tys x r1 r2
+                            [ benchWithCtx evalCtx (showMemoryUsage r2) $ mkApp3 name tys x r1 r2
                             | r2 <- results2 ]
                            | r1 <- results1 ]
                           | x <- inputs ]
@@ -88,7 +88,7 @@ benchMkCons evalCtx gen =
         bsInputs = byteStringLists seedA
         bssToCons =
             makeSizedByteStrings seedA $ take (length bsInputs) (cycle [5,80,500, 1000, 5000])
-        mkBM ty (x,xs) = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] x xs
+        mkBM ty (x,xs) = benchWithCtx evalCtx (showMemoryUsage x) $ mkApp2 name [ty] x xs
     in  bgroup (show name) $ fmap (mkBM integer) (zip intsToCons intInputs)
                            ++ fmap (mkBM bytestring) (zip bssToCons bsInputs)
 
@@ -97,14 +97,14 @@ benchNonEmptyList :: EvaluationContext -> StdGen -> DefaultFun -> Benchmark
 benchNonEmptyList evalCtx gen name =
     bgroup (show name) $ fmap (mkBM integer) (nonEmptyIntLists gen)
                       ++ fmap (mkBM bytestring) (nonEmptyByteStringLists seedA)
-                          where mkBM ty x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
+                          where mkBM ty x = benchWithCtx evalCtx (showMemoryUsage x) $ mkApp1 name [ty] x
 
 -- nullList tests if a list is empty
 benchNullList :: EvaluationContext -> StdGen -> Benchmark
 benchNullList evalCtx gen =
     bgroup (show name) $ fmap (mkBM integer) (intLists gen)
                       ++ fmap (mkBM bytestring) (byteStringLists seedA)
-        where mkBM ty x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
+        where mkBM ty x = benchWithCtx evalCtx (showMemoryUsage x) $ mkApp1 name [ty] x
               name = NullList
 
 -- dropList n ls
@@ -117,7 +117,7 @@ benchDropList evalCtx gen =
         stringlists = makeListOfByteStringLists seedA [ (sz , sz) | sz <- resultSizes ]
         intInputs = [ intMaxList 10 (toInteger sz) gen | sz <- resultSizes ]
         inputs = concat [[(n , rs) | n <- ns] | (ns, rs) <- zip intInputs stringlists]
-    in createTwoTermBuiltinBenchElementwiseWithWrappers
+    in createTwoTermBuiltinBenchElementwiseWithWrappers evalCtx
            (IntegerCostedLiterally, id) name [bytestring] inputs
 
 makeBenchmarks :: EvaluationContext -> StdGen -> [Benchmark]

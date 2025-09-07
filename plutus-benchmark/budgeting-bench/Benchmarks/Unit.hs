@@ -22,7 +22,7 @@ createChooseUnitBench
 createChooseUnitBench evalCtx ty xs =
     bgroup (show name) [bgroup (showMemoryUsage ()) [mkBM x | x <- xs]]
         where name = ChooseUnit
-              mkBM x = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] () x
+              mkBM x = benchWithCtx evalCtx (showMemoryUsage x) $ mkApp2 name [ty] () x
 
 makeBenchmarks :: EvaluationContext -> StdGen -> [Benchmark]
 makeBenchmarks evalCtx gen =

@@ -49,7 +49,7 @@ benchChooseData :: EvaluationContext -> Benchmark
 benchChooseData evalCtx =
   bgroup (show name) [mkBM d | d <- take 100 dataSample]
   where name = ChooseData
-        mkBM d = benchDefault (showMemoryUsage d) $
+        mkBM d = benchWithCtx evalCtx (showMemoryUsage d) $
                  mkApp6 name [integer] d (111::Integer) (222::Integer)
                  (333::Integer) (444::Integer) (555::Integer)
 
@@ -59,35 +59,35 @@ benchChooseData evalCtx =
 -- Apply Constr to an integer and a list of Data
 benchConstrData :: EvaluationContext -> StdGen -> Benchmark
 benchConstrData evalCtx gen =
-  createTwoTermBuiltinBench ConstrData [] ints lists
+  createTwoTermBuiltinBench evalCtx ConstrData [] ints lists
   where (ints, _) = makeSizedIntegers gen [1..20]
         lists = take 20 . map unList $ filter isList dataSample
         unList = \case { List l -> l ; _ -> error "Expected List" }
 
 benchMapData :: EvaluationContext -> Benchmark
 benchMapData evalCtx =
-  createOneTermBuiltinBench MapData [] pairs
+  createOneTermBuiltinBench evalCtx MapData [] pairs
   where pairs = take 50 . map unMap $ filter isMap dataSample
         unMap = \case { Map l -> l ; _ -> error "Expected Map" }
 --
 -- Apply List
 benchListData :: EvaluationContext -> Benchmark
 benchListData evalCtx =
-  createOneTermBuiltinBench ListData [] lists
+  createOneTermBuiltinBench evalCtx ListData [] lists
   where lists = take 50 . map unList $ filter isList dataSample
         unList = \case { List l -> l ; _ -> error "Expected List" }
 
 -- Apply I
 benchIData :: EvaluationContext -> Benchmark
 benchIData evalCtx =
-  createOneTermBuiltinBench IData [] ints
+  createOneTermBuiltinBench evalCtx IData [] ints
   where ints = take 50 . map unI $ filter isI dataSample
         unI = \case { I n -> n ; _ -> error "Expected I" }
 
 -- Apply B
 benchBData :: EvaluationContext -> Benchmark
 benchBData evalCtx =
-  createOneTermBuiltinBench BData [] bss
+  createOneTermBuiltinBench evalCtx BData [] bss
   where bss =  take 50 . map unB $ filter isB dataSample
         unB = \case { B s -> s ; _ -> error "Expected B" }
 
@@ -97,31 +97,31 @@ benchBData evalCtx =
 -- Match against Constr, failing otherwise
 benchUnConstrData :: EvaluationContext -> Benchmark
 benchUnConstrData evalCtx =
-  createOneTermBuiltinBench UnConstrData [] constrData
+  createOneTermBuiltinBench evalCtx UnConstrData [] constrData
   where constrData = take 50 $ filter isConstr dataSample
 
 -- Match against Map, failing otherwise
 benchUnMapData :: EvaluationContext -> Benchmark
 benchUnMapData evalCtx =
-  createOneTermBuiltinBench UnMapData [] mapData
+  createOneTermBuiltinBench evalCtx UnMapData [] mapData
   where mapData = take 50 $ filter isMap dataSample
 
 -- Match against List, failing otherwise
 benchUnListData :: EvaluationContext -> Benchmark
 benchUnListData evalCtx =
-  createOneTermBuiltinBench UnListData [] listData
+  createOneTermBuiltinBench evalCtx UnListData [] listData
   where listData = take 100 $ filter isList dataSample
 
 -- Match against I, failing otherwise
 benchUnIData :: EvaluationContext -> Benchmark
 benchUnIData evalCtx =
-  createOneTermBuiltinBench UnIData [] idata
+  createOneTermBuiltinBench evalCtx UnIData [] idata
   where idata = take 50 $ filter isI dataSample
 
 -- Match against B, failing otherwise
 benchUnBData :: EvaluationContext -> Benchmark
 benchUnBData evalCtx =
-  createOneTermBuiltinBench UnBData [] bdata
+  createOneTermBuiltinBench evalCtx UnBData [] bdata
   where bdata = take 50 $ filter isB dataSample
 
 ---------------- Equality ----------------
@@ -131,12 +131,12 @@ benchUnBData evalCtx =
 -- the costs of sub-components.
 benchEqualsData :: EvaluationContext -> Benchmark
 benchEqualsData evalCtx =
-  createTwoTermBuiltinBenchElementwise EqualsData [] $ pairWith copyData dataSampleForEq
+  createTwoTermBuiltinBenchElementwise evalCtx EqualsData [] $ pairWith copyData dataSampleForEq
   -- 400 elements: should take about 35 minutes to benchmark
 
 benchSerialiseData :: EvaluationContext -> Benchmark
 benchSerialiseData evalCtx =
-  createOneTermBuiltinBench SerialiseData [] args
+  createOneTermBuiltinBench evalCtx SerialiseData [] args
   where args = dataSampleForEq
   -- FIXME: see if we can find a better sample for this. More generally, how
   -- does the internal structure of a Data object influence serialisation

@@ -53,7 +53,7 @@ memoryUsageAsNumBytes = (8*) . fromSatInt . sumCostStream . flattenCostRose . me
    gives a good fit and extrapolates well to larger inputs. -}
 benchByteStringToInteger :: EvaluationContext -> Benchmark
 benchByteStringToInteger evalCtx =
-  createTwoTermBuiltinBenchElementwise ByteStringToInteger [] $ fmap (\x -> (True,x)) (makeSample seedA)
+  createTwoTermBuiltinBenchElementwise evalCtx ByteStringToInteger [] $ fmap (\x -> (True,x)) (makeSample seedA)
 
 {- We have four possibilities for integer to bytestring conversions: they can be
  big- or little-endian, and they can also be of bounded or unbounded width.
@@ -75,7 +75,7 @@ benchIntegerToByteString evalCtx =
         inputs = fmap repunitOfSize sampleSizes
         -- The minimum width of bytestring needed to fit the inputs into.
         widthsInBytes = fmap (fromIntegral . memoryUsageAsNumBytes) inputs
-    in createThreeTermBuiltinBenchElementwiseWithWrappers
+    in createThreeTermBuiltinBenchElementwiseWithWrappers evalCtx
        (id, NumBytesCostedAsNumWords, id) b [] $
        zip3 (repeat True) widthsInBytes inputs
 
@@ -104,7 +104,7 @@ benchAndByteString evalCtx =
   let inputSizes = fmap (20*) [1..25]  -- 20..400: 625 cases, which should take an hour or so.
       xs = makeSizedByteStrings seedA inputSizes
       ys = makeSizedByteStrings seedB inputSizes
-  in createTwoTermBuiltinBenchWithFlag AndByteString [] True xs ys
+  in createTwoTermBuiltinBenchWithFlag evalCtx AndByteString [] True xs ys
   -- This requires a special case in the costing codet because we don't include
   -- the first argument (the flag).
 
@@ -113,14 +113,14 @@ benchAndByteString evalCtx =
 benchComplementByteString :: EvaluationContext -> Benchmark
 benchComplementByteString evalCtx =
   let xs = makeSample seedA
-  in createOneTermBuiltinBench ComplementByteString [] xs
+  in createOneTermBuiltinBench evalCtx ComplementByteString [] xs
 
 {- `readBit` is pretty much constant time regardless of input size and the position of
 the bit to be read. -}
 benchReadBit :: EvaluationContext -> Benchmark
 benchReadBit evalCtx =
   let xs = makeSample seedA
-  in createTwoTermBuiltinBenchElementwise ReadBit [] $ pairWith topBitIndex xs
+  in createTwoTermBuiltinBenchElementwise evalCtx ReadBit [] $ pairWith topBitIndex xs
 
 {- The `writeBits` function takes a bytestring, a list of positions to write to,
    and a boolean value to write at those positions.  Benchmarks show that the
@@ -139,7 +139,7 @@ benchWriteBits evalCtx =
       -- Given an integer k, return a list of updates which write a bit 10*k
       -- times.  Here k will range from 1 to numSamples, which is 150.
       inputs = zip3 xs positions (replicate numSamples True)
-  in createThreeTermBuiltinBenchElementwise  WriteBits [] inputs
+  in createThreeTermBuiltinBenchElementwise evalCtx  WriteBits [] inputs
 
 {- For small inputs `replicateByte` looks constant-time.  For larger inputs it's
    linear.  We're limiting the output to 8192 bytes (size 1024), so we may as
@@ -153,7 +153,7 @@ benchReplicateByte evalCtx =
       xs = fmap (fromIntegral . (64*)) [1..numCases] :: [Integer]
       -- ^ This gives us replication counts up to 64*128 = 8192, the maximum allowed.
       inputs = pairWith (const (0xFF::Integer)) xs
-  in createTwoTermBuiltinBenchElementwiseWithWrappers
+  in createTwoTermBuiltinBenchElementwiseWithWrappers evalCtx
      (NumBytesCostedAsNumWords, id) ReplicateByte [] inputs
 
 {- Benchmarks with varying sizes of bytestrings and varying amounts of shifting
@@ -173,7 +173,7 @@ benchShiftByteString :: EvaluationContext -> Benchmark
 benchShiftByteString evalCtx =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
-      in createTwoTermBuiltinBenchElementwiseWithWrappers
+      in createTwoTermBuiltinBenchElementwiseWithWrappers evalCtx
          (id, IntegerCostedLiterally) ShiftByteString [] inputs
 
 {- The behaviour of `rotateByteString` is very similar to that of
@@ -188,7 +188,7 @@ benchRotateBytestring :: EvaluationContext -> Benchmark
 benchRotateBytestring evalCtx =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
-  in createTwoTermBuiltinBenchElementwiseWithWrappers
+  in createTwoTermBuiltinBenchElementwiseWithWrappers evalCtx
      (id, IntegerCostedLiterally) RotateByteString [] inputs
 
 {- For `countSetBits`, the time taken is linear in the length.  A model based on
@@ -198,7 +198,7 @@ benchRotateBytestring evalCtx =
 benchCountSetBits :: EvaluationContext -> Benchmark
 benchCountSetBits evalCtx =
   let xs = fmap (\n -> BS.replicate (8*n) 0xFF) sampleSizes  -- length 8, 16, ..., 1200
-  in createOneTermBuiltinBench CountSetBits [] xs
+  in createOneTermBuiltinBench evalCtx CountSetBits [] xs
 
 {- For `findFirstSetBits` the time taken is pretty much linear in the length, with
    occasional bumps.  Unsurprisingly the function takes longest for an all-0x00
@@ -211,7 +211,7 @@ benchCountSetBits evalCtx =
 benchFindFirstSetBit :: EvaluationContext -> Benchmark
 benchFindFirstSetBit evalCtx =
   let xs = fmap (\n -> BS.cons 0x80 (BS.replicate (8*n-1) 0x00)) sampleSizes
-  in createOneTermBuiltinBench FindFirstSetBit [] xs
+  in createOneTermBuiltinBench evalCtx FindFirstSetBit [] xs
 
 makeBenchmarks :: EvaluationContext -> [Benchmark]
 makeBenchmarks evalCtx =
