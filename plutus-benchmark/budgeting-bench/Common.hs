@@ -216,11 +216,12 @@ createOneTermBuiltinBench
      , ExMemoryUsage a
      , NFData a
      )
-  => fun
+  => EvaluationContext
+  -> fun
   -> [Type tyname uni ()]
   -> [a]
   -> Benchmark
-createOneTermBuiltinBench = createOneTermBuiltinBenchWithWrapper id
+createOneTermBuiltinBench evalCtx = createOneTermBuiltinBenchWithWrapper evalCtx id
 
 {- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
   cases we want to measure the (so-called) "memory usage" of a builtin argument
@@ -238,14 +239,15 @@ createOneTermBuiltinBenchWithWrapper
      , ExMemoryUsage a'
      , NFData a
      )
-  => (a -> a')
+  => EvaluationContext
+  -> (a -> a')
   -> fun
   -> [Type tyname uni ()]
   -> [a]
   -> Benchmark
-createOneTermBuiltinBenchWithWrapper wrapX fun tys xs =
+createOneTermBuiltinBenchWithWrapper evalCtx wrapX fun tys xs =
   bgroup (show fun)
-    [ benchDefault (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
+    [ benchWithCtx evalCtx (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
     | x <- xs
     ]
 
@@ -262,14 +264,15 @@ createTwoTermBuiltinBench
      , NFData a
      , NFData b
      )
-  => fun
+  => EvaluationContext
+  -> fun
   -> [Type tyname uni ()]
   -> [a]
   -> [b]
   -> Benchmark
-createTwoTermBuiltinBench fun tys xs ys =
+createTwoTermBuiltinBench evalCtx fun tys xs ys =
   bgroup (show fun) [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
-  where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 fun tys x y
+  where mkBM x y = benchWithCtx evalCtx (showMemoryUsage y) $ mkApp2 fun tys x y
 
 createTwoTermBuiltinBenchWithFlag
   :: ( fun ~ DefaultFun
@@ -281,16 +284,17 @@ createTwoTermBuiltinBenchWithFlag
      , NFData a
      , NFData b
      )
-  => fun
+  => EvaluationContext
+  -> fun
   -> [Type tyname uni ()]
   -> Bool
   -> [a]
   -> [b]
   -> Benchmark
-createTwoTermBuiltinBenchWithFlag fun tys flag ys zs =
+createTwoTermBuiltinBenchWithFlag evalCtx fun tys flag ys zs =
   bgroup (show fun) [bgroup (showMemoryUsage flag)
                        [bgroup (showMemoryUsage y) [mkBM y z | z <- zs] | y <- ys]]
-  where mkBM y z = benchDefault (showMemoryUsage z) $ mkApp3 fun tys flag y z
+  where mkBM y z = benchWithCtx evalCtx (showMemoryUsage z) $ mkApp3 fun tys flag y z
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b], create a collection of benchmarks which run f on all pairs in
@@ -305,15 +309,16 @@ createTwoTermBuiltinBenchWithWrappers
      , NFData a
      , NFData b
      )
-  => (a -> a', b-> b')
+  => EvaluationContext
+  -> (a -> a', b-> b')
   -> fun
   -> [Type tyname uni ()]
   -> [a]
   -> [b]
   -> Benchmark
-createTwoTermBuiltinBenchWithWrappers (wrapX, wrapY) fun tys xs ys =
+createTwoTermBuiltinBenchWithWrappers evalCtx (wrapX, wrapY) fun tys xs ys =
   bgroup (show fun) [bgroup (showMemoryUsage (wrapX x)) [mkBM x y | y <- ys] | x <- xs]
-  where mkBM x y = benchDefault (showMemoryUsage (wrapY y)) $ mkApp2 fun tys x y
+  where mkBM x y = benchWithCtx evalCtx (showMemoryUsage (wrapY y)) $ mkApp2 fun tys x y
 
 {- | Given a builtin function f of type a * b -> _ together with a list of (a,b)
    pairs, create a collection of benchmarks which run f on all of the pairs in
@@ -335,12 +340,13 @@ createTwoTermBuiltinBenchElementwise
      , NFData a
      , NFData b
      )
-  => fun
+  => EvaluationContext
+  -> fun
   -> [Type tyname uni ()]
   -> [(a,b)]
   -> Benchmark
-createTwoTermBuiltinBenchElementwise =
-  createTwoTermBuiltinBenchElementwiseWithWrappers (id, id)
+createTwoTermBuiltinBenchElementwise evalCtx =
+  createTwoTermBuiltinBenchElementwiseWithWrappers evalCtx (id, id)
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
@@ -355,15 +361,16 @@ createTwoTermBuiltinBenchElementwiseWithWrappers
      , NFData a
      , NFData b
      )
-  => (a -> a', b -> b')
+  => EvaluationContext
+  -> (a -> a', b -> b')
   -> fun
   -> [Type tyname uni ()]
   -> [(a,b)]
   -> Benchmark
-createTwoTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY) fun tys inputs =
+createTwoTermBuiltinBenchElementwiseWithWrappers evalCtx (wrapX, wrapY) fun tys inputs =
   bgroup (show fun) $
   fmap(\(x, y) -> bgroup (showMemoryUsage $ wrapX x) [mkBM x y]) inputs
-  where mkBM x y = benchDefault (showMemoryUsage $ wrapY y) $ mkApp2 fun tys x y
+  where mkBM x y = benchWithCtx evalCtx (showMemoryUsage $ wrapY y) $ mkApp2 fun tys x y
 
 {- | Given a builtin function f of type a * b * c -> _ together with a list of
    inputs of type (a,b,c), create a collection of benchmarks which run f on all
@@ -382,12 +389,13 @@ createThreeTermBuiltinBenchElementwise
      , NFData b
      , NFData c
      )
-  => fun
+  => EvaluationContext
+  -> fun
   -> [Type tyname uni ()]
   -> [(a,b,c)]
   -> Benchmark
-createThreeTermBuiltinBenchElementwise =
-  createThreeTermBuiltinBenchElementwiseWithWrappers (id, id, id)
+createThreeTermBuiltinBenchElementwise evalCtx =
+  createThreeTermBuiltinBenchElementwiseWithWrappers evalCtx (id, id, id)
 
 {- See Note [Adjusting the memory usage of arguments of costing benchmarks]. -}
 createThreeTermBuiltinBenchElementwiseWithWrappers
@@ -403,12 +411,13 @@ createThreeTermBuiltinBenchElementwiseWithWrappers
      , NFData b
      , NFData c
      )
-  => (a -> a', b -> b', c -> c')
+  => EvaluationContext
+  -> (a -> a', b -> b', c -> c')
   -> fun
   -> [Type tyname uni ()]
   -> [(a,b,c)]
   -> Benchmark
-createThreeTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY, wrapZ) fun tys inputs =
+createThreeTermBuiltinBenchElementwiseWithWrappers evalCtx (wrapX, wrapY, wrapZ) fun tys inputs =
   bgroup (show fun) $
   fmap
   (\(x, y, z) ->
@@ -416,7 +425,7 @@ createThreeTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY, wrapZ) fun tys
      [bgroup (showMemoryUsage $ wrapY y) [mkBM x y z]]
   )
   inputs
-  where mkBM x y z = benchDefault (showMemoryUsage $ wrapZ z) $ mkApp3 fun tys x y z
+  where mkBM x y z = benchWithCtx evalCtx (showMemoryUsage $ wrapZ z) $ mkApp3 fun tys x y z
 
 
 createThreeTermBuiltinBenchWithWrappers
@@ -432,17 +441,18 @@ createThreeTermBuiltinBenchWithWrappers
      , NFData b
      , NFData c
      )
-  => (a -> a', b-> b', c -> c')
+  => EvaluationContext
+  -> (a -> a', b-> b', c -> c')
   -> fun
   -> [Type tyname uni ()]
   -> [a]
   -> [b]
   -> [c]
   -> Benchmark
-createThreeTermBuiltinBenchWithWrappers (wrapX, wrapY, wrapZ) fun tys xs ys zs =
+createThreeTermBuiltinBenchWithWrappers evalCtx (wrapX, wrapY, wrapZ) fun tys xs ys zs =
   bgroup (show fun)
    [bgroup (showMemoryUsage (wrapX x))
     [bgroup (showMemoryUsage (wrapY y))
       [mkBM x y z | z <- zs] | y <- ys] | x <- xs]
-  where mkBM x y z = benchDefault (showMemoryUsage (wrapZ z)) $ mkApp3 fun tys x y z
+  where mkBM x y z = benchWithCtx evalCtx (showMemoryUsage (wrapZ z)) $ mkApp3 fun tys x y z
 
