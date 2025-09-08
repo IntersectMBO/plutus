@@ -20,9 +20,11 @@ import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Value
 
 import Data.ByteString qualified as BS
 import Data.Functor
+import Data.Map.Strict qualified as Map
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
@@ -367,6 +369,13 @@ instance ExMemoryUsage Data where
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
+
+instance ExMemoryUsage Value where
+    memoryUsage (Value v) = case Map.toList v of
+        []     -> CostRose 0 []
+        x : xs -> CostRose (f x) (flip CostRose [] . f <$> xs)
+      where
+        f = fromIntegral . Map.size . snd
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able

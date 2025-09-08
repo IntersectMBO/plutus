@@ -164,6 +164,7 @@ isSerialisable (Some (ValueOf uni0 x0)) = go uni0 x0 where
     go (f `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _) _ =
         noMoreTypeFunctions f
     go TPLC.DefaultUniData _ = True
+    go TPLC.DefaultUniValue _ = True
     go TPLC.DefaultUniBLS12_381_G1_Element _ = False
     go TPLC.DefaultUniBLS12_381_G2_Element _ = False
     go TPLC.DefaultUniBLS12_381_MlResult _ = False
