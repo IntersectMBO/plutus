@@ -20,12 +20,12 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
-import PlutusCore.Value
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 
 import Data.ByteString (ByteString, empty)
 import Data.Int
 import Data.Kind qualified as GHC
-import Data.Map (Map)
 import Data.Maybe
 import Data.Proxy
 import Data.Text (Text)
@@ -244,7 +244,9 @@ instance Arbitrary Data where
     arbitrary = arbitraryBuiltin
     shrink = shrinkBuiltin
 
-deriving via Map ByteString (Map ByteString Integer) instance Arbitrary Value
+instance Arbitrary Value where
+    arbitrary = Value.pack <$> arbitrary
+    shrink = fmap Value.pack . shrink . Value.unpack
 
 instance ArbitraryBuiltin Value
 
@@ -422,6 +424,7 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                , JustSomeType DefaultUniBLS12_381_G1_Element
                , JustSomeType DefaultUniBLS12_381_G2_Element
                , JustSomeType DefaultUniBLS12_381_MlResult
+               , JustSomeType DefaultUniValue
                ]
            SingType `SingKindArrow` SingType ->
                 [ genDefaultUniApply | size > 10 ]
