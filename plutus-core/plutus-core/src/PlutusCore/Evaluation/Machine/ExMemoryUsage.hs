@@ -13,7 +13,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
     , ValueTotalSize(..)
-    , ValueOuterPlusMaxInner(..)
+    , ValueOuterOrMaxInner(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -382,15 +382,14 @@ newtype ValueTotalSize = ValueTotalSize { unValueTotalSize :: Value }
 instance ExMemoryUsage ValueTotalSize where
     memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
 
--- | Measure the size of a `Value` by taking the size of the outer map
--- plus the size of the largest inner map.
-newtype ValueOuterPlusMaxInner = ValueOuterPlusMaxInner { unValueOuterPlusMaxInner :: Value }
+-- | Measure the size of a `Value` by taking the max of
+-- (size of the outer map, size of the largest inner map).
+newtype ValueOuterOrMaxInner = ValueOuterOrMaxInner { unValueOuterOrMaxInner :: Value }
 
-instance ExMemoryUsage ValueOuterPlusMaxInner where
-    memoryUsage (ValueOuterPlusMaxInner v) = singletonRose (fromIntegral size)
+instance ExMemoryUsage ValueOuterOrMaxInner where
+    memoryUsage (ValueOuterOrMaxInner v) = singletonRose (fromIntegral size)
       where
-        size = Map.size (Value.unpack v) + Value.maxInnerSize v
-
+        size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
