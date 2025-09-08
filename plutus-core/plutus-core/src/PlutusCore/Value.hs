@@ -37,7 +37,7 @@ fromList =
     . fmap (second (Map.fromListWith (+)))
 
 normalize :: Value -> Value
-normalize = Value . Map.filter Map.null . Map.map (Map.filter (== 0)) . unValue
+normalize = Value . Map.filter (not . Map.null) . Map.map (Map.filter (/= 0)) . unValue
 
 totalSize :: Value -> Int
 totalSize = Map.foldl' (\n -> (n +) .  Map.size) 0 . unValue
