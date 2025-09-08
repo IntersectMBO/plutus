@@ -58,7 +58,7 @@
               (Extended a)
               d
               [ (NegInf {a})
-              , (\(ds : data) -> Finite {a} (`$dUnsafeFromData` ds))
+              , (\(arg : data) -> Finite {a} (`$dUnsafeFromData` arg))
               , (PosInf {a}) ]
     data GovernanceActionId | GovernanceActionId_match where
       GovernanceActionId : bytestring -> integer -> GovernanceActionId
@@ -68,8 +68,8 @@
           case
             GovernanceActionId
             d
-            [ (\(ds : data) (ds : data) ->
-                 GovernanceActionId (unBData ds) (unIData ds)) ]
+            [ (\(arg : data) (arg : data) ->
+                 GovernanceActionId (unBData arg) (unIData arg)) ]
     !`$fUnsafeFromDataList_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> List a
       = /\a ->
@@ -90,8 +90,8 @@
           case
             Credential
             d
-            [ (\(ds : data) -> PubKeyCredential (unBData ds))
-            , (\(ds : data) -> ScriptCredential (unBData ds)) ]
+            [ (\(arg : data) -> PubKeyCredential (unBData arg))
+            , (\(arg : data) -> ScriptCredential (unBData arg)) ]
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
@@ -99,7 +99,7 @@
             case
               (Maybe a)
               d
-              [ (\(ds : data) -> Just {a} (`$dUnsafeFromData` ds))
+              [ (\(arg : data) -> Just {a} (`$dUnsafeFromData` arg))
               , (Nothing {a}) ]
     !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
        all k v.
@@ -213,110 +213,110 @@
           case
             ProposalProcedure
             d
-            [ (\(ds : data)
-                (ds : data)
-                (ds : data) ->
+            [ (\(arg : data)
+                (arg : data)
+                (arg : data) ->
                  ProposalProcedure
-                   (unIData ds)
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
+                   (unIData arg)
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
                    (case
                       GovernanceAction
-                      ds
-                      [ (\(ds : data)
-                          (ds : data)
-                          (ds : data) ->
+                      arg
+                      [ (\(arg : data)
+                          (arg : data)
+                          (arg : data) ->
                            ParameterChange
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {GovernanceActionId}
                                 `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                ds)
-                             ds
+                                arg)
+                             arg
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {bytestring}
                                 unBData
-                                ds))
-                      , (\(ds : data)
-                          (ds : data) ->
+                                arg))
+                      , (\(arg : data)
+                          (arg : data) ->
                            HardForkInitiation
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {GovernanceActionId}
                                 `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                ds)
+                                arg)
                              (case
                                 ProtocolVersion
-                                ds
-                                [ (\(ds : data) (ds : data) ->
+                                arg
+                                [ (\(arg : data) (arg : data) ->
                                      ProtocolVersion
-                                       (unIData ds)
-                                       (unIData ds)) ]))
-                      , (\(ds : data)
-                          (ds : data) ->
+                                       (unIData arg)
+                                       (unIData arg)) ]))
+                      , (\(arg : data)
+                          (arg : data) ->
                            TreasuryWithdrawals
                              (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                 {Credential}
                                 {integer}
                                 `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                 unIData
-                                ds)
+                                arg)
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {bytestring}
                                 unBData
-                                ds))
-                      , (\(ds : data) ->
+                                arg))
+                      , (\(arg : data) ->
                            NoConfidence
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {GovernanceActionId}
                                 `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                ds))
-                      , (\(ds : data)
-                          (ds : data)
-                          (ds : data)
-                          (ds : data) ->
+                                arg))
+                      , (\(arg : data)
+                          (arg : data)
+                          (arg : data)
+                          (arg : data) ->
                            UpdateCommittee
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {GovernanceActionId}
                                 `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                ds)
+                                arg)
                              (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                                 {Credential}
                                 `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                ds)
+                                arg)
                              (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                 {Credential}
                                 {integer}
                                 `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                 unIData
-                                ds)
+                                arg)
                              (Tuple2_match
                                 {integer}
                                 {integer}
                                 (case
                                    (Tuple2 integer integer)
-                                   ds
-                                   [ (\(ds : data) (ds : data) ->
+                                   arg
+                                   [ (\(arg : data) (arg : data) ->
                                         Tuple2
                                           {integer}
                                           {integer}
-                                          (unIData ds)
-                                          (unIData ds)) ])
+                                          (unIData arg)
+                                          (unIData arg)) ])
                                 {Rational}
                                 (\(a : integer) (b : integer) ->
                                    unsafeRatio a b)))
-                      , (\(ds : data)
-                          (ds : data) ->
+                      , (\(arg : data)
+                          (arg : data) ->
                            NewConstitution
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {GovernanceActionId}
                                 `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                ds)
+                                arg)
                              (case
                                 (Maybe bytestring)
-                                ds
-                                [ (\(ds : data) ->
+                                arg
+                                [ (\(arg : data) ->
                                      `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                        {bytestring}
                                        unBData
-                                       ds) ]))
+                                       arg) ]))
                       , InfoAction ])) ]
     data Voter | Voter_match where
       CommitteeVoter : Credential -> Voter
@@ -327,13 +327,13 @@
           case
             Voter
             d
-            [ (\(ds : data) ->
+            [ (\(arg : data) ->
                  CommitteeVoter
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds))
-            , (\(ds : data) ->
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg))
+            , (\(arg : data) ->
                  DRepVoter
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds))
-            , (\(ds : data) -> StakePoolVoter (unBData ds)) ]
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg))
+            , (\(arg : data) -> StakePoolVoter (unBData arg)) ]
     data DRep | DRep_match where
       DRep : Credential -> DRep
       DRepAlwaysAbstain : DRep
@@ -343,8 +343,9 @@
           case
             DRep
             d
-            [ (\(ds : data) ->
-                 DRep (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds))
+            [ (\(arg : data) ->
+                 DRep
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg))
             , DRepAlwaysAbstain
             , DRepAlwaysNoConfidence ]
     data Delegatee | Delegatee_match where
@@ -356,13 +357,13 @@
           case
             Delegatee
             d
-            [ (\(ds : data) -> DelegStake (unBData ds))
-            , (\(ds : data) ->
-                 DelegVote (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData` ds))
-            , (\(ds : data) (ds : data) ->
+            [ (\(arg : data) -> DelegStake (unBData arg))
+            , (\(arg : data) ->
+                 DelegVote (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData` arg))
+            , (\(arg : data) (arg : data) ->
                  DelegStakeVote
-                   (unBData ds)
-                   (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData` ds)) ]
+                   (unBData arg)
+                   (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData` arg)) ]
     data TxCert | TxCert_match where
       TxCertAuthHotCommittee : Credential -> Credential -> TxCert
       TxCertDelegStaking : Credential -> Delegatee -> TxCert
@@ -380,51 +381,51 @@
           case
             TxCert
             eta
-            [ (\(ds : data) (ds : data) ->
+            [ (\(arg : data) (arg : data) ->
                  TxCertRegStaking
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
                    (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                       {integer}
                       unIData
-                      ds))
-            , (\(ds : data) (ds : data) ->
+                      arg))
+            , (\(arg : data) (arg : data) ->
                  TxCertUnRegStaking
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
                    (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                       {integer}
                       unIData
-                      ds))
-            , (\(ds : data) (ds : data) ->
+                      arg))
+            , (\(arg : data) (arg : data) ->
                  TxCertDelegStaking
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
-                   (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData` ds))
-            , (\(ds : data) (ds : data) (ds : data) ->
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
+                   (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData` arg))
+            , (\(arg : data) (arg : data) (arg : data) ->
                  TxCertRegDeleg
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
-                   (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData` ds)
-                   (unIData ds))
-            , (\(ds : data) (ds : data) ->
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
+                   (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData` arg)
+                   (unIData arg))
+            , (\(arg : data) (arg : data) ->
                  TxCertRegDRep
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
-                   (unIData ds))
-            , (\(ds : data) ->
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
+                   (unIData arg))
+            , (\(arg : data) ->
                  TxCertUpdateDRep
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds))
-            , (\(ds : data) (ds : data) ->
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg))
+            , (\(arg : data) (arg : data) ->
                  TxCertUnRegDRep
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
-                   (unIData ds))
-            , (\(ds : data) (ds : data) ->
-                 TxCertPoolRegister (unBData ds) (unBData ds))
-            , (\(ds : data) (ds : data) ->
-                 TxCertPoolRetire (unBData ds) (unIData ds))
-            , (\(ds : data) (ds : data) ->
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
+                   (unIData arg))
+            , (\(arg : data) (arg : data) ->
+                 TxCertPoolRegister (unBData arg) (unBData arg))
+            , (\(arg : data) (arg : data) ->
+                 TxCertPoolRetire (unBData arg) (unIData arg))
+            , (\(arg : data) (arg : data) ->
                  TxCertAuthHotCommittee
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds))
-            , (\(ds : data) ->
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg))
+            , (\(arg : data) ->
                  TxCertResignColdCommittee
-                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ds)) ]
+                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg)) ]
     data TxOutRef | TxOutRef_match where
       TxOutRef : bytestring -> integer -> TxOutRef
     !`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` : data -> TxOutRef
@@ -432,42 +433,45 @@
           case
             TxOutRef
             d
-            [(\(ds : data) (ds : data) -> TxOutRef (unBData ds) (unIData ds))]
+            [ (\(arg : data) (arg : data) ->
+                 TxOutRef (unBData arg) (unIData arg)) ]
     !`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` :
        data -> TxOut
       = \(eta : data) ->
           case
             TxOut
             eta
-            [ (\(ds : data)
-                (ds : data)
-                (ds : data)
-                (ds : data) ->
+            [ (\(arg : data)
+                (arg : data)
+                (arg : data)
+                (arg : data) ->
                  TxOut
                    (case
                       Address
-                      ds
-                      [ (\(ds : data)
-                          (ds : data) ->
+                      arg
+                      [ (\(arg : data)
+                          (arg : data) ->
                            Address
                              (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                ds)
+                                arg)
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                 {StakingCredential}
                                 (\(d : data) ->
                                    case
                                      StakingCredential
                                      d
-                                     [ (\(ds : data) ->
+                                     [ (\(arg : data) ->
                                           StakingHash
                                             (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                               ds))
-                                     , (\(ds : data) (ds : data) (ds : data) ->
+                                               arg))
+                                     , (\(arg : data)
+                                         (arg : data)
+                                         (arg : data) ->
                                           StakingPtr
-                                            (unIData ds)
-                                            (unIData ds)
-                                            (unIData ds)) ])
-                                ds)) ])
+                                            (unIData arg)
+                                            (unIData arg)
+                                            (unIData arg)) ])
+                                arg)) ])
                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                       {bytestring}
                       {(\k v -> List (Tuple2 k v)) bytestring integer}
@@ -477,17 +481,17 @@
                          {integer}
                          unBData
                          unIData)
-                      ds)
+                      arg)
                    (case
                       OutputDatum
-                      ds
+                      arg
                       [ NoOutputDatum
-                      , (\(ds : data) -> OutputDatumHash (unBData ds))
-                      , (\(ds : data) -> OutputDatum ds) ])
+                      , (\(arg : data) -> OutputDatumHash (unBData arg))
+                      , (\(arg : data) -> OutputDatum arg) ])
                    (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                       {bytestring}
                       unBData
-                      ds)) ]
+                      arg)) ]
     data TxInInfo | TxInInfo_match where
       TxInInfo : TxOutRef -> TxOut -> TxInInfo
     !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` : data -> TxInInfo
@@ -495,10 +499,10 @@
           case
             TxInInfo
             d
-            [ (\(ds : data) (ds : data) ->
+            [ (\(arg : data) (arg : data) ->
                  TxInInfo
-                   (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` ds)
-                   (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` ds)) ]
+                   (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` arg)
+                   (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` arg)) ]
     data ScriptInfo | ScriptInfo_match where
       CertifyingScript : integer -> TxCert -> ScriptInfo
       MintingScript : bytestring -> ScriptInfo
@@ -554,43 +558,43 @@
       (case
          ScriptContext
          d
-         [ (\(ds : data)
-             (ds : data)
-             (ds : data) ->
+         [ (\(arg : data)
+             (arg : data)
+             (arg : data) ->
               ScriptContext
                 (case
                    TxInfo
-                   ds
-                   [ (\(ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data)
-                       (ds : data) ->
+                   arg
+                   [ (\(arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data)
+                       (arg : data) ->
                         TxInfo
                           (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                              {TxInInfo}
                              `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                              {TxInInfo}
                              `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                              {TxOut}
                              `$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                             ds)
-                          (unIData ds)
+                             arg)
+                          (unIData arg)
                           (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                              {bytestring}
                              {(\k v -> List (Tuple2 k v)) bytestring integer}
@@ -600,55 +604,55 @@
                                 {integer}
                                 unBData
                                 unIData)
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                              {TxCert}
                              `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                              {Credential}
                              {integer}
                              `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                              unIData
-                             ds)
+                             arg)
                           (case
                              (Interval integer)
-                             ds
-                             [ (\(ds : data)
-                                 (ds : data) ->
+                             arg
+                             [ (\(arg : data)
+                                 (arg : data) ->
                                   Interval
                                     {integer}
                                     (case
                                        (LowerBound integer)
-                                       ds
-                                       [ (\(ds : data)
-                                           (ds : data) ->
+                                       arg
+                                       [ (\(arg : data)
+                                           (arg : data) ->
                                             LowerBound
                                               {integer}
                                               (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
                                                  {integer}
                                                  unIData
-                                                 ds)
-                                              (case bool ds [False, True])) ])
+                                                 arg)
+                                              (case bool arg [False, True])) ])
                                     (case
                                        (UpperBound integer)
-                                       ds
-                                       [ (\(ds : data)
-                                           (ds : data) ->
+                                       arg
+                                       [ (\(arg : data)
+                                           (arg : data) ->
                                             UpperBound
                                               {integer}
                                               (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
                                                  {integer}
                                                  unIData
-                                                 ds)
+                                                 arg)
                                               (case
                                                  bool
-                                                 ds
+                                                 arg
                                                  [False, True])) ])) ])
                           (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                              {bytestring}
                              unBData
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                              {ScriptPurpose}
                              {data}
@@ -656,40 +660,40 @@
                                 case
                                   ScriptPurpose
                                   d
-                                  [ (\(ds : data) -> Minting (unBData ds))
-                                  , (\(ds : data) ->
+                                  [ (\(arg : data) -> Minting (unBData arg))
+                                  , (\(arg : data) ->
                                        Spending
                                          (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                            ds))
-                                  , (\(ds : data) ->
+                                            arg))
+                                  , (\(arg : data) ->
                                        Rewarding
                                          (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                            ds))
-                                  , (\(ds : data)
-                                      (ds : data) ->
+                                            arg))
+                                  , (\(arg : data)
+                                      (arg : data) ->
                                        Certifying
-                                         (unIData ds)
+                                         (unIData arg)
                                          (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                            ds))
-                                  , (\(ds : data) ->
+                                            arg))
+                                  , (\(arg : data) ->
                                        Voting
                                          (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                            ds))
-                                  , (\(ds : data)
-                                      (ds : data) ->
+                                            arg))
+                                  , (\(arg : data)
+                                      (arg : data) ->
                                        Proposing
-                                         (unIData ds)
+                                         (unIData arg)
                                          (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
-                                            ds)) ])
+                                            arg)) ])
                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                              {bytestring}
                              {data}
                              unBData
                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                             ds)
-                          (unBData ds)
+                             arg)
+                          (unBData arg)
                           (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                              {Voter}
                              {(\k v -> List (Tuple2 k v))
@@ -702,53 +706,53 @@
                                 `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
                                 (\(d : data) ->
                                    case Vote d [VoteNo, VoteYes, Abstain]))
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                              {ProposalProcedure}
                              `$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                              {integer}
                              unIData
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                              {integer}
                              unIData
-                             ds)) ])
-                ds
+                             arg)) ])
+                arg
                 (case
                    ScriptInfo
-                   ds
-                   [ (\(ds : data) -> MintingScript (unBData ds))
-                   , (\(ds : data)
-                       (ds : data) ->
+                   arg
+                   [ (\(arg : data) -> MintingScript (unBData arg))
+                   , (\(arg : data)
+                       (arg : data) ->
                         SpendingScript
                           (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                             ds)
+                             arg)
                           (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                              {data}
                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                             ds))
-                   , (\(ds : data) ->
+                             arg))
+                   , (\(arg : data) ->
                         RewardingScript
                           (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                             ds))
-                   , (\(ds : data)
-                       (ds : data) ->
+                             arg))
+                   , (\(arg : data)
+                       (arg : data) ->
                         CertifyingScript
-                          (unIData ds)
+                          (unIData arg)
                           (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                             ds))
-                   , (\(ds : data) ->
+                             arg))
+                   , (\(arg : data) ->
                         VotingScript
                           (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                             ds))
-                   , (\(ds : data)
-                       (ds : data) ->
+                             arg))
+                   , (\(arg : data)
+                       (arg : data) ->
                         ProposingScript
-                          (unIData ds)
+                          (unIData arg)
                           (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
-                             ds)) ])) ])
+                             arg)) ])) ])
       {Unit}
       (\(ipv : TxInfo) (ipv : data) (ipv : ScriptInfo) ->
          case

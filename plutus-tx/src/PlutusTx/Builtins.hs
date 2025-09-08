@@ -67,6 +67,7 @@ module PlutusTx.Builtins (
   unsafeDataAsB,
   BI.builtinDataToData,
   BI.dataToBuiltinData,
+  BI.caseDataConstr,
 
   -- * Strings
   BuiltinString,

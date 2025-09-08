@@ -62,21 +62,21 @@
                                                                       hd
                                                                       [ (\l r ->
                                                                            r) ])
-                                                                   [ (\ds ->
+                                                                   [ (\arg ->
                                                                         constr 2
                                                                           [ (unIData
-                                                                               ds) ])
-                                                                   , (\ds ->
+                                                                               arg) ])
+                                                                   , (\arg ->
                                                                         constr 0
                                                                           [ (unIData
-                                                                               ds) ])
-                                                                   , (\ds
-                                                                       ds ->
+                                                                               arg) ])
+                                                                   , (\arg
+                                                                       arg ->
                                                                         constr 1
                                                                           [ (unIData
-                                                                               ds)
+                                                                               arg)
                                                                           , (unIData
-                                                                               ds) ]) ]) ])
+                                                                               arg) ]) ]) ])
                                                          , (s s tl) ])
                                                   , (constr 0 []) ])
                                              nt))

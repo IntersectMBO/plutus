@@ -9,26 +9,26 @@
                 case
                   (case
                      ctx
-                     [ (\ds
-                         ds ->
+                     [ (\arg
+                         arg ->
                           (\`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` ->
                              (\`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` ->
                                 (\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
                                    constr 0
                                      [ (case
-                                          ds
-                                          [ (\ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds
-                                              ds ->
+                                          arg
+                                          [ (\arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg
+                                              arg ->
                                                (\`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` ->
                                                   (\cse ->
                                                      (\`$fUnsafeFromDataList_$cunsafeFromBuiltinData` ->
@@ -60,121 +60,121 @@
                                                                       , arg_9
                                                                       , arg_10
                                                                       , arg_11 ])
-                                                                   (cse ds)
-                                                                   (cse ds))
+                                                                   (cse arg)
+                                                                   (cse arg))
                                                                 (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                                                                    (\d ->
                                                                       case
                                                                         d
-                                                                        [ (\ds
-                                                                            ds ->
+                                                                        [ (\arg
+                                                                            arg ->
                                                                              constr 0
                                                                                [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                                                                    ds)
+                                                                                    arg)
                                                                                , (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                                                                                    ds) ]) ]))
+                                                                                    arg) ]) ]))
                                                                 (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                                                                    `$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                                                                   ds))
+                                                                   arg))
                                                              (\eta ->
                                                                 case
                                                                   eta
-                                                                  [ (\ds
-                                                                      ds
-                                                                      ds
-                                                                      ds ->
+                                                                  [ (\arg
+                                                                      arg
+                                                                      arg
+                                                                      arg ->
                                                                        constr 0
                                                                          [ (case
-                                                                              ds
-                                                                              [ (\ds
-                                                                                  ds ->
+                                                                              arg
+                                                                              [ (\arg
+                                                                                  arg ->
                                                                                    constr 0
                                                                                      [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                                                          ds)
+                                                                                          arg)
                                                                                      , (case
-                                                                                          ds
-                                                                                          [ (\ds ->
+                                                                                          arg
+                                                                                          [ (\arg ->
                                                                                                constr 0
                                                                                                  [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                                                      ds) ])
+                                                                                                      arg) ])
                                                                                           , (constr 1
                                                                                                [  ]) ]) ]) ])
                                                                          , (cse
-                                                                              ds)
+                                                                              arg)
                                                                          , (case
-                                                                              ds
+                                                                              arg
                                                                               [ (constr 0
                                                                                    [  ])
-                                                                              , (\ds ->
+                                                                              , (\arg ->
                                                                                    constr 2
                                                                                      [ (unBData
-                                                                                          ds) ])
-                                                                              , (\ds ->
+                                                                                          arg) ])
+                                                                              , (\arg ->
                                                                                    constr 1
-                                                                                     [ ds ]) ])
+                                                                                     [ arg ]) ])
                                                                          , (case
-                                                                              ds
-                                                                              [ (\ds ->
+                                                                              arg
+                                                                              [ (\arg ->
                                                                                    constr 0
                                                                                      [ (unBData
-                                                                                          ds) ])
+                                                                                          arg) ])
                                                                               , (constr 1
                                                                                    [  ]) ]) ]) ])
-                                                             (cse ds)
-                                                             (cse ds)
+                                                             (cse arg)
+                                                             (cse arg)
                                                              (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                                                                 `$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
-                                                                ds)
+                                                                arg)
                                                              (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                                                 `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
                                                                 unIData
-                                                                ds)
+                                                                arg)
                                                              (case
-                                                                ds
-                                                                [ (\ds
-                                                                    ds ->
+                                                                arg
+                                                                [ (\arg
+                                                                    arg ->
                                                                      constr 0
                                                                        [ (case
-                                                                            ds
-                                                                            [ (\ds
-                                                                                ds ->
+                                                                            arg
+                                                                            [ (\arg
+                                                                                arg ->
                                                                                  constr 0
                                                                                    [ (case
-                                                                                        ds
+                                                                                        arg
                                                                                         [ (constr 1
                                                                                              [  ])
-                                                                                        , (\ds ->
+                                                                                        , (\arg ->
                                                                                              constr 0
                                                                                                [ (unIData
-                                                                                                    ds) ])
+                                                                                                    arg) ])
                                                                                         , (constr 2
                                                                                              [  ]) ])
                                                                                    , (case
-                                                                                        ds
+                                                                                        arg
                                                                                         [ False
                                                                                         , True ]) ]) ])
                                                                        , (case
-                                                                            ds
-                                                                            [ (\ds
-                                                                                ds ->
+                                                                            arg
+                                                                            [ (\arg
+                                                                                arg ->
                                                                                  constr 0
                                                                                    [ (case
-                                                                                        ds
+                                                                                        arg
                                                                                         [ (constr 1
                                                                                              [  ])
-                                                                                        , (\ds ->
+                                                                                        , (\arg ->
                                                                                              constr 0
                                                                                                [ (unIData
-                                                                                                    ds) ])
+                                                                                                    arg) ])
                                                                                         , (constr 2
                                                                                              [  ]) ])
                                                                                    , (case
-                                                                                        ds
+                                                                                        arg
                                                                                         [ False
                                                                                         , True ]) ]) ]) ]) ])
                                                              (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                                                                 unBData
-                                                                ds))
+                                                                arg))
                                                           (cse (cse unIData)))
                                                        (\`$dUnsafeFromData` ->
                                                           (\go d ->
@@ -198,10 +198,10 @@
                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                                           `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                                                           `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                          ds)
+                                                          arg)
                                                        (cse
                                                           `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                          ds))
+                                                          arg))
                                                     (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                                        unBData))
                                                  (\`$dUnsafeFromData`
@@ -236,56 +236,58 @@
                                                               , (constr 0
                                                                    []) ])))
                                                  (case
-                                                    ds
-                                                    [(\ds -> unBData ds)])) ])
+                                                    arg
+                                                    [(\arg -> unBData arg)])) ])
                                      , (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                          ds) ])
+                                          arg) ])
                                   (\d ->
                                      case
                                        d
-                                       [ (\ds -> constr 1 [(unBData ds)])
-                                       , (\ds ->
+                                       [ (\arg -> constr 1 [(unBData arg)])
+                                       , (\arg ->
                                             constr 3
                                               [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                                   ds) ])
-                                       , (\ds ->
+                                                   arg) ])
+                                       , (\arg ->
                                             constr 2
                                               [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                   ds) ])
-                                       , (\ds ->
+                                                   arg) ])
+                                       , (\arg ->
                                             constr 0
                                               [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
-                                                   ds) ]) ]))
+                                                   arg) ]) ]))
                                (\d ->
                                   case
                                     d
-                                    [ (\ds ->
+                                    [ (\arg ->
                                          constr 2
                                            [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                ds) ])
-                                    , (\ds ->
+                                                arg) ])
+                                    , (\arg ->
                                          constr 0
                                            [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                ds) ])
-                                    , (\ds
-                                        ds ->
+                                                arg) ])
+                                    , (\arg
+                                        arg ->
                                          constr 1
                                            [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                ds)
-                                           , (unBData ds) ])
-                                    , (\ds ds ->
-                                         constr 5 [(unBData ds), (unBData ds)])
-                                    , (\ds ds ->
-                                         constr 6 [(unBData ds), (unIData ds)])
+                                                arg)
+                                           , (unBData arg) ])
+                                    , (\arg arg ->
+                                         constr 5
+                                           [(unBData arg), (unBData arg)])
+                                    , (\arg arg ->
+                                         constr 6
+                                           [(unBData arg), (unIData arg)])
                                     , (constr 3 [])
                                     , (constr 4 []) ]))
                             (\d ->
                                case
                                  d
-                                 [ (\ds ds ->
+                                 [ (\arg arg ->
                                       constr 0
-                                        [ (case ds [(\ds -> unBData ds)])
-                                        , (unIData ds) ]) ])) ])
+                                        [ (case arg [(\arg -> unBData arg)])
+                                        , (unIData arg) ]) ])) ])
                   [ (\ds
                       ds ->
                        case
@@ -406,18 +408,18 @@
                (\d ->
                   case
                     d
-                    [ (\ds ->
+                    [ (\arg ->
                          constr 0
                            [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                ds) ])
-                    , (\ds ds ds ->
+                                arg) ])
+                    , (\arg arg arg ->
                          constr 1
-                           [(unIData ds), (unIData ds), (unIData ds)]) ]))
+                           [(unIData arg), (unIData arg), (unIData arg)]) ]))
             (\d ->
                case
                  d
-                 [ (\ds -> constr 0 [(unBData ds)])
-                 , (\ds -> constr 1 [(unBData ds)]) ]))
+                 [ (\arg -> constr 0 [(unBData arg)])
+                 , (\arg -> constr 1 [(unBData arg)]) ]))
          (\ds ds ->
             case
               ds

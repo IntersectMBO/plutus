@@ -80,8 +80,8 @@ in
     case
       (Either integer b)
       d
-      [ (\(ds : data) -> Left {integer} {b} (`$dUnsafeFromData` ds))
-      , (\(ds : data) -> Right {integer} {b} (`$dUnsafeFromData` ds)) ])
+      [ (\(arg : data) -> Left {integer} {b} (`$dUnsafeFromData` arg))
+      , (\(arg : data) -> Right {integer} {b} (`$dUnsafeFromData` arg)) ])
   unIData
   ((let
        a = Tuple3 bool integer bool
@@ -90,17 +90,17 @@ in
        case
          (Maybe a)
          d
-         [(\(ds : data) -> Just {a} (`$dUnsafeFromData` ds)), (Nothing {a})])
+         [(\(arg : data) -> Just {a} (`$dUnsafeFromData` arg)), (Nothing {a})])
      (\(d : data) ->
         case
           (Tuple3 bool integer bool)
           d
-          [ (\(ds : data) (ds : data) (ds : data) ->
+          [ (\(arg : data) (arg : data) (arg : data) ->
                Tuple3
                  {bool}
                  {integer}
                  {bool}
-                 (case bool ds [False, True])
-                 (unIData ds)
-                 (case bool ds [False, True])) ]))
+                 (case bool arg [False, True])
+                 (unIData arg)
+                 (case bool arg [False, True])) ]))
   d

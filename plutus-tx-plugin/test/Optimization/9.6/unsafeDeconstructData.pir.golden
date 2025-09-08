@@ -13,11 +13,11 @@ in
       case
         (Maybe a)
         d
-        [(\(ds : data) -> Just {a} (`$dUnsafeFromData` ds)), (Nothing {a})])
+        [(\(arg : data) -> Just {a} (`$dUnsafeFromData` arg)), (Nothing {a})])
     (\(d : data) ->
        case
          (Tuple2 integer integer)
          d
-         [ (\(ds : data) (ds : data) ->
-              Tuple2 {integer} {integer} (unIData ds) (unIData ds)) ])
+         [ (\(arg : data) (arg : data) ->
+              Tuple2 {integer} {integer} (unIData arg) (unIData arg)) ])
     ds

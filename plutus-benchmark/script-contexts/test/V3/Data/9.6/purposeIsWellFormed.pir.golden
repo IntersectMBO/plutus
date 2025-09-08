@@ -347,7 +347,8 @@ let
           case
             (Maybe a)
             d
-            [(\(ds : data) -> Just {a} (`$dUnsafeFromData` ds)), (Nothing {a})]
+            [ (\(arg : data) -> Just {a} (`$dUnsafeFromData` arg))
+            , (Nothing {a}) ]
   !`$mTxCertRegStaking` :
      all r. data -> (data -> Maybe integer -> r) -> (unit -> r) -> r
     = /\r ->

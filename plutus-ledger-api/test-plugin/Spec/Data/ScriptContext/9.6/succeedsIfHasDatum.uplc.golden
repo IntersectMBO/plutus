@@ -9,7 +9,7 @@
               , (case
                    (case
                       (force headList (force tailList (case tup [(\l r -> r)])))
-                      [(\ds -> constr 0 [ds]), (constr 1 [])])
+                      [(\arg -> constr 0 [arg]), (constr 1 [])])
                    [(\ds -> True), False]) ])
            (unConstrData
               (force headList

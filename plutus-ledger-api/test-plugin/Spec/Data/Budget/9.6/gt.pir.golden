@@ -59,14 +59,14 @@ let
           case
             (These a b)
             d
-            [ (\(ds : data) -> This {a} {b} (`$dUnsafeFromData` ds))
-            , (\(ds : data) -> That {a} {b} (`$dUnsafeFromData` ds))
-            , (\(ds : data) (ds : data) ->
+            [ (\(arg : data) -> This {a} {b} (`$dUnsafeFromData` arg))
+            , (\(arg : data) -> That {a} {b} (`$dUnsafeFromData` arg))
+            , (\(arg : data) (arg : data) ->
                  These
                    {a}
                    {b}
-                   (`$dUnsafeFromData` ds)
-                   (`$dUnsafeFromData` ds)) ]
+                   (`$dUnsafeFromData` arg)
+                   (`$dUnsafeFromData` arg)) ]
 in
 letrec
   !go : list (pair data data) -> bool

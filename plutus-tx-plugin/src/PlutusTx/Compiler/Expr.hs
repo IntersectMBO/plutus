@@ -49,6 +49,7 @@ import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
+import PlutusTx.Plugin.Lib qualified
 
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.HasOpaque qualified as Builtins
@@ -87,8 +88,6 @@ import Data.Text.Encoding qualified as TE
 import Data.Traversable (for)
 import Data.Tuple.Extra
 import Data.Word (Word8)
-
-import Debug.Trace qualified as DT
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -924,7 +923,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
 
-  caseDataConstr <- lookupGhcName 'BI.caseDataConstr
+  caseDataConstr <- lookupGhcName 'Builtins.caseDataConstr
+  caseDataConstr' <- lookupGhcId 'PlutusTx.Plugin.Lib.caseDataConstr'
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   listIndexId <- lookupGhcId '(PlutusTx.List.!!)
 
@@ -932,22 +932,63 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   case e of
     -- case Data.Constr
     GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
-      | GHC.getName var == caseDataConstr  && coDatatypeStyle opts == PIR.BuiltinCasing -> do
-        --DT.trace ("hERE : " <> GHC.showPprUnsafe e) $ pure ()
+      | GHC.getName var == caseDataConstr && coDatatypeStyle opts == PIR.BuiltinCasing -> do
+        let
+          -- case ds_dqhq of {
+          --  [] -> jump fail_dqhv (##);
+          --  : x_aqgg [Occ=Once1] ds_dqht [Occ=Once1!] -> <...nested...>
+          -- }
+          collapseNestedCases :: GHC.Id -> GHC.CoreExpr -> _ (GHC.CoreExpr, [GHC.Id])
+          collapseNestedCases failer (GHC.Case _ _ _ [emptyCase, restCase]) =
+            case (emptyCase, restCase) of
+              (GHC.Alt _ [] (GHC.App (GHC.Var failer') _), GHC.Alt _ [binder, _] restExpr)
+                | failer' == failer -> (fmap . fmap) (binder:) $ collapseNestedCases failer (strip restExpr)
+              (GHC.Alt _ [] lastExpr, GHC.Alt _ _ (GHC.App (GHC.Var failer') _))
+                | failer' == failer -> pure (lastExpr, [])
+              _ -> throwPlain $ CompilationError "List pattern should not have alternative matches"
+          collapseNestedCases _ _ =
+            throwPlain $ CompilationError "Unexpected expression where list pattern was expected"
+
+          -- \ (ds_dqbV [Occ=Once1!] :: [BuiltinData]) ->
+          --    join {
+          --      fail_dqc0 [Occ=Once3!T[1]] :: (# #) -> Bob
+          --      fail_dqc0 = ...
+          --    } in ...
+          go (GHC.Lam _arg (GHC.Let (GHC.NonRec failer _) x)) =
+            (uncurry $ foldr GHC.Lam) <$> collapseNestedCases failer (strip x)
+          -- \ (ds_dqdv [Occ=Once1!] :: [BuiltinData]) ->
+          --    case ds_dqdv of {
+          --      [] -> Zob;
+          --      : _ [Occ=Dead] _ [Occ=Dead] ->
+          --        case patError @LiftedRep @() "foo/Main.hs:(43,5)-(51,6)|lambda"#
+          --        of {
+          --        }
+          --    }
+          go (GHC.Lam _arg (GHC.Case _ _ _ [GHC.Alt _ [] emptyCase, GHC.Alt _ [_, _] (GHC.Case _ _ _ [])])) =
+            pure emptyCase
+          -- \ (ds_dqdv [Occ=Once1!] :: [BuiltinData]) ->
+          --    case ds_dqdv of {
+          --      [] -> Zob;
+          --      : _ [Occ=Dead] _ [Occ=Dead] ->
+          --        patError
+          --          @LiftedRep @() "src/PlutusTx/IsData/Instances.hs:31:2-32|lambda"#
+          --    }
+          go (GHC.Lam _arg (GHC.Case _ _ _ [GHC.Alt _ [] emptyCase, _])) =
+            pure emptyCase
+          go _ =
+            throwPlain $
+              CompilationError "Unexpected expression where lambda with list pattern was expected"
+
         resTy' <- compileTypeNorm resTy
         scrut' <- compileExpr scrut
-        let
-          removeExistential (GHC.App (GHC.App _ _) x) = pure x
-          removeExistential _ =
-              throwPlain $
-                CompilationError "Unexpected expression where existential wrapper is expected"
         branches  <-
           compileHaskellList li
-          >>= traverse (removeExistential . strip)
+          >>= traverse (go . strip)
           >>= traverse compileExpr
         pure $ PIR.kase annAlwaysInline resTy' scrut' branches
       | GHC.getName var == caseDataConstr -> do
-        undefined
+          compileExpr $
+            GHC.App (GHC.App (GHC.App (GHC.Var caseDataConstr') (GHC.Type resTy)) scrut) li
     -- case integer
     GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
       | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do

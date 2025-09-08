@@ -13,19 +13,12 @@ let
           case
             (Tuple2 a b)
             d
-            [ (\(ds : data) ->
-                 let
-                   !ds : data = ds
-                 in
-                 \(ds : data) ->
-                   let
-                     !ds : data = ds
-                   in
-                   Tuple2
-                     {a}
-                     {b}
-                     (`$dUnsafeFromData` ds)
-                     (`$dUnsafeFromData` ds)) ]
+            [ (\(arg : data) (arg : data) ->
+                 Tuple2
+                   {a}
+                   {b}
+                   (`$dUnsafeFromData` arg)
+                   (`$dUnsafeFromData` arg)) ]
   ~`$fUnsafeFromDataTuple2` :
      all a b.
        (\a -> data -> a) a ->
@@ -53,11 +46,7 @@ let
           case
             (Maybe a)
             d
-            [ (\(ds : data) ->
-                 let
-                   !ds : data = ds
-                 in
-                 Just {a} (`$dUnsafeFromData` ds))
+            [ (\(arg : data) -> Just {a} (`$dUnsafeFromData` arg))
             , (Nothing {a}) ]
   ~`$fUnsafeFromDataMaybe` :
      all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)

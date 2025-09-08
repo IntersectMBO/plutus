@@ -77,7 +77,7 @@
                         (case
                            bytestring
                            (headList {data} (tailList {data} l))
-                           [(\(ds : data) -> unBData ds)]))
+                           [(\(arg : data) -> unBData arg)]))
                     (headList
                        {data}
                        (case

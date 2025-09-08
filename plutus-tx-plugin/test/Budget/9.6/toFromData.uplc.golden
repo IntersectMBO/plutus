@@ -16,18 +16,18 @@
                            (force mkCons (Constr 0 []) []))))
                   []))
             []))
-      [ (\ds -> constr 0 [(unIData ds)])
-      , (\ds ->
+      [ (\arg -> constr 0 [(unIData arg)])
+      , (\arg ->
            constr 1
              [ (case
-                  ds
-                  [ (\ds ->
+                  arg
+                  [ (\arg ->
                        constr 0
                          [ (case
-                              ds
-                              [ (\ds ds ds ->
+                              arg
+                              [ (\arg arg arg ->
                                    constr 0
-                                     [ (case ds [False, True])
-                                     , (unIData ds)
-                                     , (case ds [False, True]) ]) ]) ])
+                                     [ (case arg [False, True])
+                                     , (unIData arg)
+                                     , (case arg [False, True]) ]) ]) ])
                   , (constr 1 []) ]) ]) ]))

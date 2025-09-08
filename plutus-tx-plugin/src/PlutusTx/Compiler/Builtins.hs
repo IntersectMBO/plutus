@@ -23,6 +23,7 @@ module PlutusTx.Compiler.Builtins (
 
 import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as Builtins
+import PlutusTx.Plugin.Lib qualified
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Names
@@ -251,6 +252,7 @@ builtinNames =
   , 'Builtins.unsafeDataAsList
   , 'Builtins.unsafeDataAsB
   , 'Builtins.unsafeDataAsI
+  , 'PlutusTx.Plugin.Lib.caseDataConstr'
   , 'Builtins.caseDataConstr
   , ''Builtins.BuiltinBLS12_381_G1_Element
   , 'Builtins.bls12_381_G1_equals

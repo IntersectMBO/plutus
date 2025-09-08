@@ -43,7 +43,7 @@ in
              (case
                 (Maybe data)
                 (headList {data} (tailList {data} l))
-                [(\(ds : data) -> Just {data} ds), (Nothing {data})])
+                [(\(arg : data) -> Just {data} arg), (Nothing {data})])
              {all dead. bool}
              (\(ds : data) -> /\dead -> True)
              (/\dead -> False)

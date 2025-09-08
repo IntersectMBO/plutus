@@ -17,7 +17,7 @@
             case
               (Maybe a)
               d
-              [ (\(ds : data) -> Just {a} (`$dUnsafeFromData` ds))
+              [ (\(arg : data) -> Just {a} (`$dUnsafeFromData` arg))
               , (Nothing {a}) ]
     data Unit | Unit_match where
       Unit : Unit

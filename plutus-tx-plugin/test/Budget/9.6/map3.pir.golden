@@ -380,8 +380,8 @@ in
           case
             (These integer integer)
             d
-            [ (\(ds : data) -> This {integer} {integer} (unIData ds))
-            , (\(ds : data) -> That {integer} {integer} (unIData ds))
-            , (\(ds : data) (ds : data) ->
-                 These {integer} {integer} (unIData ds) (unIData ds)) ])
+            [ (\(arg : data) -> This {integer} {integer} (unIData arg))
+            , (\(arg : data) -> That {integer} {integer} (unIData arg))
+            , (\(arg : data) (arg : data) ->
+                 These {integer} {integer} (unIData arg) (unIData arg)) ])
        nt)

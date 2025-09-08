@@ -1,11 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveDataTypeable        #-}
-{-# LANGUAGE DerivingStrategies        #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE KindSignatures            #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE KindSignatures     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're OPAQUE!
@@ -60,7 +59,6 @@ import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
 import Prettyprinter (viaShow)
-import Unsafe.Coerce
 
 {-
 We do not use qualified import because the whole module contains off-chain code
@@ -1072,17 +1070,14 @@ casePair :: forall a b r. BuiltinPair a b -> (a -> b -> r) -> r
 casePair p f = f (PlutusTx.Builtins.Internal.fst p) (PlutusTx.Builtins.Internal.snd p)
 {-# INLINE casePair #-}
 
-data CaseDataConstrBranch = forall a. CaseDataConstrBranch a
-
-caseDataConstr :: forall r. BuiltinData -> [CaseDataConstrBranch] -> r
+caseDataConstr :: forall r. BuiltinData -> [[BuiltinData] -> r] -> r
 caseDataConstr d branches =
   let
     constr = unsafeDataAsConstr d
     idx = PlutusTx.Builtins.Internal.fst constr
-    ds = PlutusTx.Builtins.Internal.snd constr
-    unwrap (CaseDataConstrBranch x) = unsafeCoerce x
-    applyToBranch :: r -> BuiltinList BuiltinData -> r
-    applyToBranch body =
-      caseList' body (\arg -> applyToBranch (unsafeCoerce body $ arg))
-  in applyToBranch (unwrap $ branches !! fromIntegral idx) ds
+    (BuiltinList ds) = PlutusTx.Builtins.Internal.snd constr
+    -- Use of 'fromOpaque' is EVIL. It is a necessary evil since we need
+    -- slower SOP list for the plugin to match list directly for builtin-case
+    -- version of this function.
+  in (branches Haskell.!! fromIntegral idx) ds
 {-# OPAQUE caseDataConstr #-}

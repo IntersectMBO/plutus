@@ -274,22 +274,22 @@ unsafeFromDataClause indexedCons appliedType = do
 
           let
             argNames = fst <$> argNamesWithType
+            listBinder = TH.listP $ TH.varP <$> argNames
             apps =
               foldl
                 (\f (v, ty) -> [|$f (unsafeFromBuiltinData $(TH.varE v) :: $(pure ty))|])
                 (TH.conE constName)
                 argNamesWithType
-            handler =
-              foldr
-                (\arg b -> [|\($(TH.varP arg) :: BI.BuiltinData) -> $b|])
-                [|$apps :: $(pure appliedType)|]
-                argNames
-
-          [|BI.CaseDataConstrBranch $handler|]
+            -- handler =
+            --   foldr
+            --     (\arg b -> [|\($(TH.varP arg) :: BI.BuiltinData) -> $b|])
+            --     [|$apps :: $(pure appliedType)|]
+            --     argNames
+          TH.lamE [listBinder] [|$apps :: $(pure appliedType)|]
 
         kases = TH.listE $ (unsafeReconBuiltinCasingCase . fst) <$> indexedConsSorted
 
-        body = [| BI.caseDataConstr $(TH.varE dName) $kases |]
+        body = [| Builtins.caseDataConstr $(TH.varE dName) $kases |]
 
       TH.clause [TH.varP dName] (TH.normalB body) []
     else do
