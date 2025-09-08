@@ -16,6 +16,7 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
+import Control.Exception.Base qualified
 import GHC.Builtin.Names qualified as GHC
 import GHC.Builtin.Types.Prim qualified as GHC
 import GHC.ByteCode.Types qualified as GHC
@@ -927,13 +928,19 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   caseDataConstr' <- lookupGhcId 'PlutusTx.Plugin.Lib.caseDataConstr'
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   listIndexId <- lookupGhcId '(PlutusTx.List.!!)
-
+  patErrorId <- lookupGhcId 'Control.Exception.Base.patError
 
   case e of
     -- case Data.Constr
     GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
       | GHC.getName var == caseDataConstr && coDatatypeStyle opts == PIR.BuiltinCasing -> do
         let
+          isPatError (GHC.Case (GHC.App (GHC.App (GHC.App (GHC.Var patId) _) _) _) _ _ []) =
+            patId == patErrorId
+          isPatError (GHC.App (GHC.App (GHC.App (GHC.Var patId) _) _) _) =
+            patId == patErrorId
+          isPatError _ = False
+
           -- case ds_dqhq of {
           --  [] -> jump fail_dqhv (##);
           --  : x_aqgg [Occ=Once1] ds_dqht [Occ=Once1!] -> <...nested...>
@@ -949,6 +956,21 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           collapseNestedCases _ _ =
             throwPlain $ CompilationError "Unexpected expression where list pattern was expected"
 
+          -- case ds_dqhq of {
+          --  [] -> patError ... or case patError ... {};
+          --  : x_aqgg [Occ=Once1] ds_dqht [Occ=Once1!] -> <...nested...>
+          -- }
+          collapseNestedCases' :: GHC.CoreExpr -> _ (GHC.CoreExpr, [GHC.Id])
+          collapseNestedCases' (GHC.Case _ _ _ [emptyCase, restCase]) =
+            case (emptyCase, restCase) of
+              (GHC.Alt _ [] failer, GHC.Alt _ [binder, _] restExpr)
+                | isPatError failer -> (fmap . fmap) (binder:) $ collapseNestedCases' (strip restExpr)
+              (GHC.Alt _ [] lastExpr, GHC.Alt _ _ failer)
+                | isPatError failer -> pure (lastExpr, [])
+              _ -> throwPlain $ CompilationError "List pattern should not have alternative matches"
+          collapseNestedCases'  _ =
+            throwPlain $ CompilationError "Unexpected expression where list pattern was expected"
+
           -- \ (ds_dqbV [Occ=Once1!] :: [BuiltinData]) ->
           --    join {
           --      fail_dqc0 [Occ=Once3!T[1]] :: (# #) -> Bob
@@ -956,25 +978,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           --    } in ...
           go (GHC.Lam _arg (GHC.Let (GHC.NonRec failer _) x)) =
             (uncurry $ foldr GHC.Lam) <$> collapseNestedCases failer (strip x)
-          -- \ (ds_dqdv [Occ=Once1!] :: [BuiltinData]) ->
-          --    case ds_dqdv of {
-          --      [] -> Zob;
-          --      : _ [Occ=Dead] _ [Occ=Dead] ->
-          --        case patError @LiftedRep @() "foo/Main.hs:(43,5)-(51,6)|lambda"#
-          --        of {
-          --        }
-          --    }
-          go (GHC.Lam _arg (GHC.Case _ _ _ [GHC.Alt _ [] emptyCase, GHC.Alt _ [_, _] (GHC.Case _ _ _ [])])) =
-            pure emptyCase
-          -- \ (ds_dqdv [Occ=Once1!] :: [BuiltinData]) ->
-          --    case ds_dqdv of {
-          --      [] -> Zob;
-          --      : _ [Occ=Dead] _ [Occ=Dead] ->
-          --        patError
-          --          @LiftedRep @() "src/PlutusTx/IsData/Instances.hs:31:2-32|lambda"#
-          --    }
-          go (GHC.Lam _arg (GHC.Case _ _ _ [GHC.Alt _ [] emptyCase, _])) =
-            pure emptyCase
+          go (GHC.Lam _arg x) =
+            (uncurry $ foldr GHC.Lam) <$> collapseNestedCases' (strip x)
           go _ =
             throwPlain $
               CompilationError "Unexpected expression where lambda with list pattern was expected"

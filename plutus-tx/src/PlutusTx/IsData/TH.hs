@@ -280,11 +280,7 @@ unsafeFromDataClause indexedCons appliedType = do
                 (\f (v, ty) -> [|$f (unsafeFromBuiltinData $(TH.varE v) :: $(pure ty))|])
                 (TH.conE constName)
                 argNamesWithType
-            -- handler =
-            --   foldr
-            --     (\arg b -> [|\($(TH.varP arg) :: BI.BuiltinData) -> $b|])
-            --     [|$apps :: $(pure appliedType)|]
-            --     argNames
+
           TH.lamE [listBinder] [|$apps :: $(pure appliedType)|]
 
         kases = TH.listE $ (unsafeReconBuiltinCasingCase . fst) <$> indexedConsSorted

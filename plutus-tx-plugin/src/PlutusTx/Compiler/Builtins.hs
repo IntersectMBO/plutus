@@ -50,6 +50,7 @@ import GHC.Plugins qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
+import Control.Exception.Base qualified
 import Control.Monad.Reader (asks)
 
 import Data.ByteString qualified as BS
@@ -292,6 +293,8 @@ builtinNames =
   , 'Builtins.countSetBits
   , 'Builtins.findFirstSetBit
   , 'Builtins.expModInteger
+
+  , 'Control.Exception.Base.patError
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
