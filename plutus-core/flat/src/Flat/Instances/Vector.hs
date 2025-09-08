@@ -1,3 +1,4 @@
+
 -- | Flat instances for the vector package.
 module Flat.Instances.Vector
   ()

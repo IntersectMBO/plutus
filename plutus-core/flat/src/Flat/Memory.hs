@@ -2,6 +2,7 @@
 {-# LANGUAGE MagicHash     #-}
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE UnboxedTuples #-}
+
 {- |
 Memory access primitives.
 

@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP                       #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
+
 -- |Strict Decoder Primitives
 module Flat.Decoder.Prim (
     dBool,

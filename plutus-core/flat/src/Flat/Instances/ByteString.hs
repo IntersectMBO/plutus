@@ -1,5 +1,6 @@
 -- | Flat instances for the bytestring library
 {-# LANGUAGE NoMonomorphismRestriction #-}
+
 module Flat.Instances.ByteString
   ()
 where

@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE UndecidableInstances      #-}
+
 module Flat.Instances.Mono
   ( sizeSequence
   , encodeSequence

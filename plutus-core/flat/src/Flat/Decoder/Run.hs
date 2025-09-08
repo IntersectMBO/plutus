@@ -1,3 +1,4 @@
+
 module Flat.Decoder.Run(strictDecoder,listTDecoder) where
 
 import Control.Exception (Exception, try)

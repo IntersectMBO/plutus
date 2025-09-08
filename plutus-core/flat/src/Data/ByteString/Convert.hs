@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+
 module Data.ByteString.Convert
   ( AsByteString(..)
   )
