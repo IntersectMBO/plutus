@@ -15,7 +15,7 @@ jobs:
       issues: write
     steps:
       - name: Add Label
-        uses: actions/github-script@main
+        uses: actions/github-script@v7.1.0
         with:
           script: | 
             const INTERNAL_LABELS = ["Internal", "status: triaged"];
