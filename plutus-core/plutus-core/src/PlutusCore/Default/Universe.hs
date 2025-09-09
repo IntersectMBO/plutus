@@ -131,68 +131,99 @@ pattern DefaultUniArray uniA =
 pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 
-instance GEq DefaultUni where
-    -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
-    -- recursive definition and we want two instead. The reason why we want two is because this
-    -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
-    -- is hidden in the other function that is marked as @OPAQUE@ and is chosen by GHC as a
-    -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
-    -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
-    -- very much and we've failed to settle on any other approach).
-    --
-    -- This trick gives us a 1% speedup across validation benchmarks (some are up to 4% faster) and
-    -- a more sensible generated Core where things like @geq DefaulUniBool@ are reduced away.
-    geq = geqStep where
-        geqStep :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
-        geqStep DefaultUniInteger a2 = do
-            DefaultUniInteger <- Just a2
-            Just Refl
-        geqStep DefaultUniByteString a2 = do
-            DefaultUniByteString <- Just a2
-            Just Refl
-        geqStep DefaultUniString a2 = do
-            DefaultUniString <- Just a2
-            Just Refl
-        geqStep DefaultUniUnit a2 = do
-            DefaultUniUnit <- Just a2
-            Just Refl
-        geqStep DefaultUniBool a2 = do
-            DefaultUniBool <- Just a2
-            Just Refl
-        geqStep DefaultUniProtoList a2 = do
-            DefaultUniProtoList <- Just a2
-            Just Refl
-        geqStep DefaultUniProtoArray a2 = do
-            DefaultUniProtoArray <- Just a2
-            Just Refl
-        geqStep DefaultUniProtoPair a2 = do
-            DefaultUniProtoPair <- Just a2
-            Just Refl
-        geqStep (DefaultUniApply f1 x1) a2 = do
-            DefaultUniApply f2 x2 <- Just a2
-            Refl <- geqRec f1 f2
-            Refl <- geqRec x1 x2
-            Just Refl
-        geqStep DefaultUniData a2 = do
-            DefaultUniData <- Just a2
-            Just Refl
-        geqStep DefaultUniBLS12_381_G1_Element a2 = do
-            DefaultUniBLS12_381_G1_Element <- Just a2
-            Just Refl
-        geqStep DefaultUniBLS12_381_G2_Element a2 = do
-            DefaultUniBLS12_381_G2_Element <- Just a2
-            Just Refl
-        geqStep DefaultUniBLS12_381_MlResult a2 = do
-            DefaultUniBLS12_381_MlResult <- Just a2
-            Just Refl
-        geqStep DefaultUniValue a2 = do
-            DefaultUniValue <- Just a2
-            Just Refl
-        {-# INLINE geqStep #-}
+instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a where
+    geqL DefaultUniInteger a2 = do
+        DefaultUniInteger <- pure a2
+        pure Refl
+    geqL DefaultUniByteString a2 = do
+        DefaultUniByteString <- pure a2
+        pure Refl
+    geqL DefaultUniString a2 = do
+        DefaultUniString <- pure a2
+        pure Refl
+    geqL DefaultUniUnit a2 = do
+        DefaultUniUnit <- pure a2
+        pure Refl
+    geqL DefaultUniBool a2 = do
+        DefaultUniBool <- pure a2
+        pure Refl
+    geqL (DefaultUniProtoList `DefaultUniApply` (a1 :: DefaultUni (Esc a1))) listA2 = do
+        DefaultUniProtoList `DefaultUniApply` a2 <- pure listA2
+        Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
+        pure Refl
+    geqL (DefaultUniProtoArray `DefaultUniApply` a1) arrayA2 = do
+        DefaultUniProtoArray `DefaultUniApply` a2 <- pure arrayA2
+        Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
+        pure Refl
+    geqL (DefaultUniProtoPair `DefaultUniApply` a1 `DefaultUniApply` b1) pairA2 = do
+        DefaultUniProtoPair `DefaultUniApply` a2 `DefaultUniApply` b2 <- pure pairA2
+        Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
+        Refl <- geqL (LoopBreaker b1) (LoopBreaker b2)
+        pure Refl
+    geqL (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
+        noMoreTypeFunctions f
+    geqL DefaultUniData a2 = do
+        DefaultUniData <- pure a2
+        pure Refl
+    geqL DefaultUniBLS12_381_G1_Element a2 = do
+        DefaultUniBLS12_381_G1_Element <- pure a2
+        pure Refl
+    geqL DefaultUniBLS12_381_G2_Element a2 = do
+        DefaultUniBLS12_381_G2_Element <- pure a2
+        pure Refl
+    geqL DefaultUniBLS12_381_MlResult a2 = do
+        DefaultUniBLS12_381_MlResult <- pure a2
+        pure Refl
+    geqL DefaultUniValue a2 = do
+        DefaultUniValue <- pure a2
+        pure Refl
+    {-# INLINE geqL #-}
 
-        geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
-        geqRec = geqStep
-        {-# OPAQUE geqRec #-}
+instance GEq DefaultUni where
+    geq DefaultUniInteger a2 = do
+        DefaultUniInteger <- Just a2
+        Just Refl
+    geq DefaultUniByteString a2 = do
+        DefaultUniByteString <- Just a2
+        Just Refl
+    geq DefaultUniString a2 = do
+        DefaultUniString <- Just a2
+        Just Refl
+    geq DefaultUniUnit a2 = do
+        DefaultUniUnit <- Just a2
+        Just Refl
+    geq DefaultUniBool a2 = do
+        DefaultUniBool <- Just a2
+        Just Refl
+    geq DefaultUniProtoList a2 = do
+        DefaultUniProtoList <- Just a2
+        Just Refl
+    geq DefaultUniProtoArray a2 = do
+        DefaultUniProtoArray <- Just a2
+        Just Refl
+    geq DefaultUniProtoPair a2 = do
+        DefaultUniProtoPair <- Just a2
+        Just Refl
+    geq (DefaultUniApply f1 x1) a2 = do
+        DefaultUniApply f2 x2 <- Just a2
+        Refl <- geq f1 f2
+        Refl <- geq x1 x2
+        Just Refl
+    geq DefaultUniData a2 = do
+        DefaultUniData <- Just a2
+        Just Refl
+    geq DefaultUniBLS12_381_G1_Element a2 = do
+        DefaultUniBLS12_381_G1_Element <- Just a2
+        Just Refl
+    geq DefaultUniBLS12_381_G2_Element a2 = do
+        DefaultUniBLS12_381_G2_Element <- Just a2
+        Just Refl
+    geq DefaultUniBLS12_381_MlResult a2 = do
+        DefaultUniBLS12_381_MlResult <- Just a2
+        Just Refl
+    geq DefaultUniValue a2 = do
+        DefaultUniValue <- Just a2
+        Just Refl
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
