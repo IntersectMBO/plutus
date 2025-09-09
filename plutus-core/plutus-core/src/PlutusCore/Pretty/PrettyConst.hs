@@ -15,7 +15,7 @@ module PlutusCore.Pretty.PrettyConst where
 
 import PlutusCore.Data
 import PlutusCore.Pretty.Readable
-import PlutusCore.Value (Value (..))
+import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
 import Control.Lens hiding (List)
@@ -29,7 +29,7 @@ import Data.Typeable
 import Data.Vector.Strict (Vector)
 import Data.Word (Word8)
 import Numeric (showHex)
-import Prettyprinter as Prettyprinter
+import Prettyprinter
 import Prettyprinter.Internal (Doc (Text))
 import Text.PrettyBy
 import Text.PrettyBy.Internal (DefaultPrettyBy (..))
