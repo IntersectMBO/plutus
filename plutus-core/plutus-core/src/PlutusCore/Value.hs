@@ -12,6 +12,8 @@ module PlutusCore.Value (
   toList,
   totalSize,
   maxInnerSize,
+  insertCoin,
+  unionValue,
 ) where
 
 import Codec.Serialise (Serialise)
@@ -91,8 +93,42 @@ fromList =
 
 normalize :: NestedMap -> NestedMap
 normalize = Map.filter (not . Map.null) . Map.map (Map.filter (/= 0))
+{-# INLINEABLE normalize #-}
 
 instance Pretty Value where
   pretty = pretty . fmap (bimap toText (fmap (first toText))) . toList
    where
     toText = Text.decodeLatin1 . Base64.encode
+
+{-| \(O(\log \max(m, k))\), where \(m\) is the size of the outer map, and \(k\) is
+the size of the largest inner map.
+-}
+insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
+insertCoin currency token amt (Value outer sizes size) = case Map.lookup currency outer of
+  Nothing ->
+    let inner = Map.singleton token amt
+        outer' = Map.insert currency inner outer
+        sizes' = updateSizes 0 sizes
+        size' = size + 1
+     in Value outer' sizes' size'
+  Just inner ->
+    let exists = Map.member token inner
+        inner' = Map.insert token amt inner
+        outer' = Map.insert currency inner' outer
+        sizes' = if exists then sizes else updateSizes (Map.size inner) sizes
+        size' = if exists then size else size + 1
+     in Value outer' sizes' size'
+{-# INLINEABLE insertCoin #-}
+
+-- | \(O(n)\), where \(n\) is the total size of the maps.
+unionValue :: Value -> Value -> Value
+unionValue v v' = pack (Map.unionWith (Map.unionWith (+)) (unpack v) (unpack v'))
+{-# INLINEABLE unionValue #-}
+
+-- | Decrement bucket @oldSize@, and increment bucket @oldSize + 1@.
+updateSizes :: Int -> IntMap Int -> IntMap Int
+updateSizes oldSize = dec . inc
+ where
+  inc = IntMap.alter (maybe (Just 1) (Just . (+ 1))) (oldSize + 1)
+  dec = IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1)) oldSize
+{-# INLINEABLE updateSizes #-}
