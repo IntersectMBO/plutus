@@ -2,6 +2,8 @@
 
 rec {
 
+  # Flattens a nested attribute set of derivations into name/value pairs.
+  # Used in: `nix/outputs.nix` (to build `flattened-ci-jobs` and `ciJobs`).
   flattenDerivationTree = separator: set:
     let
       recurse = name: name':
@@ -17,6 +19,8 @@ rec {
     assert lib.typeOf set == "set"; lib.listToAttrs (flatten "" set);
 
 
+  # Aggregates CI jobs which are required for Hydra to pass.
+  # Used in: `nix/outputs.nix` (to compute `hydra-required-job`).
   makeHydraRequiredJob = { self, pkgs }:
     let
       clean-jobs =
@@ -30,6 +34,9 @@ rec {
     };
 
 
+  # Retrieves the git revision from flake sourceInfo, or "unknown".
+  # Used in: `nix/project.nix` (adds `__GIT_REV__` CPP macro to builds).
+  # When the git tree is dirty, the sourceInfo attribute is missing from inputs.self.
   getSourceInfoRev = inputs:
     if inputs.self.sourceInfo ? rev then
       inputs.self.sourceInfo.rev
@@ -37,6 +44,9 @@ rec {
       "unknown";
 
 
+  # Converts flake sourceInfo lastModifiedDate to ISO-8601, or empty string.
+  # Used in: `nix/project.nix` (adds `__GIT_COMMIT_DATE__` CPP macro).
+  # When the git tree is dirty, the sourceInfo attribute is missing from inputs.self.
   getSourceInfoLastModifiedDate = inputs:
     if inputs.self.sourceInfo ? lastModifiedDate then
       date_YYYYMMDDHHmmSS_ToIso8601 inputs.self.sourceInfo.lastModifiedDate
@@ -44,6 +54,7 @@ rec {
       "";
 
 
+  # Helper to convert YYYYMMDDHHmmSS timestamps to ISO-8601.
   date_YYYYMMDDHHmmSS_ToIso8601 = ts:
     let
       year = lib.substring 0 4 ts;

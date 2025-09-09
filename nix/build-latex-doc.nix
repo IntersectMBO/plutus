@@ -1,5 +1,8 @@
 { pkgs, lib, agda-tools }:
 
+# Builds a LaTeX/Agda-based document into a PDF.
+# Used in: `nix/latex-documents.nix` to define all document derivations.
+
 { name, description, src, output-pdf-name ? "*.pdf" }:
 
 pkgs.stdenv.mkDerivation {
