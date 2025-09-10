@@ -27,6 +27,7 @@ import Data.ByteString.Base64 qualified as Base64
 import Data.Hashable (Hashable)
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
+import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
@@ -69,11 +70,16 @@ unpack (Value v _ _) = v
 The map will be filtered so that it does not contain empty inner map or zero amount.
 -}
 pack :: NestedMap -> Value
-pack (normalize -> v) = Value v sizes size
+pack = pack' . normalize
+{-# INLINE pack #-}
+
+-- | Like `pack` but does not normalize.
+pack' :: NestedMap -> Value
+pack' (normalize -> v) = Value v sizes size
  where
   sizes = Map.foldr' (IntMap.alter (maybe (Just 1) (Just . (+ 1))) . Map.size) mempty v
   size = Map.foldr' ((+) . Map.size) 0 v
-{-# INLINEABLE pack #-}
+{-# INLINEABLE pack' #-}
 
 {-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
 contained in the `Value`.
@@ -146,9 +152,34 @@ deleteCoin currency token (Value outer _ _) =
     Nothing    -> outer
     Just inner -> Map.insert currency (Map.delete token inner) outer
 
--- | \(O(n)\), where \(n\) is the total size of the maps.
+{-| The precise complexity is complicated, but an upper bound
+is \(O(n_{1} \log n_{2}) + O(m)\), where \(n_{1}\) is the total size of the smaller
+value, \(n_{2}\) is the total size of the bigger value, and \(m\) is the
+combined size of the outer maps.
+-}
 unionValue :: Value -> Value -> Value
-unionValue v v' = pack (Map.unionWith (Map.unionWith (+)) (unpack v) (unpack v'))
+unionValue (unpack -> vA) (unpack -> vB) =
+  pack' $
+    M.merge
+      M.preserveMissing
+      M.preserveMissing
+      ( M.zipWithMaybeMatched $ \_ innerA innerB ->
+          let inner =
+                M.merge
+                  M.preserveMissing
+                  M.preserveMissing
+                  ( M.zipWithMaybeMatched $ \_ x y ->
+                      let z = x + y in if z == 0 then Nothing else Just z
+                  )
+                  innerA
+                  innerB
+           in if Map.null inner
+                then Nothing
+                else
+                  Just inner
+      )
+      vA
+      vB
 {-# INLINEABLE unionValue #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.
