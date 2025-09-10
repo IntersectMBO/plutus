@@ -800,6 +800,7 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.Substitutions
     PlutusCore.Generators.QuickCheck.Unification
     PlutusCore.Generators.QuickCheck.Utils
+    PlutusCore.Generators.QuickCheck.Value
     PlutusCore.Test
     PlutusIR.Generators.AST
     PlutusIR.Generators.QuickCheck
@@ -815,6 +816,7 @@ library plutus-core-testlib
 
   build-depends:
     , base                        >=4.9     && <5
+    , base16-bytestring
     , bifunctors
     , bytestring
     , containers
@@ -838,6 +840,7 @@ library plutus-core-testlib
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
+    , random
     , size-based
     , Stream
     , tagged
