@@ -397,6 +397,7 @@ test-suite plutus-core-test
     , plutus-core                      ^>=1.53
     , plutus-core:plutus-core-testlib
     , prettyprinter
+    , QuickCheck
     , safe
     , serialise
     , tasty

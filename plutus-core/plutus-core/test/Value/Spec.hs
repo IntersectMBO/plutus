@@ -1,158 +1,107 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Value.Spec (tests) where
 
-import Data.ByteString (ByteString)
-import Data.ByteString.Char8 qualified as BC
 import Data.Foldable
-import Data.Int
 import Data.Map.Strict qualified as Map
 import Data.Maybe
-import Hedgehog (Gen, MonadTest, Property, assert, forAll, property, (===))
-import Hedgehog.Gen qualified as Gen
-import Hedgehog.Range qualified as Range
+import PlutusCore.Generators.QuickCheck.Builtin ()
+import PlutusCore.Generators.QuickCheck.Value (genShortHex)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as V
 import Safe.Foldable (maximumMay)
+import Test.QuickCheck
 import Test.Tasty
-import Test.Tasty.Hedgehog
-
-genCurrency :: Gen ByteString
-genCurrency = Gen.element $ fmap (\(n :: Int) -> "currency" <> BC.pack (show n)) [1 .. 100]
-
-genToken :: Gen ByteString
-genToken = Gen.element $ fmap (\(n :: Int) -> "token" <> BC.pack (show n)) [1 .. 100]
-
-genAmount :: Gen Integer
-genAmount = toInteger @Int16 <$> Gen.enumBounded
-
-genValue :: Gen Value
-genValue = do
-  n <- Gen.int (Range.constant 0 100)
-  let f :: Int -> Value -> Gen Value
-      f _ v = V.insertCoin <$> genCurrency <*> genToken <*> genAmount <*> pure v
-  foldrM f V.empty [1 .. n]
-
-genNestedMap :: Gen V.NestedMap
-genNestedMap = do
-  n <- Gen.int (Range.constant 0 100)
-  let f :: Int -> V.NestedMap -> Gen V.NestedMap
-      f _ nm = do
-        currency <- genCurrency
-        token <- genToken
-        amt <- genAmount
-        pure $ Map.insertWith (Map.unionWith (+)) currency (Map.singleton token amt) nm
-  foldrM f mempty [1 .. n]
+import Test.Tasty.QuickCheck
 
 prop_packUnpackRoundtrip :: Property
-prop_packUnpackRoundtrip = property $ do
-  v <- forAll genValue
+prop_packUnpackRoundtrip = forAll arbitrary $ \v ->
   v === V.pack (V.unpack v)
 
 -- | Verifies that @pack@ correctly updates the sizes
 prop_packBookkeeping :: Property
-prop_packBookkeeping = property $ do
-  nm <- forAll genNestedMap
+prop_packBookkeeping = forAll arbitrary $ \nm ->
   checkSizes (V.pack nm)
 
 {-| Verifies that @pack@ preserves @Value@ invariants, i.e.,
 no empty inner map or zero amount.
 -}
 prop_packPreservesInvariants :: Property
-prop_packPreservesInvariants = property $ do
-  nm <- forAll genNestedMap
+prop_packPreservesInvariants = forAll arbitrary $ \nm ->
   checkInvariants (V.pack nm)
 
 -- | Verifies that @insertCoin@ correctly updates the sizes
 prop_insertCoinBookkeeping :: Property
-prop_insertCoinBookkeeping = property $ do
-  v <- forAll genValue
-  currency <- forAll genCurrency
-  token <- forAll genToken
-  amt <- forAll genAmount
-  let v' = V.insertCoin currency token amt v
-  checkSizes v'
+prop_insertCoinBookkeeping = forAll arbitrary $ \(v, amt) ->
+  forAll (genShortHex (V.totalSize v)) $ \currency ->
+    forAll (genShortHex (V.totalSize v)) $ \token ->
+      let v' = V.insertCoin currency token amt v
+       in checkSizes v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
 prop_insertCoinPreservesInvariants :: Property
-prop_insertCoinPreservesInvariants = property $ do
-  v <- forAll genValue
-  currency <- forAll genCurrency
-  token <- forAll genToken
-  amt <- forAll genAmount
-  let v' = V.insertCoin currency token amt v
-  checkInvariants v'
+prop_insertCoinPreservesInvariants = forAll arbitrary $ \(v, amt) ->
+  forAll (genShortHex (V.totalSize v)) $ \currency ->
+    forAll (genShortHex (V.totalSize v)) $ \token ->
+      let v' = V.insertCoin currency token amt v
+       in checkInvariants v'
 
 prop_unionCommutative :: Property
-prop_unionCommutative = property $ do
-  v <- forAll genValue
-  v' <- forAll genValue
+prop_unionCommutative = forAll arbitrary $ \(v, v') ->
   V.unionValue v v' === V.unionValue v' v
 
 prop_unionAssociative :: Property
-prop_unionAssociative = property $ do
-  v1 <- forAll genValue
-  v2 <- forAll genValue
-  v3 <- forAll genValue
+prop_unionAssociative = forAll arbitrary $ \(v1, v2, v3) ->
   V.unionValue v1 (V.unionValue v2 v3) === V.unionValue (V.unionValue v1 v2) v3
 
 prop_insertCoinIdempotent :: Property
-prop_insertCoinIdempotent = property $ do
-  v <- forAll genValue
+prop_insertCoinIdempotent = forAll arbitrary $ \v ->
   let fm = V.toFlatList v
-  v === foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
+   in v === foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
 
-checkSizes :: (MonadTest m) => Value -> m ()
+checkSizes :: Value -> Property
 checkSizes v =
   (expectedMaxInnerSize === actualMaxInnerSize)
-    >> (expectedSize === actualSize)
+    .&&. (expectedSize === actualSize)
  where
   expectedMaxInnerSize = fromMaybe 0 . maximumMay $ Map.map Map.size (V.unpack v)
   actualMaxInnerSize = V.maxInnerSize v
   expectedSize = sum $ Map.map Map.size (V.unpack v)
   actualSize = V.totalSize v
 
-checkInvariants :: (MonadTest m) => Value -> m ()
-checkInvariants (V.unpack -> v) = do
-  assert $ (not . any Map.null) v
-  assert $ (not . any (elem 0)) v
+checkInvariants :: Value -> Property
+checkInvariants (V.unpack -> v) =
+  property ((not . any Map.null) v)
+    .&&. property ((not . any (elem 0)) v)
 
 tests :: TestTree
 tests =
   testGroup
     "Value"
-    [ testPropertyNamed
+    [ testProperty
         "packUnpackRoundtrip"
-        "prop_packUnpackRoundtrip"
         prop_packUnpackRoundtrip
-    , testPropertyNamed
+    , testProperty
         "packBookkeeping"
-        "prop_packBookkeeping"
         prop_packBookkeeping
-    , testPropertyNamed
+    , testProperty
         "packPreservesInvariants"
-        "prop_packPreservesInvariants"
         prop_packPreservesInvariants
-    , testPropertyNamed
+    , testProperty
         "insertCoinBookkeeping"
-        "prop_insertCoinBookkeeping"
         prop_insertCoinBookkeeping
-    , testPropertyNamed
+    , testProperty
         "insertCoinPreservesInvariants"
-        "prop_insertCoinPreservesInvariants"
         prop_insertCoinPreservesInvariants
-    , testPropertyNamed
+    , testProperty
         "unionCommutative"
-        "prop_unionCommutative"
         prop_unionCommutative
-    , testPropertyNamed
+    , testProperty
         "unionAssociative"
-        "prop_unionAssociative"
         prop_unionAssociative
-    , testPropertyNamed
+    , testProperty
         "insertCoinIdempotent"
-        "prop_insertCoinIdempotent"
         prop_insertCoinIdempotent
     ]

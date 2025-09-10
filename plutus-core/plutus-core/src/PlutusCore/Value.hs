@@ -77,8 +77,11 @@ pack = pack' . normalize
 pack' :: NestedMap -> Value
 pack' (normalize -> v) = Value v sizes size
  where
-  sizes = Map.foldr' (IntMap.alter (maybe (Just 1) (Just . (+ 1))) . Map.size) mempty v
-  size = Map.foldr' ((+) . Map.size) 0 v
+  (sizes, size) = Map.foldl' alg (mempty, 0) v
+  alg (ss, s) inner =
+    ( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss
+    , s + Map.size inner
+    )
 {-# INLINEABLE pack' #-}
 
 {-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
