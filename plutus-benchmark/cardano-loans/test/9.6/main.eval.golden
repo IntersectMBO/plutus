@@ -1,13 +1,6 @@
-<<<<<<< HEAD
-CPU:               121_424_595
-Memory:                621_882
-Term Size:               8_051
-Flat Size:               9_186
-=======
 CPU:               110_908_889
 Memory:                621_150
 Term Size:               7_446
 Flat Size:               8_702
->>>>>>> master
 
 (con unit ())
