@@ -293,6 +293,7 @@ library
 
   -- Notes on dependencies:
   -- * Bound on cardano-crypto-class for the fixed SECP primitives and 9.6 support
+  -- * This bound also includes support for the bls12-381 msm primitives (see CIP-133)
   -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72
   build-depends:
     , aeson
@@ -303,7 +304,7 @@ library
     , bimap
     , bytestring
     , bytestring-strict-builder
-    , cardano-crypto-class        ^>=2.2
+    , cardano-crypto-class        ^>=2.2.3
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
