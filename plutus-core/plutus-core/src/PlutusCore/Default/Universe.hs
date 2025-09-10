@@ -147,7 +147,7 @@ instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a wher
     geqL DefaultUniBool a2 = do
         DefaultUniBool <- pure a2
         pure Refl
-    geqL (DefaultUniProtoList `DefaultUniApply` (a1 :: DefaultUni (Esc a1))) listA2 = do
+    geqL (DefaultUniProtoList `DefaultUniApply` a1) listA2 = do
         DefaultUniProtoList `DefaultUniApply` a2 <- pure listA2
         Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
         pure Refl
