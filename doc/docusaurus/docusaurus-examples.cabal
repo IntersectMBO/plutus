@@ -18,6 +18,7 @@ common lang
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
+    -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
