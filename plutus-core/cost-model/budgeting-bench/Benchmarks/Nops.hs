@@ -51,81 +51,81 @@ benchUnitTerm =
    models. There's also a cost for lifting the result of a builtin call back to
    a Plutus value, and that's included in the benchmark results as well. -}
 
-data NopFun
-    = Nop1b  -- Built-in Bool
-    | Nop2b
-    | Nop3b
-    | Nop4b
-    | Nop5b
-    | Nop6b
-    | Nop1i  -- Built-in Integer
-    | Nop2i
-    | Nop3i
-    | Nop4i
-    | Nop5i
-    | Nop6i
-    | Nop1c  -- Integer: lifted via SomeConstant
-    | Nop2c
-    | Nop3c
-    | Nop4c
-    | Nop5c
-    | Nop6c
-    | Nop1o  -- Opaque Integer: no unlifting required
-    | Nop2o
-    | Nop3o
-    | Nop4o
-    | Nop5o
-    | Nop6o
+data NNopFun
+    = NNop1b  -- Built-in Bool
+    | NNop2b
+    | NNop3b
+    | NNop4b
+    | NNop5b
+    | NNop6b
+    | NNop1i  -- Built-in Integer
+    | NNop2i
+    | NNop3i
+    | NNop4i
+    | NNop5i
+    | NNop6i
+    | NNop1c  -- Integer: lifted via SomeConstant
+    | NNop2c
+    | NNop3c
+    | NNop4c
+    | NNop5c
+    | NNop6c
+    | NNop1o  -- Opaque Integer: no unlifting required
+    | NNop2o
+    | NNop3o
+    | NNop4o
+    | NNop5o
+    | NNop6o
     deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving anyclass (PrettyBy PrettyConfigPlc)
 
-instance Pretty NopFun where
+instance Pretty NNopFun where
     pretty fun = pretty $ lowerInitialChar $ show fun
 
-data NopCostModel =
-    NopCostModel
-    { paramNop1 :: CostingFun ModelOneArgument
-    , paramNop2 :: CostingFun ModelTwoArguments
-    , paramNop3 :: CostingFun ModelThreeArguments
-    , paramNop4 :: CostingFun ModelFourArguments
-    , paramNop5 :: CostingFun ModelFiveArguments
-    , paramNop6 :: CostingFun ModelSixArguments
+data NNopCostModel =
+    NNopCostModel
+    { paramNNop1 :: CostingFun ModelOneArgument
+    , paramNNop2 :: CostingFun ModelTwoArguments
+    , paramNNop3 :: CostingFun ModelThreeArguments
+    , paramNNop4 :: CostingFun ModelFourArguments
+    , paramNNop5 :: CostingFun ModelFiveArguments
+    , paramNNop6 :: CostingFun ModelSixArguments
     }
 
 {- | A fake cost model for nops.  This is just to make sure that the overhead of
    calling a costing function of the expected form is included, so the precise
    contents don't matter as long as the basic form is correct (and benchmarks
    suggest that nops indeed have constant costs). -}
-nopCostModel :: NopCostModel
+nopCostModel :: NNopCostModel
 nopCostModel =
-    NopCostModel
+    NNopCostModel
     {
-      paramNop1 = CostingFun
+      paramNNop1 = CostingFun
                   (ModelOneArgumentConstantCost 1000000)
                   (ModelOneArgumentConstantCost 100)
-    , paramNop2 = CostingFun
+    , paramNNop2 = CostingFun
                   (ModelTwoArgumentsConstantCost 1250000)
                   (ModelTwoArgumentsConstantCost 200)
-    , paramNop3 = CostingFun
+    , paramNNop3 = CostingFun
                   (ModelThreeArgumentsConstantCost 1500000)
                   (ModelThreeArgumentsConstantCost 300)
-    , paramNop4 = CostingFun
+    , paramNNop4 = CostingFun
                   (ModelFourArgumentsConstantCost 1750000)
                   (ModelFourArgumentsConstantCost 400)
-    , paramNop5 = CostingFun
+    , paramNNop5 = CostingFun
                   (ModelFiveArgumentsConstantCost 2000000)
                   (ModelFiveArgumentsConstantCost 500)
-    , paramNop6 = CostingFun
+    , paramNNop6 = CostingFun
                   (ModelSixArgumentsConstantCost 2250000)
                   (ModelSixArgumentsConstantCost 600)
     }
 
-nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
+nopCostParameters :: MachineParameters CekMachineCosts NNopFun (CekValue DefaultUni NNopFun ())
 nopCostParameters =
     MachineParameters def . mkMachineVariantParameters def $
         CostModel defaultCekMachineCostsForTesting nopCostModel
 
--- This is just to avoid some deeply nested case expressions for the NopNc
+-- This is just to avoid some deeply nested case expressions for the NNopNc
 -- functions below.  There is a Monad instance for EvaluationResult, but that
 -- appears to be a little slower than this.
 infixr >:
@@ -150,120 +150,120 @@ n >: k =
    we also have some nops over Bool to check that the type doesn't influence the
    cost either.
 -}
-instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
-    type CostingPart uni NopFun = NopCostModel
+instance uni ~ DefaultUni => ToBuiltinMeaning uni NNopFun where
+    type CostingPart uni NNopFun = NNopCostModel
 
-    data BuiltinSemanticsVariant NopFun = NopFunSemanticsVariantX
+    data BuiltinSemanticsVariant NNopFun = NNopFunSemanticsVariantX
 
     -- Built-in Bools
     toBuiltinMeaning
         :: forall val . HasMeaningIn uni val
-        => BuiltinSemanticsVariant NopFun
-        -> NopFun
-        -> BuiltinMeaning val NopCostModel
-    toBuiltinMeaning _semvar Nop1b =
+        => BuiltinSemanticsVariant NNopFun
+        -> NNopFun
+        -> BuiltinMeaning val NNopCostModel
+    toBuiltinMeaning _semvar NNop1b =
         makeBuiltinMeaning
              @(Bool -> Bool)
              (\_ -> True)
-             (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning _semvar Nop2b =
+             (runCostingFunOneArgument . paramNNop1)
+    toBuiltinMeaning _semvar NNop2b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool)
              (\_ _ -> True)
-             (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning _semvar Nop3b =
+             (runCostingFunTwoArguments . paramNNop2)
+    toBuiltinMeaning _semvar NNop3b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool)
              (\_ _ _ -> True)
-             (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning _semvar Nop4b =
+             (runCostingFunThreeArguments . paramNNop3)
+    toBuiltinMeaning _semvar NNop4b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ -> True)
-             (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning _semvar Nop5b =
+             (runCostingFunFourArguments . paramNNop4)
+    toBuiltinMeaning _semvar NNop5b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ _ -> True)
-             (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning _semvar Nop6b =
+             (runCostingFunFiveArguments . paramNNop5)
+    toBuiltinMeaning _semvar NNop6b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ _ _ -> True)
-             (runCostingFunSixArguments . paramNop6)
+             (runCostingFunSixArguments . paramNNop6)
     -- Built-in Integers
-    toBuiltinMeaning _semvar Nop1i =
+    toBuiltinMeaning _semvar NNop1i =
         makeBuiltinMeaning
              @(Integer -> Integer)
              (\_ -> 11)
-             (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning _semvar Nop2i =
+             (runCostingFunOneArgument . paramNNop1)
+    toBuiltinMeaning _semvar NNop2i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer)
              (\_ _ -> 22)
-             (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning _semvar Nop3i =
+             (runCostingFunTwoArguments . paramNNop2)
+    toBuiltinMeaning _semvar NNop3i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer)
              (\_ _ _ -> 33)
-             (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning _semvar Nop4i =
+             (runCostingFunThreeArguments . paramNNop3)
+    toBuiltinMeaning _semvar NNop4i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ -> 44)
-             (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning _semvar Nop5i =
+             (runCostingFunFourArguments . paramNNop4)
+    toBuiltinMeaning _semvar NNop5i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ _ -> 55)
-             (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning _semvar Nop6i =
+             (runCostingFunFiveArguments . paramNNop5)
+    toBuiltinMeaning _semvar NNop6i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ _ _ -> 66)
-             (runCostingFunSixArguments . paramNop6)
+             (runCostingFunSixArguments . paramNNop6)
     -- Integers unlifted via SomeConstant
-    toBuiltinMeaning _semvar Nop1c =
+    toBuiltinMeaning _semvar NNop1c =
         makeBuiltinMeaning
              (\c1 -> c1 >: BuiltinSuccess 11)
-             (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning _semvar Nop2c =
+             (runCostingFunOneArgument . paramNNop1)
+    toBuiltinMeaning _semvar NNop2c =
         makeBuiltinMeaning
              (\c1 c2 -> c1 >: c2 >: BuiltinSuccess 22)
-             (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning _semvar Nop3c =
+             (runCostingFunTwoArguments . paramNNop2)
+    toBuiltinMeaning _semvar NNop3c =
         makeBuiltinMeaning
              (\c1 c2 c3 -> c1 >: c2 >: c3 >: BuiltinSuccess 33)
-             (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning _semvar Nop4c =
+             (runCostingFunThreeArguments . paramNNop3)
+    toBuiltinMeaning _semvar NNop4c =
         makeBuiltinMeaning
              (\c1 c2 c3 c4 -> c1 >: c2 >: c3 >: c4 >: BuiltinSuccess 44)
-             (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning _semvar Nop5c =
+             (runCostingFunFourArguments . paramNNop4)
+    toBuiltinMeaning _semvar NNop5c =
         makeBuiltinMeaning
              (\c1 c2 c3 c4 c5 -> c1 >: c2 >: c3 >: c4 >: c5 >: BuiltinSuccess 55)
-             (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning _semvar Nop6c =
+             (runCostingFunFiveArguments . paramNNop5)
+    toBuiltinMeaning _semvar NNop6c =
         makeBuiltinMeaning
              (\c1 c2 c3 c4 c5 c6 -> c1 >: c2 >: c3 >: c4 >: c5 >: c6 >: BuiltinSuccess 66)
-             (runCostingFunSixArguments . paramNop6)
+             (runCostingFunSixArguments . paramNNop6)
     -- Opaque Integers
-    toBuiltinMeaning _semvar Nop1o =
+    toBuiltinMeaning _semvar NNop1o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer)
              (\_ -> fromValueOf DefaultUniInteger 11)
-             (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning _semvar Nop2o =
+             (runCostingFunOneArgument . paramNNop1)
+    toBuiltinMeaning _semvar NNop2o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer)
              (\_ _ -> fromValueOf DefaultUniInteger 22)
-             (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning _semvar Nop3o =
+             (runCostingFunTwoArguments . paramNNop2)
+    toBuiltinMeaning _semvar NNop3o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer)
              (\_ _ _ -> fromValueOf DefaultUniInteger 33)
-             (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning _semvar Nop4o =
+             (runCostingFunThreeArguments . paramNNop3)
+    toBuiltinMeaning _semvar NNop4o =
         makeBuiltinMeaning
              @(Opaque val Integer
                 -> Opaque val Integer
@@ -271,23 +271,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
                 -> Opaque val Integer
                 -> Opaque val Integer)
              (\_ _ _ _ -> fromValueOf DefaultUniInteger 44)
-             (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning _semvar Nop5o =
+             (runCostingFunFourArguments . paramNNop4)
+    toBuiltinMeaning _semvar NNop5o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
              (\_ _ _ _ _ -> fromValueOf DefaultUniInteger 55)
-             (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning _semvar Nop6o =
+             (runCostingFunFiveArguments . paramNNop5)
+    toBuiltinMeaning _semvar NNop6o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer
                -> Opaque val Integer)
              (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
-             (runCostingFunSixArguments . paramNop6)
+             (runCostingFunSixArguments . paramNNop6)
 
-instance Default (BuiltinSemanticsVariant NopFun) where
-    def = NopFunSemanticsVariantX
+instance Default (BuiltinSemanticsVariant NNopFun) where
+    def = NNopFunSemanticsVariantX
 
 ---------------- Benchmarks ----------------
 
@@ -303,31 +303,31 @@ instance Default (BuiltinSemanticsVariant NopFun) where
 -- There seems to be quite a lot of variation in repeated runs of these benchmarks.
 -- In general we have Built-in > SomeConstant > Opaque though.
 
-{- | `benchNopN` generates N random inputs and makes a benchmark measuring how
+{- | `benchNNopN` generates N random inputs and makes a benchmark measuring how
    long it takes the given function to run with those arguments.  Take care that
    N matches the number of arguments of the function or else you'll be
    benchmarking an overapplication (which will fail) or a partial application
    (which will succeed, but would give misleading results).  For example, only
-   apply benchNop5 to a Nop5 function, not to something like Nop6i or Nop2o.
+   apply benchNNop5 to a NNop5 function, not to something like NNop6i or NNop2o.
  -}
 
-benchNop1
+benchNNop1
     :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
+    => NNopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
     -> Benchmark
-benchNop1 nop rand gen =
+benchNNop1 nop rand gen =
     let (x,_) = rand gen
     in bgroup (show nop) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 nop [] x]
 
-benchNop2
+benchNNop2
     :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
+    => NNopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
     -> Benchmark
-benchNop2 nop rand gen =
+benchNNop2 nop rand gen =
     let (x,gen1) = rand gen
         (y,_)    = rand gen1
     in bgroup (show nop)
@@ -335,13 +335,13 @@ benchNop2 nop rand gen =
             [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 nop [] x y]
            ]
 
-benchNop3
+benchNNop3
     :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
+    => NNopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
     -> Benchmark
-benchNop3 nop rand gen =
+benchNNop3 nop rand gen =
     let (x,gen1) = rand gen
         (y,gen2) = rand gen1
         (z,_)    = rand gen2
@@ -352,13 +352,13 @@ benchNop3 nop rand gen =
             ]
            ]
 
-benchNop4
+benchNNop4
     :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
+    => NNopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
     -> Benchmark
-benchNop4 nop rand gen =
+benchNNop4 nop rand gen =
     let (x,gen1) = rand gen
         (y,gen2) = rand gen1
         (z,gen3) = rand gen2
@@ -372,13 +372,13 @@ benchNop4 nop rand gen =
             ]
            ]
 
-benchNop5
+benchNNop5
     :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
+    => NNopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
     -> Benchmark
-benchNop5 nop rand gen =
+benchNNop5 nop rand gen =
     let (x,gen1) = rand gen
         (y,gen2) = rand gen1
         (z,gen3) = rand gen2
@@ -395,13 +395,13 @@ benchNop5 nop rand gen =
             ]
            ]
 
-benchNop6
+benchNNop6
     :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
+    => NNopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
     -> Benchmark
-benchNop6 nop rand gen =
+benchNNop6 nop rand gen =
     let (x,gen1) = rand gen
         (y,gen2) = rand gen1
         (z,gen3) = rand gen2
@@ -426,20 +426,20 @@ benchNop6 nop rand gen =
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
     [ benchUnitTerm ]
-    ++ mkBMs mkBmB (Nop1b, Nop2b, Nop3b, Nop4b, Nop5b, Nop6b)
-    ++ mkBMs mkBmI (Nop1i, Nop2i, Nop3i, Nop4i, Nop5i, Nop6i)
-    ++ mkBMs mkBmI (Nop1c, Nop2c, Nop3c, Nop4c, Nop5c, Nop6c)
-    ++ mkBMs mkBmI (Nop1o, Nop2o, Nop3o, Nop4o, Nop5o, Nop6o)
+    ++ mkBMs mkBmB (NNop1b, NNop2b, NNop3b, NNop4b, NNop5b, NNop6b)
+    ++ mkBMs mkBmI (NNop1i, NNop2i, NNop3i, NNop4i, NNop5i, NNop6i)
+    ++ mkBMs mkBmI (NNop1c, NNop2c, NNop3c, NNop4c, NNop5c, NNop6c)
+    ++ mkBMs mkBmI (NNop1o, NNop2o, NNop3o, NNop4o, NNop5o, NNop6o)
    -- The subsidiary functions below make it a lot easier to see that we're
    -- benchmarking the right things with the right benchmarking functions.
    -- Maybe we could use some TH instead.
     where mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
-              [ mkBM benchNop1 nop1
-              , mkBM benchNop2 nop2
-              , mkBM benchNop3 nop3
-              , mkBM benchNop4 nop4
-              , mkBM benchNop5 nop5
-              , mkBM benchNop6 nop6 ]
+              [ mkBM benchNNop1 nop1
+              , mkBM benchNNop2 nop2
+              , mkBM benchNNop3 nop3
+              , mkBM benchNNop4 nop4
+              , mkBM benchNNop5 nop5
+              , mkBM benchNNop6 nop6 ]
           mkBmB benchfn nop = benchfn nop randBool gen
           mkBmI benchfn nop = benchfn nop (randNwords 1)  gen
           -- Benchmark using Integer inputs with memory usage 1

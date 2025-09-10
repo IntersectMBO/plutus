@@ -183,6 +183,13 @@ data DefaultFun
     | LengthOfArray
     | ListToArray
     | IndexArray
+    -- Nops, for experimentation only.
+    | Nop1o  -- Opaque Integer: no unlifting required
+    | Nop2o
+    | Nop3o
+    | Nop4o
+    | Nop5o
+    | Nop6o
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -193,7 +200,7 @@ data DefaultFun
  the built-in functions are obtained by applying the function below to the
  constructor names above. -}
 instance Pretty DefaultFun where
-    pretty fun = pretty $ lowerInitialChar $ show fun
+  pretty fun = pretty $ lowerInitialChar $ show fun
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
@@ -2015,6 +2022,66 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
+    toBuiltinMeaning _semvar Nop1o =
+      let nop1oDenotation :: Opaque val Integer -> Opaque val Integer
+          nop1oDenotation _ =  fromValueOf DefaultUniInteger 11
+          paramNop1 = CostingFun
+                      (ModelOneArgumentConstantCost 1000000)
+                      (ModelOneArgumentConstantCost 100)
+      in makeBuiltinMeaning nop1oDenotation (runCostingFunOneArgument . \_ -> paramNop1)
+    toBuiltinMeaning _semvar Nop2o =
+      let nop2oDenotation :: Opaque val Integer -> Opaque val Integer -> Opaque val Integer
+          nop2oDenotation _ _ =  fromValueOf DefaultUniInteger 22
+          paramNop2 = CostingFun
+                       (ModelTwoArgumentsConstantCost 1250000)
+                       (ModelTwoArgumentsConstantCost 200)
+      in makeBuiltinMeaning nop2oDenotation (runCostingFunTwoArguments . \_ -> paramNop2)
+    toBuiltinMeaning _semvar Nop3o =
+      let nop3oDenotation :: Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer
+          nop3oDenotation _ _ _ = fromValueOf DefaultUniInteger 33
+          paramNop3 = CostingFun
+                      (ModelThreeArgumentsConstantCost 1500000)
+                      (ModelThreeArgumentsConstantCost 300)
+      in makeBuiltinMeaning nop3oDenotation (runCostingFunThreeArguments . \_ -> paramNop3)
+    toBuiltinMeaning _semvar Nop4o =
+      let nop4oDenotation
+            :: Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+          nop4oDenotation _ _ _ _ = fromValueOf DefaultUniInteger 44
+          paramNop4 = CostingFun
+                       (ModelFourArgumentsConstantCost 1750000)
+                       (ModelFourArgumentsConstantCost 400)
+       in makeBuiltinMeaning nop4oDenotation (runCostingFunFourArguments . \_ -> paramNop4)
+    toBuiltinMeaning _semvar Nop5o =
+      let nop5oDenotation
+            :: Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+          nop5oDenotation _ _ _ _ _ = fromValueOf DefaultUniInteger 55
+          paramNop5 = CostingFun
+                       (ModelFiveArgumentsConstantCost 2000000)
+                       (ModelFiveArgumentsConstantCost 500)
+       in makeBuiltinMeaning nop5oDenotation (runCostingFunFiveArguments . \_ -> paramNop5)
+    toBuiltinMeaning _semvar Nop6o =
+      let nop6oDenotation
+            :: Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+            -> Opaque val Integer
+          nop6oDenotation _ _ _ _ _ _ = fromValueOf DefaultUniInteger 66
+          paramNop6 = CostingFun
+                       (ModelSixArgumentsConstantCost 2250000)
+                       (ModelSixArgumentsConstantCost 600)
+       in makeBuiltinMeaning nop6oDenotation (runCostingFunSixArguments . \_ -> paramNop6)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -2162,6 +2229,12 @@ instance Flat DefaultFun where
               LengthOfArray                   -> 89
               ListToArray                     -> 90
               IndexArray                      -> 91
+              Nop1o                           -> error "Nop1o not supported"
+              Nop2o                           -> error "Nop2o not supported"
+              Nop3o                           -> error "Nop3o not supported"
+              Nop4o                           -> error "Nop4o not supported"
+              Nop5o                           -> error "Nop5o not supported"
+              Nop6o                           -> error "Nop6o not supported"
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger

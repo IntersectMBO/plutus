@@ -12,21 +12,15 @@ import PlutusCore hiding (Constr)
 import PlutusCore.Compiler.Erase
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn, mkTyBuiltin)
-import PlutusCore.Pretty (Pretty, display)
 import PlutusPrelude (unsafeFromRight)
 import UntypedPlutusCore as UPLC hiding (Constr)
-import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.DeepSeq (NFData, force)
-import Control.Exception (evaluate)
-import Criterion.Main (Benchmark, bench, bgroup, whnf)
+import Criterion.Main (Benchmark, bench, bgroup)
 import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
-import Data.Typeable (Typeable)
 
 import PlutusBenchmark.Common
 
@@ -81,6 +75,7 @@ pairWith f = fmap (\a -> (a, f a))
 
 ---------------- Creating benchmarks ----------------
 
+{-
 benchWith
     :: (Pretty fun, Typeable fun)
     => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
@@ -104,13 +99,13 @@ benchWith params name term = bench name $
 {- Benchmark with a given evaluation context -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
 benchDefault = benchWith defaultCekParametersForTesting
-
+-}
 toNamedDeBruijnTermUPLC :: PlainTerm DefaultUni DefaultFun -> NDBTerm DefaultUni DefaultFun
 toNamedDeBruijnTermUPLC = unsafeFromRight @UPLC.FreeVariableError . UPLC.deBruijnTerm
 
 benchWithCtx :: EvaluationContext -> String -> PlainTerm DefaultUni DefaultFun-> Benchmark
 benchWithCtx evalCtx name term =
-  bench name $ benchTermCek evalCtx . toNamedDeBruijnTermUPLC $ term
+  bench name $ benchTermCek evalCtx $ toNamedDeBruijnTermUPLC term
 
 
 
