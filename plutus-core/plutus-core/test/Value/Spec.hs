@@ -101,7 +101,7 @@ prop_unionAssociative = property $ do
 prop_insertCoinIdempotent :: Property
 prop_insertCoinIdempotent = property $ do
   v <- forAll genValue
-  let fm = toFlatMap v
+  let fm = V.toFlatList v
   v === foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
 
 checkSizes :: (MonadTest m) => Value -> m ()
@@ -118,9 +118,6 @@ checkInvariants :: (MonadTest m) => Value -> m ()
 checkInvariants (V.unpack -> v) = do
   assert $ (not . any Map.null) v
   assert $ (not . any (elem 0)) v
-
-toFlatMap :: Value -> [(ByteString, ByteString, Integer)]
-toFlatMap (V.toList -> xs) = [(c, t, a) | (c, ys) <- xs, (t, a) <- ys]
 
 tests :: TestTree
 tests =

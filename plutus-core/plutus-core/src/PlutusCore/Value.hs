@@ -10,6 +10,7 @@ module PlutusCore.Value (
   empty,
   fromList,
   toList,
+  toFlatList,
   totalSize,
   maxInnerSize,
   insertCoin,
@@ -58,6 +59,7 @@ The map is guaranteed to not contain empty inner map or zero amount.
 -}
 unpack :: Value -> NestedMap
 unpack (Value v _ _) = v
+{-# INLINE unpack #-}
 
 {-| Pack a map from (currency symbol, token name) to amount into a `Value`.
 
@@ -68,22 +70,31 @@ pack (normalize -> v) = Value v sizes size
  where
   sizes = Map.foldr' (IntMap.alter (maybe (Just 1) (Just . (+ 1))) . Map.size) mempty v
   size = Map.foldr' ((+) . Map.size) 0 v
+{-# INLINEABLE pack #-}
 
 {-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
 contained in the `Value`.
 -}
 totalSize :: Value -> Int
 totalSize (Value _ _ size) = size
+{-# INLINE totalSize #-}
 
 -- | Size of the largest inner map.
 maxInnerSize :: Value -> Int
 maxInnerSize (Value _ sizes _) = maybe 0 fst (IntMap.lookupMax sizes)
+{-# INLINE maxInnerSize #-}
 
 empty :: Value
 empty = Value mempty mempty 0
+{-# INLINE empty #-}
 
 toList :: Value -> [(ByteString, [(ByteString, Integer)])]
 toList = Map.toList . Map.map Map.toList . unpack
+{-# INLINEABLE toList #-}
+
+toFlatList :: Value -> [(ByteString, ByteString, Integer)]
+toFlatList (toList -> xs) = [(c, t, a) | (c, ys) <- xs, (t, a) <- ys]
+{-# INLINEABLE toFlatList #-}
 
 fromList :: [(ByteString, [(ByteString, Integer)])] -> Value
 fromList =
