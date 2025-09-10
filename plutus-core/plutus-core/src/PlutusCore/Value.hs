@@ -108,14 +108,14 @@ insertCoin currency token amt (Value outer sizes size) = case Map.lookup currenc
   Nothing ->
     let inner = Map.singleton token amt
         outer' = Map.insert currency inner outer
-        sizes' = updateSizes 0 sizes
+        sizes' = updateSizes 0 1 sizes
         size' = size + 1
      in Value outer' sizes' size'
   Just inner ->
     let exists = Map.member token inner
         inner' = Map.insert token amt inner
         outer' = Map.insert currency inner' outer
-        sizes' = if exists then sizes else updateSizes (Map.size inner) sizes
+        sizes' = if exists then sizes else updateSizes (Map.size inner) (Map.size inner') sizes
         size' = if exists then size else size + 1
      in Value outer' sizes' size'
 {-# INLINEABLE insertCoin #-}
@@ -125,10 +125,16 @@ unionValue :: Value -> Value -> Value
 unionValue v v' = pack (Map.unionWith (Map.unionWith (+)) (unpack v) (unpack v'))
 {-# INLINEABLE unionValue #-}
 
--- | Decrement bucket @oldSize@, and increment bucket @oldSize + 1@.
-updateSizes :: Int -> IntMap Int -> IntMap Int
-updateSizes oldSize = dec . inc
+-- | Decrement bucket @old@, and increment bucket @new@.
+updateSizes :: Int -> Int -> IntMap Int -> IntMap Int
+updateSizes old new = dec . inc
  where
-  inc = IntMap.alter (maybe (Just 1) (Just . (+ 1))) (oldSize + 1)
-  dec = IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1)) oldSize
+  inc =
+    if new == 0
+      then id
+      else IntMap.alter (maybe (Just 1) (Just . (+ 1))) new
+  dec =
+    if old == 0
+      then id
+      else IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1)) old
 {-# INLINEABLE updateSizes #-}
