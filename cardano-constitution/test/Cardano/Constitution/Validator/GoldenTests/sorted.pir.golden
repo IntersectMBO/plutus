@@ -497,11 +497,12 @@ program
           (\(x : pair data data) (xs : list (pair data data)) ->
              Cons
                {Tuple2 data data}
-               (Tuple2
-                  {data}
-                  {data}
-                  (fstPair {data} {data} x)
-                  (sndPair {data} {data} x))
+               ((let
+                    r = Tuple2 data data
+                  in
+                  \(p : pair data data) (f : data -> data -> r) -> case r p [f])
+                  x
+                  (\(l : data) (r : data) -> Tuple2 {data} {data} l r))
                (matchData_go xs))
   in
   let
@@ -5278,9 +5279,8 @@ program
                     {data}
                     (tailList
                        {data}
-                       (sndPair
-                          {integer}
-                          {list data}
+                       (case
+                          (list data)
                           (unConstrData
                              (let
                                !si : pair integer (list data)
@@ -5291,25 +5291,35 @@ program
                                            {data}
                                            (tailList
                                               {data}
-                                              (sndPair
-                                                 {integer}
-                                                 {list data}
-                                                 (unConstrData ds)))))
+                                              (case
+                                                 (list data)
+                                                 (unConstrData ds)
+                                                 [ (\(l : integer)
+                                                     (r : list data) ->
+                                                      r) ]))))
                              in
                              case
                                (all dead. data)
                                (equalsInteger
                                   5
-                                  (fstPair {integer} {list data} si))
+                                  (case
+                                     integer
+                                     si
+                                     [(\(l : integer) (r : list data) -> l)]))
                                [ (/\dead -> error {data})
                                , (/\dead ->
                                     headList
                                       {data}
                                       (tailList
                                          {data}
-                                         (sndPair {integer} {list data} si))) ]
-                               {all dead. dead}))))))
-        !x : integer = fstPair {integer} {list data} ds
+                                         (case
+                                            (list data)
+                                            si
+                                            [ (\(l : integer) (r : list data) ->
+                                                 r) ]))) ]
+                               {all dead. dead}))
+                          [(\(l : integer) (r : list data) -> r)]))))
+        !x : integer = case integer ds [(\(l : integer) (r : list data) -> l)]
       in
       case
         (all dead. Maybe (List (Tuple2 data data)))
@@ -5328,7 +5338,12 @@ program
                  !d : data
                    = headList
                        {data}
-                       (tailList {data} (sndPair {integer} {list data} ds))
+                       (tailList
+                          {data}
+                          (case
+                             (list data)
+                             ds
+                             [(\(l : integer) (r : list data) -> r)]))
                in
                matchData_go (unMapData d))) ]
         {all dead. dead})

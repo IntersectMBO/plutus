@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 ExBudget {exBudgetCPU = ExCPU 580264360, exBudgetMemory = ExMemory 2958903}
+=======
+ExBudget {exBudgetCPU = ExCPU 568927992, exBudgetMemory = ExMemory 2944491}
+>>>>>>> master

@@ -7,8 +7,8 @@ letrec
           xs
           [ (\(hd : pair data data) (tl : list (pair data data)) ->
                let
-                 !v : data = sndPair {data} {data} hd
-                 !k : data = fstPair {data} {data} hd
+                 !v : data = case data hd [(\(l : data) (r : data) -> r)]
+                 !k : data = case data hd [(\(l : data) (r : data) -> l)]
                  !eta : list (pair data data) = safeAppend tl xs
                  !nilCase : list (pair data data)
                    = mkCons {pair data data} (mkPairData k v) []
@@ -24,7 +24,12 @@ letrec
                                 (all dead.
                                    list (pair data data) ->
                                    list (pair data data))
-                                (equalsData k (fstPair {data} {data} hd))
+                                (equalsData
+                                   k
+                                   (case
+                                      data
+                                      hd
+                                      [(\(l : data) (r : data) -> l)]))
                                 [ (/\dead ->
                                      \(eta : list (pair data data)) ->
                                        mkCons {pair data data} hd (go eta))
@@ -39,8 +44,6 @@ in
 let
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
-  data Unit | Unit_match where
-    Unit : Unit
   data (These :: * -> * -> *) a b | These_match where
     That : b -> These a b
     These : a -> b -> These a b
@@ -79,11 +82,18 @@ let
                   [ (\(hd : pair data data) ->
                        case
                          (all dead. list (pair data data) -> Maybe data)
-                         (equalsData k (fstPair {data} {data} hd))
+                         (equalsData
+                            k
+                            (case data hd [(\(l : data) (r : data) -> l)]))
                          [ (/\dead -> go)
                          , (/\dead ->
                               \(ds : list (pair data data)) ->
-                                Just {data} (sndPair {data} {data} hd)) ]
+                                Just
+                                  {data}
+                                  (case
+                                     data
+                                     hd
+                                     [(\(l : data) (r : data) -> r)])) ]
                          {all dead. dead})
                   , (Nothing {data}) ]
         in
@@ -186,8 +196,8 @@ in
             xs
             [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
-                   !v : data = sndPair {data} {data} hd
-                   !k : data = fstPair {data} {data} hd
+                   !v : data = case data hd [(\(l : data) (r : data) -> r)]
+                   !k : data = case data hd [(\(l : data) (r : data) -> l)]
                  in
                  Maybe_match
                    {data}
@@ -259,8 +269,8 @@ in
             xs
             [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
-                   !v : data = sndPair {data} {data} hd
-                   !k : data = fstPair {data} {data} hd
+                   !v : data = case data hd [(\(l : data) (r : data) -> r)]
+                   !k : data = case data hd [(\(l : data) (r : data) -> l)]
                  in
                  Maybe_match
                    {data}
@@ -357,50 +367,36 @@ in
                           (Tuple2
                              {integer}
                              {a}
-                             (`$dUnsafeFromData` (fstPair {data} {data} hd))
-                             (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                             (`$dUnsafeFromData`
+                                (case data hd [(\(l : data) (r : data) -> l)]))
+                             (`$dUnsafeFromData`
+                                (case data hd [(\(l : data) (r : data) -> r)])))
                           (go tl))
                    , (Nil {Tuple2 integer a}) ]
          in
          \(d : (\k a -> list (pair data data)) integer a) -> go d)
        unIData
        (\(d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
-          in
-          case
-            (all dead. These integer integer)
-            (equalsInteger 0 index)
-            [ (/\dead ->
-                 case
-                   (all dead. These integer integer)
-                   (equalsInteger 1 index)
-                   [ (/\dead ->
-                        case
-                          (all dead. These integer integer)
-                          (equalsInteger 2 index)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit = trace {Unit} "PT1" Unit
-                               in
-                               error {These integer integer})
-                          , (/\dead ->
-                               These
-                                 {integer}
-                                 {integer}
-                                 (unIData (headList {data} args))
-                                 (unIData
-                                    (headList {data} (tailList {data} args)))) ]
-                          {all dead. dead})
-                   , (/\dead ->
-                        That
-                          {integer}
-                          {integer}
-                          (unIData (headList {data} args))) ]
-                   {all dead. dead})
-            , (/\dead ->
-                 This {integer} {integer} (unIData (headList {data} args))) ]
-            {all dead. dead})
+          (let
+              b = list data
+            in
+            /\r ->
+              \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
+            {These integer integer}
+            (unConstrData d)
+            (\(index : integer) (args : list data) ->
+               case
+                 (list data -> These integer integer)
+                 index
+                 [ (\(ds : list data) ->
+                      This {integer} {integer} (unIData (headList {data} ds)))
+                 , (\(ds : list data) ->
+                      That {integer} {integer} (unIData (headList {data} ds)))
+                 , (\(ds : list data) ->
+                      These
+                        {integer}
+                        {integer}
+                        (unIData (headList {data} ds))
+                        (unIData (headList {data} (tailList {data} ds)))) ]
+                 args))
        nt)

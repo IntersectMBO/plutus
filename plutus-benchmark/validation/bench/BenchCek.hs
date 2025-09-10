@@ -1,9 +1,9 @@
 {- | Validation benchmarks for the CEK machine. -}
 module Main where
 
-import Common (benchTermCek, benchWith, mkEvalCtx, unsafeUnflat)
 import Control.Exception (evaluate)
 import PlutusBenchmark.Common (toNamedDeBruijnTerm)
+import PlutusBenchmark.Validation.Common (benchTermCek, benchWith, mkEvalCtx, unsafeUnflat)
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA))
 import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1))
 import UntypedPlutusCore as UPLC

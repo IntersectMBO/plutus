@@ -35,7 +35,10 @@
                     (all dead. bool)
                     (equalsInteger
                        `$bScriptCredential`
-                       (fstPair {integer} {list data} tup))
+                       (case
+                          integer
+                          tup
+                          [(\(l : integer) (r : list data) -> l)]))
                     [ (/\dead -> False)
                     , (/\dead ->
                          let
@@ -45,18 +48,29 @@
                            (all dead. bool)
                            (equalsInteger
                               `$bScriptCredential`
-                              (fstPair {integer} {list data} tup))
+                              (case
+                                 integer
+                                 tup
+                                 [(\(l : integer) (r : list data) -> l)]))
                            [ (/\dead -> False)
                            , (/\dead ->
                                 equalsByteString
                                   (unBData
                                      (headList
                                         {data}
-                                        (sndPair {integer} {list data} tup)))
+                                        (case
+                                           (list data)
+                                           tup
+                                           [ (\(l : integer) (r : list data) ->
+                                                r) ])))
                                   (unBData
                                      (headList
                                         {data}
-                                        (sndPair {integer} {list data} tup)))) ]
+                                        (case
+                                           (list data)
+                                           tup
+                                           [ (\(l : integer) (r : list data) ->
+                                                r) ])))) ]
                            {all dead. dead}) ]
                     {all dead. dead}
             !tup : pair integer (list data) = unConstrData ds
@@ -65,7 +79,7 @@
             (all dead. bool)
             (equalsInteger
                `$bPubKeyCredential`
-               (fstPair {integer} {list data} tup))
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
             [ (/\dead -> fail ())
             , (/\dead ->
                  let
@@ -75,18 +89,27 @@
                    (all dead. bool)
                    (equalsInteger
                       `$bPubKeyCredential`
-                      (fstPair {integer} {list data} tup))
+                      (case
+                         integer
+                         tup
+                         [(\(l : integer) (r : list data) -> l)]))
                    [ (/\dead -> fail ())
                    , (/\dead ->
                         equalsByteString
                           (unBData
                              (headList
                                 {data}
-                                (sndPair {integer} {list data} tup)))
+                                (case
+                                   (list data)
+                                   tup
+                                   [(\(l : integer) (r : list data) -> r)])))
                           (unBData
                              (headList
                                 {data}
-                                (sndPair {integer} {list data} tup)))) ]
+                                (case
+                                   (list data)
+                                   tup
+                                   [(\(l : integer) (r : list data) -> r)])))) ]
                    {all dead. dead}) ]
             {all dead. dead}
     !`$mStakingPtr` :
@@ -102,11 +125,15 @@
               (all dead. r)
               (equalsInteger
                  `$bScriptCredential`
-                 (fstPair {integer} {list data} tup))
+                 (case integer tup [(\(l : integer) (r : list data) -> l)]))
               [ (/\dead -> fail ())
               , (/\dead ->
                    let
-                     !l : list data = sndPair {integer} {list data} tup
+                     !l : list data
+                       = case
+                           (list data)
+                           tup
+                           [(\(l : integer) (r : list data) -> r)]
                      !l : list data = tailList {data} l
                    in
                    cont
@@ -120,7 +147,12 @@
     !txOutRefId : data -> bytestring
       = \(ds : data) ->
           unBData
-            (headList {data} (sndPair {integer} {list data} (unConstrData ds)))
+            (headList
+               {data}
+               (case
+                  (list data)
+                  (unConstrData ds)
+                  [(\(l : integer) (r : list data) -> r)]))
     !txOutRefIdx : data -> integer
       = \(ds : data) ->
           unIData
@@ -128,7 +160,10 @@
                {data}
                (tailList
                   {data}
-                  (sndPair {integer} {list data} (unConstrData ds))))
+                  (case
+                     (list data)
+                     (unConstrData ds)
+                     [(\(l : integer) (r : list data) -> r)])))
     !`$mPubKeyCredential` : all r. data -> (bytestring -> r) -> (unit -> r) -> r
       = /\r ->
           \(scrut : data) (cont : bytestring -> r) (fail : unit -> r) ->
@@ -139,21 +174,22 @@
               (all dead. r)
               (equalsInteger
                  `$bPubKeyCredential`
-                 (fstPair {integer} {list data} tup))
+                 (case integer tup [(\(l : integer) (r : list data) -> l)]))
               [ (/\dead -> fail ())
               , (/\dead ->
                    cont
                      (unBData
                         (headList
                            {data}
-                           (sndPair {integer} {list data} tup)))) ]
+                           (case
+                              (list data)
+                              tup
+                              [(\(l : integer) (r : list data) -> r)])))) ]
               {all dead. dead}
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
-    !reconstructCaseError : string = "PT1"
-    !traceError : all a. string -> a
-      = /\a ->
-          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
+    !casePair : all a b r. pair a b -> (a -> b -> r) -> r
+      = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
     data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
@@ -161,26 +197,19 @@
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-            let
-              !tup : pair integer (list data) = unConstrData d
-              !index : integer = fstPair {integer} {list data} tup
-              !args : list data = sndPair {integer} {list data} tup
-            in
-            case
-              (all dead. Maybe a)
-              (equalsInteger 1 index)
-              [ (/\dead ->
-                   case
-                     (all dead. Maybe a)
-                     (equalsInteger 0 index)
-                     [ (/\dead -> traceError {Maybe a} reconstructCaseError)
-                     , (/\dead ->
-                          Just
-                            {a}
-                            (`$dUnsafeFromData` (headList {data} args))) ]
-                     {all dead. dead})
-              , (/\dead -> Nothing {a}) ]
-              {all dead. dead}
+            casePair
+              {integer}
+              {list data}
+              {Maybe a}
+              (unConstrData d)
+              (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> Maybe a)
+                   index
+                   [ (\(ds : list data) ->
+                        Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+                   , (\(ds : list data) -> Nothing {a}) ]
+                   args)
     !`$mSpendingScript` :
        all r. data -> (data -> Maybe data -> r) -> (unit -> r) -> r
       = /\r ->
@@ -190,11 +219,17 @@
             in
             case
               (all dead. r)
-              (equalsInteger 1 (fstPair {integer} {list data} tup))
+              (equalsInteger
+                 1
+                 (case integer tup [(\(l : integer) (r : list data) -> l)]))
               [ (/\dead -> fail ())
               , (/\dead ->
                    let
-                     !l : list data = sndPair {integer} {list data} tup
+                     !l : list data
+                       = case
+                           (list data)
+                           tup
+                           [(\(l : integer) (r : list data) -> r)]
                    in
                    cont
                      (headList {data} l)
@@ -220,11 +255,18 @@
                     [ (\(hd : pair data data) ->
                          case
                            (all dead. list (pair data data) -> Maybe data)
-                           (equalsData k (fstPair {data} {data} hd))
+                           (equalsData
+                              k
+                              (case data hd [(\(l : data) (r : data) -> l)]))
                            [ (/\dead -> go)
                            , (/\dead ->
                                 \(ds : list (pair data data)) ->
-                                  Just {data} (sndPair {data} {data} hd)) ]
+                                  Just
+                                    {data}
+                                    (case
+                                       data
+                                       hd
+                                       [(\(l : data) (r : data) -> r)])) ]
                            {all dead. dead})
                     , (Nothing {data}) ]
           in
@@ -294,61 +336,76 @@
               (all dead. r)
               (equalsInteger
                  `$bScriptCredential`
-                 (fstPair {integer} {list data} tup))
+                 (case integer tup [(\(l : integer) (r : list data) -> l)]))
               [ (/\dead -> fail ())
               , (/\dead ->
                    cont
                      (unBData
                         (headList
                            {data}
-                           (sndPair {integer} {list data} tup)))) ]
+                           (case
+                              (list data)
+                              tup
+                              [(\(l : integer) (r : list data) -> r)])))) ]
               {all dead. dead}
     !addressCredential : data -> data
       = \(ds : data) ->
-          headList {data} (sndPair {integer} {list data} (unConstrData ds))
+          headList
+            {data}
+            (case
+               (list data)
+               (unConstrData ds)
+               [(\(l : integer) (r : list data) -> r)])
+    !traceError : all a. string -> a
+      = /\a ->
+          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
     !getLowerInclusiveTimeRange : (\a -> data) integer -> integer
       = \(ds : (\a -> data) integer) ->
           let
             !l : list data
-              = sndPair
-                  {integer}
-                  {list data}
+              = case
+                  (list data)
                   (unConstrData
                      (headList
                         {data}
-                        (sndPair {integer} {list data} (unConstrData ds))))
+                        (case
+                           (list data)
+                           (unConstrData ds)
+                           [(\(l : integer) (r : list data) -> r)])))
+                  [(\(l : integer) (r : list data) -> r)]
             !tup : pair integer (list data) = unConstrData (headList {data} l)
           in
           case
             (all dead. integer)
-            (equalsInteger 1 (fstPair {integer} {list data} tup))
+            (equalsInteger
+               1
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
             [ (/\dead -> traceError {integer} "Time range not Finite")
             , (/\dead ->
                  let
                    !posixTime : integer
                      = unIData
-                         (headList {data} (sndPair {integer} {list data} tup))
+                         (headList
+                            {data}
+                            (case
+                               (list data)
+                               tup
+                               [(\(l : integer) (r : list data) -> r)]))
                  in
                  case
                    (all dead. integer)
-                   (let
-                     !tup : pair integer (list data)
-                       = unConstrData (headList {data} (tailList {data} l))
-                     !index : integer = fstPair {integer} {list data} tup
-                     !args : list data = sndPair {integer} {list data} tup
-                   in
-                   case
-                     (all dead. bool)
-                     (equalsInteger 0 index)
-                     [ (/\dead ->
-                          case
-                            (all dead. bool)
-                            (equalsInteger 1 index)
-                            [ (/\dead -> traceError {bool} reconstructCaseError)
-                            , (/\dead -> True) ]
-                            {all dead. dead})
-                     , (/\dead -> False) ]
-                     {all dead. dead})
+                   (casePair
+                      {integer}
+                      {list data}
+                      {bool}
+                      (unConstrData (headList {data} (tailList {data} l)))
+                      (\(index : integer) (args : list data) ->
+                         case
+                           (list data -> bool)
+                           index
+                           [ (\(ds : list data) -> False)
+                           , (\(ds : list data) -> True) ]
+                           args))
                    [(/\dead -> addInteger 1 posixTime), (/\dead -> posixTime)]
                    {all dead. dead}) ]
             {all dead. dead}
@@ -363,7 +420,10 @@
            (fail : unit -> r) ->
             let
               !l : list data
-                = sndPair {integer} {list data} (unConstrData scrut)
+                = case
+                    (list data)
+                    (unConstrData scrut)
+                    [(\(l : integer) (r : list data) -> r)]
               !l : list data = tailList {data} l
             in
             cont
@@ -403,7 +463,12 @@
       = \(ds : data) ->
           headList
             {data}
-            (tailList {data} (sndPair {integer} {list data} (unConstrData ds)))
+            (tailList
+               {data}
+               (case
+                  (list data)
+                  (unConstrData ds)
+                  [(\(l : integer) (r : list data) -> r)]))
     !`$mTxInfo` :
        all r.
          data ->
@@ -457,7 +522,10 @@
            (fail : unit -> r) ->
             let
               !l : list data
-                = sndPair {integer} {list data} (unConstrData scrut)
+                = case
+                    (list data)
+                    (unConstrData scrut)
+                    [(\(l : integer) (r : list data) -> r)]
               !l : list data = tailList {data} l
               !l : list data = tailList {data} l
               !l : list data = tailList {data} l
@@ -550,7 +618,10 @@
            (fail : unit -> r) ->
             let
               !l : list data
-                = sndPair {integer} {list data} (unConstrData scrut)
+                = case
+                    (list data)
+                    (unConstrData scrut)
+                    [(\(l : integer) (r : list data) -> r)]
               !l : list data = tailList {data} l
               !l : list data = tailList {data} l
             in
@@ -601,7 +672,10 @@
                {data}
                (tailList
                   {data}
-                  (sndPair {integer} {list data} (unConstrData ds))))
+                  (case
+                     (list data)
+                     (unConstrData ds)
+                     [(\(l : integer) (r : list data) -> r)])))
     !find :
        all a.
          (\a -> data -> a) a -> (a -> bool) -> (\a -> list data) a -> Maybe a
@@ -714,25 +788,28 @@
                        {Unit -> Maybe VestingRedeemer}
                        d
                        (\(ds : Unit) ->
-                          let
-                            !tup : pair integer (list data) = unConstrData d
-                            !index : integer = fstPair {integer} {list data} tup
-                            !args : list data
-                              = sndPair {integer} {list data} tup
-                          in
-                          case
-                            (all dead. Maybe VestingRedeemer)
-                            (equalsInteger 0 index)
-                            [ (/\dead ->
-                                 case
-                                   (all dead. Maybe VestingRedeemer)
-                                   (equalsInteger 1 index)
-                                   [ (/\dead -> Nothing {VestingRedeemer})
-                                   , (/\dead ->
-                                        Just {VestingRedeemer} FullUnlock) ]
-                                   {all dead. dead})
-                            , (/\dead -> Just {VestingRedeemer} PartialUnlock) ]
-                            {all dead. dead})
+                          casePair
+                            {integer}
+                            {list data}
+                            {Maybe VestingRedeemer}
+                            (unConstrData d)
+                            (\(l : integer) (r : list data) ->
+                               case
+                                 (all dead. Maybe VestingRedeemer)
+                                 (equalsInteger 0 l)
+                                 [ (/\dead ->
+                                      case
+                                        (all dead. Maybe VestingRedeemer)
+                                        (equalsInteger 1 l)
+                                        [ (/\dead -> Nothing {VestingRedeemer})
+                                        , (/\dead ->
+                                             Just
+                                               {VestingRedeemer}
+                                               FullUnlock) ]
+                                        {all dead. dead})
+                                 , (/\dead ->
+                                      Just {VestingRedeemer} PartialUnlock) ]
+                                 {all dead. dead}))
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
@@ -780,78 +857,72 @@
                             !ds : Solo VestingDatum
                               = MkSolo
                                   {VestingDatum}
-                                  (let
-                                    !tup : pair integer (list data)
-                                      = unConstrData ipv
-                                    !index : integer
-                                      = fstPair {integer} {list data} tup
-                                    !args : list data
-                                      = sndPair {integer} {list data} tup
-                                  in
-                                  case
-                                    (all dead. VestingDatum)
-                                    (equalsInteger 0 index)
-                                    [ (/\dead ->
-                                         traceError
-                                           {VestingDatum}
-                                           reconstructCaseError)
-                                    , (/\dead ->
-                                         let
-                                           !l : list data = tailList {data} args
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                         in
-                                         VestingDatum
-                                           (headList {data} args)
-                                           (let
-                                             !tup : pair integer (list data)
-                                               = unConstrData
-                                                   (headList {data} l)
-                                             !index : integer
-                                               = fstPair
+                                  (casePair
+                                     {integer}
+                                     {list data}
+                                     {VestingDatum}
+                                     (unConstrData ipv)
+                                     (\(index : integer) (args : list data) ->
+                                        case
+                                          (list data -> VestingDatum)
+                                          index
+                                          [ (\(ds : list data) ->
+                                               let
+                                                 !l : list data
+                                                   = tailList {data} ds
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                               in
+                                               VestingDatum
+                                                 (headList {data} ds)
+                                                 (let
+                                                   !d : data = headList {data} l
+                                                 in
+                                                 casePair
                                                    {integer}
                                                    {list data}
-                                                   tup
-                                             !args : list data
-                                               = sndPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup
-                                           in
-                                           case
-                                             (all dead.
-                                                Tuple2 bytestring bytestring)
-                                             (equalsInteger 0 index)
-                                             [ (/\dead ->
-                                                  traceError
-                                                    {Tuple2
-                                                       bytestring
-                                                       bytestring}
-                                                    reconstructCaseError)
-                                             , (/\dead ->
-                                                  Tuple2
-                                                    {bytestring}
-                                                    {bytestring}
-                                                    (unBData
-                                                       (headList {data} args))
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (tailList
-                                                             {data}
-                                                             args)))) ]
-                                             {all dead. dead})
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData
-                                              (headList
-                                                 {data}
-                                                 (tailList {data} l)))) ]
-                                    {all dead. dead})
+                                                   {Tuple2
+                                                      bytestring
+                                                      bytestring}
+                                                   (unConstrData d)
+                                                   (\(index : integer)
+                                                     (args : list data) ->
+                                                      case
+                                                        (list data ->
+                                                         Tuple2
+                                                           bytestring
+                                                           bytestring)
+                                                        index
+                                                        [ (\(ds : list data) ->
+                                                             Tuple2
+                                                               {bytestring}
+                                                               {bytestring}
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     ds))
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     (tailList
+                                                                        {data}
+                                                                        ds)))) ]
+                                                        args))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData
+                                                    (headList
+                                                       {data}
+                                                       (tailList {data} l)))) ]
+                                          args))
                             !vestingDatum : VestingDatum
                               = Solo_match
                                   {VestingDatum}
@@ -949,78 +1020,72 @@
                             !ds : Solo VestingDatum
                               = MkSolo
                                   {VestingDatum}
-                                  (let
-                                    !tup : pair integer (list data)
-                                      = unConstrData ipv
-                                    !index : integer
-                                      = fstPair {integer} {list data} tup
-                                    !args : list data
-                                      = sndPair {integer} {list data} tup
-                                  in
-                                  case
-                                    (all dead. VestingDatum)
-                                    (equalsInteger 0 index)
-                                    [ (/\dead ->
-                                         traceError
-                                           {VestingDatum}
-                                           reconstructCaseError)
-                                    , (/\dead ->
-                                         let
-                                           !l : list data = tailList {data} args
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                           !l : list data = tailList {data} l
-                                         in
-                                         VestingDatum
-                                           (headList {data} args)
-                                           (let
-                                             !tup : pair integer (list data)
-                                               = unConstrData
-                                                   (headList {data} l)
-                                             !index : integer
-                                               = fstPair
+                                  (casePair
+                                     {integer}
+                                     {list data}
+                                     {VestingDatum}
+                                     (unConstrData ipv)
+                                     (\(index : integer) (args : list data) ->
+                                        case
+                                          (list data -> VestingDatum)
+                                          index
+                                          [ (\(ds : list data) ->
+                                               let
+                                                 !l : list data
+                                                   = tailList {data} ds
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                                 !l : list data
+                                                   = tailList {data} l
+                                               in
+                                               VestingDatum
+                                                 (headList {data} ds)
+                                                 (let
+                                                   !d : data = headList {data} l
+                                                 in
+                                                 casePair
                                                    {integer}
                                                    {list data}
-                                                   tup
-                                             !args : list data
-                                               = sndPair
-                                                   {integer}
-                                                   {list data}
-                                                   tup
-                                           in
-                                           case
-                                             (all dead.
-                                                Tuple2 bytestring bytestring)
-                                             (equalsInteger 0 index)
-                                             [ (/\dead ->
-                                                  traceError
-                                                    {Tuple2
-                                                       bytestring
-                                                       bytestring}
-                                                    reconstructCaseError)
-                                             , (/\dead ->
-                                                  Tuple2
-                                                    {bytestring}
-                                                    {bytestring}
-                                                    (unBData
-                                                       (headList {data} args))
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (tailList
-                                                             {data}
-                                                             args)))) ]
-                                             {all dead. dead})
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData (headList {data} l))
-                                           (unIData
-                                              (headList
-                                                 {data}
-                                                 (tailList {data} l)))) ]
-                                    {all dead. dead})
+                                                   {Tuple2
+                                                      bytestring
+                                                      bytestring}
+                                                   (unConstrData d)
+                                                   (\(index : integer)
+                                                     (args : list data) ->
+                                                      case
+                                                        (list data ->
+                                                         Tuple2
+                                                           bytestring
+                                                           bytestring)
+                                                        index
+                                                        [ (\(ds : list data) ->
+                                                             Tuple2
+                                                               {bytestring}
+                                                               {bytestring}
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     ds))
+                                                               (unBData
+                                                                  (headList
+                                                                     {data}
+                                                                     (tailList
+                                                                        {data}
+                                                                        ds)))) ]
+                                                        args))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData (headList {data} l))
+                                                 (unIData
+                                                    (headList
+                                                       {data}
+                                                       (tailList {data} l)))) ]
+                                          args))
                             !vestingDatum : VestingDatum
                               = Solo_match
                                   {VestingDatum}
@@ -1151,10 +1216,12 @@
                                                !l : data
                                                  = headList
                                                      {data}
-                                                     (sndPair
-                                                        {integer}
-                                                        {list data}
-                                                        (unConstrData eta))
+                                                     (case
+                                                        (list data)
+                                                        (unConstrData eta)
+                                                        [ (\(l : integer)
+                                                            (r : list data) ->
+                                                             r) ])
                                              in
                                              case
                                                (all dead. bool)
@@ -1271,17 +1338,25 @@
                                                     (\(eta : data) ->
                                                        let
                                                          !l : list data
-                                                           = sndPair
-                                                               {integer}
-                                                               {list data}
+                                                           = case
+                                                               (list data)
                                                                (unConstrData
                                                                   (txOutAddress
                                                                      eta))
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    r) ]
                                                          !l : list data
-                                                           = sndPair
-                                                               {integer}
-                                                               {list data}
+                                                           = case
+                                                               (list data)
                                                                (unConstrData nt)
+                                                               [ (\(l : integer)
+                                                                   (r :
+                                                                      list
+                                                                        data) ->
+                                                                    r) ]
                                                        in
                                                        case
                                                          (all dead. bool)
@@ -1384,11 +1459,15 @@
                                                                                bool)
                                                                             (equalsInteger
                                                                                `$bPubKeyCredential`
-                                                                               (fstPair
-                                                                                  {integer}
-                                                                                  {list
-                                                                                     data}
-                                                                                  tup))
+                                                                               (case
+                                                                                  integer
+                                                                                  tup
+                                                                                  [ (\(l :
+                                                                                         integer)
+                                                                                      (r :
+                                                                                         list
+                                                                                           data) ->
+                                                                                       l) ]))
                                                                             [ (/\dead ->
                                                                                  fail
                                                                                    ())
@@ -1407,11 +1486,15 @@
                                                                                       bool)
                                                                                    (equalsInteger
                                                                                       `$bPubKeyCredential`
-                                                                                      (fstPair
-                                                                                         {integer}
-                                                                                         {list
-                                                                                            data}
-                                                                                         tup))
+                                                                                      (case
+                                                                                         integer
+                                                                                         tup
+                                                                                         [ (\(l :
+                                                                                                integer)
+                                                                                             (r :
+                                                                                                list
+                                                                                                  data) ->
+                                                                                              l) ]))
                                                                                    [ (/\dead ->
                                                                                         fail
                                                                                           ())
@@ -1419,18 +1502,28 @@
                                                                                         `$fEqCredential_$c==`
                                                                                           (headList
                                                                                              {data}
-                                                                                             (sndPair
-                                                                                                {integer}
-                                                                                                {list
-                                                                                                   data}
-                                                                                                tup))
+                                                                                             (case
+                                                                                                (list
+                                                                                                   data)
+                                                                                                tup
+                                                                                                [ (\(l :
+                                                                                                       integer)
+                                                                                                    (r :
+                                                                                                       list
+                                                                                                         data) ->
+                                                                                                     r) ]))
                                                                                           (headList
                                                                                              {data}
-                                                                                             (sndPair
-                                                                                                {integer}
-                                                                                                {list
-                                                                                                   data}
-                                                                                                tup))) ]
+                                                                                             (case
+                                                                                                (list
+                                                                                                   data)
+                                                                                                tup
+                                                                                                [ (\(l :
+                                                                                                       integer)
+                                                                                                    (r :
+                                                                                                       list
+                                                                                                         data) ->
+                                                                                                     r) ]))) ]
                                                                                    {all dead.
                                                                                       dead}) ]
                                                                             {all dead.
@@ -1698,11 +1791,15 @@
                                                                                                  bool)
                                                                                               (equalsInteger
                                                                                                  `$bOutputDatum`
-                                                                                                 (fstPair
-                                                                                                    {integer}
-                                                                                                    {list
-                                                                                                       data}
-                                                                                                    tup))
+                                                                                                 (case
+                                                                                                    integer
+                                                                                                    tup
+                                                                                                    [ (\(l :
+                                                                                                           integer)
+                                                                                                        (r :
+                                                                                                           list
+                                                                                                             data) ->
+                                                                                                         l) ]))
                                                                                               [ (/\dead ->
                                                                                                    False)
                                                                                               , (/\dead ->
@@ -1720,29 +1817,43 @@
                                                                                                         bool)
                                                                                                      (equalsInteger
                                                                                                         `$bOutputDatum`
-                                                                                                        (fstPair
-                                                                                                           {integer}
-                                                                                                           {list
-                                                                                                              data}
-                                                                                                           tup))
+                                                                                                        (case
+                                                                                                           integer
+                                                                                                           tup
+                                                                                                           [ (\(l :
+                                                                                                                  integer)
+                                                                                                               (r :
+                                                                                                                  list
+                                                                                                                    data) ->
+                                                                                                                l) ]))
                                                                                                      [ (/\dead ->
                                                                                                           False)
                                                                                                      , (/\dead ->
                                                                                                           equalsData
                                                                                                             (headList
                                                                                                                {data}
-                                                                                                               (sndPair
-                                                                                                                  {integer}
-                                                                                                                  {list
-                                                                                                                     data}
-                                                                                                                  tup))
+                                                                                                               (case
+                                                                                                                  (list
+                                                                                                                     data)
+                                                                                                                  tup
+                                                                                                                  [ (\(l :
+                                                                                                                         integer)
+                                                                                                                      (r :
+                                                                                                                         list
+                                                                                                                           data) ->
+                                                                                                                       r) ]))
                                                                                                             (headList
                                                                                                                {data}
-                                                                                                               (sndPair
-                                                                                                                  {integer}
-                                                                                                                  {list
-                                                                                                                     data}
-                                                                                                                  tup))) ]
+                                                                                                               (case
+                                                                                                                  (list
+                                                                                                                     data)
+                                                                                                                  tup
+                                                                                                                  [ (\(l :
+                                                                                                                         integer)
+                                                                                                                      (r :
+                                                                                                                         list
+                                                                                                                           data) ->
+                                                                                                                       r) ]))) ]
                                                                                                      {all dead.
                                                                                                         dead}) ]
                                                                                               {all dead.
@@ -1766,11 +1877,15 @@
                                                                                                  bool)
                                                                                               (equalsInteger
                                                                                                  `$bOutputDatumHash`
-                                                                                                 (fstPair
-                                                                                                    {integer}
-                                                                                                    {list
-                                                                                                       data}
-                                                                                                    tup))
+                                                                                                 (case
+                                                                                                    integer
+                                                                                                    tup
+                                                                                                    [ (\(l :
+                                                                                                           integer)
+                                                                                                        (r :
+                                                                                                           list
+                                                                                                             data) ->
+                                                                                                         l) ]))
                                                                                               [ (/\dead ->
                                                                                                    fail
                                                                                                      ())
@@ -1789,11 +1904,15 @@
                                                                                                         bool)
                                                                                                      (equalsInteger
                                                                                                         `$bOutputDatumHash`
-                                                                                                        (fstPair
-                                                                                                           {integer}
-                                                                                                           {list
-                                                                                                              data}
-                                                                                                           tup))
+                                                                                                        (case
+                                                                                                           integer
+                                                                                                           tup
+                                                                                                           [ (\(l :
+                                                                                                                  integer)
+                                                                                                               (r :
+                                                                                                                  list
+                                                                                                                    data) ->
+                                                                                                                l) ]))
                                                                                                      [ (/\dead ->
                                                                                                           fail
                                                                                                             ())
@@ -1802,19 +1921,29 @@
                                                                                                             (unBData
                                                                                                                (headList
                                                                                                                   {data}
-                                                                                                                  (sndPair
-                                                                                                                     {integer}
-                                                                                                                     {list
-                                                                                                                        data}
-                                                                                                                     tup)))
+                                                                                                                  (case
+                                                                                                                     (list
+                                                                                                                        data)
+                                                                                                                     tup
+                                                                                                                     [ (\(l :
+                                                                                                                            integer)
+                                                                                                                         (r :
+                                                                                                                            list
+                                                                                                                              data) ->
+                                                                                                                          r) ])))
                                                                                                             (unBData
                                                                                                                (headList
                                                                                                                   {data}
-                                                                                                                  (sndPair
-                                                                                                                     {integer}
-                                                                                                                     {list
-                                                                                                                        data}
-                                                                                                                     tup)))) ]
+                                                                                                                  (case
+                                                                                                                     (list
+                                                                                                                        data)
+                                                                                                                     tup
+                                                                                                                     [ (\(l :
+                                                                                                                            integer)
+                                                                                                                         (r :
+                                                                                                                            list
+                                                                                                                              data) ->
+                                                                                                                          r) ])))) ]
                                                                                                      {all dead.
                                                                                                         dead}) ]
                                                                                               {all dead.
@@ -1825,12 +1954,16 @@
                                                                                          bool)
                                                                                       (equalsInteger
                                                                                          `$bNoOutputDatum`
-                                                                                         (fstPair
-                                                                                            {integer}
-                                                                                            {list
-                                                                                               data}
+                                                                                         (case
+                                                                                            integer
                                                                                             (unConstrData
-                                                                                               ds)))
+                                                                                               ds)
+                                                                                            [ (\(l :
+                                                                                                   integer)
+                                                                                                (r :
+                                                                                                   list
+                                                                                                     data) ->
+                                                                                                 l) ]))
                                                                                       [ (/\dead ->
                                                                                            fail
                                                                                              ())
@@ -1840,12 +1973,16 @@
                                                                                                 bool)
                                                                                              (equalsInteger
                                                                                                 `$bNoOutputDatum`
-                                                                                                (fstPair
-                                                                                                   {integer}
-                                                                                                   {list
-                                                                                                      data}
+                                                                                                (case
+                                                                                                   integer
                                                                                                    (unConstrData
-                                                                                                      ds)))
+                                                                                                      ds)
+                                                                                                   [ (\(l :
+                                                                                                          integer)
+                                                                                                       (r :
+                                                                                                          list
+                                                                                                            data) ->
+                                                                                                        l) ]))
                                                                                              [ (/\dead ->
                                                                                                   fail
                                                                                                     ())

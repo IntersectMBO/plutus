@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
-import Data.Functor.Identity
 import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -15,6 +15,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Data qualified as Data
+import PlutusCore.Value (Value)
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
@@ -101,6 +102,10 @@ instance AgdaUnparse Data where
   agdaUnparse (Data.B b) =
     "(bDATA " ++ agdaUnparse b ++ ")"
 
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
+instance AgdaUnparse Value where
+  agdaUnparse _ = "Not Implemented: AgdaUnprase Value"
+
 instance AgdaUnparse BLS12_381.G1.Element where
   agdaUnparse = show
 
@@ -117,6 +122,7 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse PLC.DefaultUniBool = "bool"
   agdaUnparse PLC.DefaultUniUnit = "unit"
   agdaUnparse PLC.DefaultUniData = "pdata"
+  agdaUnparse PLC.DefaultUniValue = "value"
   agdaUnparse (PLC.DefaultUniList t) =
     "(list " ++ agdaUnparse t ++ ")"
   agdaUnparse (PLC.DefaultUniPair t1 t2) =
@@ -144,6 +150,8 @@ instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
           "unit " ++ agdaUnparse ()
         PLC.ValueOf PLC.DefaultUniData val ->
           "pdata " ++ agdaUnparse val
+        PLC.ValueOf PLC.DefaultUniValue val ->
+          "value " ++ agdaUnparse val
         PLC.ValueOf univ@(PLC.DefaultUniList elemType) val ->
           agdaUnparse univ
           ++ " "

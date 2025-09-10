@@ -47,7 +47,10 @@
                      (fail : unit -> r) ->
                       let
                         !l : list data
-                          = sndPair {integer} {list data} (unConstrData scrut)
+                          = case
+                              (list data)
+                              (unConstrData scrut)
+                              [(\(l : integer) (r : list data) -> r)]
                         !l : list data = tailList {data} l
                         !l : list data = tailList {data} l
                         !l : list data = tailList {data} l
@@ -72,24 +75,29 @@
                         (unMapData (headList {data} l))
                         (unMapData (headList {data} l))
                         (let
-                          !tup : pair integer (list data)
-                            = unConstrData (headList {data} (tailList {data} l))
-                          !index : integer = fstPair {integer} {list data} tup
-                          !args : list data = sndPair {integer} {list data} tup
+                          !d : data = headList {data} (tailList {data} l)
                         in
-                        case
-                          (all dead. bytestring)
-                          (equalsInteger 0 index)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit = trace {Unit} "PT1" Unit
-                               in
-                               error {bytestring})
-                          , (/\dead -> unBData (headList {data} args)) ]
-                          {all dead. dead}))
+                        (let
+                            b = list data
+                          in
+                          /\r ->
+                            \(p : pair integer b) (f : integer -> b -> r) ->
+                              case r p [f])
+                          {bytestring}
+                          (unConstrData d)
+                          (\(index : integer) (args : list data) ->
+                             case
+                               (list data -> bytestring)
+                               index
+                               [ (\(ds : list data) ->
+                                    unBData (headList {data} ds)) ]
+                               args)))
                     (headList
                        {data}
-                       (sndPair {integer} {list data} (unConstrData d)))
+                       (case
+                          (list data)
+                          (unConstrData d)
+                          [(\(l : integer) (r : list data) -> r)]))
                     (\(ds : (\a -> list data) data)
                       (ds : (\a -> list data) data)
                       (ds : (\a -> list data) data)

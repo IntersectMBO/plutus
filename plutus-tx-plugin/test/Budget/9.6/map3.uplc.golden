@@ -52,66 +52,47 @@
                                                        constr 1
                                                          [ (constr 0
                                                               [ (unIData
-                                                                   (force
-                                                                      (force
-                                                                         fstPair)
-                                                                      hd))
-                                                              , ((\tup ->
-                                                                    (\index ->
-                                                                       (\args ->
-                                                                          case
-                                                                            (equalsInteger
-                                                                               0
-                                                                               index)
-                                                                            [ (case
-                                                                                 (equalsInteger
-                                                                                    1
-                                                                                    index)
-                                                                                 [ (case
-                                                                                      (equalsInteger
-                                                                                         2
-                                                                                         index)
-                                                                                      [ ((\x ->
-                                                                                            error)
-                                                                                           (force
-                                                                                              trace
-                                                                                              "PT1"
-                                                                                              (constr 0
-                                                                                                 [  ])))
-                                                                                      , (constr 1
-                                                                                           [ (unIData
-                                                                                                (force
-                                                                                                   headList
-                                                                                                   args))
-                                                                                           , (unIData
-                                                                                                (force
-                                                                                                   headList
-                                                                                                   (force
-                                                                                                      tailList
-                                                                                                      args))) ]) ])
-                                                                                 , (constr 0
-                                                                                      [ (unIData
-                                                                                           (force
-                                                                                              headList
-                                                                                              args)) ]) ])
-                                                                            , (constr 2
+                                                                   (case
+                                                                      hd
+                                                                      [ (\l
+                                                                          r ->
+                                                                           l) ]))
+                                                              , (case
+                                                                   (unConstrData
+                                                                      (case
+                                                                         hd
+                                                                         [ (\l
+                                                                             r ->
+                                                                              r) ]))
+                                                                   [ (\index
+                                                                       args ->
+                                                                        case
+                                                                          index
+                                                                          [ (\ds ->
+                                                                               constr 2
                                                                                  [ (unIData
                                                                                       (force
                                                                                          headList
-                                                                                         args)) ]) ])
-                                                                         (force
-                                                                            (force
-                                                                               sndPair)
-                                                                            tup))
-                                                                      (force
-                                                                         (force
-                                                                            fstPair)
-                                                                         tup))
-                                                                   (unConstrData
-                                                                      (force
-                                                                         (force
-                                                                            sndPair)
-                                                                         hd))) ])
+                                                                                         ds)) ])
+                                                                          , (\ds ->
+                                                                               constr 0
+                                                                                 [ (unIData
+                                                                                      (force
+                                                                                         headList
+                                                                                         ds)) ])
+                                                                          , (\ds ->
+                                                                               constr 1
+                                                                                 [ (unIData
+                                                                                      (force
+                                                                                         headList
+                                                                                         ds))
+                                                                                 , (unIData
+                                                                                      (force
+                                                                                         headList
+                                                                                         (force
+                                                                                            tailList
+                                                                                            ds))) ]) ]
+                                                                          args) ]) ])
                                                          , (s s tl) ])
                                                   , (constr 0 []) ])
                                              nt))
@@ -153,9 +134,8 @@
                                                                        [ (unIData
                                                                             v) ])))
                                                               (s s tl)) ])
-                                                      (force (force fstPair)
-                                                         hd))
-                                                   (force (force sndPair) hd))
+                                                      (case hd [(\l r -> l)]))
+                                                   (case hd [(\l r -> r)]))
                                             , [] ])))
                                  (unsafeFromSOPList
                                     (\i -> iData i)
@@ -215,8 +195,8 @@
                                                                  [ (unIData
                                                                       v) ])))
                                                         (s s tl)) ])
-                                                (force (force fstPair) hd))
-                                             (force (force sndPair) hd))
+                                                (case hd [(\l r -> l)]))
+                                             (case hd [(\l r -> r)]))
                                       , [] ])))
                            (unsafeFromSOPList
                               (\i -> iData i)
@@ -277,9 +257,9 @@
                       xs
                       [ (\hd ->
                            case
-                             (equalsData k (force (force fstPair) hd))
+                             (equalsData k (case hd [(\l r -> l)]))
                              [ (\x -> s s x)
-                             , (\ds -> constr 0 [(force (force sndPair) hd)]) ])
+                             , (\ds -> constr 0 [(case hd [(\l r -> r)])]) ])
                       , (constr 1 []) ]))))
       ((\s -> s s)
          (\s xs xs ->
@@ -298,7 +278,7 @@
                                            case
                                              (equalsData
                                                 k
-                                                (force (force fstPair) hd))
+                                                (case hd [(\l r -> l)]))
                                              [ (\eta ->
                                                   force mkCons hd (s s eta))
                                              , (force mkCons
@@ -307,6 +287,6 @@
                                  eta)
                               (force mkCons (mkPairData k v) []))
                            (s s tl xs))
-                        (force (force fstPair) hd))
-                     (force (force sndPair) hd))
+                        (case hd [(\l r -> l)]))
+                     (case hd [(\l r -> r)]))
               , xs ]))))

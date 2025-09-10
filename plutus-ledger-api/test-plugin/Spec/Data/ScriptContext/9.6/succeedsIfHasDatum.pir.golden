@@ -4,9 +4,6 @@ let
     Nothing : Maybe a
   data Unit | Unit_match where
     Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(d : data) ->
   case
@@ -20,40 +17,48 @@ in
                   {data}
                   (tailList
                      {data}
-                     (sndPair {integer} {list data} (unConstrData d)))))
+                     (case
+                        (list data)
+                        (unConstrData d)
+                        [(\(l : integer) (r : list data) -> r)]))))
     in
     case
       (all dead. bool)
-      (equalsInteger 1 (fstPair {integer} {list data} tup))
+      (equalsInteger
+         1
+         ((let
+              b = list data
+            in
+            \(x : pair integer b) ->
+              case integer x [(\(l : integer) (r : b) -> l)])
+            tup))
       [ (/\dead -> False)
       , (/\dead ->
            let
-             !l : list data = sndPair {integer} {list data} tup
+             !l : list data
+               = case (list data) tup [(\(l : integer) (r : list data) -> r)]
            in
            Maybe_match
              {data}
-             (let
-               !tup : pair integer (list data)
-                 = unConstrData (headList {data} (tailList {data} l))
-               !index : integer = fstPair {integer} {list data} tup
-               !args : list data = sndPair {integer} {list data} tup
-             in
-             case
-               (all dead. Maybe data)
-               (equalsInteger 1 index)
-               [ (/\dead ->
-                    case
-                      (all dead. Maybe data)
-                      (equalsInteger 0 index)
-                      [ (/\dead -> traceError {Maybe data} "PT1")
-                      , (/\dead -> Just {data} (headList {data} args)) ]
-                      {all dead. dead})
-               , (/\dead -> Nothing {data}) ]
-               {all dead. dead})
+             ((let
+                  b = list data
+                in
+                /\r ->
+                  \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
+                {Maybe data}
+                (unConstrData (headList {data} (tailList {data} l)))
+                (\(index : integer) (args : list data) ->
+                   case
+                     (list data -> Maybe data)
+                     index
+                     [ (\(ds : list data) -> Just {data} (headList {data} ds))
+                     , (\(ds : list data) -> Nothing {data}) ]
+                     args))
              {all dead. bool}
              (\(ds : data) -> /\dead -> True)
              (/\dead -> False)
              {all dead. dead}) ]
       {all dead. dead})
-    [(/\dead -> traceError {unit} "PT5"), (/\dead -> ())]
+    [ (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
+    , (/\dead -> ()) ]
     {all dead. dead}

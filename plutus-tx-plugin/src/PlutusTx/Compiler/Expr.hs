@@ -45,6 +45,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
+import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
@@ -57,6 +58,7 @@ import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Names (safeFreshName)
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Core.Type (Term (..))
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
@@ -637,24 +639,30 @@ hoistExpr var t = do
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
   maybeDef <- PIR.lookupTerm lexName
-  let addSpan = case getVarSourceSpan var of
+  let varSpan = getVarSourceSpan var
+      addSpan = case varSpan of
         Nothing  -> id
         Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
+      varSpanMsg = case varSpan of
+        Nothing  -> ""
+        Just src -> ", located at" GHC.<+> GHC.ppr src
   case maybeDef of
     Just term -> pure term
     -- See Note [Dependency tracking]
-    Nothing -> withCurDef lexName . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-      var' <- compileVarFresh ann var
-      -- See Note [Occurrences of recursive names]
-      PIR.defineTerm
-        lexName
-        (PIR.Def var' (PIR.mkVar var', PIR.Strict))
-        mempty
+    Nothing -> withCurDef lexName
+      . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var GHC.<> varSpanMsg)
+      $ do
+        var' <- compileVarFresh ann var
+        -- See Note [Occurrences of recursive names]
+        PIR.defineTerm
+          lexName
+          (PIR.Def var' (PIR.mkVar var', PIR.Strict))
+          mempty
 
-      t' <- maybeProfileRhs var var' =<< addSpan (compileExpr t)
-      -- See Note [Non-strict let-bindings]
-      PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
-      pure $ PIR.mkVar var'
+        t' <- maybeProfileRhs var var' =<< addSpan (compileExpr t)
+        -- See Note [Non-strict let-bindings]
+        PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
+        pure $ PIR.mkVar var'
 
 -- 'GHC.Var' in argument is only for extracting srcspan and accurate name.
 maybeProfileRhs
@@ -854,6 +862,37 @@ entryExitTracing lamName displayName e ty =
    an unfolding.
 -}
 
+compileHaskellList
+  :: forall uni fun m ann
+   . (CompilingDefault uni fun m ann)
+  => GHC.CoreExpr
+  -> m [PIRTerm uni fun]
+compileHaskellList = buildList . strip
+  where
+    err =
+      throwPlain $
+        CompilationError "Unexpected expression where a list constructor was expected"
+
+    -- This is when the list is a single element and GHC will specialize list builder directly.
+    -- GHC will generate core that looks like below:
+    -- (:) @resTy e ([] @resTy)
+    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = traverse compileExpr [e]
+    -- This is when the list has more than one elements. GHC will generate core that looks like below:
+    -- build @resTy (\con nil -> con e1 (con e2 (... nil)))
+    -- 'build' is some special function that abstracts the list type.
+    buildList (GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam con (GHC.Lam nil li)))) =
+      let
+        consume :: GHC.CoreExpr -> m [GHC.CoreExpr]
+        consume (GHC.App (GHC.App (GHC.Var con') e) rest)
+          | con' == con = (e:) <$> consume rest
+          | otherwise = err
+        consume (GHC.Var nil')
+          | nil' == nil = pure []
+          | otherwise = err
+        consume _ = err
+      in consume li >>= traverse compileExpr
+    buildList _ = err
+
 compileExpr :: (CompilingDefault uni fun m ann) => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
@@ -862,6 +901,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     , ccModBreaks = maybeModBreaks
     , ccBuiltinsInfo = binfo
     , ccSafeToInline = safeToInline
+    , ccOpts = opts
     } <-
     ask
 
@@ -886,7 +926,25 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
 
+  caseIntegerName <- lookupGhcName 'Builtins.caseInteger
+  listIndexId <- lookupGhcId '(PlutusTx.List.!!)
+
   case e of
+    -- case integer
+    GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
+      | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
+        resTy' <- compileTypeNorm resTy
+        scrut' <- compileExpr scrut
+        branches <- compileHaskellList li
+        pure $ PIR.kase annAlwaysInline resTy' scrut' branches
+      | GHC.getName var == caseIntegerName ->
+        -- This is when we don't have bultin casing. We have to use something
+        -- else. Currently, it will use PlutusTx.List.!!, but this will be quite a bit
+        -- less efficient since it will also build the list and than index on the built
+        -- list.  Ideally, It is possible to have some custom PIR here that will generate
+        -- chain of if-statements so that can skip the list construction work if we want
+        -- to optimize more here.
+        compileExpr $ GHC.App (GHC.App (GHC.App (GHC.Var listIndexId) (GHC.Type resTy)) li) scrut
     {- Note [Lazy boolean operators]
       (||) and (&&) have a special treatment: we want them lazy in the second argument,
       as this is the behavior in Haskell and other PLs.

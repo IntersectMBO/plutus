@@ -1,4 +1,17 @@
 
+<a id='changelog-1.53.0.0'></a>
+# 1.53.0.0 — 2025-09-04
+
+## Added
+
+- During compilation, if a `Var` carries `SrcSpan`, the `SrcSpan` is added to the
+  compilation trace. The effect can be seen both in the full compilation trace
+  (via `dump-compilation-trace`), or in the error message when the compilation fails.
+
+## Changed
+
+- Compiliation will fail if `GADTs` or `PolyKinds` is used in the module. This is to providing better compilation error message. This also encourages clearer onchain/offchain separation by encouraging offchain components that uses `GADTs` or `PolyKinds` to be separated into a new module outside of onchain module.
+
 <a id='changelog-1.47.0.0'></a>
 # 1.47.0.0 — 2025-06-10
 

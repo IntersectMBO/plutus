@@ -4,6 +4,8 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
+
 {- | Property tests for the BLS12-381 builtins -}
 module Evaluation.Builtins.BLS12_381
 where

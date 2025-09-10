@@ -57,6 +57,7 @@ import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
+import PlutusCore.Value qualified as PLC
 import Prettyprinter (viaShow)
 
 {-
@@ -647,6 +648,13 @@ serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
 {-# OPAQUE serialiseData #-}
 
 {-
+Value
+-}
+
+data BuiltinValue = BuiltinValue ~PLC.Value
+  deriving stock (Generic)
+
+{-
 ARRAY
 -}
 
@@ -1068,3 +1076,13 @@ expModInteger b e m =
     BuiltinSuccess bs -> toInteger bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ toInteger bs
 {-# OPAQUE expModInteger #-}
+
+caseInteger :: Integer -> [a] -> a
+caseInteger i b = b !! fromIntegral i
+{-# OPAQUE caseInteger #-}
+
+-- | Case matching on a builtin pair. Continuation is needed here to make
+-- it more efficient on builtin-casing implementation.
+casePair :: forall a b r. BuiltinPair a b -> (a -> b -> r) -> r
+casePair p f = f (PlutusTx.Builtins.Internal.fst p) (PlutusTx.Builtins.Internal.snd p)
+{-# INLINE casePair #-}

@@ -1,4 +1,22 @@
 
+<a id='changelog-1.53.0.0'></a>
+# 1.53.0.0 — 2025-09-04
+
+## Added
+
+- support for constant casing builtin unit and pairs. `Case`ing on the unit expects a single branch or arbitrary value which will get picked everytime. `Case`ing on pairs expects a single branch that takes two arguments for each values of the pair.
+
+## Changed
+
+- The Flat serialisation format for UPLC built-in arrays was changed to use the encoder for lists instead of the encoder for the lazy `Vector` type.
+
+<a id='changelog-1.52.0.0'></a>
+# 1.52.0.0 — 2025-08-14
+
+## Changed
+
+- In #7272 made the CEK machine return a `CekReport` and fixed a bug with `dischargeCekValue` not dicharging under `Constr` and `Case`.
+
 <a id='changelog-1.51.0.0'></a>
 # 1.51.0.0 — 2025-07-30
 
