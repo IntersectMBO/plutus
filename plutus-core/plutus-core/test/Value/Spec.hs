@@ -91,6 +91,13 @@ prop_unionCommutative = property $ do
   v' <- forAll genValue
   V.unionValue v v' === V.unionValue v' v
 
+prop_unionAssociative :: Property
+prop_unionAssociative = property $ do
+  v1 <- forAll genValue
+  v2 <- forAll genValue
+  v3 <- forAll genValue
+  V.unionValue v1 (V.unionValue v2 v3) === V.unionValue (V.unionValue v1 v2) v3
+
 prop_insertCoinIdempotent :: Property
 prop_insertCoinIdempotent = property $ do
   v <- forAll genValue
@@ -143,6 +150,10 @@ tests =
         "unionCommutative"
         "prop_unionCommutative"
         prop_unionCommutative
+    , testPropertyNamed
+        "unionAssociative"
+        "prop_unionAssociative"
+        prop_unionAssociative
     , testPropertyNamed
         "insertCoinIdempotent"
         "prop_insertCoinIdempotent"
