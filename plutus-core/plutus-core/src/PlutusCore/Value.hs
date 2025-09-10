@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 module PlutusCore.Value (
@@ -14,6 +15,7 @@ module PlutusCore.Value (
   totalSize,
   maxInnerSize,
   insertCoin,
+  deleteCoin,
   unionValue,
 ) where
 
@@ -27,6 +29,7 @@ import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Maybe
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 
@@ -115,21 +118,33 @@ instance Pretty Value where
 the size of the largest inner map.
 -}
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
-insertCoin currency token amt (Value outer sizes size) = case Map.lookup currency outer of
-  Nothing ->
-    let inner = Map.singleton token amt
-        outer' = Map.insert currency inner outer
-        sizes' = updateSizes 0 1 sizes
-        size' = size + 1
-     in Value outer' sizes' size'
-  Just inner ->
-    let exists = Map.member token inner
-        inner' = Map.insert token amt inner
-        outer' = Map.insert currency inner' outer
-        sizes' = if exists then sizes else updateSizes (Map.size inner) (Map.size inner') sizes
-        size' = if exists then size else size + 1
-     in Value outer' sizes' size'
+insertCoin currency token amt v@(Value outer sizes size)
+  | amt == 0 = deleteCoin currency token v
+  | otherwise =
+      let (mold, outer') = Map.alterF f currency outer
+          (sizes', size') = case mold of
+            Just old -> (updateSizes old (old + 1) sizes, size + 1)
+            Nothing  -> (sizes, size)
+       in Value outer' sizes' size'
+ where
+  f
+    :: Maybe (Map ByteString Integer)
+    -> ( Maybe Int -- Just (old size of inner map) if the total size grows by 1, otherwise Nothing
+       , Maybe (Map ByteString Integer)
+       )
+  f = \case
+    Nothing -> (Just 0, Just (Map.singleton token amt))
+    Just inner ->
+      let (isJust -> exists, inner') = Map.insertLookupWithKey (\_ _ _ -> amt) token amt inner
+       in (if exists then Nothing else Just (Map.size inner), Just inner')
 {-# INLINEABLE insertCoin #-}
+
+-- TODO: implement properly
+deleteCoin :: ByteString -> ByteString -> Value -> Value
+deleteCoin currency token (Value outer _ _) =
+  pack $ case Map.lookup currency outer of
+    Nothing    -> outer
+    Just inner -> Map.insert currency (Map.delete token inner) outer
 
 -- | \(O(n)\), where \(n\) is the total size of the maps.
 unionValue :: Value -> Value -> Value
