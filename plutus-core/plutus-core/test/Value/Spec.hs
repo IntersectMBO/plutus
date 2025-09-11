@@ -4,7 +4,7 @@
 
 module Value.Spec (tests) where
 
-import Data.Foldable
+import Data.Foldable qualified as F
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import PlutusCore.Generators.QuickCheck.Builtin ()
@@ -59,7 +59,7 @@ prop_unionAssociative = forAll arbitrary $ \(v1, v2, v3) ->
 prop_insertCoinIdempotent :: Property
 prop_insertCoinIdempotent = forAll arbitrary $ \v ->
   let fm = V.toFlatList v
-   in v === foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
+   in v === F.foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
 
 checkSizes :: Value -> Property
 checkSizes v =
