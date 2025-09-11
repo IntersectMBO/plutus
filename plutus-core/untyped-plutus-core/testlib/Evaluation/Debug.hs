@@ -24,6 +24,7 @@ import Data.ByteString.Lazy.Char8 qualified as BS
 import Data.Text qualified as T
 import Data.Void
 import Prettyprinter
+import System.FilePath
 import Test.Tasty
 import Test.Tasty.Golden
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -50,8 +51,10 @@ examples = [
 goldenVsDebug :: (TestName, [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn) -> TestTree
 goldenVsDebug (name, cmds, term) =
     goldenVsString name
-    ("untyped-plutus-core/test/Evaluation/Debug/" ++ name ++ ".golden")
+    ("untyped-plutus-core/test/Evaluation/Debug/" ++ base ++ ".golden" ++ ext)
     (pure $ BS.pack $ unlines $ mock cmds term)
+  where
+    (base, ext) = splitExtension name
 
 -- A Mocking interpreter
 

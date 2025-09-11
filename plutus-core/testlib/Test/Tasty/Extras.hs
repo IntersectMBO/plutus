@@ -235,7 +235,7 @@ nestedGoldenVsTextPredM
   -- ^ How to compare golden file contents with the produced text
   -> TestNested
 nestedGoldenVsTextPredM name ext action predicate = do
-  filePath <- asks $ foldr (</>) (name ++ ext ++ ".golden")
+  filePath <- asks $ foldr (</>) (name ++ ".golden" ++ ext)
   embed $ goldenTest name (TIO.readFile filePath) action
     do \golden actual -> pure
         if predicate golden actual
@@ -247,7 +247,7 @@ nestedGoldenVsTextPredM name ext action predicate = do
 nestedGoldenVsTextM :: TestName -> FilePath -> IO Text -> TestNested
 nestedGoldenVsTextM name ext text = do
     path <- ask
-    embed $ goldenVsTextM name (foldr (</>) (name ++ ext ++ ".golden") path) text
+    embed $ goldenVsTextM name (foldr (</>) (name ++ ".golden" ++ ext) path) text
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsDoc :: TestName -> FilePath -> Doc ann -> TestNested

@@ -140,7 +140,7 @@ evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter 
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name =
-  goldenVsString name ("untyped-plutus-core/test/Transform/CaseOfCase/" ++ name ++ ".uplc.golden")
+  goldenVsString name ("untyped-plutus-core/test/Transform/CaseOfCase/" ++ name ++ ".golden.uplc")
     . pure
     . BSL.fromStrict
     . encodeUtf8
