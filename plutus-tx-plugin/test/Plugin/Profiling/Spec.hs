@@ -12,6 +12,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Use guards" #-}
