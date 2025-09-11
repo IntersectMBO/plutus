@@ -80,12 +80,12 @@ library
     , containers
     , either
     , extra
-    , flat                   ^>=0.6
     , ghc
     , lens
     , megaparsec
     , mtl
     , plutus-core            ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-ir
     , plutus-metatheory      ^>=1.53
     , plutus-tx              ^>=1.53
@@ -190,11 +190,11 @@ test-suite plutus-tx-plugin-tests
     , containers
     , deepseq
     , filepath
-    , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.53
     , plutus-tx-plugin                 ^>=1.53

@@ -47,13 +47,13 @@ import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Flat hiding (from, to)
-import Flat.Decoder (Get, dBEBits8)
-import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import GHC.Natural (naturalFromInteger)
 import GHC.Num.Integer (Integer (..))
 import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
+import PlutusCore.Flat hiding (from, to)
+import PlutusCore.Flat.Decoder (Get, dBEBits8)
+import PlutusCore.Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import Prettyprinter (viaShow)
 
 -- TODO: should we have the commonest built-in functions at the front to have more compact encoding?

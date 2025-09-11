@@ -10,7 +10,7 @@ module Test.Data.Flat
   )
 where
 
-import Flat
+import PlutusCore.Flat
 -- import           Flat.Encoder
 -- import           Flat.Decoder
 import Test.Data

@@ -3,9 +3,9 @@
 {-# LANGUAGE StandaloneDeriving #-}
 module Test.E.Flat() where
 
-import Flat
-import Flat.Decoder ()
-import Flat.Encoder ()
+import PlutusCore.Flat
+import PlutusCore.Flat.Decoder ()
+import PlutusCore.Flat.Encoder ()
 import Test.E
 
 -- t = putStrLn $ gen 4

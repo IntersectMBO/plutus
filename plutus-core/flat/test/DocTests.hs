@@ -1,4 +1,4 @@
-module Main where
+module PlutusCore.Flat.Test.Main where
 import DocTest.Flat.AsBin qualified
 import Test.Tasty
 import Test.Tasty.HUnit

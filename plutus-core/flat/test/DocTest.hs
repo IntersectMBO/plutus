@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- move to doctest
-module DocTest
+module PlutusCore.Flat.Test.DocTest
   ( asPrint
   , test
   , testProp

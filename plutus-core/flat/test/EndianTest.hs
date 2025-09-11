@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Main where
+module PlutusCore.Flat.Test.Main where
 
 -- #include "MachDeps.h"
 

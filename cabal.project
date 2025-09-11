@@ -22,7 +22,6 @@ packages: cardano-constitution
           plutus-benchmark
           plutus-conformance
           plutus-core
-          plutus-core/flat
           plutus-executables
           plutus-ledger-api
           plutus-metatheory

@@ -9,7 +9,7 @@ import PlutusIR.Core.Type
 import PlutusCore qualified as PLC
 import PlutusCore.Flat ()
 
-import Flat (Flat)
+import PlutusCore.Flat (Flat)
 
 {- Note [Serialization of PIR]
 The serialized version of Plutus-IR will be included in  the final

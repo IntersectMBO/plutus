@@ -14,7 +14,7 @@ import Data.Char
 import Data.Foldable
 import Data.Int
 import Data.IntMap qualified as IM
-import Flat
+import PlutusCore.Flat
 -- import qualified Data.IntSet                    as IS
 -- import           Data.List
 import Data.Map qualified as M

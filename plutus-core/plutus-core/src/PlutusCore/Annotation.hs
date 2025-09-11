@@ -21,8 +21,8 @@ import Data.List qualified as List
 import Data.MonoTraversable
 import Data.Set (Set)
 import Data.Set qualified as Set
-import Flat (Flat (..))
 import GHC.Generics
+import PlutusCore.Flat (Flat (..))
 import Prettyprinter
 import Text.Megaparsec.Pos as Megaparsec
 

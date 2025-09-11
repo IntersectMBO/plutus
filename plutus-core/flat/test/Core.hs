@@ -9,10 +9,10 @@ import Control.Monad
 import Data.ByteString (ByteString)
 import Data.Maybe
 import Data.ZigZag
-import Flat
-import Flat.Encoder.Prim
-import Flat.Encoder.Strict
-import Flat.Types
+import PlutusCore.Flat
+import PlutusCore.Flat.Encoder.Prim
+import PlutusCore.Flat.Encoder.Strict
+import PlutusCore.Flat.Types
 import Test.Data
 import Test.Data.Flat
 import Test.E

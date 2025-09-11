@@ -17,7 +17,6 @@ import Data.ByteString.Lazy qualified as L
 import Data.ByteString.Short qualified as SBS
 import Data.Char
 import Data.Either
-import Data.FloatCast
 import Data.Int
 import Data.Proxy
 import Data.Sequence qualified as Seq
@@ -25,14 +24,15 @@ import Data.String (fromString)
 import Data.Text qualified as T
 import Data.Text.Arbitrary
 import Data.Word
-import Flat
-import Flat.Bits
-import Flat.Decoder
-import Flat.Encoder qualified as E
-import Flat.Encoder.Prim qualified as E
-import Flat.Encoder.Strict qualified as E
-import Flat.Endian
 import Numeric.Natural
+import PlutusCore.Flat
+import PlutusCore.Flat.Bits
+import PlutusCore.Flat.Data.FloatCast
+import PlutusCore.Flat.Decoder
+import PlutusCore.Flat.Encoder qualified as E
+import PlutusCore.Flat.Encoder.Prim qualified as E
+import PlutusCore.Flat.Encoder.Strict qualified as E
+import PlutusCore.Flat.Endian
 import System.Exit
 import Test.Data
 import Test.Data.Arbitrary ()

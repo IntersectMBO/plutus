@@ -4,9 +4,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Data.Text
 import Data.Text.Internal qualified as TI
-import Flat
-import Flat.Encoder.Size
-import Flat.Instances.Text
+import PlutusCore.Flat
+import PlutusCore.Flat.Encoder.Size
+import PlutusCore.Flat.Instances.Text
 
 main = do
 #if MIN_VERSION_text(2,0,0)

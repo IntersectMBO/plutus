@@ -7,13 +7,14 @@ To run with limited memory: cabal run big -- +RTS  -M2g
 -}
 
 module Main where
+
 import Data.ByteString qualified as B
 import Data.List (foldl')
-import Flat (Decoded, Flat (..), flat, unflat, unflatWith)
-import Flat.AsBin (AsBin, unbin)
-import Flat.AsSize
-import Flat.Decoder (Get, listTDecoder)
 import ListT qualified as L
+import PlutusCore.Flat (Decoded, Flat (..), flat, unflat, unflatWith)
+import PlutusCore.Flat.AsBin (AsBin, unbin)
+import PlutusCore.Flat.AsSize
+import PlutusCore.Flat.Decoder (Get, listTDecoder)
 import System.TimeIt (timeIt)
 
 -- Big is a type that has a small encoded representation but a very large in-memory footprint.

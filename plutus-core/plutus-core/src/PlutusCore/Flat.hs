@@ -23,9 +23,9 @@ import PlutusCore.Name.Unique
 import PlutusCore.Value (Value)
 
 import Data.Proxy
-import Flat
-import Flat.Decoder
-import Flat.Encoder
+import PlutusCore.Flat
+import PlutusCore.Flat.Decoder
+import PlutusCore.Flat.Encoder
 import PlutusPrelude
 import Universe
 

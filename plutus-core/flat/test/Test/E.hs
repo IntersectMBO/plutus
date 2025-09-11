@@ -5,7 +5,7 @@ module Test.E where
 
 import Control.DeepSeq
 import Data.List
-import Flat
+import PlutusCore.Flat
 -- import Data.Proxy
 
 data S3 = S_1 | S_2 Bool | S_3 Char deriving (Show,Generic,Eq,NFData)

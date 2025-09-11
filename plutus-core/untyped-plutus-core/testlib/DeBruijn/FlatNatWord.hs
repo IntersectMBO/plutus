@@ -9,12 +9,12 @@ import PlutusCore.Flat ()
 
 import Data.Either (isLeft)
 import Data.Word
-import Flat
-import Flat.Encoder
 import GHC.Natural
 import Hedgehog
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import PlutusCore.Flat
+import PlutusCore.Flat.Encoder
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog

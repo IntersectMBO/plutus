@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
-module Main where
+module PlutusCore.Flat.Test.Main where
 
-import Flat
+import PlutusCore.Flat
 
 #ifdef ETA_VERSION
 import Data.Function (trampoline)

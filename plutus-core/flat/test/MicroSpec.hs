@@ -1,6 +1,6 @@
 import Data.ByteString qualified as B
 import Data.List
-import Flat
+import PlutusCore.Flat
 import Test.E
 import Test.E.Flat
 import Test.Microspec

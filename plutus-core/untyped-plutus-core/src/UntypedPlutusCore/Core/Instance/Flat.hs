@@ -20,10 +20,10 @@ import UntypedPlutusCore.Core.Type
 import Control.Lens
 import Control.Monad
 import Data.Vector qualified as V
-import Flat
-import Flat.Decoder
-import Flat.Encoder
-import Flat.Encoder.Strict (sizeListWith)
+import PlutusCore.Flat
+import PlutusCore.Flat.Decoder
+import PlutusCore.Flat.Encoder
+import PlutusCore.Flat.Encoder.Strict (sizeListWith)
 import Universe
 
 {-

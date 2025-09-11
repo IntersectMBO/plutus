@@ -2,7 +2,7 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings         #-}
 
-module Main where
+module PlutusCore.Flat.Test.Main where
 
 import Data.List (isSuffixOf)
 import Data.Text qualified as T

@@ -10,7 +10,6 @@ import PlutusPrelude (display, fold, void, (&&&))
 import Control.Lens (view)
 import Data.Text (Text)
 import Data.Text qualified as T
-import Flat (flat, unflat)
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -18,6 +17,7 @@ import PlutusCore (Name)
 import PlutusCore.Annotation (SrcSpan (..))
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Flat (flat, unflat)
 import PlutusCore.Generators.Hedgehog (forAllPretty)
 import PlutusCore.Generators.Hedgehog.AST (runAstGen)
 import PlutusCore.Parser (defaultUni, parseGen)
