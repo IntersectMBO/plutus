@@ -11,7 +11,7 @@
 -- | Flat instances for Plutus Core types. Make sure to read Note [Stable
 -- encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
 -- in this file.
-module PlutusCore.Flat
+module PlutusCore.FlatInstances
     ( safeEncodeBits
     ) where
 

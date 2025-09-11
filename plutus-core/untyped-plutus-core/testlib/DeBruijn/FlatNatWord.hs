@@ -5,7 +5,7 @@
 module DeBruijn.FlatNatWord (test_flatNatWord) where
 
 import PlutusCore.DeBruijn
-import PlutusCore.Flat ()
+import PlutusCore.FlatInstances ()
 
 import Data.Either (isLeft)
 import Data.Word

@@ -156,7 +156,7 @@ library
     PlutusCore.Examples.Data.TreeForest
     PlutusCore.Examples.Data.Vec
     PlutusCore.Examples.Everything
-    PlutusCore.Flat
+    PlutusCore.FlatInstances
     PlutusCore.FsTree
     PlutusCore.Mark
     PlutusCore.MkPlc
@@ -318,6 +318,7 @@ library
     , exceptions
     , extra
     , filepath
+    , flat
     , free
     , ghc-prim
     , hashable                    >=1.4
@@ -332,7 +333,6 @@ library
     , multiset
     , nothunks                    ^>=0.2
     , parser-combinators          >=0.4.0
-    , plutus-core:flat
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable
     , primitive
@@ -1207,48 +1207,47 @@ library flat
     , unordered-containers
     , vector
 
-  -- test-suite flat-test
-  --   import: lang 
-  --   type:               exitcode-stdio-1.0
-  --   hs-source-dirs:     flat/test
-  --   default-language:   Haskell2010
-  --   main-is:            Spec.hs
-  --   cpp-options:        -DLIST_BIT -DTEST_DECBITS
-  --   cpp-options:        -DENUM_LARGE
+test-suite flat-test
+  import:           lang 
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   flat/test
+  default-language: Haskell2010
+  main-is:          Spec.hs
+  cpp-options:      -DLIST_BIT -DTEST_DECBITS
+  cpp-options:      -DENUM_LARGE
+  ghc-options:
+    -Wno-unused-top-binds -Wno-type-defaults -Wno-missing-signatures
+    -Wno-missing-deriving-strategies -Wno-orphans -Wno-name-shadowing
+    -Wno-redundant-constraints -Wno-unused-imports
+    -Wno-incomplete-uni-patterns -Wno-unused-local-binds
+    -Wno-unused-packages
 
-  --   ghc-options: 
-  --     -Wno-unused-top-binds -Wno-type-defaults -Wno-missing-signatures
-  --     -Wno-missing-deriving-strategies -Wno-orphans 
-  --     -Wno-name-shadowing -Wno-redundant-constraints
-  --     -Wno-unused-imports -Wno-incomplete-uni-patterns
-  --     -Wno-unused-local-binds -Wno-unused-packages
+  other-modules:
+    Test.Data
+    Test.Data.Arbitrary
+    Test.Data.Flat
+    Test.Data.Values
+    Test.Data2
+    Test.Data2.Flat
+    Test.E
+    Test.E.Arbitrary
+    Test.E.Flat
 
-  --   other-modules:
-  --     Test.Data
-  --     Test.Data.Arbitrary
-  --     Test.Data.Flat
-  --     Test.Data.Values
-  --     Test.Data2
-  --     Test.Data2.Flat
-  --     Test.E
-  --     Test.E.Arbitrary
-  --     Test.E.Flat
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , deepseq
+    , plutus-core:flat
+    , QuickCheck
+    , quickcheck-text
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , text
 
-  --   build-depends:
-  --     , base
-  --     , bytestring
-  --     , containers
-  --     , deepseq
-  --     , plutus-core:flat
-  --     , quickcheck-text
-  --     , tasty
-  --     , tasty-hunit
-  --     , tasty-quickcheck
-  --     , QuickCheck
-  --     , text
-
-  -- -- Test for Flat.AsBin Flat.AsSize and listTDecoder
-  -- test-suite flat-big-test
+-- Test for Flat.AsBin Flat.AsSize and listTDecoder
+test-suite flat-big-test
   import:           lang 
   type:             exitcode-stdio-1.0
   hs-source-dirs:   flat/test

@@ -10,7 +10,6 @@
 
 module UntypedPlutusCore.Core.Instance.Flat where
 
-import PlutusCore.Flat
 import PlutusCore.Pretty
 import PlutusCore.Version qualified as PLC
 import PlutusPrelude
@@ -24,6 +23,7 @@ import PlutusCore.Flat
 import PlutusCore.Flat.Decoder
 import PlutusCore.Flat.Encoder
 import PlutusCore.Flat.Encoder.Strict (sizeListWith)
+import PlutusCore.FlatInstances
 import Universe
 
 {-

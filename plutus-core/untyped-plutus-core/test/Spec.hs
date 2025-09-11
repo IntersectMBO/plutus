@@ -14,7 +14,6 @@ import Evaluation.Golden (test_golden)
 import Evaluation.Machines (test_NumberOfStepCounters, test_budget, test_machines, test_tallying)
 import Evaluation.Regressions (schnorrVerifyRegressions)
 import Generators.Spec (test_parsing)
-import PlutusCore.Flat.Spec (test_flat)
 import Scoping.Spec (test_names)
 import Transform.CaseOfCase.Spec (test_caseOfCase)
 import Transform.Inline.Spec (test_inline)
@@ -41,7 +40,6 @@ main = do
       , test_freevars
       , test_parsing
       , test_debug
-      , test_flat
       , schnorrVerifyRegressions
       , evalOrder
       , test_names
