@@ -16,6 +16,7 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
+import Control.Exception.Base qualified
 import GHC.Builtin.Names qualified as GHC
 import GHC.Builtin.Types.Prim qualified as GHC
 import GHC.ByteCode.Types qualified as GHC
@@ -49,6 +50,7 @@ import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
+import PlutusTx.Plugin.Lib qualified
 
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.HasOpaque qualified as Builtins
@@ -864,7 +866,7 @@ compileHaskellList
   :: forall uni fun m ann
    . (CompilingDefault uni fun m ann)
   => GHC.CoreExpr
-  -> m [PIRTerm uni fun]
+  -> m [GHC.CoreExpr]
 compileHaskellList = buildList . strip
   where
     err =
@@ -874,7 +876,7 @@ compileHaskellList = buildList . strip
     -- This is when the list is a single element and GHC will specialize list builder directly.
     -- GHC will generate core that looks like below:
     -- (:) @resTy e ([] @resTy)
-    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = traverse compileExpr [e]
+    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = pure [e]
     -- This is when the list has more than one elements. GHC will generate core that looks like below:
     -- build @resTy (\con nil -> con e1 (con e2 (... nil)))
     -- 'build' is some special function that abstracts the list type.
@@ -888,7 +890,7 @@ compileHaskellList = buildList . strip
           | nil' == nil = pure []
           | otherwise = err
         consume _ = err
-      in consume li >>= traverse compileExpr
+      in consume li
     buildList _ = err
 
 compileExpr :: (CompilingDefault uni fun m ann) => GHC.CoreExpr -> m (PIRTerm uni fun)
@@ -922,16 +924,82 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
 
+  caseDataConstr <- lookupGhcName 'Builtins.caseDataConstr
+  caseDataConstr' <- lookupGhcId 'PlutusTx.Plugin.Lib.caseDataConstr'
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   listIndexId <- lookupGhcId '(PlutusTx.List.!!)
+  patErrorId <- lookupGhcId 'Control.Exception.Base.patError
 
   case e of
+    -- case Data.Constr
+    GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
+      | GHC.getName var == caseDataConstr && coDatatypeStyle opts == PIR.BuiltinCasing -> do
+        let
+          isPatError (GHC.Case (GHC.App (GHC.App (GHC.App (GHC.Var patId) _) _) _) _ _ []) =
+            patId == patErrorId
+          isPatError (GHC.App (GHC.App (GHC.App (GHC.Var patId) _) _) _) =
+            patId == patErrorId
+          isPatError _ = False
+
+          -- case ds_dqhq of {
+          --  [] -> jump fail_dqhv (##);
+          --  : x_aqgg [Occ=Once1] ds_dqht [Occ=Once1!] -> <...nested...>
+          -- }
+          collapseNestedCases :: GHC.Id -> GHC.CoreExpr -> _ (GHC.CoreExpr, [GHC.Id])
+          collapseNestedCases failer (GHC.Case _ _ _ [emptyCase, restCase]) =
+            case (emptyCase, restCase) of
+              (GHC.Alt _ [] (GHC.App (GHC.Var failer') _), GHC.Alt _ [binder, _] restExpr)
+                | failer' == failer -> (fmap . fmap) (binder:) $ collapseNestedCases failer (strip restExpr)
+              (GHC.Alt _ [] lastExpr, GHC.Alt _ _ (GHC.App (GHC.Var failer') _))
+                | failer' == failer -> pure (lastExpr, [])
+              _ -> throwPlain $ CompilationError "List pattern should not have alternative matches"
+          collapseNestedCases _ _ =
+            throwPlain $ CompilationError "Unexpected expression where list pattern was expected"
+
+          -- case ds_dqhq of {
+          --  [] -> patError ... or case patError ... {};
+          --  : x_aqgg [Occ=Once1] ds_dqht [Occ=Once1!] -> <...nested...>
+          -- }
+          collapseNestedCases' :: GHC.CoreExpr -> _ (GHC.CoreExpr, [GHC.Id])
+          collapseNestedCases' (GHC.Case _ _ _ [emptyCase, restCase]) =
+            case (emptyCase, restCase) of
+              (GHC.Alt _ [] failer, GHC.Alt _ [binder, _] restExpr)
+                | isPatError failer -> (fmap . fmap) (binder:) $ collapseNestedCases' (strip restExpr)
+              (GHC.Alt _ [] lastExpr, GHC.Alt _ _ failer)
+                | isPatError failer -> pure (lastExpr, [])
+              _ -> throwPlain $ CompilationError "List pattern should not have alternative matches"
+          collapseNestedCases'  _ =
+            throwPlain $ CompilationError "Unexpected expression where list pattern was expected"
+
+          -- \ (ds_dqbV [Occ=Once1!] :: [BuiltinData]) ->
+          --    join {
+          --      fail_dqc0 [Occ=Once3!T[1]] :: (# #) -> Bob
+          --      fail_dqc0 = ...
+          --    } in ...
+          go (GHC.Lam _arg (GHC.Let (GHC.NonRec failer _) x)) =
+            (uncurry $ foldr GHC.Lam) <$> collapseNestedCases failer (strip x)
+          go (GHC.Lam _arg x) =
+            (uncurry $ foldr GHC.Lam) <$> collapseNestedCases' (strip x)
+          go _ =
+            throwPlain $
+              CompilationError "Unexpected expression where lambda with list pattern was expected"
+
+        resTy' <- compileTypeNorm resTy
+        scrut' <- compileExpr scrut
+        branches  <-
+          compileHaskellList li
+          >>= traverse (go . strip)
+          >>= traverse compileExpr
+        pure $ PIR.kase annAlwaysInline resTy' scrut' branches
+      | GHC.getName var == caseDataConstr -> do
+          compileExpr $
+            GHC.App (GHC.App (GHC.App (GHC.Var caseDataConstr') (GHC.Type resTy)) scrut) li
     -- case integer
     GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
       | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
         resTy' <- compileTypeNorm resTy
         scrut' <- compileExpr scrut
-        branches <- compileHaskellList li
+        branches <- compileHaskellList li >>= traverse compileExpr
         pure $ PIR.kase annAlwaysInline resTy' scrut' branches
       | GHC.getName var == caseIntegerName ->
         -- This is when we don't have bultin casing. We have to use something

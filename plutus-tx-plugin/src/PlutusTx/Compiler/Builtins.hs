@@ -23,6 +23,7 @@ module PlutusTx.Compiler.Builtins (
 
 import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as Builtins
+import PlutusTx.Plugin.Lib qualified
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Names
@@ -49,6 +50,7 @@ import GHC.Plugins qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
+import Control.Exception.Base qualified
 import Control.Monad.Reader (asks)
 
 import Data.ByteString qualified as BS
@@ -251,6 +253,8 @@ builtinNames =
   , 'Builtins.unsafeDataAsList
   , 'Builtins.unsafeDataAsB
   , 'Builtins.unsafeDataAsI
+  , 'PlutusTx.Plugin.Lib.caseDataConstr'
+  , 'Builtins.caseDataConstr
   , ''Builtins.BuiltinBLS12_381_G1_Element
   , 'Builtins.bls12_381_G1_equals
   , 'Builtins.bls12_381_G1_add
@@ -289,6 +293,8 @@ builtinNames =
   , 'Builtins.countSetBits
   , 'Builtins.findFirstSetBit
   , 'Builtins.expModInteger
+
+  , 'Control.Exception.Base.patError
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()

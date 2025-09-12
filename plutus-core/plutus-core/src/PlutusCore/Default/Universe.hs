@@ -49,7 +49,7 @@ import PlutusCore.Core.Type (Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Data (Data)
+import PlutusCore.Data (Data (Constr))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
@@ -546,27 +546,29 @@ outOfBoundsErr x branches = fold
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
-    annotateCaseBuiltin ty branches = case ty of
+  annotateCaseBuiltin ty branches = case ty of
         TyBuiltin _ (SomeTypeIn DefaultUniUnit)    ->
           case branches of
-            [x] -> Right $ [(x, [])]
+            [x] -> Right $ [FixedArityBranch x []]
             _   -> Left "Casing on unit only allows exactly one branch"
         TyBuiltin _ (SomeTypeIn DefaultUniBool)    ->
           case branches of
-            [f]    -> Right $ [(f, [])]
-            [f, t] -> Right $ [(f, []), (t, [])]
+            [f]    -> Right $ [FixedArityBranch f []]
+            [f, t] -> Right $ [FixedArityBranch f [], FixedArityBranch t []]
             _      -> Left "Casing on bool requires exactly one branch or two branches"
         TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
-          Right $ map (, []) branches
+          Right $ map (flip FixedArityBranch []) branches
         listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
           case branches of
-            [cons]      -> Right [(cons, [argTy, listTy])]
-            [cons, nil] -> Right [(cons, [argTy, listTy]), (nil, [])]
+            [cons]      -> Right [FixedArityBranch cons [argTy, listTy]]
+            [cons, nil] -> Right [FixedArityBranch cons [argTy, listTy], FixedArityBranch nil []]
             _           -> Left "Casing on list requires exactly one branch or two branches"
         (TyApp _ (TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoPair)) lTyArg) rTyArg) ->
           case branches of
-            [f] -> Right [(f, [lTyArg, rTyArg])]
+            [f] -> Right [FixedArityBranch f [lTyArg, rTyArg]]
             _   -> Left "Casing on pair requires exactly one branch"
+        TyBuiltin _ (SomeTypeIn DefaultUniData) ->
+          Right $ map (flip VariableArityBranch ty) branches
         _                 -> Left $ display (() <$ ty) <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
@@ -599,6 +601,16 @@ instance CaseBuiltin DefaultUni where
               case x of
                 (l, r) -> Right $ headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
             | otherwise -> Left $ outOfBoundsErr someVal branches
+        DefaultUniData ->
+          case x of
+            Constr ix ds
+              | 0 <= ix && ix < toInteger len ->
+                Right $
+                  headSpine
+                    (branches Vector.! (fromIntegral ix))
+                    (someValueOf DefaultUniData <$> ds)
+              | otherwise -> Left $ outOfBoundsErr someVal branches
+            _ -> Left "Only 'Constr' constructor can be cased"
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches

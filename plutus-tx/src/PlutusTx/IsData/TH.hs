@@ -1,8 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE CPP             #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE BangPatterns     #-}
+{-# LANGUAGE CPP              #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TupleSections    #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns     #-}
 
 module PlutusTx.IsData.TH (
   unsafeFromDataClause,
@@ -245,8 +247,8 @@ unsafeReconstructListCase TH.ConstructorInfo{TH.constructorName = name, TH.const
     (TH.normalB app)
     []
 
-unsafeFromDataClause :: [(TH.ConstructorInfo, Int)] -> TH.Q TH.Clause
-unsafeFromDataClause indexedCons = do
+unsafeFromDataClause :: [(TH.ConstructorInfo, Int)] -> TH.Type -> TH.Q TH.Clause
+unsafeFromDataClause indexedCons appliedType = do
   dName <- TH.newName "d"
   tupName <- TH.newName "tup"
   indexName <- TH.newName "index"
@@ -266,15 +268,24 @@ unsafeFromDataClause indexedCons = do
   if intCasingEligible
     then do
       let
-        kases =
-          TH.listE $
-            (\(conInfo, _) -> TH.lamCaseE [unsafeReconstructListCase conInfo, finalCase])
-            <$> indexedConsSorted
-        body =
-          [| BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
-               \($(TH.varP indexName)) ($(TH.varP argsName)) ->
-                 (caseInteger $(TH.varE indexName) $kases) $(TH.varE argsName)
-           |]
+        unsafeReconBuiltinCasingCase
+          (TH.ConstructorInfo{TH.constructorName = constName, TH.constructorFields = argTys}) = do
+          argNamesWithType <- for argTys $ \ty -> (, ty) <$> TH.newName "arg"
+
+          let
+            argNames = fst <$> argNamesWithType
+            listBinder = TH.listP $ TH.varP <$> argNames
+            apps =
+              foldl
+                (\f (v, ty) -> [|$f (unsafeFromBuiltinData $(TH.varE v) :: $(pure ty))|])
+                (TH.conE constName)
+                argNamesWithType
+
+          TH.lamE [listBinder] [|$apps :: $(pure appliedType)|]
+
+        kases = TH.listE $ (unsafeReconBuiltinCasingCase . fst) <$> indexedConsSorted
+
+        body = [| Builtins.caseDataConstr $(TH.varE dName) $kases |]
 
       TH.clause [TH.varP dName] (TH.normalB body) []
     else do
@@ -368,7 +379,7 @@ makeIsDataIndexed dataTypeName indices = do
     let constraints =
           TH.datatypeVars dataTypeInfo <&> \tyVarBinder ->
             TH.classPred ''UnsafeFromData [TH.VarT (tyvarbndrName tyVarBinder)]
-    unsafeFromDataDecl <- TH.funD 'unsafeFromBuiltinData [unsafeFromDataClause indexedCons]
+    unsafeFromDataDecl <- TH.funD 'unsafeFromBuiltinData [unsafeFromDataClause indexedCons appliedType]
     unsafeFromDataPrag <- TH.pragInlD 'unsafeFromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
     pure $
       nonOverlapInstance

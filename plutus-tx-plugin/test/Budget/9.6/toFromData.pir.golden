@@ -7,8 +7,6 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !casePair : all a b r. pair a b -> (a -> b -> r) -> r
-    = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
   !d : data
     = (let
           b = Maybe (Tuple3 bool integer bool)
@@ -79,86 +77,30 @@ in
   \(`$dUnsafeFromData` : (\a -> data -> a) integer)
    (`$dUnsafeFromData` : (\a -> data -> a) b)
    (d : data) ->
-    casePair
-      {integer}
-      {list data}
-      {Either integer b}
-      (unConstrData d)
-      (\(index : integer) (args : list data) ->
-         case
-           (list data -> Either integer b)
-           index
-           [ (\(ds : list data) ->
-                Left {integer} {b} (`$dUnsafeFromData` (headList {data} ds)))
-           , (\(ds : list data) ->
-                Right {integer} {b} (`$dUnsafeFromData` (headList {data} ds))) ]
-           args))
+    case
+      (Either integer b)
+      d
+      [ (\(arg : data) -> Left {integer} {b} (`$dUnsafeFromData` arg))
+      , (\(arg : data) -> Right {integer} {b} (`$dUnsafeFromData` arg)) ])
   unIData
   ((let
        a = Tuple3 bool integer bool
      in
      \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-       casePair
-         {integer}
-         {list data}
-         {Maybe a}
-         (unConstrData d)
-         (\(index : integer) (args : list data) ->
-            case
-              (list data -> Maybe a)
-              index
-              [ (\(ds : list data) ->
-                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-              , (\(ds : list data) -> Nothing {a}) ]
-              args))
+       case
+         (Maybe a)
+         d
+         [(\(arg : data) -> Just {a} (`$dUnsafeFromData` arg)), (Nothing {a})])
      (\(d : data) ->
-        casePair
-          {integer}
-          {list data}
-          {Tuple3 bool integer bool}
-          (unConstrData d)
-          (\(index : integer) (args : list data) ->
-             case
-               (list data -> Tuple3 bool integer bool)
-               index
-               [ (\(ds : list data) ->
-                    let
-                      !l : list data = tailList {data} ds
-                    in
-                    Tuple3
-                      {bool}
-                      {integer}
-                      {bool}
-                      (let
-                        !d : data = headList {data} ds
-                      in
-                      casePair
-                        {integer}
-                        {list data}
-                        {bool}
-                        (unConstrData d)
-                        (\(index : integer) (args : list data) ->
-                           case
-                             (list data -> bool)
-                             index
-                             [ (\(ds : list data) -> False)
-                             , (\(ds : list data) -> True) ]
-                             args))
-                      (unIData (headList {data} l))
-                      (let
-                        !d : data = headList {data} (tailList {data} l)
-                      in
-                      casePair
-                        {integer}
-                        {list data}
-                        {bool}
-                        (unConstrData d)
-                        (\(index : integer) (args : list data) ->
-                           case
-                             (list data -> bool)
-                             index
-                             [ (\(ds : list data) -> False)
-                             , (\(ds : list data) -> True) ]
-                             args))) ]
-               args)))
+        case
+          (Tuple3 bool integer bool)
+          d
+          [ (\(arg : data) (arg : data) (arg : data) ->
+               Tuple3
+                 {bool}
+                 {integer}
+                 {bool}
+                 (case bool arg [False, True])
+                 (unIData arg)
+                 (case bool arg [False, True])) ]))
   d
