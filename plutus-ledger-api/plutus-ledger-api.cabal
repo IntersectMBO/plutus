@@ -121,7 +121,7 @@ library
     , deepseq
     , lens
     , mtl
-    , nothunks
+    , nothunks           ^>=0.2
     , plutus-core        ^>=1.53
     , plutus-tx          ^>=1.53
     , prettyprinter
