@@ -3,6 +3,6 @@ The machine terminated because of an error, either from a built-in function or f
 Caused by: error
 
 Trace:
--> func (test/CallTrace/Spec.hs:78:1-78:4)
--> $cmyClassFunc (test/CallTrace/Spec.hs:99:3-99:13)
+-> func (test/CallTrace/Spec.hs:79:1-79:4)
+-> $cmyClassFunc (test/CallTrace/Spec.hs:100:3-100:13)
 -> error
