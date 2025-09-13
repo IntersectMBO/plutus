@@ -1,0 +1,6273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A JSON representation of costing functions for Plutus Core
+   builtins which produces a simple cost model which can be used from Agda and other
+   executables -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-comment"
+      >-------------- Types representing cost mode entries and functions for JSON parsing ----------------</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="LinearFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	  ><span class="hs-identifier hs-var"
+	    >LinearFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span id="LinearFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	  ><span class="hs-identifier hs-var"
+	    >LinearFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="intercept_"
+      ><span class="annot"
+	><span class="annottext"
+	  >LinearFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#intercept_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >intercept_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="slope_"
+      ><span class="annot"
+	><span class="annottext"
+	  >LinearFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#slope_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >slope_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >                   </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681831978"
+      ><span id="local-6989586621681831985"
+	><span id="local-6989586621681831989"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; LinearFunction -&gt; ShowS
+[LinearFunction] -&gt; ShowS
+LinearFunction -&gt; String
+(Int -&gt; LinearFunction -&gt; ShowS)
+-&gt; (LinearFunction -&gt; String)
+-&gt; ([LinearFunction] -&gt; ShowS)
+-&gt; Show LinearFunction
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; LinearFunction -&gt; ShowS
+showsPrec :: Int -&gt; LinearFunction -&gt; ShowS
+$cshow :: LinearFunction -&gt; String
+show :: LinearFunction -&gt; String
+$cshowList :: [LinearFunction] -&gt; ShowS
+showList :: [LinearFunction] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681831993"
+      ><span id="local-6989586621681832002"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; LinearFunction -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    LinearFunction -&gt; Code m LinearFunction)
+-&gt; Lift LinearFunction
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; LinearFunction -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+LinearFunction -&gt; Code m LinearFunction
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; LinearFunction -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; LinearFunction -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+LinearFunction -&gt; Code m LinearFunction
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+LinearFunction -&gt; Code m LinearFunction
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832013"
+      ><span id="local-6989586621681832017"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	    ><span class="hs-identifier hs-type"
+	      >LinearFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681832030"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser LinearFunction
+</span
+	  ><a href="#local-6989586621681832030"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser LinearFunction)
+-&gt; Value
+-&gt; Parser LinearFunction
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Linear function&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser LinearFunction)
+ -&gt; Value -&gt; Parser LinearFunction)
+-&gt; (Object -&gt; Parser LinearFunction)
+-&gt; Value
+-&gt; Parser LinearFunction
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681832033"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832033"
+	  ><span class="hs-identifier hs-var"
+	    >obj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; LinearFunction
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-var"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Integer -&gt; LinearFunction)
+-&gt; Parser Integer -&gt; Parser (Integer -&gt; LinearFunction)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832033"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;intercept&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; LinearFunction)
+-&gt; Parser Integer -&gt; Parser LinearFunction
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832033"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;slope&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="TwoVariableLinearFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableLinearFunction"
+	  ><span class="hs-identifier hs-var"
+	    >TwoVariableLinearFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span id="TwoVariableLinearFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableLinearFunction"
+	  ><span class="hs-identifier hs-var"
+	    >TwoVariableLinearFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="intercept%27_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableLinearFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#intercept%27_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >intercept'_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="slope1_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableLinearFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#slope1_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >slope1_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="slope2_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableLinearFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#slope2_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >slope2_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >                               </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681832041"
+      ><span id="local-6989586621681832047"
+	><span id="local-6989586621681832051"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; TwoVariableLinearFunction -&gt; ShowS
+[TwoVariableLinearFunction] -&gt; ShowS
+TwoVariableLinearFunction -&gt; String
+(Int -&gt; TwoVariableLinearFunction -&gt; ShowS)
+-&gt; (TwoVariableLinearFunction -&gt; String)
+-&gt; ([TwoVariableLinearFunction] -&gt; ShowS)
+-&gt; Show TwoVariableLinearFunction
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; TwoVariableLinearFunction -&gt; ShowS
+showsPrec :: Int -&gt; TwoVariableLinearFunction -&gt; ShowS
+$cshow :: TwoVariableLinearFunction -&gt; String
+show :: TwoVariableLinearFunction -&gt; String
+$cshowList :: [TwoVariableLinearFunction] -&gt; ShowS
+showList :: [TwoVariableLinearFunction] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832054"
+      ><span id="local-6989586621681832064"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *).
+ Quote m =&gt;
+ TwoVariableLinearFunction -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    TwoVariableLinearFunction -&gt; Code m TwoVariableLinearFunction)
+-&gt; Lift TwoVariableLinearFunction
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; TwoVariableLinearFunction -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableLinearFunction -&gt; Code m TwoVariableLinearFunction
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; TwoVariableLinearFunction -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; TwoVariableLinearFunction -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableLinearFunction -&gt; Code m TwoVariableLinearFunction
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableLinearFunction -&gt; Code m TwoVariableLinearFunction
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832076"
+      ><span id="local-6989586621681832080"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableLinearFunction"
+	    ><span class="hs-identifier hs-type"
+	      >TwoVariableLinearFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681832091"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser TwoVariableLinearFunction
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser TwoVariableLinearFunction)
+-&gt; Value
+-&gt; Parser TwoVariableLinearFunction
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Linear function&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser TwoVariableLinearFunction)
+ -&gt; Value -&gt; Parser TwoVariableLinearFunction)
+-&gt; (Object -&gt; Parser TwoVariableLinearFunction)
+-&gt; Value
+-&gt; Parser TwoVariableLinearFunction
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681832092"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832092"
+	  ><span class="hs-identifier hs-var"
+	    >obj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; TwoVariableLinearFunction
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableLinearFunction"
+	><span class="hs-identifier hs-var"
+	  >TwoVariableLinearFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Integer -&gt; Integer -&gt; TwoVariableLinearFunction)
+-&gt; Parser Integer
+-&gt; Parser (Integer -&gt; Integer -&gt; TwoVariableLinearFunction)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832092"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;intercept&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; Integer -&gt; TwoVariableLinearFunction)
+-&gt; Parser Integer -&gt; Parser (Integer -&gt; TwoVariableLinearFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832092"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;slope1&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; TwoVariableLinearFunction)
+-&gt; Parser Integer -&gt; Parser TwoVariableLinearFunction
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832092"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;slope2&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="OneVariableQuadraticFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#OneVariableQuadraticFunction"
+	  ><span class="hs-identifier hs-var"
+	    >OneVariableQuadraticFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span id="OneVariableQuadraticFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#OneVariableQuadraticFunction"
+	  ><span class="hs-identifier hs-var"
+	    >OneVariableQuadraticFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="coeff0_"
+      ><span class="annot"
+	><span class="annottext"
+	  >OneVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff0_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff0_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff1_"
+      ><span class="annot"
+	><span class="annottext"
+	  >OneVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff1_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff1_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff2_"
+      ><span class="annot"
+	><span class="annottext"
+	  >OneVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff2_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff2_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681832098"
+      ><span id="local-6989586621681832104"
+	><span id="local-6989586621681832108"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; OneVariableQuadraticFunction -&gt; ShowS
+[OneVariableQuadraticFunction] -&gt; ShowS
+OneVariableQuadraticFunction -&gt; String
+(Int -&gt; OneVariableQuadraticFunction -&gt; ShowS)
+-&gt; (OneVariableQuadraticFunction -&gt; String)
+-&gt; ([OneVariableQuadraticFunction] -&gt; ShowS)
+-&gt; Show OneVariableQuadraticFunction
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; OneVariableQuadraticFunction -&gt; ShowS
+showsPrec :: Int -&gt; OneVariableQuadraticFunction -&gt; ShowS
+$cshow :: OneVariableQuadraticFunction -&gt; String
+show :: OneVariableQuadraticFunction -&gt; String
+$cshowList :: [OneVariableQuadraticFunction] -&gt; ShowS
+showList :: [OneVariableQuadraticFunction] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832111"
+      ><span id="local-6989586621681832121"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *).
+ Quote m =&gt;
+ OneVariableQuadraticFunction -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    OneVariableQuadraticFunction
+    -&gt; Code m OneVariableQuadraticFunction)
+-&gt; Lift OneVariableQuadraticFunction
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *).
+Quote m =&gt;
+OneVariableQuadraticFunction -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+OneVariableQuadraticFunction -&gt; Code m OneVariableQuadraticFunction
+$clift :: forall (m :: * -&gt; *).
+Quote m =&gt;
+OneVariableQuadraticFunction -&gt; m Exp
+lift :: forall (m :: * -&gt; *).
+Quote m =&gt;
+OneVariableQuadraticFunction -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+OneVariableQuadraticFunction -&gt; Code m OneVariableQuadraticFunction
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+OneVariableQuadraticFunction -&gt; Code m OneVariableQuadraticFunction
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832133"
+      ><span id="local-6989586621681832137"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#OneVariableQuadraticFunction"
+	    ><span class="hs-identifier hs-type"
+	      >OneVariableQuadraticFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681832148"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser OneVariableQuadraticFunction
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser OneVariableQuadraticFunction)
+-&gt; Value
+-&gt; Parser OneVariableQuadraticFunction
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;One-variable quadratic function&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser OneVariableQuadraticFunction)
+ -&gt; Value -&gt; Parser OneVariableQuadraticFunction)
+-&gt; (Object -&gt; Parser OneVariableQuadraticFunction)
+-&gt; Value
+-&gt; Parser OneVariableQuadraticFunction
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681832149"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832149"
+	  ><span class="hs-identifier hs-var"
+	    >obj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; OneVariableQuadraticFunction
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#OneVariableQuadraticFunction"
+	><span class="hs-identifier hs-var"
+	  >OneVariableQuadraticFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Integer -&gt; Integer -&gt; OneVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser (Integer -&gt; Integer -&gt; OneVariableQuadraticFunction)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832149"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c0&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; Integer -&gt; OneVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser (Integer -&gt; OneVariableQuadraticFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832149"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c1&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; OneVariableQuadraticFunction)
+-&gt; Parser Integer -&gt; Parser OneVariableQuadraticFunction
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832149"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c2&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="TwoVariableQuadraticFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableQuadraticFunction"
+	  ><span class="hs-identifier hs-var"
+	    >TwoVariableQuadraticFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span id="TwoVariableQuadraticFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableQuadraticFunction"
+	  ><span class="hs-identifier hs-var"
+	    >TwoVariableQuadraticFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="minimum"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#minimum"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >minimum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff00_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff00_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff00_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff10_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff10_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff10_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff01_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff01_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff01_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff20_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff20_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff20_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff11_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff11_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff11_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coeff02_"
+      ><span class="annot"
+	><span class="annottext"
+	  >TwoVariableQuadraticFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#coeff02_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coeff02_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681832159"
+      ><span id="local-6989586621681832169"
+	><span id="local-6989586621681832173"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; TwoVariableQuadraticFunction -&gt; ShowS
+[TwoVariableQuadraticFunction] -&gt; ShowS
+TwoVariableQuadraticFunction -&gt; String
+(Int -&gt; TwoVariableQuadraticFunction -&gt; ShowS)
+-&gt; (TwoVariableQuadraticFunction -&gt; String)
+-&gt; ([TwoVariableQuadraticFunction] -&gt; ShowS)
+-&gt; Show TwoVariableQuadraticFunction
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; TwoVariableQuadraticFunction -&gt; ShowS
+showsPrec :: Int -&gt; TwoVariableQuadraticFunction -&gt; ShowS
+$cshow :: TwoVariableQuadraticFunction -&gt; String
+show :: TwoVariableQuadraticFunction -&gt; String
+$cshowList :: [TwoVariableQuadraticFunction] -&gt; ShowS
+showList :: [TwoVariableQuadraticFunction] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832176"
+      ><span id="local-6989586621681832194"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *).
+ Quote m =&gt;
+ TwoVariableQuadraticFunction -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    TwoVariableQuadraticFunction
+    -&gt; Code m TwoVariableQuadraticFunction)
+-&gt; Lift TwoVariableQuadraticFunction
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableQuadraticFunction -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableQuadraticFunction -&gt; Code m TwoVariableQuadraticFunction
+$clift :: forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableQuadraticFunction -&gt; m Exp
+lift :: forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableQuadraticFunction -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableQuadraticFunction -&gt; Code m TwoVariableQuadraticFunction
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+TwoVariableQuadraticFunction -&gt; Code m TwoVariableQuadraticFunction
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832214"
+      ><span id="local-6989586621681832218"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableQuadraticFunction"
+	    ><span class="hs-identifier hs-type"
+	      >TwoVariableQuadraticFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681832241"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser TwoVariableQuadraticFunction
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser TwoVariableQuadraticFunction)
+-&gt; Value
+-&gt; Parser TwoVariableQuadraticFunction
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Two-variable quadratic function&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser TwoVariableQuadraticFunction)
+ -&gt; Value -&gt; Parser TwoVariableQuadraticFunction)
+-&gt; (Object -&gt; Parser TwoVariableQuadraticFunction)
+-&gt; Value
+-&gt; Parser TwoVariableQuadraticFunction
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681832242"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832242"
+	  ><span class="hs-identifier hs-var"
+	    >obj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+-&gt; Integer
+-&gt; Integer
+-&gt; Integer
+-&gt; Integer
+-&gt; Integer
+-&gt; Integer
+-&gt; TwoVariableQuadraticFunction
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableQuadraticFunction"
+	><span class="hs-identifier hs-var"
+	  >TwoVariableQuadraticFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer
+ -&gt; Integer
+ -&gt; Integer
+ -&gt; Integer
+ -&gt; Integer
+ -&gt; Integer
+ -&gt; Integer
+ -&gt; TwoVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser
+     (Integer
+      -&gt; Integer
+      -&gt; Integer
+      -&gt; Integer
+      -&gt; Integer
+      -&gt; Integer
+      -&gt; TwoVariableQuadraticFunction)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832242"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;minimum&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser
+  (Integer
+   -&gt; Integer
+   -&gt; Integer
+   -&gt; Integer
+   -&gt; Integer
+   -&gt; Integer
+   -&gt; TwoVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser
+     (Integer
+      -&gt; Integer
+      -&gt; Integer
+      -&gt; Integer
+      -&gt; Integer
+      -&gt; TwoVariableQuadraticFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832242"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c00&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser
+  (Integer
+   -&gt; Integer
+   -&gt; Integer
+   -&gt; Integer
+   -&gt; Integer
+   -&gt; TwoVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser
+     (Integer
+      -&gt; Integer -&gt; Integer -&gt; Integer -&gt; TwoVariableQuadraticFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832242"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c10&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser
+  (Integer
+   -&gt; Integer -&gt; Integer -&gt; Integer -&gt; TwoVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser
+     (Integer -&gt; Integer -&gt; Integer -&gt; TwoVariableQuadraticFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832242"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c01&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser
+  (Integer -&gt; Integer -&gt; Integer -&gt; TwoVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser (Integer -&gt; Integer -&gt; TwoVariableQuadraticFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832242"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c20&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; Integer -&gt; TwoVariableQuadraticFunction)
+-&gt; Parser Integer
+-&gt; Parser (Integer -&gt; TwoVariableQuadraticFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832242"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c11&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; TwoVariableQuadraticFunction)
+-&gt; Parser Integer -&gt; Parser TwoVariableQuadraticFunction
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832242"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;c02&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ExpModCostingFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCostingFunction"
+	  ><span class="hs-identifier hs-var"
+	    >ExpModCostingFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span id="ExpModCostingFunction"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCostingFunction"
+	  ><span class="hs-identifier hs-var"
+	    >ExpModCostingFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="emcfcoeff00_"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExpModCostingFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#emcfcoeff00_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emcfcoeff00_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="emcfcoeff11_"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExpModCostingFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#emcfcoeff11_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emcfcoeff11_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="emcfcoeff12_"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExpModCostingFunction -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#emcfcoeff12_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emcfcoeff12_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681832248"
+      ><span id="local-6989586621681832254"
+	><span id="local-6989586621681832258"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ExpModCostingFunction -&gt; ShowS
+[ExpModCostingFunction] -&gt; ShowS
+ExpModCostingFunction -&gt; String
+(Int -&gt; ExpModCostingFunction -&gt; ShowS)
+-&gt; (ExpModCostingFunction -&gt; String)
+-&gt; ([ExpModCostingFunction] -&gt; ShowS)
+-&gt; Show ExpModCostingFunction
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ExpModCostingFunction -&gt; ShowS
+showsPrec :: Int -&gt; ExpModCostingFunction -&gt; ShowS
+$cshow :: ExpModCostingFunction -&gt; String
+show :: ExpModCostingFunction -&gt; String
+$cshowList :: [ExpModCostingFunction] -&gt; ShowS
+showList :: [ExpModCostingFunction] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832261"
+      ><span id="local-6989586621681832271"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; ExpModCostingFunction -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    ExpModCostingFunction -&gt; Code m ExpModCostingFunction)
+-&gt; Lift ExpModCostingFunction
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; ExpModCostingFunction -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+ExpModCostingFunction -&gt; Code m ExpModCostingFunction
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; ExpModCostingFunction -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; ExpModCostingFunction -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+ExpModCostingFunction -&gt; Code m ExpModCostingFunction
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+ExpModCostingFunction -&gt; Code m ExpModCostingFunction
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832283"
+      ><span id="local-6989586621681832287"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCostingFunction"
+	    ><span class="hs-identifier hs-type"
+	      >ExpModCostingFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681832298"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ExpModCostingFunction
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser ExpModCostingFunction)
+-&gt; Value
+-&gt; Parser ExpModCostingFunction
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ExpMod costing function&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser ExpModCostingFunction)
+ -&gt; Value -&gt; Parser ExpModCostingFunction)
+-&gt; (Object -&gt; Parser ExpModCostingFunction)
+-&gt; Value
+-&gt; Parser ExpModCostingFunction
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681832299"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832299"
+	  ><span class="hs-identifier hs-var"
+	    >obj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; ExpModCostingFunction
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCostingFunction"
+	><span class="hs-identifier hs-var"
+	  >ExpModCostingFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Integer -&gt; Integer -&gt; ExpModCostingFunction)
+-&gt; Parser Integer
+-&gt; Parser (Integer -&gt; Integer -&gt; ExpModCostingFunction)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832299"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;coefficient00&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; Integer -&gt; ExpModCostingFunction)
+-&gt; Parser Integer -&gt; Parser (Integer -&gt; ExpModCostingFunction)
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832299"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;coefficient11&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; ExpModCostingFunction)
+-&gt; Parser Integer -&gt; Parser ExpModCostingFunction
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832299"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;coefficient12&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | This type reflects what is actually in the JSON.  The stuff in
+   CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
+   for the model types applicable to the various ModelNArguments types; it also
+   requires entries for everything in DefaultFun. Using the type defined here
+   allows us to be more flexible and parse stuff that's not exactly what's
+   expected in builtinCostModel.json.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Model"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model"
+	  ><span class="hs-identifier hs-var"
+	    >Model</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ConstantCost"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstantCost"
+	  ><span class="hs-identifier hs-var"
+	    >ConstantCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="AddedSizes"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#AddedSizes"
+	  ><span class="hs-identifier hs-var"
+	    >AddedSizes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="MultipliedSizes"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#MultipliedSizes"
+	  ><span class="hs-identifier hs-var"
+	    >MultipliedSizes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="MinSize"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#MinSize"
+	  ><span class="hs-identifier hs-var"
+	    >MinSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="MaxSize"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#MaxSize"
+	  ><span class="hs-identifier hs-var"
+	    >MaxSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="LinearInX"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInX"
+	  ><span class="hs-identifier hs-var"
+	    >LinearInX</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="LinearInY"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInY"
+	  ><span class="hs-identifier hs-var"
+	    >LinearInY</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="LinearInZ"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInZ"
+	  ><span class="hs-identifier hs-var"
+	    >LinearInZ</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="LiteralInYOrLinearInZ"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LiteralInYOrLinearInZ"
+	  ><span class="hs-identifier hs-var"
+	    >LiteralInYOrLinearInZ</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="LinearInMaxYZ"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInMaxYZ"
+	  ><span class="hs-identifier hs-var"
+	    >LinearInMaxYZ</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="LinearInYAndZ"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInYAndZ"
+	  ><span class="hs-identifier hs-var"
+	    >LinearInYAndZ</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableLinearFunction"
+	><span class="hs-identifier hs-type"
+	  >TwoVariableLinearFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="QuadraticInY"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#QuadraticInY"
+	  ><span class="hs-identifier hs-var"
+	    >QuadraticInY</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#OneVariableQuadraticFunction"
+	><span class="hs-identifier hs-type"
+	  >OneVariableQuadraticFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="QuadraticInZ"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#QuadraticInZ"
+	  ><span class="hs-identifier hs-var"
+	    >QuadraticInZ</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#OneVariableQuadraticFunction"
+	><span class="hs-identifier hs-type"
+	  >OneVariableQuadraticFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="QuadraticInXAndY"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#QuadraticInXAndY"
+	  ><span class="hs-identifier hs-var"
+	    >QuadraticInXAndY</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableQuadraticFunction"
+	><span class="hs-identifier hs-type"
+	  >TwoVariableQuadraticFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="SubtractedSizes"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#SubtractedSizes"
+	  ><span class="hs-identifier hs-var"
+	    >SubtractedSizes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-type"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Linear model in x-y plus minimum value for the case x-y &lt; 0.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ConstAboveDiagonal"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstAboveDiagonal"
+	  ><span class="hs-identifier hs-var"
+	    >ConstAboveDiagonal</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model"
+	><span class="hs-identifier hs-type"
+	  >Model</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ConstBelowDiagonal"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstBelowDiagonal"
+	  ><span class="hs-identifier hs-var"
+	    >ConstBelowDiagonal</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model"
+	><span class="hs-identifier hs-type"
+	  >Model</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ConstOffDiagonal"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstOffDiagonal"
+	  ><span class="hs-identifier hs-var"
+	    >ConstOffDiagonal</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model"
+	><span class="hs-identifier hs-type"
+	  >Model</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ExpModCost"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCost"
+	  ><span class="hs-identifier hs-var"
+	    >ExpModCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCostingFunction"
+	><span class="hs-identifier hs-type"
+	  >ExpModCostingFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681832320"
+      ><span id="local-6989586621681832365"
+	><span id="local-6989586621681832368"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Model -&gt; ShowS
+[Model] -&gt; ShowS
+Model -&gt; String
+(Int -&gt; Model -&gt; ShowS)
+-&gt; (Model -&gt; String) -&gt; ([Model] -&gt; ShowS) -&gt; Show Model
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Model -&gt; ShowS
+showsPrec :: Int -&gt; Model -&gt; ShowS
+$cshow :: Model -&gt; String
+show :: Model -&gt; String
+$cshowList :: [Model] -&gt; ShowS
+showList :: [Model] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832371"
+      ><span id="local-6989586621681832440"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; Code m Model)
+-&gt; Lift Model
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; Code m Model
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; Code m Model
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Model -&gt; Code m Model
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-comment"
+      >{- The JSON representation consists of a list of pairs of (type, arguments)
+   values.  The &quot;type&quot; field corresponds to the possible constructors above, the
+   &quot;arguments&quot; field contains the arguments for that particular constructor.
+
+   The JSON format is a bit inconsistent, which adds some complexity.  For
+   example, the &quot;arguments&quot; field is sometimes a constant, sometimes an object
+   representing a linear function, and sometimes an object which contains the
+   coefficients of a linear function together with some extra data. It would be
+   nice to rationalise this a bit, but it may be too late to do that.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832509"
+      ><span id="local-6989586621681832513"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model"
+	    ><span class="hs-identifier hs-type"
+	      >Model</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681832622"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser Model
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; (Object -&gt; Parser Model) -&gt; Value -&gt; Parser Model
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Model&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser Model) -&gt; Value -&gt; Parser Model)
+-&gt; (Object -&gt; Parser Model) -&gt; Value -&gt; Parser Model
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681832623"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832623"
+	  ><span class="hs-identifier hs-var"
+	    >obj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >             </span
+      ><span id="local-6989586621681832624"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681832624"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832623"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Text
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >             </span
+      ><span id="local-6989586621681832625"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681832625"
+	  ><span class="hs-identifier hs-var"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832623"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Value
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;arguments&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-comment"
+      >{- We always have an &quot;arguments&quot; field which is a Value.  Usually it's
+                actually an Object (ie, a map) representing a linear function, but
+                sometimes it contains other data, and in those cases we need to
+                coerce it to an Object (with objOf) to extract the relevant data.
+                We could do that once here and rely on laziness to save us in the
+                cases when we don't have an Object, but that looks a bit misleading. -}</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681832624"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;constant_cost&quot;</span
+	></span
+      ><span
+      >               </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstantCost"
+	><span class="hs-identifier hs-var"
+	  >ConstantCost</span
+	  ></a
+	></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Model) -&gt; Parser Integer -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser Integer
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;added_sizes&quot;</span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#AddedSizes"
+	><span class="hs-identifier hs-var"
+	  >AddedSizes</span
+	  ></a
+	></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;min_size&quot;</span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#MinSize"
+	><span class="hs-identifier hs-var"
+	  >MinSize</span
+	  ></a
+	></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;max_size&quot;</span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#MaxSize"
+	><span class="hs-identifier hs-var"
+	  >MaxSize</span
+	  ></a
+	></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;multiplied_sizes&quot;</span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#MultipliedSizes"
+	><span class="hs-identifier hs-var"
+	  >MultipliedSizes</span
+	  ></a
+	></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;linear_in_x&quot;</span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInX"
+	><span class="hs-identifier hs-var"
+	  >LinearInX</span
+	  ></a
+	></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;linear_in_y&quot;</span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInY"
+	><span class="hs-identifier hs-var"
+	  >LinearInY</span
+	  ></a
+	></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;linear_in_z&quot;</span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInZ"
+	><span class="hs-identifier hs-var"
+	  >LinearInZ</span
+	  ></a
+	></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;quadratic_in_y&quot;</span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OneVariableQuadraticFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#QuadraticInY"
+	><span class="hs-identifier hs-var"
+	  >QuadraticInY</span
+	  ></a
+	></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(OneVariableQuadraticFunction -&gt; Model)
+-&gt; Parser OneVariableQuadraticFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser OneVariableQuadraticFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;quadratic_in_z&quot;</span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OneVariableQuadraticFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#QuadraticInZ"
+	><span class="hs-identifier hs-var"
+	  >QuadraticInZ</span
+	  ></a
+	></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(OneVariableQuadraticFunction -&gt; Model)
+-&gt; Parser OneVariableQuadraticFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser OneVariableQuadraticFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;quadratic_in_x_and_y&quot;</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TwoVariableQuadraticFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#QuadraticInXAndY"
+	><span class="hs-identifier hs-var"
+	  >QuadraticInXAndY</span
+	  ></a
+	></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TwoVariableQuadraticFunction -&gt; Model)
+-&gt; Parser TwoVariableQuadraticFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser TwoVariableQuadraticFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;exp_mod_cost&quot;</span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExpModCostingFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCost"
+	><span class="hs-identifier hs-var"
+	  >ExpModCost</span
+	  ></a
+	></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExpModCostingFunction -&gt; Model)
+-&gt; Parser ExpModCostingFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser ExpModCostingFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;literal_in_y_or_linear_in_z&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LiteralInYOrLinearInZ"
+	><span class="hs-identifier hs-var"
+	  >LiteralInYOrLinearInZ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;linear_in_max_yz&quot;</span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInMaxYZ"
+	><span class="hs-identifier hs-var"
+	  >LinearInMaxYZ</span
+	  ></a
+	></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; Parser LinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;linear_in_y_and_z&quot;</span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TwoVariableLinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInYAndZ"
+	><span class="hs-identifier hs-var"
+	  >LinearInYAndZ</span
+	  ></a
+	></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TwoVariableLinearFunction -&gt; Model)
+-&gt; Parser TwoVariableLinearFunction -&gt; Parser Model
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser TwoVariableLinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;subtracted_sizes&quot;</span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Integer -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#SubtractedSizes"
+	><span class="hs-identifier hs-var"
+	  >SubtractedSizes</span
+	  ></a
+	></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Integer -&gt; Model)
+-&gt; Parser LinearFunction -&gt; Parser (Integer -&gt; Model)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser LinearFunction
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Integer -&gt; Model) -&gt; Parser Integer -&gt; Parser Model
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Object
+</span
+	><a href="#local-6989586621681832626"
+	><span class="hs-identifier hs-var"
+	  >objOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;minimum&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;const_above_diagonal&quot;</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Model -&gt; Model) -&gt; Value -&gt; Parser Model
+forall {a} {a} {b}.
+(FromJSON a, FromJSON a) =&gt;
+(a -&gt; a -&gt; b) -&gt; Value -&gt; Parser b
+</span
+	><a href="#local-6989586621681832627"
+	><span class="hs-identifier hs-var"
+	  >modelWithConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Model -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstAboveDiagonal"
+	><span class="hs-identifier hs-var"
+	  >ConstAboveDiagonal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;const_below_diagonal&quot;</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Model -&gt; Model) -&gt; Value -&gt; Parser Model
+forall {a} {a} {b}.
+(FromJSON a, FromJSON a) =&gt;
+(a -&gt; a -&gt; b) -&gt; Value -&gt; Parser b
+</span
+	><a href="#local-6989586621681832627"
+	><span class="hs-identifier hs-var"
+	  >modelWithConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Model -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstBelowDiagonal"
+	><span class="hs-identifier hs-var"
+	  >ConstBelowDiagonal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;const_off_diagonal&quot;</span
+	></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Model -&gt; Model) -&gt; Value -&gt; Parser Model
+forall {a} {a} {b}.
+(FromJSON a, FromJSON a) =&gt;
+(a -&gt; a -&gt; b) -&gt; Value -&gt; Parser b
+</span
+	><a href="#local-6989586621681832627"
+	><span class="hs-identifier hs-var"
+	  >modelWithConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Model -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstOffDiagonal"
+	><span class="hs-identifier hs-var"
+	  >ConstOffDiagonal</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-comment"
+      >{- An adaptor to deal with the old &quot;linear_on_diagonal&quot; tag.  See Note [Backward
+                  compatibility for costing functions].  We never want to convert back to JSON
+                  here, so it's OK to forget that we originally got something tagged with
+                 &quot;linear_on_diagonal&quot;. -}</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;linear_on_diagonal&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >                 </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832628"
+      ><span class="annot"
+	><span class="annottext"
+	  >o :: Object
+</span
+	  ><a href="#local-6989586621681832628"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Object
+</span
+	><a href="#local-6989586621681832626"
+	><span class="hs-identifier hs-var"
+	  >objOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832625"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >                 </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >                   </span
+      ><span id="local-6989586621681832629"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681832629"
+	  ><span class="hs-identifier hs-var"
+	    >constant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832628"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;constant&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >                   </span
+      ><span id="local-6989586621681832630"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681832630"
+	  ><span class="hs-identifier hs-var"
+	    >intercept</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832628"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;intercept&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >                   </span
+      ><span id="local-6989586621681832631"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681832631"
+	  ><span class="hs-identifier hs-var"
+	    >slope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832628"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Integer
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;slope&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >                   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Model -&gt; Parser Model
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Model -&gt; Parser Model) -&gt; Model -&gt; Parser Model
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Model -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ConstOffDiagonal"
+	><span class="hs-identifier hs-var"
+	  >ConstOffDiagonal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681832629"
+	><span class="hs-identifier hs-var"
+	  >constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>LinearFunction -&gt; Model
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearInX"
+	><span class="hs-identifier hs-var"
+	  >LinearInX</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LinearFunction -&gt; Model) -&gt; LinearFunction -&gt; Model
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; LinearFunction
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction"
+	><span class="hs-identifier hs-var"
+	  >LinearFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681832630"
+	><span class="hs-identifier hs-var"
+	  >intercept</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681832631"
+	><span class="hs-identifier hs-var"
+	  >slope</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser Model
+forall a. String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#errorWithoutStackTrace"
+	><span class="hs-identifier hs-var"
+	  >errorWithoutStackTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Parser Model) -&gt; String -&gt; Parser Model
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Unknown model type &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681832624"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832626"
+      ><span class="annot"
+	><span class="annottext"
+	  >objOf :: Value -&gt; Object
+</span
+	  ><a href="#local-6989586621681832626"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >objOf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681832635"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832635"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832635"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >                     </span
+      ><span class="annot"
+      ><a href="#local-6989586621681832626"
+	><span class="hs-identifier hs-var"
+	  >objOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >                      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Object
+forall a. String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#errorWithoutStackTrace"
+	><span class="hs-identifier hs-var"
+	  >errorWithoutStackTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Failed to get Object while parsing \&quot;arguments\&quot;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >                     </span
+      ><span id="local-6989586621681832627"
+      ><span class="annot"
+	><span class="annottext"
+	  >modelWithConstant :: (a -&gt; a -&gt; b) -&gt; Value -&gt; Parser b
+</span
+	  ><a href="#local-6989586621681832627"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >modelWithConstant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681832644"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; b
+</span
+	  ><a href="#local-6989586621681832644"
+	  ><span class="hs-identifier hs-var"
+	    >constr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681832645"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681832645"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; b
+</span
+	><a href="#local-6989586621681832644"
+	><span class="hs-identifier hs-var"
+	  >constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; a -&gt; b) -&gt; Parser a -&gt; Parser (a -&gt; b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832646"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser a
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;constant&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832646"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser a
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;model&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832646"
+      ><span class="annot"
+	><span class="annottext"
+	  >o :: Object
+</span
+	  ><a href="#local-6989586621681832646"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Object
+</span
+	><a href="#local-6989586621681832626"
+	><span class="hs-identifier hs-var"
+	  >objOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681832645"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A CPU usage modelling function and a memory usage modelling function bundled
+   together -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CpuAndMemoryModel"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#CpuAndMemoryModel"
+	  ><span class="hs-identifier hs-var"
+	    >CpuAndMemoryModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CpuAndMemoryModel"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#CpuAndMemoryModel"
+	  ><span class="hs-identifier hs-var"
+	    >CpuAndMemoryModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="cpuModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >CpuAndMemoryModel -&gt; Model
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#cpuModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cpuModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model"
+	><span class="hs-identifier hs-type"
+	  >Model</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="memoryModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >CpuAndMemoryModel -&gt; Model
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#memoryModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >memoryModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model"
+	><span class="hs-identifier hs-type"
+	  >Model</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681832651"
+      ><span id="local-6989586621681832656"
+	><span id="local-6989586621681832660"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; CpuAndMemoryModel -&gt; ShowS
+[CpuAndMemoryModel] -&gt; ShowS
+CpuAndMemoryModel -&gt; String
+(Int -&gt; CpuAndMemoryModel -&gt; ShowS)
+-&gt; (CpuAndMemoryModel -&gt; String)
+-&gt; ([CpuAndMemoryModel] -&gt; ShowS)
+-&gt; Show CpuAndMemoryModel
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; CpuAndMemoryModel -&gt; ShowS
+showsPrec :: Int -&gt; CpuAndMemoryModel -&gt; ShowS
+$cshow :: CpuAndMemoryModel -&gt; String
+show :: CpuAndMemoryModel -&gt; String
+$cshowList :: [CpuAndMemoryModel] -&gt; ShowS
+showList :: [CpuAndMemoryModel] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832663"
+      ><span id="local-6989586621681832671"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; CpuAndMemoryModel -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    CpuAndMemoryModel -&gt; Code m CpuAndMemoryModel)
+-&gt; Lift CpuAndMemoryModel
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; CpuAndMemoryModel -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+CpuAndMemoryModel -&gt; Code m CpuAndMemoryModel
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; CpuAndMemoryModel -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; CpuAndMemoryModel -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+CpuAndMemoryModel -&gt; Code m CpuAndMemoryModel
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+CpuAndMemoryModel -&gt; Code m CpuAndMemoryModel
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681832681"
+      ><span id="local-6989586621681832685"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#CpuAndMemoryModel"
+	    ><span class="hs-identifier hs-type"
+	      >CpuAndMemoryModel</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681832693"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser CpuAndMemoryModel
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser CpuAndMemoryModel)
+-&gt; Value
+-&gt; Parser CpuAndMemoryModel
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;CpuAndMemoryModel&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser CpuAndMemoryModel)
+ -&gt; Value -&gt; Parser CpuAndMemoryModel)
+-&gt; (Object -&gt; Parser CpuAndMemoryModel)
+-&gt; Value
+-&gt; Parser CpuAndMemoryModel
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681832694"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681832694"
+	  ><span class="hs-identifier hs-var"
+	    >obj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Model -&gt; Model -&gt; CpuAndMemoryModel
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#CpuAndMemoryModel"
+	><span class="hs-identifier hs-var"
+	  >CpuAndMemoryModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Model -&gt; Model -&gt; CpuAndMemoryModel)
+-&gt; Parser Model -&gt; Parser (Model -&gt; CpuAndMemoryModel)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832694"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Model
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;cpu&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Model -&gt; CpuAndMemoryModel)
+-&gt; Parser Model -&gt; Parser CpuAndMemoryModel
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681832694"
+	><span class="hs-identifier hs-var"
+	  >obj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Model
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;memory&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

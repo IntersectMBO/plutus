@@ -1,0 +1,890 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.Hedgehog.Entity</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.Hedgehog.Entity.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.Hedgehog.Entity</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Generators of various PLC things: <code
+	    ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+	      >Builtin</a
+	      ></code
+	    >s, <code
+	    ><a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+	      >IterApp</a
+	      ></code
+	    >s, <code
+	    ><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      ></code
+	    >s, etc.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcGenT"
+	      >PlcGenT</a
+	      > uni fun m = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	      >ReaderT</a
+	      > (BuiltinGensT uni fun m) m)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:IterApp"
+	      >IterApp</a
+	      > head arg = <a href="#v:IterApp"
+	      >IterApp</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_iterAppHead"
+		  >_iterAppHead</a
+		  > &#8759; head</li
+		><li
+		><a href="#v:_iterAppSpine"
+		  >_iterAppSpine</a
+		  > &#8759; [arg]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:IterAppValue"
+	      >IterAppValue</a
+	      > uni fun head arg r = <a href="#v:IterAppValue"
+	      >IterAppValue</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_iterTerm"
+		  >_iterTerm</a
+		  > &#8759; Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > uni fun</li
+		><li
+		><a href="#v:_iterApp"
+		  >_iterApp</a
+		  > &#8759; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+		  >IterApp</a
+		  > head arg</li
+		><li
+		><a href="#v:_iterTbv"
+		  >_iterTbv</a
+		  > &#8759; r</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:runPlcT"
+	      >runPlcT</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TypedBuiltinGenT</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) m &#8594; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:PlcGenT" title="PlutusCore.Generators.Hedgehog.Entity"
+	      >PlcGenT</a
+	      > uni fun m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:withTypedBuiltinGen"
+	      >withTypedBuiltinGen</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	      >Proxy</a
+	      > fun &#8594; (&#8704; a. (<a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	      >KnownTypeAst</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	      >MakeKnown</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > fun) a) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	      >TypeRep</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m c) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m c</li
+	    ><li class="src short"
+	    ><a href="#v:genIterAppValue"
+	      >genIterAppValue</a
+	      > &#8759; &#8704; head uni fun res m. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >Denotation</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) head res &#8594; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:PlcGenT" title="PlutusCore.Generators.Hedgehog.Entity"
+	      >PlcGenT</a
+	      > uni fun m (<a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterAppValue" title="PlutusCore.Generators.Hedgehog.Entity"
+	      >IterAppValue</a
+	      > uni fun head (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) res)</li
+	    ><li class="src short"
+	    ><a href="#v:genTerm"
+	      >genTerm</a
+	      > &#8759; &#8704; uni fun m. (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TypedBuiltinGenT</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) m &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContext</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TypedBuiltinGenT</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) m</li
+	    ><li class="src short"
+	    ><a href="#v:genTermLoose"
+	      >genTermLoose</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TypedBuiltinGenT</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >) m</li
+	    ><li class="src short"
+	    ><a href="#v:withAnyTermLoose"
+	      >withAnyTermLoose</a
+	      > &#8759; (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; (&#8704; a. <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >KnownType</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) a &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TermOf</a
+	      > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > uni fun) a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m c) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m c</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcGenT" class="def"
+	    >PlcGenT</a
+	    > uni fun m = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	    >ReaderT</a
+	    > (BuiltinGensT uni fun m) m) <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#PlcGenT" class="link"
+	    >Source</a
+	    > <a href="#t:PlcGenT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type used in generators defined in this module.
+ It's parameterized by a <code
+	      >BuiltinGensT</code
+	      > which makes it possible to supply
+ different generators of built-in types. For example, <code
+	      >genTypedBuiltinDiv</code
+	      >
+ never generates a zero, so this generator can be used in order to avoid the
+ divide-by-zero-induced <code
+	      >error</code
+	      >. Supplied generators are of arbitrary complexity
+ and can call the currently running generator recursively, for example.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:IterApp" class="def"
+	    >IterApp</a
+	    > head arg <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#IterApp" class="link"
+	    >Source</a
+	    > <a href="#t:IterApp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A function (called &quot;head&quot;) applied to a list of arguments (called &quot;spine&quot;).</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:IterApp" class="def"
+		  >IterApp</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_iterAppHead" class="def"
+			  >_iterAppHead</a
+			  > &#8759; head</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iterAppSpine" class="def"
+			  >_iterAppSpine</a
+			  > &#8759; [arg]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:IterApp"
+	    >Instances</h4
+	    ><details id="i:IterApp" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IterApp:PrettyBy:1"
+		      ></span
+		      > (<a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config head, <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config arg) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+		      >IterApp</a
+		      > head arg)</span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:IterApp" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IterApp:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-Entity.html"
+			>PlutusCore.Generators.Hedgehog.Entity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+			  >IterApp</a
+			  > head arg &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+			  >IterApp</a
+			  > head arg] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:IterAppValue" class="def"
+	    >IterAppValue</a
+	    > uni fun head arg r <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#IterAppValue" class="link"
+	    >Source</a
+	    > <a href="#t:IterAppValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >One iterated application of a <code
+	      >head</code
+	      > to <code
+	      >arg</code
+	      >s represented in three distinct ways.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:IterAppValue" class="def"
+		  >IterAppValue</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_iterTerm" class="def"
+			  >_iterTerm</a
+			  > &#8759; Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > uni fun</dfn
+			><div class="doc"
+			><p
+			  >As a PLC <code
+			    ><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			      >Term</a
+			      ></code
+			    >.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iterApp" class="def"
+			  >_iterApp</a
+			  > &#8759; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+			  >IterApp</a
+			  > head arg</dfn
+			><div class="doc"
+			><p
+			  >As an <code
+			    ><a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+			      >IterApp</a
+			      ></code
+			    >.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iterTbv" class="def"
+			  >_iterTbv</a
+			  > &#8759; r</dfn
+			><div class="doc"
+			><p
+			  >As a Haskell value.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:IterAppValue"
+	    >Instances</h4
+	    ><details id="i:IterAppValue" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IterAppValue:PrettyBy:1"
+		      ></span
+		      > (<a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > uni fun), <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config head, <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config arg, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      > r) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterAppValue" title="PlutusCore.Generators.Hedgehog.Entity"
+		      >IterAppValue</a
+		      > uni fun head arg r)</span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:IterAppValue" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IterAppValue:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-Entity.html"
+			>PlutusCore.Generators.Hedgehog.Entity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterAppValue" title="PlutusCore.Generators.Hedgehog.Entity"
+			  >IterAppValue</a
+			  > uni fun head arg r &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterAppValue" title="PlutusCore.Generators.Hedgehog.Entity"
+			  >IterAppValue</a
+			  > uni fun head arg r] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runPlcT" class="def"
+	    >runPlcT</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	    >TypedBuiltinGenT</a
+	    > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > uni fun) m &#8594; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:PlcGenT" title="PlutusCore.Generators.Hedgehog.Entity"
+	    >PlcGenT</a
+	    > uni fun m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#runPlcT" class="link"
+	    >Source</a
+	    > <a href="#v:runPlcT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run a <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Entity.html#t:PlcGenT" title="PlutusCore.Generators.Hedgehog.Entity"
+		>PlcGenT</a
+		></code
+	      > computation by supplying built-ins generators.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTypedBuiltinGen" class="def"
+	    >withTypedBuiltinGen</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	    >Proxy</a
+	    > fun &#8594; (&#8704; a. (<a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	    >KnownTypeAst</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	    >MakeKnown</a
+	    > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > fun) a) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	    >TypeRep</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m c) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m c <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#withTypedBuiltinGen" class="link"
+	    >Source</a
+	    > <a href="#v:withTypedBuiltinGen" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+		>Builtin</a
+		></code
+	      > and supply its typed version to a continuation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genIterAppValue" class="def"
+	    >genIterAppValue</a
+	    > &#8759; &#8704; head uni fun res m. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >Denotation</a
+	    > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > uni fun) head res &#8594; <a href="PlutusCore-Generators-Hedgehog-Entity.html#t:PlcGenT" title="PlutusCore.Generators.Hedgehog.Entity"
+	    >PlcGenT</a
+	    > uni fun m (<a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterAppValue" title="PlutusCore.Generators.Hedgehog.Entity"
+	    >IterAppValue</a
+	    > uni fun head (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > uni fun) res) <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#genIterAppValue" class="link"
+	    >Source</a
+	    > <a href="#v:genIterAppValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate an <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterAppValue" title="PlutusCore.Generators.Hedgehog.Entity"
+		>IterAppValue</a
+		></code
+	      > from a <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>Denotation</a
+		></code
+	      >.
+ If the <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>Denotation</a
+		></code
+	      > has a functional type, then all arguments are generated and
+ supplied to the denotation. Since <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterAppValue" title="PlutusCore.Generators.Hedgehog.Entity"
+		>IterAppValue</a
+		></code
+	      > consists of three components, we
+   1. grow the <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > component by applying it to arguments using <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Apply" title="PlutusCore.Core.Type"
+		>Apply</a
+		></code
+	      >
+   2. grow the <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Entity.html#t:IterApp" title="PlutusCore.Generators.Hedgehog.Entity"
+		>IterApp</a
+		></code
+	      > component by appending arguments to its spine
+   3. feed arguments to the Haskell function</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTerm" class="def"
+	    >genTerm</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#genTerm" class="link"
+	    >Source</a
+	    > <a href="#v:genTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; uni fun m. (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		  >Monad</a
+		  > m)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+		  >TypedBuiltinGenT</a
+		  > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > uni fun) m</td
+		><td class="doc"
+		><p
+		  >Ground generators of built-ins. The base case of the recursion.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+		  >DenotationContext</a
+		  > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > uni fun)</td
+		><td class="doc"
+		><p
+		  >A context to generate terms in. See for example <code
+		    ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#v:typedBuiltins" title="PlutusCore.Generators.Hedgehog.Denotation"
+		      >typedBuiltins</a
+		      ></code
+		    >.
+ Gets extended by a variable when an applied lambda is generated.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Depth of recursion.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+		  >TypedBuiltinGenT</a
+		  > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > uni fun) m</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Generate a PLC <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > of the specified type and the corresponding Haskell value.
+ Generates first-order functions and constants including constant applications.
+ Arguments to functions and <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+		>Builtin</a
+		></code
+	      >s are generated recursively.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTermLoose" class="def"
+	    >genTermLoose</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TypedBuiltinGenT" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	    >TypedBuiltinGenT</a
+	    > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) m <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#genTermLoose" class="link"
+	    >Source</a
+	    > <a href="#v:genTermLoose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generates a <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > with rather small values to make out-of-bounds failures less likely.
+ There are still like a half of terms that fail with out-of-bounds errors being evaluated.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withAnyTermLoose" class="def"
+	    >withAnyTermLoose</a
+	    > &#8759; (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; (&#8704; a. <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >KnownType</a
+	    > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > uni fun) a &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	    >TermOf</a
+	    > (Plain <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > uni fun) a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m c) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m c <a href="src/PlutusCore.Generators.Hedgehog.Entity.html#withAnyTermLoose" class="link"
+	    >Source</a
+	    > <a href="#v:withAnyTermLoose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      >TypedBuiltin</code
+	      > and a <code
+	      ><a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+		>TermOf</a
+		></code
+	      > of the corresponding type,
+ attach the <code
+	      >TypedBuiltin</code
+	      > to the value part of the <code
+	      ><a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+		>TermOf</a
+		></code
+	      > and pass that to a continuation.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

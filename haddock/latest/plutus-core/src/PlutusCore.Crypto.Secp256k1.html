@@ -1,0 +1,1971 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Crypto.Secp256k1</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Secp256k1.html#verifyEcdsaSecp256k1Signature"
+	><span class="hs-identifier"
+	  >verifyEcdsaSecp256k1Signature</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Secp256k1.html#verifySchnorrSecp256k1Signature"
+	><span class="hs-identifier"
+	  >verifySchnorrSecp256k1Signature</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.Result</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.Class.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.DSIGN.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>DSIGN</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.EcdsaSecp256k1.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.DSIGN.EcdsaSecp256k1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.EcdsaSecp256k1.html#EcdsaSecp256k1DSIGN"
+	><span class="hs-identifier"
+	  >EcdsaSecp256k1DSIGN</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.EcdsaSecp256k1.html#toMessageHash"
+	><span class="hs-identifier"
+	  >toMessageHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.SchnorrSecp256k1.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.DSIGN.SchnorrSecp256k1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.SchnorrSecp256k1.html#SchnorrSecp256k1DSIGN"
+	><span class="hs-identifier"
+	  >SchnorrSecp256k1DSIGN</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-comment"
+      >-- | Verify an ECDSA signature made using the SECP256k1 curve.</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >-- = Note</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- There are additional well-formation requirements for the arguments beyond</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- their length:</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- * The first byte of the public key must correspond to the sign of the /y/</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- coordinate: this is @0x02@ if /y/ is even, and @0x03@ otherwise.</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >-- * The remaining bytes of the public key must correspond to the /x/</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- coordinate, as a big-endian integer.</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >-- * The first 32 bytes of the signature must correspond to the big-endian</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- integer representation of _r_.</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >-- * The last 32 bytes of the signature must correspond to the big-endian</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-comment"
+      >-- integer representation of _s_.</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- While this primitive /accepts/ a hash, any caller should only pass it hashes</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- that they computed themselves: specifically, they should receive the</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >-- /message/ from a sender and hash it, rather than receiving the /hash/ from</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-comment"
+      >-- said sender. Failure to do so can be</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-comment"
+      >-- [dangerous](https://bitcoin.stackexchange.com/a/81116/35586). Other than</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >-- length, we make no requirements of what hash gets used.</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Secp256k1.html#verifyEcdsaSecp256k1Signature"
+	><span class="hs-identifier hs-type"
+	  >verifyEcdsaSecp256k1Signature</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Public key   (33 bytes)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Message hash (32 bytes)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Signature    (64 bytes)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="verifyEcdsaSecp256k1Signature"
+      ><span class="annot"
+	><span class="annottext"
+	  >verifyEcdsaSecp256k1Signature :: ByteString -&gt; ByteString -&gt; ByteString -&gt; BuiltinResult Bool
+</span
+	  ><a href="PlutusCore.Crypto.Secp256k1.html#verifyEcdsaSecp256k1Signature"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >verifyEcdsaSecp256k1Signature</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841459"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681841459"
+	  ><span class="hs-identifier hs-var"
+	    >pk</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841460"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681841460"
+	  ><span class="hs-identifier hs-var"
+	    >msg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841461"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681841461"
+	  ><span class="hs-identifier hs-var"
+	    >sig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall v. DSIGNAlgorithm v =&gt; ByteString -&gt; Maybe (VerKeyDSIGN v)
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.Class.html#rawDeserialiseVerKeyDSIGN"
+	><span class="hs-identifier hs-var"
+	  >DSIGN.rawDeserialiseVerKeyDSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.EcdsaSecp256k1.html#EcdsaSecp256k1DSIGN"
+	><span class="hs-identifier hs-type"
+	  >EcdsaSecp256k1DSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681841459"
+	><span class="hs-identifier hs-var"
+	  >pk</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (VerKeyDSIGN EcdsaSecp256k1DSIGN)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; BuiltinResult Bool
+forall a. Text -&gt; Text -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Crypto.Utils.html#failWithMessage"
+	><span class="hs-identifier hs-var"
+	  >failWithMessage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681841464"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Invalid verification key.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841465"
+      ><span class="annot"
+	><span class="annottext"
+	  >VerKeyDSIGN EcdsaSecp256k1DSIGN
+</span
+	  ><a href="#local-6989586621681841465"
+	  ><span class="hs-identifier hs-var"
+	    >pk'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall v. DSIGNAlgorithm v =&gt; ByteString -&gt; Maybe (SigDSIGN v)
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.Class.html#rawDeserialiseSigDSIGN"
+	><span class="hs-identifier hs-var"
+	  >DSIGN.rawDeserialiseSigDSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.EcdsaSecp256k1.html#EcdsaSecp256k1DSIGN"
+	><span class="hs-identifier hs-type"
+	  >EcdsaSecp256k1DSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681841461"
+	><span class="hs-identifier hs-var"
+	  >sig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (SigDSIGN EcdsaSecp256k1DSIGN)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; BuiltinResult Bool
+forall a. Text -&gt; Text -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Crypto.Utils.html#failWithMessage"
+	><span class="hs-identifier hs-var"
+	  >failWithMessage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681841464"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Invalid signature.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841467"
+      ><span class="annot"
+	><span class="annottext"
+	  >SigDSIGN EcdsaSecp256k1DSIGN
+</span
+	  ><a href="#local-6989586621681841467"
+	  ><span class="hs-identifier hs-var"
+	    >sig'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Maybe MessageHash
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.EcdsaSecp256k1.html#toMessageHash"
+	><span class="hs-identifier hs-var"
+	  >toMessageHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681841460"
+	><span class="hs-identifier hs-var"
+	  >msg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe MessageHash
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; BuiltinResult Bool
+forall a. Text -&gt; Text -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Crypto.Utils.html#failWithMessage"
+	><span class="hs-identifier hs-var"
+	  >failWithMessage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681841464"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Invalid message hash.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841468"
+      ><span class="annot"
+	><span class="annottext"
+	  >MessageHash
+</span
+	  ><a href="#local-6989586621681841468"
+	  ><span class="hs-identifier hs-var"
+	    >msg'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; BuiltinResult Bool
+forall a. a -&gt; BuiltinResult a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; BuiltinResult Bool) -&gt; Bool -&gt; BuiltinResult Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ContextDSIGN EcdsaSecp256k1DSIGN
+-&gt; VerKeyDSIGN EcdsaSecp256k1DSIGN
+-&gt; MessageHash
+-&gt; SigDSIGN EcdsaSecp256k1DSIGN
+-&gt; Either String ()
+forall v a.
+(DSIGNAlgorithm v, Signable v a, HasCallStack) =&gt;
+ContextDSIGN v
+-&gt; VerKeyDSIGN v -&gt; a -&gt; SigDSIGN v -&gt; Either String ()
+forall a.
+(Signable EcdsaSecp256k1DSIGN a, HasCallStack) =&gt;
+ContextDSIGN EcdsaSecp256k1DSIGN
+-&gt; VerKeyDSIGN EcdsaSecp256k1DSIGN
+-&gt; a
+-&gt; SigDSIGN EcdsaSecp256k1DSIGN
+-&gt; Either String ()
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.Class.html#verifyDSIGN"
+	><span class="hs-identifier hs-var"
+	  >DSIGN.verifyDSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VerKeyDSIGN EcdsaSecp256k1DSIGN
+</span
+	><a href="#local-6989586621681841465"
+	><span class="hs-identifier hs-var"
+	  >pk'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MessageHash
+</span
+	><a href="#local-6989586621681841468"
+	><span class="hs-identifier hs-var"
+	  >msg'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SigDSIGN EcdsaSecp256k1DSIGN
+</span
+	><a href="#local-6989586621681841467"
+	><span class="hs-identifier hs-var"
+	  >sig'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621681841464"
+	><span class="hs-identifier hs-type"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681841464"
+      ><span class="annot"
+	><span class="annottext"
+	  >loc :: Text
+</span
+	  ><a href="#local-6989586621681841464"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >loc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;ECDSA SECP256k1 signature verification&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-comment"
+      >-- | Verify a Schnorr signature made using the SECP256k1 curve.</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- = Note</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-comment"
+      >-- There are additional well-formation requirements for the arguments beyond</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >-- their length. Throughout, we refer to co-ordinates of the point @R@.</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-comment"
+      >-- * The bytes of the public key must correspond to the /x/ coordinate, as a</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-comment"
+      >-- big-endian integer, as specified in BIP-340.</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-comment"
+      >-- * The first 32 bytes of the signature must correspond to the /x/ coordinate,</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-comment"
+      >-- as a big-endian integer, as specified in BIP-340.</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- * The last 32 bytes of the signature must correspond to the bytes of /s/, as</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- a big-endian integer, as specified in BIP-340.</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- = See also</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-comment"
+      >-- * [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Secp256k1.html#verifySchnorrSecp256k1Signature"
+	><span class="hs-identifier hs-type"
+	  >verifySchnorrSecp256k1Signature</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Public key (32 bytes)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Message    (arbitrary length)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Signature  (64 bytes)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="verifySchnorrSecp256k1Signature"
+      ><span class="annot"
+	><span class="annottext"
+	  >verifySchnorrSecp256k1Signature :: ByteString -&gt; ByteString -&gt; ByteString -&gt; BuiltinResult Bool
+</span
+	  ><a href="PlutusCore.Crypto.Secp256k1.html#verifySchnorrSecp256k1Signature"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >verifySchnorrSecp256k1Signature</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841470"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681841470"
+	  ><span class="hs-identifier hs-var"
+	    >pk</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841471"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681841471"
+	  ><span class="hs-identifier hs-var"
+	    >msg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841472"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681841472"
+	  ><span class="hs-identifier hs-var"
+	    >sig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall v. DSIGNAlgorithm v =&gt; ByteString -&gt; Maybe (VerKeyDSIGN v)
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.Class.html#rawDeserialiseVerKeyDSIGN"
+	><span class="hs-identifier hs-var"
+	  >DSIGN.rawDeserialiseVerKeyDSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.SchnorrSecp256k1.html#SchnorrSecp256k1DSIGN"
+	><span class="hs-identifier hs-type"
+	  >SchnorrSecp256k1DSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681841470"
+	><span class="hs-identifier hs-var"
+	  >pk</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (VerKeyDSIGN SchnorrSecp256k1DSIGN)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; BuiltinResult Bool
+forall a. Text -&gt; Text -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Crypto.Utils.html#failWithMessage"
+	><span class="hs-identifier hs-var"
+	  >failWithMessage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681841473"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Invalid verification key.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841474"
+      ><span class="annot"
+	><span class="annottext"
+	  >VerKeyDSIGN SchnorrSecp256k1DSIGN
+</span
+	  ><a href="#local-6989586621681841474"
+	  ><span class="hs-identifier hs-var"
+	    >pk'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall v. DSIGNAlgorithm v =&gt; ByteString -&gt; Maybe (SigDSIGN v)
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.Class.html#rawDeserialiseSigDSIGN"
+	><span class="hs-identifier hs-var"
+	  >DSIGN.rawDeserialiseSigDSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.SchnorrSecp256k1.html#SchnorrSecp256k1DSIGN"
+	><span class="hs-identifier hs-type"
+	  >SchnorrSecp256k1DSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681841472"
+	><span class="hs-identifier hs-var"
+	  >sig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (SigDSIGN SchnorrSecp256k1DSIGN)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; BuiltinResult Bool
+forall a. Text -&gt; Text -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Crypto.Utils.html#failWithMessage"
+	><span class="hs-identifier hs-var"
+	  >failWithMessage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681841473"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Invalid signature.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681841475"
+      ><span class="annot"
+	><span class="annottext"
+	  >SigDSIGN SchnorrSecp256k1DSIGN
+</span
+	  ><a href="#local-6989586621681841475"
+	  ><span class="hs-identifier hs-var"
+	    >sig'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; BuiltinResult Bool
+forall a. a -&gt; BuiltinResult a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; BuiltinResult Bool) -&gt; Bool -&gt; BuiltinResult Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ContextDSIGN SchnorrSecp256k1DSIGN
+-&gt; VerKeyDSIGN SchnorrSecp256k1DSIGN
+-&gt; ByteString
+-&gt; SigDSIGN SchnorrSecp256k1DSIGN
+-&gt; Either String ()
+forall v a.
+(DSIGNAlgorithm v, Signable v a, HasCallStack) =&gt;
+ContextDSIGN v
+-&gt; VerKeyDSIGN v -&gt; a -&gt; SigDSIGN v -&gt; Either String ()
+forall a.
+(Signable SchnorrSecp256k1DSIGN a, HasCallStack) =&gt;
+ContextDSIGN SchnorrSecp256k1DSIGN
+-&gt; VerKeyDSIGN SchnorrSecp256k1DSIGN
+-&gt; a
+-&gt; SigDSIGN SchnorrSecp256k1DSIGN
+-&gt; Either String ()
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/src/Cardano.Crypto.DSIGN.Class.html#verifyDSIGN"
+	><span class="hs-identifier hs-var"
+	  >DSIGN.verifyDSIGN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VerKeyDSIGN SchnorrSecp256k1DSIGN
+</span
+	><a href="#local-6989586621681841474"
+	><span class="hs-identifier hs-var"
+	  >pk'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681841471"
+	><span class="hs-identifier hs-var"
+	  >msg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SigDSIGN SchnorrSecp256k1DSIGN
+</span
+	><a href="#local-6989586621681841475"
+	><span class="hs-identifier hs-var"
+	  >sig'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621681841473"
+	><span class="hs-identifier hs-type"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681841473"
+      ><span class="annot"
+	><span class="annottext"
+	  >loc :: Text
+</span
+	  ><a href="#local-6989586621681841473"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >loc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Schnorr SECP256k1 signature verification&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

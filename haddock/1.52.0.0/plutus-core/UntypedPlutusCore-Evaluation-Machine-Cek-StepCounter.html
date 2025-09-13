@@ -1,0 +1,710 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:StepCounter"
+	      >StepCounter</a
+	      > (n &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:Nat" title="GHC.TypeNats"
+	      >Nat</a
+	      >) s = <a href="#v:StepCounter"
+	      >StepCounter</a
+	      > (<a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/Data-Primitive-PrimArray.html#t:MutablePrimArray" title="Data.Primitive.PrimArray"
+	      >MutablePrimArray</a
+	      > s <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:newCounter"
+	      >newCounter</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:KnownNat" title="GHC.TypeNats"
+	      >KnownNat</a
+	      > n, <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimMonad</a
+	      > m) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	      >Proxy</a
+	      > n &#8594; m (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >StepCounter</a
+	      > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimState</a
+	      > m))</li
+	    ><li class="src short"
+	    ><a href="#v:resetCounter"
+	      >resetCounter</a
+	      > &#8759; &#8704; n m. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:KnownNat" title="GHC.TypeNats"
+	      >KnownNat</a
+	      > n, <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimMonad</a
+	      > m) &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >StepCounter</a
+	      > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimState</a
+	      > m) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:readCounter"
+	      >readCounter</a
+	      > &#8759; &#8704; m n. <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimMonad</a
+	      > m &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >StepCounter</a
+	      > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimState</a
+	      > m) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; m <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:writeCounter"
+	      >writeCounter</a
+	      > &#8759; &#8704; m n. <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimMonad</a
+	      > m &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >StepCounter</a
+	      > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimState</a
+	      > m) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      > &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:modifyCounter"
+	      >modifyCounter</a
+	      > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimMonad</a
+	      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; (<a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      >) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >StepCounter</a
+	      > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimState</a
+	      > m) &#8594; m <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Peano"
+	      >Peano</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Z"
+		  >Z</a
+		  ></li
+		><li
+		>| <a href="#v:S"
+		  >S</a
+		  > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:Peano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >Peano</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:NatToPeano"
+	      >NatToPeano</a
+	      > n <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; <a href="#t:UpwardsM"
+	      >UpwardsM</a
+	      > f n <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:upwardsM"
+		  >upwardsM</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > &#8594; f ()) &#8594; f ()</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:itraverseCounter_"
+	      >itraverseCounter_</a
+	      > &#8759; &#8704; n m. (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:UpwardsM" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >UpwardsM</a
+	      > m (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:NatToPeano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >NatToPeano</a
+	      > n), <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimMonad</a
+	      > m) &#8658; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      > &#8594; m ()) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >StepCounter</a
+	      > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimState</a
+	      > m) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:iforCounter_"
+	      >iforCounter_</a
+	      > &#8759; (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:UpwardsM" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >UpwardsM</a
+	      > m (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:NatToPeano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >NatToPeano</a
+	      > n), <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimMonad</a
+	      > m) &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	      >StepCounter</a
+	      > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	      >PrimState</a
+	      > m) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      > &#8594; m ()) &#8594; m ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:StepCounter" class="def"
+	    >StepCounter</a
+	    > (n &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:Nat" title="GHC.TypeNats"
+	    >Nat</a
+	    >) s <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter" class="link"
+	    >Source</a
+	    > <a href="#t:StepCounter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A set of <code
+	      ><a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+		>Word8</a
+		></code
+	      > counters that is used in the CEK machine
+ to count steps.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:StepCounter" class="def"
+		  >StepCounter</a
+		  > (<a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/Data-Primitive-PrimArray.html#t:MutablePrimArray" title="Data.Primitive.PrimArray"
+		  >MutablePrimArray</a
+		  > s <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+		  >Word8</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:newCounter" class="def"
+	    >newCounter</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:KnownNat" title="GHC.TypeNats"
+	    >KnownNat</a
+	    > n, <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimMonad</a
+	    > m) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	    >Proxy</a
+	    > n &#8594; m (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >StepCounter</a
+	    > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimState</a
+	    > m)) <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#newCounter" class="link"
+	    >Source</a
+	    > <a href="#v:newCounter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a new <code
+	      ><a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		>StepCounter</a
+		></code
+	      > with the given number of counters.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:resetCounter" class="def"
+	    >resetCounter</a
+	    > &#8759; &#8704; n m. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:KnownNat" title="GHC.TypeNats"
+	    >KnownNat</a
+	    > n, <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimMonad</a
+	    > m) &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >StepCounter</a
+	    > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimState</a
+	    > m) &#8594; m () <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#resetCounter" class="link"
+	    >Source</a
+	    > <a href="#v:resetCounter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reset all the counters in the given <code
+	      ><a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		>StepCounter</a
+		></code
+	      > to zero.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:readCounter" class="def"
+	    >readCounter</a
+	    > &#8759; &#8704; m n. <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimMonad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >StepCounter</a
+	    > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimState</a
+	    > m) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; m <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#readCounter" class="link"
+	    >Source</a
+	    > <a href="#v:readCounter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Read the value of a counter.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:writeCounter" class="def"
+	    >writeCounter</a
+	    > &#8759; &#8704; m n. <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimMonad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >StepCounter</a
+	    > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimState</a
+	    > m) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > &#8594; m () <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#writeCounter" class="link"
+	    >Source</a
+	    > <a href="#v:writeCounter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Write to a counter.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:modifyCounter" class="def"
+	    >modifyCounter</a
+	    > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimMonad</a
+	    > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; (<a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    >) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >StepCounter</a
+	    > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimState</a
+	    > m) &#8594; m <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#modifyCounter" class="link"
+	    >Source</a
+	    > <a href="#v:modifyCounter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Modify the value of a counter. Returns the modified value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Peano" class="def"
+	    >Peano</a
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Peano" class="link"
+	    >Source</a
+	    > <a href="#t:Peano" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of natural numbers in Peano form.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Z" class="def"
+		  >Z</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:S" class="def"
+		  >S</a
+		  > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:Peano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >Peano</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:NatToPeano" class="def"
+	    >NatToPeano</a
+	    > n <span class="keyword"
+	    >where ...</span
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano" class="link"
+	    >Source</a
+	    > <a href="#t:NatToPeano" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:NatToPeano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >NatToPeano</a
+		  > 0 = '<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#v:Z" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >Z</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:NatToPeano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >NatToPeano</a
+		  > n = '<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#v:S" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >S</a
+		  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:NatToPeano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >NatToPeano</a
+		  > (n <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:-45-" title="GHC.TypeNats"
+		  >-</a
+		  > 1))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; <a id="t:UpwardsM" class="def"
+	    >UpwardsM</a
+	    > f n <span class="keyword"
+	    >where</span
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM" class="link"
+	    >Source</a
+	    > <a href="#t:UpwardsM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:upwardsM" class="def"
+	      >upwardsM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; f ()) &#8594; f () <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM" class="link"
+	      >Source</a
+	      > <a href="#v:upwardsM" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      ><code
+		>upwardsM i k</code
+		> means <code
+		>k i *&gt; k (i + 1) *&gt; ... *&gt; k (i + n - 1)</code
+		>.
+ We use this function in order to statically unroll a loop in <code
+		><a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#v:itraverseCounter_" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		  >itraverseCounter_</a
+		  ></code
+		> through
+ instance resolution. This makes <code
+		>validation</code
+		> benchmarks a couple of percent faster.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UpwardsM"
+	    >Instances</h4
+	    ><details id="i:UpwardsM" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UpwardsM:UpwardsM:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > f &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:UpwardsM" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		      >UpwardsM</a
+		      > f '<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#v:Z" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		      >Z</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:UpwardsM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UpwardsM:UpwardsM:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:upwardsM"
+			  >upwardsM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; f ()) &#8594; f () <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM" class="link"
+			  >Source</a
+			  > <a href="#v:upwardsM" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UpwardsM:UpwardsM:2"
+		      ></span
+		      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:UpwardsM" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		      >UpwardsM</a
+		      > f n &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:UpwardsM" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		      >UpwardsM</a
+		      > f ('<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#v:S" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+		      >S</a
+		      > n)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:UpwardsM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UpwardsM:UpwardsM:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:upwardsM"
+			  >upwardsM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; f ()) &#8594; f () <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM" class="link"
+			  >Source</a
+			  > <a href="#v:upwardsM" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:itraverseCounter_" class="def"
+	    >itraverseCounter_</a
+	    > &#8759; &#8704; n m. (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:UpwardsM" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >UpwardsM</a
+	    > m (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:NatToPeano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >NatToPeano</a
+	    > n), <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimMonad</a
+	    > m) &#8658; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > &#8594; m ()) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >StepCounter</a
+	    > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimState</a
+	    > m) &#8594; m () <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#itraverseCounter_" class="link"
+	    >Source</a
+	    > <a href="#v:itraverseCounter_" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Traverse the counters with an effectful function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iforCounter_" class="def"
+	    >iforCounter_</a
+	    > &#8759; (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:UpwardsM" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >UpwardsM</a
+	    > m (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:NatToPeano" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >NatToPeano</a
+	    > n), <a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimMonad" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimMonad</a
+	    > m) &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-StepCounter.html#t:StepCounter" title="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter"
+	    >StepCounter</a
+	    > n (<a href="UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html#t:PrimState" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal"
+	    >PrimState</a
+	    > m) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > &#8594; m ()) &#8594; m () <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#iforCounter_" class="link"
+	    >Source</a
+	    > <a href="#v:iforCounter_" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Traverse the counters with an effectful function.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

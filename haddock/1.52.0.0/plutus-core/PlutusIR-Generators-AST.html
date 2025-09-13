@@ -1,0 +1,542 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Generators.AST</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Generators.AST.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Generators.AST</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >This module defines generators for PIR syntax trees for testing purposes.
+ It should only contain those generators that can't be reused from PLC
+ (PIR-exclusive constructs, Term, and Program)</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:AstGen"
+	      >AstGen</a
+	      > = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:Reader" title="Control.Monad.Reader"
+	      >Reader</a
+	      > [<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      >])</li
+	    ><li class="src short"
+	    ><a href="#v:simpleRecursive"
+	      >simpleRecursive</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; [m a] &#8594; [m a] &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:runAstGen"
+	      >runAstGen</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:genVersion"
+	      >genVersion</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; m <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genKind"
+	      >genKind</a
+	      > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genBuiltin"
+	      >genBuiltin</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > fun) &#8658; m fun</li
+	    ><li class="src short"
+	    ><a href="#v:genConstant"
+	      >genConstant</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; m (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:regenConstantsUntil"
+	      >regenConstantsUntil</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > fun ann &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:genProgram"
+	      >genProgram</a
+	      > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genTerm"
+	      >genTerm</a
+	      > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genBinding"
+	      >genBinding</a
+	      > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genDatatype"
+	      >genDatatype</a
+	      > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genTyVarDecl"
+	      >genTyVarDecl</a
+	      > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genVarDecl"
+	      >genVarDecl</a
+	      > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	      >VarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genRecursivity"
+	      >genRecursivity</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; m <a href="../plutus-core/PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	      >Recursivity</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:AstGen" class="def"
+	    >AstGen</a
+	    > = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:Reader" title="Control.Monad.Reader"
+	    >Reader</a
+	    > [<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    >]) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#AstGen" class="link"
+	    >Source</a
+	    > <a href="#t:AstGen" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad that generators run in. The environment is a list of names to choose from for
+ generation of variables and binders.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:simpleRecursive" class="def"
+	    >simpleRecursive</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; [m a] &#8594; [m a] &#8594; m a <a href="src/PlutusCore.Generators.Hedgehog.AST.html#simpleRecursive" class="link"
+	    >Source</a
+	    > <a href="#v:simpleRecursive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runAstGen" class="def"
+	    >runAstGen</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > a &#8594; m a <a href="src/PlutusCore.Generators.Hedgehog.AST.html#runAstGen" class="link"
+	    >Source</a
+	    > <a href="#v:runAstGen" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genVersion" class="def"
+	    >genVersion</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; m <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genVersion" class="link"
+	    >Source</a
+	    > <a href="#v:genVersion" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genKind" class="def"
+	    >genKind</a
+	    > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ()) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genKind" class="link"
+	    >Source</a
+	    > <a href="#v:genKind" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genBuiltin" class="def"
+	    >genBuiltin</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > fun) &#8658; m fun <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:genBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genConstant" class="def"
+	    >genConstant</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; m (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >)) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genConstant" class="link"
+	    >Source</a
+	    > <a href="#v:genConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:regenConstantsUntil" class="def"
+	    >regenConstantsUntil</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > fun ann &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > fun ann) <a href="src/PlutusIR.Generators.AST.html#regenConstantsUntil" class="link"
+	    >Source</a
+	    > <a href="#v:regenConstantsUntil" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genProgram" class="def"
+	    >genProgram</a
+	    > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusIR.Generators.AST.html#genProgram" class="link"
+	    >Source</a
+	    > <a href="#v:genProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTerm" class="def"
+	    >genTerm</a
+	    > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusIR.Generators.AST.html#genTerm" class="link"
+	    >Source</a
+	    > <a href="#v:genTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genBinding" class="def"
+	    >genBinding</a
+	    > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusIR.Generators.AST.html#genBinding" class="link"
+	    >Source</a
+	    > <a href="#v:genBinding" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genDatatype" class="def"
+	    >genDatatype</a
+	    > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusIR.Generators.AST.html#genDatatype" class="link"
+	    >Source</a
+	    > <a href="#v:genDatatype" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTyVarDecl" class="def"
+	    >genTyVarDecl</a
+	    > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > ()) <a href="src/PlutusIR.Generators.AST.html#genTyVarDecl" class="link"
+	    >Source</a
+	    > <a href="#v:genTyVarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genVarDecl" class="def"
+	    >genVarDecl</a
+	    > &#8759; <a href="PlutusIR-Generators-AST.html#t:AstGen" title="PlutusIR.Generators.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	    >VarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusIR.Generators.AST.html#genVarDecl" class="link"
+	    >Source</a
+	    > <a href="#v:genVarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genRecursivity" class="def"
+	    >genRecursivity</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; m <a href="../plutus-core/PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	    >Recursivity</a
+	    > <a href="src/PlutusIR.Generators.AST.html#genRecursivity" class="link"
+	    >Source</a
+	    > <a href="#v:genRecursivity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,3527 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -O0               #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >-- | A separate module for JSON instances, so that we can stick @-O0@ on it and avoid spending</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-comment"
+      >-- a lot of time optimizing loads of Core whose performance doesn't matter.</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.CostingFun.JSON</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html"
+	><span class="hs-identifier"
+	  >Deriving.Aeson</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostingFun.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="ModelJSON"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	  ><span class="hs-identifier hs-var"
+	    >ModelJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681862827"
+      ><span class="annot"
+	><a href="#local-6989586621681862827"
+	  ><span class="hs-identifier hs-type"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+	><span class="hs-identifier hs-type"
+	  >CustomJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#FieldLabelModifier"
+	><span class="hs-identifier hs-type"
+	  >FieldLabelModifier</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#StripPrefix"
+	><span class="hs-identifier hs-type"
+	  >StripPrefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681862827"
+	><span class="hs-identifier hs-type"
+	  >prefix</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CamelToSnake"
+	><span class="hs-identifier hs-type"
+	  >CamelToSnake</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="ModelArgumentJSON"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+	  ><span class="hs-identifier hs-var"
+	    >ModelArgumentJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681862828"
+      ><span class="annot"
+	><a href="#local-6989586621681862828"
+	  ><span class="hs-identifier hs-type"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+	><span class="hs-identifier hs-type"
+	  >CustomJSON</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- Without TagSingleConstructors the format can change unexpectedly if</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- you add/remove constructors because you don't get the tags if there's</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- only one constructor but you do if there's more than one.</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#TagSingleConstructors"
+	><span class="hs-identifier hs-type"
+	  >TagSingleConstructors</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#SumTaggedObject"
+	><span class="hs-identifier hs-type"
+	  >SumTaggedObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;type&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;arguments&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#ConstructorTagModifier"
+	><span class="hs-identifier hs-type"
+	  >ConstructorTagModifier</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#StripPrefix"
+	><span class="hs-identifier hs-type"
+	  >StripPrefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681862828"
+	><span class="hs-identifier hs-type"
+	  >prefix</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CamelToSnake"
+	><span class="hs-identifier hs-type"
+	  >CamelToSnake</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="local-6989586621681862831"
+      ><span id="local-6989586621681862839"
+	><span id="local-6989586621681862846"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621681862611"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		><span class="hs-identifier hs-type"
+		  >ModelJSON</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-string"
+		>&quot;costingFun&quot;</span
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+		><span class="hs-identifier hs-type"
+		  >CostingFun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681862611"
+		><span class="hs-identifier hs-type"
+		  >model</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-32"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681862611"
+	      ><span class="hs-identifier hs-type"
+		>model</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	      ><span class="hs-identifier hs-type"
+		>CostingFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681862611"
+	      ><span class="hs-identifier hs-type"
+		>model</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="local-6989586621681863052"
+      ><span id="local-6989586621681863061"
+	><span id="local-6989586621681863069"
+	  ><span id="local-6989586621681863077"
+	    ><span id="local-6989586621681863085"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span id="local-6989586621681862722"
+		><span class="annot"
+		  ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		    ><span class="hs-identifier hs-type"
+		      >ModelJSON</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><span class="hs-string"
+		    >&quot;costingFun&quot;</span
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+		    ><span class="hs-identifier hs-type"
+		      >CostingFun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681862722"
+		    ><span class="hs-identifier hs-type"
+		      >model</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		><span
+		>
+</span
+		><span id="line-34"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681862722"
+		  ><span class="hs-identifier hs-type"
+		    >model</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+		  ><span class="hs-identifier hs-type"
+		    >CostingFun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681862722"
+		  ><span class="hs-identifier hs-type"
+		    >model</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span id="local-6989586621681863653"
+      ><span id="local-6989586621681863658"
+	><span id="local-6989586621681863662"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Intercept"
+	      ><span class="hs-identifier hs-type"
+		>Intercept</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="local-6989586621681863667"
+      ><span id="local-6989586621681863672"
+	><span id="local-6989586621681863676"
+	  ><span id="local-6989586621681863680"
+	    ><span id="local-6989586621681863684"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Intercept"
+		  ><span class="hs-identifier hs-type"
+		    >Intercept</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="local-6989586621681863689"
+      ><span id="local-6989586621681863693"
+	><span id="local-6989586621681863697"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Slope"
+	      ><span class="hs-identifier hs-type"
+		>Slope</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="local-6989586621681863702"
+      ><span id="local-6989586621681863706"
+	><span id="local-6989586621681863710"
+	  ><span id="local-6989586621681863714"
+	    ><span id="local-6989586621681863718"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Slope"
+		  ><span class="hs-identifier hs-type"
+		    >Slope</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="local-6989586621681863723"
+      ><span id="local-6989586621681863727"
+	><span id="local-6989586621681863731"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient0"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient0</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="local-6989586621681863736"
+      ><span id="local-6989586621681863740"
+	><span id="local-6989586621681863744"
+	  ><span id="local-6989586621681863748"
+	    ><span id="local-6989586621681863752"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient0"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient0</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="local-6989586621681863757"
+      ><span id="local-6989586621681863761"
+	><span id="local-6989586621681863765"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient1"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient1</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="local-6989586621681863770"
+      ><span id="local-6989586621681863774"
+	><span id="local-6989586621681863778"
+	  ><span id="local-6989586621681863782"
+	    ><span id="local-6989586621681863786"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient1"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient1</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621681863791"
+      ><span id="local-6989586621681863795"
+	><span id="local-6989586621681863799"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient2"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient2</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621681863804"
+      ><span id="local-6989586621681863808"
+	><span id="local-6989586621681863812"
+	  ><span id="local-6989586621681863816"
+	    ><span id="local-6989586621681863820"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient2"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient2</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="local-6989586621681863825"
+      ><span id="local-6989586621681863829"
+	><span id="local-6989586621681863833"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient00"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient00</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="local-6989586621681863838"
+      ><span id="local-6989586621681863842"
+	><span id="local-6989586621681863846"
+	  ><span id="local-6989586621681863850"
+	    ><span id="local-6989586621681863854"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient00"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient00</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="local-6989586621681863859"
+      ><span id="local-6989586621681863863"
+	><span id="local-6989586621681863867"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient10"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient10</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="local-6989586621681863872"
+      ><span id="local-6989586621681863876"
+	><span id="local-6989586621681863880"
+	  ><span id="local-6989586621681863884"
+	    ><span id="local-6989586621681863888"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient10"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient10</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="local-6989586621681863893"
+      ><span id="local-6989586621681863897"
+	><span id="local-6989586621681863901"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient01"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient01</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="local-6989586621681863906"
+      ><span id="local-6989586621681863910"
+	><span id="local-6989586621681863914"
+	  ><span id="local-6989586621681863918"
+	    ><span id="local-6989586621681863922"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient01"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient01</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="local-6989586621681863927"
+      ><span id="local-6989586621681863931"
+	><span id="local-6989586621681863935"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient20"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient20</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="local-6989586621681863940"
+      ><span id="local-6989586621681863944"
+	><span id="local-6989586621681863948"
+	  ><span id="local-6989586621681863952"
+	    ><span id="local-6989586621681863956"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient20"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient20</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span id="local-6989586621681863961"
+      ><span id="local-6989586621681863965"
+	><span id="local-6989586621681863969"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient11"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient11</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="local-6989586621681863974"
+      ><span id="local-6989586621681863978"
+	><span id="local-6989586621681863982"
+	  ><span id="local-6989586621681863986"
+	    ><span id="local-6989586621681863990"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient11"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient11</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621681863995"
+      ><span id="local-6989586621681863999"
+	><span id="local-6989586621681864003"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient02"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient02</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="local-6989586621681864008"
+      ><span id="local-6989586621681864012"
+	><span id="local-6989586621681864016"
+	  ><span id="local-6989586621681864020"
+	    ><span id="local-6989586621681864024"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient02"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient02</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="local-6989586621681864029"
+      ><span id="local-6989586621681864033"
+	><span id="local-6989586621681864037"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient12"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient12</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span id="local-6989586621681864042"
+      ><span id="local-6989586621681864046"
+	><span id="local-6989586621681864050"
+	  ><span id="local-6989586621681864054"
+	    ><span id="local-6989586621681864058"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		>   </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient12"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient12</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="local-6989586621681864063"
+      ><span id="local-6989586621681864070"
+	><span id="local-6989586621681864077"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelArgumentJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;ModelOneArgument&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	      ><span class="hs-identifier hs-type"
+		>ModelOneArgument</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-62"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	      ><span class="hs-identifier hs-type"
+		>ModelOneArgument</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621681864276"
+      ><span id="local-6989586621681864284"
+	><span id="local-6989586621681864292"
+	  ><span id="local-6989586621681864300"
+	    ><span id="local-6989586621681864308"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelArgumentJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;ModelOneArgument&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+		  ><span class="hs-identifier hs-type"
+		    >ModelOneArgument</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-64"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+		  ><span class="hs-identifier hs-type"
+		    >ModelOneArgument</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="local-6989586621681864918"
+      ><span id="local-6989586621681864925"
+	><span id="local-6989586621681864932"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelArgumentJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;ModelTwoArguments&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelTwoArguments</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-66"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelTwoArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="local-6989586621681865890"
+      ><span id="local-6989586621681865898"
+	><span id="local-6989586621681865906"
+	  ><span id="local-6989586621681865914"
+	    ><span id="local-6989586621681865922"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelArgumentJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;ModelTwoArguments&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelTwoArguments</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-68"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelTwoArguments</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621681869648"
+      ><span id="local-6989586621681869655"
+	><span id="local-6989586621681869662"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelArgumentJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;ModelThreeArguments&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelThreeArguments</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-70"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelThreeArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="local-6989586621681870314"
+      ><span id="local-6989586621681870322"
+	><span id="local-6989586621681870330"
+	  ><span id="local-6989586621681870338"
+	    ><span id="local-6989586621681870346"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelArgumentJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;ModelThreeArguments&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelThreeArguments</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-72"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelThreeArguments</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="local-6989586621681872851"
+      ><span id="local-6989586621681872858"
+	><span id="local-6989586621681872865"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelArgumentJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;ModelFourArguments&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelFourArguments</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-74"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelFourArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="local-6989586621681872985"
+      ><span id="local-6989586621681872993"
+	><span id="local-6989586621681873001"
+	  ><span id="local-6989586621681873009"
+	    ><span id="local-6989586621681873017"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelArgumentJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;ModelFourArguments&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelFourArguments</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-76"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelFourArguments</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="local-6989586621681873346"
+      ><span id="local-6989586621681873353"
+	><span id="local-6989586621681873360"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelArgumentJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;ModelFiveArguments&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelFiveArguments</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-78"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelFiveArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span id="local-6989586621681873480"
+      ><span id="local-6989586621681873488"
+	><span id="local-6989586621681873496"
+	  ><span id="local-6989586621681873504"
+	    ><span id="local-6989586621681873512"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelArgumentJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;ModelFiveArguments&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelFiveArguments</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-80"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelFiveArguments</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="local-6989586621681873841"
+      ><span id="local-6989586621681873848"
+	><span id="local-6989586621681873855"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelArgumentJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;ModelSixArguments&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelSixArguments</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-82"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelSixArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="local-6989586621681873975"
+      ><span id="local-6989586621681873983"
+	><span id="local-6989586621681873991"
+	  ><span id="local-6989586621681873999"
+	    ><span id="local-6989586621681874007"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelArgumentJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelArgumentJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;ModelSixArguments&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelSixArguments</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-84"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelSixArguments</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="local-6989586621681874336"
+      ><span id="local-6989586621681874343"
+	><span id="local-6989586621681874350"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;modelSubtractedSizes&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSubtractedSizes"
+	      ><span class="hs-identifier hs-type"
+		>ModelSubtractedSizes</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-87"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSubtractedSizes"
+	      ><span class="hs-identifier hs-type"
+		>ModelSubtractedSizes</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="local-6989586621681874550"
+      ><span id="local-6989586621681874558"
+	><span id="local-6989586621681874566"
+	  ><span id="local-6989586621681874574"
+	    ><span id="local-6989586621681874582"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;modelSubtractedSizes&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSubtractedSizes"
+		  ><span class="hs-identifier hs-type"
+		    >ModelSubtractedSizes</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-89"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSubtractedSizes"
+		  ><span class="hs-identifier hs-type"
+		    >ModelSubtractedSizes</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="local-6989586621681875273"
+      ><span id="local-6989586621681875280"
+	><span id="local-6989586621681875287"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;oneVariableLinearFunction&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableLinearFunction"
+	      ><span class="hs-identifier hs-type"
+		>OneVariableLinearFunction</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-91"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableLinearFunction"
+	      ><span class="hs-identifier hs-type"
+		>OneVariableLinearFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span id="local-6989586621681875460"
+      ><span id="local-6989586621681875468"
+	><span id="local-6989586621681875476"
+	  ><span id="local-6989586621681875484"
+	    ><span id="local-6989586621681875492"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;oneVariableLinearFunction&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableLinearFunction"
+		  ><span class="hs-identifier hs-type"
+		    >OneVariableLinearFunction</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-93"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableLinearFunction"
+		  ><span class="hs-identifier hs-type"
+		    >OneVariableLinearFunction</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span id="local-6989586621681876060"
+      ><span id="local-6989586621681876067"
+	><span id="local-6989586621681876074"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;twoVariableLinearFunction&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableLinearFunction"
+	      ><span class="hs-identifier hs-type"
+		>TwoVariableLinearFunction</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-95"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableLinearFunction"
+	      ><span class="hs-identifier hs-type"
+		>TwoVariableLinearFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span id="local-6989586621681876271"
+      ><span id="local-6989586621681876279"
+	><span id="local-6989586621681876287"
+	  ><span id="local-6989586621681876295"
+	    ><span id="local-6989586621681876303"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;twoVariableLinearFunction&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableLinearFunction"
+		  ><span class="hs-identifier hs-type"
+		    >TwoVariableLinearFunction</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-97"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableLinearFunction"
+		  ><span class="hs-identifier hs-type"
+		    >TwoVariableLinearFunction</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="local-6989586621681876971"
+      ><span id="local-6989586621681876978"
+	><span id="local-6989586621681876985"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;oneVariableQuadraticFunction&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableQuadraticFunction"
+	      ><span class="hs-identifier hs-type"
+		>OneVariableQuadraticFunction</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-99"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableQuadraticFunction"
+	      ><span class="hs-identifier hs-type"
+		>OneVariableQuadraticFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="local-6989586621681877185"
+      ><span id="local-6989586621681877193"
+	><span id="local-6989586621681877201"
+	  ><span id="local-6989586621681877209"
+	    ><span id="local-6989586621681877217"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;oneVariableQuadraticFunction&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableQuadraticFunction"
+		  ><span class="hs-identifier hs-type"
+		    >OneVariableQuadraticFunction</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-101"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableQuadraticFunction"
+		  ><span class="hs-identifier hs-type"
+		    >OneVariableQuadraticFunction</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="local-6989586621681877905"
+      ><span id="local-6989586621681877912"
+	><span id="local-6989586621681877919"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;twoVariableQuadraticFunction&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableQuadraticFunction"
+	      ><span class="hs-identifier hs-type"
+		>TwoVariableQuadraticFunction</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-103"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableQuadraticFunction"
+	      ><span class="hs-identifier hs-type"
+		>TwoVariableQuadraticFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span id="local-6989586621681878233"
+      ><span id="local-6989586621681878241"
+	><span id="local-6989586621681878249"
+	  ><span id="local-6989586621681878257"
+	    ><span id="local-6989586621681878265"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;twoVariableQuadraticFunction&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableQuadraticFunction"
+		  ><span class="hs-identifier hs-type"
+		    >TwoVariableQuadraticFunction</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-105"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableQuadraticFunction"
+		  ><span class="hs-identifier hs-type"
+		    >TwoVariableQuadraticFunction</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span id="local-6989586621681879453"
+      ><span id="local-6989586621681879460"
+	><span id="local-6989586621681879467"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;expModCostingFunction&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ExpModCostingFunction"
+	      ><span class="hs-identifier hs-type"
+		>ExpModCostingFunction</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-107"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ExpModCostingFunction"
+	      ><span class="hs-identifier hs-type"
+		>ExpModCostingFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="local-6989586621681879667"
+      ><span id="local-6989586621681879675"
+	><span id="local-6989586621681879683"
+	  ><span id="local-6989586621681879691"
+	    ><span id="local-6989586621681879699"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;expModCostingFunction&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ExpModCostingFunction"
+		  ><span class="hs-identifier hs-type"
+		    >ExpModCostingFunction</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-109"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ExpModCostingFunction"
+		  ><span class="hs-identifier hs-type"
+		    >ExpModCostingFunction</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span id="local-6989586621681880387"
+      ><span id="local-6989586621681880394"
+	><span id="local-6989586621681880401"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;modelConstantOrOneArgument&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrOneArgument"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrOneArgument</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-111"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrOneArgument"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrOneArgument</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="local-6989586621681880574"
+      ><span id="local-6989586621681880582"
+	><span id="local-6989586621681880590"
+	  ><span id="local-6989586621681880598"
+	    ><span id="local-6989586621681880606"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;modelConstantOrOneArgument&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrOneArgument"
+		  ><span class="hs-identifier hs-type"
+		    >ModelConstantOrOneArgument</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-113"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrOneArgument"
+		  ><span class="hs-identifier hs-type"
+		    >ModelConstantOrOneArgument</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span id="local-6989586621681881174"
+      ><span id="local-6989586621681881181"
+	><span id="local-6989586621681881188"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;modelConstantOrTwoArguments&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrTwoArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrTwoArguments</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-115"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrTwoArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrTwoArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="local-6989586621681881361"
+      ><span id="local-6989586621681881369"
+	><span id="local-6989586621681881377"
+	  ><span id="local-6989586621681881385"
+	    ><span id="local-6989586621681881393"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;modelConstantOrTwoArguments&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrTwoArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelConstantOrTwoArguments</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-117"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrTwoArguments"
+		  ><span class="hs-identifier hs-type"
+		    >ModelConstantOrTwoArguments</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Backward compatibility for costing functions] for ModelConstantOrLinear</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span id="local-6989586621681881961"
+      ><span id="local-6989586621681881968"
+	><span id="local-6989586621681881975"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+	      ><span class="hs-identifier hs-type"
+		>ModelJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;modelConstantOrLinear&quot;</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrLinear"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrLinear</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-120"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrLinear"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrLinear</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span id="local-6989586621681882175"
+      ><span id="local-6989586621681882183"
+	><span id="local-6989586621681882191"
+	  ><span id="local-6989586621681882199"
+	    ><span id="local-6989586621681882207"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#ModelJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ModelJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;modelConstantOrLinear&quot;</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrLinear"
+		  ><span class="hs-identifier hs-type"
+		    >ModelConstantOrLinear</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-122"
+		></span
+		><span
+		>    </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrLinear"
+		  ><span class="hs-identifier hs-type"
+		    >ModelConstantOrLinear</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

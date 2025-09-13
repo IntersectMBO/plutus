@@ -1,0 +1,620 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.StdLib.Meta.Data.Tuple</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.StdLib.Meta.Data.Tuple</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  ><code
+	    >tuple</code
+	    >s of various sizes and related functions.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Tuple"
+	      >Tuple</a
+	      > term uni ann = <a href="#v:Tuple"
+	      >Tuple</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_tupleElementTypes"
+		  >_tupleElementTypes</a
+		  > &#8759; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ann]</li
+		><li
+		><a href="#v:_tupleTerm"
+		  >_tupleTerm</a
+		  > &#8759; term ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:getTupleType"
+	      >getTupleType</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; ann &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	      >Tuple</a
+	      > term uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:tupleTypeTermAt"
+	      >tupleTypeTermAt</a
+	      > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	      >Tuple</a
+	      > term uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ann, term ann)</li
+	    ><li class="src short"
+	    ><a href="#v:tupleTermAt"
+	      >tupleTermAt</a
+	      > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	      >Tuple</a
+	      > term uni ann &#8594; m (term ann)</li
+	    ><li class="src short"
+	    ><a href="#v:tupleDefAt"
+	      >tupleDefAt</a
+	      > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	      >Tuple</a
+	      > term uni ann &#8594; m (<a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+	      >TermDef</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:bindTuple"
+	      >bindTuple</a
+	      > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; ann &#8594; [<a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      >] &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	      >Tuple</a
+	      > term uni ann &#8594; term ann &#8594; m (term ann)</li
+	    ><li class="src short"
+	    ><a href="#v:prodN"
+	      >prodN</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:prodNConstructor"
+	      >prodNConstructor</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:prodNAccessor"
+	      >prodNAccessor</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:getSpineToTuple"
+	      >getSpineToTuple</a
+	      > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; ann &#8594; [(<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ann, term ann)] &#8594; m (<a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	      >Tuple</a
+	      > term uni ann)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Tuple" class="def"
+	    >Tuple</a
+	    > term uni ann <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#Tuple" class="link"
+	    >Source</a
+	    > <a href="#t:Tuple" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A Plutus Core (Scott-encoded) tuple.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Tuple" class="def"
+		  >Tuple</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_tupleElementTypes" class="def"
+			  >_tupleElementTypes</a
+			  > &#8759; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann]</dfn
+			><div class="doc"
+			><p
+			  >The types of elements of a tuple.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_tupleTerm" class="def"
+			  >_tupleTerm</a
+			  > &#8759; term ann</dfn
+			><div class="doc"
+			><p
+			  >A term representation of the tuple.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getTupleType" class="def"
+	    >getTupleType</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; ann &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	    >Tuple</a
+	    > term uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ann) <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#getTupleType" class="link"
+	    >Source</a
+	    > <a href="#v:getTupleType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the type of a <code
+	      ><a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+		>Tuple</a
+		></code
+	      >.</p
+	    ><pre
+	    >getTupleType _ (Tuple [a1, ... , an] _) = all r. (a1 -&gt; ... -&gt; an -&gt; r) -&gt; r</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tupleTypeTermAt" class="def"
+	    >tupleTypeTermAt</a
+	    > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	    >Tuple</a
+	    > term uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ann, term ann) <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#tupleTypeTermAt" class="link"
+	    >Source</a
+	    > <a href="#v:tupleTypeTermAt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the type of the ith element of a <code
+	      ><a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+		>Tuple</a
+		></code
+	      > along with the element itself.</p
+	    ><pre
+	    >tupleTypeTermAt _ i (Tuple [a0, ... , an] term) =
+    (ai, term {ai} (\(x0 : a0) ... (xn : an) -&gt; xi))</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tupleTermAt" class="def"
+	    >tupleTermAt</a
+	    > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	    >Tuple</a
+	    > term uni ann &#8594; m (term ann) <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#tupleTermAt" class="link"
+	    >Source</a
+	    > <a href="#v:tupleTermAt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the ith element of a <code
+	      ><a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+		>Tuple</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tupleDefAt" class="def"
+	    >tupleDefAt</a
+	    > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	    >Tuple</a
+	    > term uni ann &#8594; m (<a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+	    >TermDef</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni ann) <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#tupleDefAt" class="link"
+	    >Source</a
+	    > <a href="#v:tupleDefAt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the ith element of a <code
+	      ><a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+		>Tuple</a
+		></code
+	      > as a <code
+	      ><a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+		>TermDef</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindTuple" class="def"
+	    >bindTuple</a
+	    > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; ann &#8594; [<a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    >] &#8594; <a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	    >Tuple</a
+	    > term uni ann &#8594; term ann &#8594; m (term ann) <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#bindTuple" class="link"
+	    >Source</a
+	    > <a href="#v:bindTuple" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Bind all elements of a <code
+	      ><a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+		>Tuple</a
+		></code
+	      > inside a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ><pre
+	    >bindTuple _ [x_1, ... , x_n] (Tuple [a1, ... , an] term) body =
+    (\(tup : all r. (a_1 -&gt; ... -&gt; a_n -&gt; r) -&gt; r) -&gt;
+      let x_1 = _1 tup
+          ...
+          x_n = _n tup
+        in body
+    ) term</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prodN" class="def"
+	    >prodN</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#prodN" class="link"
+	    >Source</a
+	    > <a href="#v:prodN" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given an arity <code
+	      >n</code
+	      >, create the n-ary product type.</p
+	    ><pre
+	    >(T_1 :: *) .. (T_n :: *) . all (R :: *) . (T_1 -&gt; .. -&gt; T_n -&gt; R) -&gt; R</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prodNConstructor" class="def"
+	    >prodNConstructor</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#prodNConstructor" class="link"
+	    >Source</a
+	    > <a href="#v:prodNConstructor" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given an arity <code
+	      >n</code
+	      >, create the constructor for n-ary products.</p
+	    ><pre
+	    >    /(T_1 :: *) .. (T_n :: *) .
+        (arg_1 : T_1) .. (arg_n : T_n) .
+            /(R :: *).
+                (case : T_1 -&gt; .. -&gt; T_n -&gt; R) -&gt; case arg_1 .. arg_n
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prodNAccessor" class="def"
+	    >prodNAccessor</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#prodNAccessor" class="link"
+	    >Source</a
+	    > <a href="#v:prodNAccessor" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given an arity <code
+	      >n</code
+	      > and an index <code
+	      >i</code
+	      >, create a function for accessing the i'th component of a n-tuple.</p
+	    ><pre
+	    >    /(T_1 :: *) .. (T_n :: *) .
+        (tuple : all (R :: *) . (T_1 -&gt; .. -&gt; T_n -&gt; R) -&gt; R)) .
+            tuple {T_i} ((arg_1 : T_1) .. (arg_n : T_n) . arg_i)
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getSpineToTuple" class="def"
+	    >getSpineToTuple</a
+	    > &#8759; (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; ann &#8594; [(<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ann, term ann)] &#8594; m (<a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	    >Tuple</a
+	    > term uni ann) <a href="src/PlutusCore.StdLib.Meta.Data.Tuple.html#getSpineToTuple" class="link"
+	    >Source</a
+	    > <a href="#v:getSpineToTuple" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a Haskell spine of <code
+	      ><a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >s to a PLC <code
+	      ><a href="PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+		>Tuple</a
+		></code
+	      >.</p
+	    ><pre
+	    >getSpineToTuple _ [(a1, x1), ... , (an, xn)] =
+    Tuple [a1, ... , an] (/\(r :: *) -&gt; \(f :: a1 -&gt; ... -&gt; an -&gt; r) -&gt; f x1 ... xn)</pre
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

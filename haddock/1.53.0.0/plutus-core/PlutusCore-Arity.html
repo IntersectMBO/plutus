@@ -1,0 +1,446 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Arity</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Arity.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Arity</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Param"
+	      >Param</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:TermParam"
+		  >TermParam</a
+		  ></li
+		><li
+		>| <a href="#v:TypeParam"
+		  >TypeParam</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Arity"
+	      >Arity</a
+	      > = [<a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+	      >Param</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:typeSchemeArity"
+	      >typeSchemeArity</a
+	      > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+	      >TypeScheme</a
+	      > val args res &#8594; <a href="PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinArity"
+	      >builtinArity</a
+	      > &#8759; &#8704; uni fun. <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	      >Proxy</a
+	      > uni &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; fun &#8594; <a href="PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Param" class="def"
+	    >Param</a
+	    > <a href="src/PlutusCore.Arity.html#Param" class="link"
+	    >Source</a
+	    > <a href="#t:Param" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is the next argument a term or a type?</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TermParam" class="def"
+		  >TermParam</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TypeParam" class="def"
+		  >TypeParam</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Param"
+	    >Instances</h4
+	    ><details id="i:Param" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Param:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+		      >Param</a
+		      ></span
+		    > <a href="src/PlutusCore.Arity.html#line-13" class="link"
+		    >Source</a
+		    > <a href="#t:Param" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Param:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Arity.html"
+			>PlutusCore.Arity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Param:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+		      >Param</a
+		      ></span
+		    > <a href="src/PlutusCore.Arity.html#line-13" class="link"
+		    >Source</a
+		    > <a href="#t:Param" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Param:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Arity.html"
+			>PlutusCore.Arity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  > &#8594; <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  > &#8594; <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Param:Pretty:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+		      >Param</a
+		      ></span
+		    > <a href="src/PlutusCore.Arity.html#line-15" class="link"
+		    >Source</a
+		    > <a href="#t:Param" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Param:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Arity.html"
+			>PlutusCore.Arity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+			  >Param</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Arity" class="def"
+	    >Arity</a
+	    > = [<a href="PlutusCore-Arity.html#t:Param" title="PlutusCore.Arity"
+	    >Param</a
+	    >] <a href="src/PlutusCore.Arity.html#Arity" class="link"
+	    >Source</a
+	    > <a href="#t:Arity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The (syntactic) arity of a term. That is, a record of the arguments that the
+term expects before it may do some work. Since we have both type and lambda
+abstractions, this is not a simple argument count, but rather a list of values
+indicating whether the next argument should be a term or a type.</p
+	    ><p
+	    >Note that this is the syntactic arity, i.e. it just corresponds to the number of
+syntactic lambda and type abstractions on the outside of the term. It is thus
+an under-approximation of how many arguments the term may need.
+e.g. consider the term <code
+	      >let id = x -&gt; x in id</code
+	      >: the variable <code
+	      >id</code
+	      > has syntactic
+arity <code
+	      >[]</code
+	      >, but does in fact need an argument before it does any work.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeSchemeArity" class="def"
+	    >typeSchemeArity</a
+	    > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+	    >TypeScheme</a
+	    > val args res &#8594; <a href="PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > <a href="src/PlutusCore.Arity.html#typeSchemeArity" class="link"
+	    >Source</a
+	    > <a href="#v:typeSchemeArity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the <code
+	      ><a href="PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+		>Arity</a
+		></code
+	      > from a <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinArity" class="def"
+	    >builtinArity</a
+	    > &#8759; &#8704; uni fun. <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	    >Proxy</a
+	    > uni &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; fun &#8594; <a href="PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > <a href="src/PlutusCore.Arity.html#builtinArity" class="link"
+	    >Source</a
+	    > <a href="#v:builtinArity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the arity of a builtin function from the <code
+	      ><a href="PLC.html#v:BuiltinSemanticsVariant" title="PLC"
+		>BuiltinSemanticsVariant</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

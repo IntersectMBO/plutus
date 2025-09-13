@@ -1,0 +1,602 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Preamble</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.53.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Preamble.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Preamble</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Preamble"
+	      >Preamble</a
+	      > = <a href="#v:MkPreamble"
+	      >MkPreamble</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:preambleTitle"
+		  >preambleTitle</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		><a href="#v:preambleDescription"
+		  >preambleDescription</a
+		  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		><a href="#v:preambleVersion"
+		  >preambleVersion</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		><a href="#v:preamblePlutusVersion"
+		  >preamblePlutusVersion</a
+		  > &#8759; <a href="PlutusTx-Blueprint-PlutusVersion.html#t:PlutusVersion" title="PlutusTx.Blueprint.PlutusVersion"
+		  >PlutusVersion</a
+		  ></li
+		><li
+		><a href="#v:preambleLicense"
+		  >preambleLicense</a
+		  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Preamble" class="def"
+	    >Preamble</a
+	    > <a href="src/PlutusTx.Blueprint.Preamble.html#Preamble" class="link"
+	    >Source</a
+	    > <a href="#t:Preamble" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Meta-information about the contract</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MkPreamble" class="def"
+		  >MkPreamble</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:preambleTitle" class="def"
+			  >preambleTitle</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >A short and descriptive title of the contract application</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:preambleDescription" class="def"
+			  >preambleDescription</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >A more elaborate description</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:preambleVersion" class="def"
+			  >preambleVersion</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >A version number for the project.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:preamblePlutusVersion" class="def"
+			  >preamblePlutusVersion</a
+			  > &#8759; <a href="PlutusTx-Blueprint-PlutusVersion.html#t:PlutusVersion" title="PlutusTx.Blueprint.PlutusVersion"
+			  >PlutusVersion</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >The Plutus version assumed for all validators</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:preambleLicense" class="def"
+			  >preambleLicense</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >A license under which the specification
+  and contract code is distributed</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Preamble"
+	    >Instances</h4
+	    ><details id="i:Preamble" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Preamble:ToJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+		      >Preamble</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Preamble.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:Preamble" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Preamble:ToJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Preamble.html"
+			>PlutusTx.Blueprint.Preamble</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Preamble:Generic:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+		      >Preamble</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Preamble.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:Preamble" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Preamble:Generic:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Preamble.html"
+			>PlutusTx.Blueprint.Preamble</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > x &#8594; <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Preamble:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+		      >Preamble</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Preamble.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:Preamble" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Preamble:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Preamble.html"
+			>PlutusTx.Blueprint.Preamble</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			  >Preamble</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Preamble:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+		      >Preamble</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Preamble.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:Preamble" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Preamble:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Preamble.html"
+			>PlutusTx.Blueprint.Preamble</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusTx-Blueprint-Preamble.html#t:Preamble" title="PlutusTx.Blueprint.Preamble"
+			>Preamble</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;Preamble&quot; &quot;PlutusTx.Blueprint.Preamble&quot; &quot;plutus-tx-1.53.0.0-inplace&quot; '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MkPreamble&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+			>True</a
+			>) ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;preambleTitle&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			>Text</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;preambleDescription&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			>Text</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;preambleVersion&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			>Text</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;preamblePlutusVersion&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusTx-Blueprint-PlutusVersion.html#t:PlutusVersion" title="PlutusTx.Blueprint.PlutusVersion"
+			>PlutusVersion</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;preambleLicense&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			>Text</a
+			>))))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
