@@ -20,8 +20,8 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
                                    BuiltinBLS12_381_MlResult, BuiltinByteString (..), BuiltinData,
                                    BuiltinInteger, BuiltinList (..), BuiltinPair,
-                                   BuiltinString (..), BuiltinUnit, caseList', casePair, chooseUnit,
-                                   mkCons, mkPairData, unitval)
+                                   BuiltinString (..), BuiltinUnit, BuiltinValue, caseList',
+                                   casePair, chooseUnit, mkCons, mkPairData, unitval)
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
@@ -270,6 +270,7 @@ class MkNil arep where
 instance MkNil BuiltinInteger
 instance MkNil Bool
 instance MkNil BuiltinData
+instance MkNil BuiltinValue
 instance (MkNil a) => MkNil (BuiltinList a)
 instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 
@@ -303,6 +304,8 @@ instance
 
 instance HasToOpaque BuiltinData BuiltinData
 instance HasFromOpaque BuiltinData BuiltinData
+instance HasToOpaque BuiltinValue BuiltinValue
+instance HasFromOpaque BuiltinValue BuiltinValue
 
 instance HasToOpaque BuiltinBLS12_381_G1_Element BuiltinBLS12_381_G1_Element
 instance HasFromOpaque BuiltinBLS12_381_G1_Element BuiltinBLS12_381_G1_Element

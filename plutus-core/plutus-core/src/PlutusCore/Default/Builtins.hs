@@ -27,6 +27,8 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCosted
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 
 import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -40,6 +42,7 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 import Codec.Serialise (serialise)
 import Control.Monad (unless)
 import Control.Monad.Except (throwError)
+import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
@@ -183,6 +186,9 @@ data DefaultFun
     | LengthOfArray
     | ListToArray
     | IndexArray
+    -- Values
+    | InsertCoin
+    | UnionValue
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2015,6 +2021,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
+    toBuiltinMeaning _semvar InsertCoin =
+      let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> Value
+          insertCoinDenotation = Value.insertCoin
+          {-# INLINE insertCoinDenotation #-}
+       in makeBuiltinMeaning
+            insertCoinDenotation
+            (runCostingFunFourArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar UnionValue =
+      let unionValueDenotation :: Value -> Value -> Value
+          unionValueDenotation = Value.unionValue
+          {-# INLINE unionValueDenotation #-}
+       in makeBuiltinMeaning
+            unionValueDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -2163,6 +2185,9 @@ instance Flat DefaultFun where
               ListToArray                     -> 90
               IndexArray                      -> 91
 
+              InsertCoin                      -> 94
+              UnionValue                      -> 97
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2256,6 +2281,8 @@ instance Flat DefaultFun where
               go 89 = pure LengthOfArray
               go 90 = pure ListToArray
               go 91 = pure IndexArray
+              go 94 = pure InsertCoin
+              go 97 = pure UnionValue
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

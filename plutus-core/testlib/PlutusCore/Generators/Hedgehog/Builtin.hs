@@ -22,6 +22,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
                                                     NumBytesCostedAsNumWords)
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
 import PlutusCore.Generators.QuickCheck.Builtin
+import PlutusCore.Value (Value)
 
 import Data.ByteString qualified as BS
 import Data.Kind qualified as GHC
@@ -107,6 +108,7 @@ genConstant tr
           genArbitraryBuiltin @BLS12_381.G2.Element
     | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.Pairing.MlResult) =
           genArbitraryBuiltin @BLS12_381.Pairing.MlResult
+    | Just HRefl <- eqTypeRep tr (typeRep @Value) = genArbitraryBuiltin @Value
     | trPair `App` tr1 `App` tr2 <- tr
     , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
         -- We can perhaps use the @QuickCheck@ generator here too, but this seems rather hard.

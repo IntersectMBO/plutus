@@ -58,6 +58,7 @@ import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
 import PlutusCore.Value qualified as PLC
+import PlutusCore.Value qualified as Value
 import Prettyprinter (viaShow)
 
 {-
@@ -1066,6 +1067,20 @@ expModInteger b e m =
     BuiltinSuccess bs -> toInteger bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ toInteger bs
 {-# OPAQUE expModInteger #-}
+
+insertCoin
+  :: BuiltinByteString
+  -> BuiltinByteString
+  -> BuiltinInteger
+  -> BuiltinValue
+  -> BuiltinValue
+insertCoin (BuiltinByteString c) (BuiltinByteString t) amt (BuiltinValue v) =
+  BuiltinValue $ Value.insertCoin c t amt v
+{-# OPAQUE insertCoin #-}
+
+unionValue :: BuiltinValue -> BuiltinValue -> BuiltinValue
+unionValue (BuiltinValue v1) (BuiltinValue v2) = BuiltinValue $ Value.unionValue v1 v2
+{-# OPAQUE unionValue #-}
 
 caseInteger :: Integer -> [a] -> a
 caseInteger i b = b !! fromIntegral i

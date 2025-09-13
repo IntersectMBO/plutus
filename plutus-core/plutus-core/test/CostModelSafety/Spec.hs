@@ -40,6 +40,8 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
                                                     NumBytesCostedAsNumWords)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
 
@@ -127,6 +129,7 @@ smallConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.Pairing.MlResult) =
                     SomeConst $ BLS12_381.Pairing.millerLoop
                                   BLS12_381.G1.offchain_zero BLS12_381.G2.offchain_zero
+    | Just HRefl <- eqTypeRep tr (typeRep @Value) = SomeConst $ Value.empty
     | trPair `App` tr1 `App` tr2 <- tr
     , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
         case (smallConstant tr1, smallConstant tr2) of
