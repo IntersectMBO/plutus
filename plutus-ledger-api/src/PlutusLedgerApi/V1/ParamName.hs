@@ -312,7 +312,12 @@ data ParamName =
   | ListToArray'memory'arguments'slope
   | IndexArray'cpu'arguments
   | IndexArray'memory'arguments
-
+  | Bls12_381_G1_multiScalarMul'cpu'arguments'intercept
+  | Bls12_381_G1_multiScalarMul'cpu'arguments'slope
+  | Bls12_381_G1_multiScalarMul'memory'arguments
+  | Bls12_381_G2_multiScalarMul'cpu'arguments'intercept
+  | Bls12_381_G2_multiScalarMul'cpu'arguments'slope
+  | Bls12_381_G2_multiScalarMul'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
 

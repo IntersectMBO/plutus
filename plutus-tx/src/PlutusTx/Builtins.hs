@@ -109,6 +109,7 @@ module PlutusTx.Builtins (
   bls12_381_G1_equals,
   bls12_381_G1_add,
   bls12_381_G1_scalarMul,
+  bls12_381_G1_multiScalarMul,
   bls12_381_G1_neg,
   bls12_381_G1_compress,
   bls12_381_G1_uncompress,
@@ -119,6 +120,7 @@ module PlutusTx.Builtins (
   bls12_381_G2_equals,
   bls12_381_G2_add,
   bls12_381_G2_scalarMul,
+  bls12_381_G2_multiScalarMul,
   bls12_381_G2_neg,
   bls12_381_G2_compress,
   bls12_381_G2_uncompress,
@@ -613,6 +615,10 @@ bls12_381_G1_scalarMul :: Integer -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12
 bls12_381_G1_scalarMul = BI.bls12_381_G1_scalarMul
 {-# INLINEABLE bls12_381_G1_scalarMul #-}
 
+bls12_381_G1_multiScalarMul :: [Integer] -> [BuiltinBLS12_381_G1_Element] -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_multiScalarMul ints points = BI.bls12_381_G1_multiScalarMul (toOpaque ints) (toOpaque points)
+{-# INLINEABLE bls12_381_G1_multiScalarMul #-}
+
 bls12_381_G1_neg :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_neg = BI.bls12_381_G1_neg
 {-# INLINEABLE bls12_381_G1_neg #-}
@@ -650,6 +656,10 @@ bls12_381_G2_add = BI.bls12_381_G2_add
 bls12_381_G2_scalarMul :: Integer -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_scalarMul = BI.bls12_381_G2_scalarMul
 {-# INLINEABLE bls12_381_G2_scalarMul #-}
+
+bls12_381_G2_multiScalarMul :: [Integer] -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_multiScalarMul ints points = BI.bls12_381_G2_multiScalarMul (toOpaque ints) (toOpaque points)
+{-# INLINEABLE bls12_381_G2_multiScalarMul #-}
 
 bls12_381_G2_neg :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_neg = BI.bls12_381_G2_neg
