@@ -24,7 +24,7 @@ goldenVsPretty extn name value =
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name =
-  goldenVsPretty ".uplc.golden" name
+  goldenVsPretty ".golden.uplc" name
     . PLC.runQuote
     . fmap fst
     . testSimplify
@@ -49,7 +49,7 @@ testSimplify =
 
 goldenVsCse :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsCse name =
-  goldenVsPretty ".uplc.golden" name
+  goldenVsPretty ".golden.uplc" name
     . PLC.runQuote
     . fmap fst
     . testCse
