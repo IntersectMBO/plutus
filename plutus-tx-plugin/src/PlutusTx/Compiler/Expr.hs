@@ -64,6 +64,8 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381_G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381_G2
 import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.StdLib.Data.Function qualified
@@ -907,6 +909,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
   builtinDataTyCon <- lookupGhcTyCon ''Builtins.BuiltinData
   builtinPairTyCon <- lookupGhcTyCon ''BI.BuiltinPair
+  builtinBLS12_G1_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G1_Element
+  builtinBLS12_G2_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G2_Element
   stringTyName <- lookupGhcName ''Builtins.BuiltinString
   stringToBuiltinStringName <- lookupGhcName 'Builtins.stringToBuiltinString
   builtinByteStringTyName <- lookupGhcName ''Builtins.BuiltinByteString
@@ -1091,6 +1095,10 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
             | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
                 pure $ PLC.mkConstant annMayInline ([] @Integer)
             | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
+            | tyCon == builtinBLS12_G1_TyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @BLS12_381_G1.Element)
+            | tyCon == builtinBLS12_G2_TyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @BLS12_381_G2.Element)
           GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
             | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
                 pure $ PLC.mkConstant annMayInline ([] @(PLC.Data, PLC.Data))

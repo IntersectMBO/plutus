@@ -271,6 +271,8 @@ instance MkNil BuiltinInteger
 instance MkNil Bool
 instance MkNil BuiltinData
 instance MkNil BuiltinValue
+instance MkNil BuiltinBLS12_381_G1_Element
+instance MkNil BuiltinBLS12_381_G2_Element
 instance (MkNil a) => MkNil (BuiltinList a)
 instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 

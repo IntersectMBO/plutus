@@ -186,6 +186,9 @@ data DefaultFun
     | LengthOfArray
     | ListToArray
     | IndexArray
+    -- BLS12_381 multi scalar multiplication
+    | Bls12_381_G1_multiScalarMul
+    | Bls12_381_G2_multiScalarMul
     -- Values
     | InsertCoin
     | UnionValue
@@ -2021,6 +2024,24 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
+    toBuiltinMeaning _semvar Bls12_381_G1_multiScalarMul =
+        let bls12_381_G1_multiScalarMulDenotation
+                :: [Integer] -> [BLS12_381.G1.Element] -> BLS12_381.G1.Element
+            bls12_381_G1_multiScalarMulDenotation = BLS12_381.G1.multiScalarMul
+            {-# INLINE bls12_381_G1_multiScalarMulDenotation #-}
+        in makeBuiltinMeaning
+            bls12_381_G1_multiScalarMulDenotation
+            (runCostingFunTwoArguments . paramBls12_381_G1_multiScalarMul)
+
+    toBuiltinMeaning _semvar Bls12_381_G2_multiScalarMul =
+        let bls12_381_G2_multiScalarMulDenotation
+                :: [Integer] -> [BLS12_381.G2.Element] -> BLS12_381.G2.Element
+            bls12_381_G2_multiScalarMulDenotation = BLS12_381.G2.multiScalarMul
+            {-# INLINE bls12_381_G2_multiScalarMulDenotation #-}
+        in makeBuiltinMeaning
+            bls12_381_G2_multiScalarMulDenotation
+            (runCostingFunTwoArguments . paramBls12_381_G2_multiScalarMul)
+
     toBuiltinMeaning _semvar InsertCoin =
       let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> Value
           insertCoinDenotation = Value.insertCoin
@@ -2185,6 +2206,9 @@ instance Flat DefaultFun where
               ListToArray                     -> 90
               IndexArray                      -> 91
 
+              Bls12_381_G1_multiScalarMul     -> 92
+              Bls12_381_G2_multiScalarMul     -> 93
+
               InsertCoin                      -> 94
               UnionValue                      -> 97
 
@@ -2281,6 +2305,8 @@ instance Flat DefaultFun where
               go 89 = pure LengthOfArray
               go 90 = pure ListToArray
               go 91 = pure IndexArray
+              go 92 = pure Bls12_381_G1_multiScalarMul
+              go 93 = pure Bls12_381_G2_multiScalarMul
               go 94 = pure InsertCoin
               go 97 = pure UnionValue
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
