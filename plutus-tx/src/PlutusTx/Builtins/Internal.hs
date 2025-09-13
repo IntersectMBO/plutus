@@ -813,7 +813,7 @@ bls12_381_G2_scalarMul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_E
 
 bls12_381_G2_multiScalarMul :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_multiScalarMul (BuiltinList ns) (BuiltinList ps) =
-  BuiltinBLS12_381_G2_Element (BLS12_381.G2.multiScalarMul (fmap fromInteger ns) (fmap (\(BuiltinBLS12_381_G2_Element p) -> p) ps))
+  BuiltinBLS12_381_G2_Element (BLS12_381.G2.multiScalarMul ns (fmap (\(BuiltinBLS12_381_G2_Element p) -> p) ps))
 {-# OPAQUE bls12_381_G2_multiScalarMul #-}
 
 -- | Compresses a G2 element to a bytestring and never fails.
