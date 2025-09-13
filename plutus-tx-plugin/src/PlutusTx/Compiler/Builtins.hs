@@ -44,6 +44,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.Value (Value)
 
 import GHC.Plugins qualified as GHC
 
@@ -291,6 +292,9 @@ builtinNames =
   , 'Builtins.countSetBits
   , 'Builtins.findFirstSetBit
   , 'Builtins.expModInteger
+  , ''Builtins.BuiltinValue
+  , 'Builtins.insertCoin
+  , 'Builtins.unionValue
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -718,6 +722,9 @@ defineBuiltinTerms = do
           PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
           PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
           PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
+          -- Value
+          PLC.InsertCoin -> defineBuiltinInl 'Builtins.insertCoin
+          PLC.UnionValue -> defineBuiltinInl 'Builtins.unionValue
 
 defineBuiltinTypes :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTypes = do
@@ -743,6 +750,7 @@ defineBuiltinTypes = do
   defineBuiltinType ''Builtins.BuiltinBLS12_381_MlResult . ($> annMayInline) $
     PLC.toTypeAst $
       Proxy @BLS12_381.Pairing.MlResult
+  defineBuiltinType ''Builtins.BuiltinValue . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Value
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
 lookupBuiltinTerm :: (Compiling uni fun m ann) => TH.Name -> m (PIRTerm uni fun)
