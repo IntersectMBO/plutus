@@ -21,8 +21,8 @@ import PlutusPrelude
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL (readFile)
-import Flat (unflat)
 import Options.Applicative
+import PlutusCore.Flat (unflat)
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
 

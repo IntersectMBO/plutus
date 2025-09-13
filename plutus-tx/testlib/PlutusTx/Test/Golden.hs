@@ -43,11 +43,11 @@ import Control.Monad.Except (runExceptT)
 import Data.List qualified as List
 import Data.SatInt (fromSatInt)
 import Data.Text (Text)
-import Flat (Flat)
 import Language.Haskell.TH qualified as TH
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Flat (Flat)
 import PlutusCore.Pretty (Doc, Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
                           PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
                           prettyPlcClassicSimple, prettyReadable, prettyReadableSimple)

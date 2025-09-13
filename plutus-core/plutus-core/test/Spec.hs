@@ -41,10 +41,10 @@ import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
-import Flat qualified
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import PlutusCore.Flat qualified as Flat
 import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.Golden

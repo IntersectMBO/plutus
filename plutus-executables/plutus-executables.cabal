@@ -89,10 +89,10 @@ executable plc
   build-depends:
     , base                             >=4.9   && <5
     , bytestring
-    , flat                             ^>=0.6
     , mtl
     , optparse-applicative
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-execlib
 
 executable uplc
@@ -105,11 +105,11 @@ executable uplc
     , bytestring
     , criterion
     , deepseq
-    , flat                             ^>=0.6
     , haskeline
     , mtl
     , optparse-applicative
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-execlib
     , plutus-metatheory                ^>=1.53
     , prettyprinter

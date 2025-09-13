@@ -35,8 +35,8 @@ import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
-import Flat (unflat)
 import Options.Applicative
+import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
 import System.Exit (ExitCode (..), exitFailure, exitSuccess, exitWith)
 import System.IO (hPrint, stderr)

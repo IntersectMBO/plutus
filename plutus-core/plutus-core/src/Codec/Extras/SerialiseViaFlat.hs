@@ -12,8 +12,8 @@ import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Read qualified as CBOR
 import Codec.Serialise (Serialise, decode, encode)
 import Data.Either.Extras (fromRightM)
-import Flat qualified
-import Flat.Decoder qualified as Flat
+import PlutusCore.Flat qualified as Flat
+import PlutusCore.Flat.Decoder qualified as Flat
 import Prettyprinter (Pretty (pretty), (<+>))
 
 {- | Newtype to provide 'Serialise' instances for types with a 'Flat' instance

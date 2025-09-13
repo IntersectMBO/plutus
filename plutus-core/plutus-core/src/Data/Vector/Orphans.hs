@@ -4,8 +4,8 @@ module Data.Vector.Orphans () where
 
 import Data.Hashable (Hashable (hashWithSalt))
 import Data.Vector.Strict qualified as Strict
-import Flat (Flat (..))
-import Flat.Instances.Vector ()
+import PlutusCore.Flat (Flat (..))
+import PlutusCore.Flat.Instances.Vector ()
 
 instance (Hashable a) => Hashable (Strict.Vector a) where
   hashWithSalt = Strict.foldl' hashWithSalt

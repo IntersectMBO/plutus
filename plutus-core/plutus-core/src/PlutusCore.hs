@@ -130,7 +130,7 @@ import PlutusCore.DeBruijn
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.Ck
-import PlutusCore.Flat ()
+import PlutusCore.FlatInstances ()
 import PlutusCore.Name.Unique
 import PlutusCore.Name.UniqueMap
 import PlutusCore.Name.UniqueSet

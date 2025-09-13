@@ -4,7 +4,7 @@ module Codec.Extras.FlatViaSerialise
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
 import Data.ByteString.Lazy qualified as BSL (toStrict)
-import Flat
+import PlutusCore.Flat
 
 {- Note [Flat serialisation for strict and lazy bytestrings]
 The `flat` serialisation of a bytestring consists of a sequence of chunks, with each chunk preceded

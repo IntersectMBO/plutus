@@ -34,7 +34,7 @@ import Control.Lens
 
 import Codec.Extras.FlatViaSerialise
 import Codec.Serialise
-import Flat hiding (to)
+import PlutusCore.Flat hiding (to)
 
 import Control.DeepSeq
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)

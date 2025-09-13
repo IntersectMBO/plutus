@@ -15,10 +15,10 @@ module PlutusTx.Code where
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Flat (Flat (..), unflat)
-import Flat.Decoder (DecodeException)
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpans)
+import PlutusCore.Flat (Flat (..), unflat)
+import PlutusCore.Flat.Decoder (DecodeException)
 import PlutusCore.Pretty (PrettyConst, RenderContext)
 import PlutusIR qualified as PIR
 import PlutusTx.Coverage (CoverageIndex)

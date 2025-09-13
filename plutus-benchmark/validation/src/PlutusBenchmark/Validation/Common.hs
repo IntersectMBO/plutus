@@ -24,7 +24,7 @@ import Options.Applicative
 
 import Data.ByteString qualified as BS
 import Data.List (isPrefixOf)
-import Flat
+import PlutusCore.Flat
 import System.Directory (listDirectory)
 import System.FilePath
 

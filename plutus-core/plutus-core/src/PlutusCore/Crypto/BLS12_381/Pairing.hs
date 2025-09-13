@@ -22,7 +22,7 @@ import Text.PrettyBy (PrettyBy, prettyBy)
 import Control.DeepSeq (NFData, rnf)
 import Data.Coerce (coerce)
 import Data.Hashable
-import Flat
+import PlutusCore.Flat
 import Prettyprinter
 
 {- | This type represents the result of computing a pairing using the Miller

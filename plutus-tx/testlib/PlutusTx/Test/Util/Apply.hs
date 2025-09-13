@@ -15,8 +15,8 @@ module PlutusTx.Test.Util.Apply (
 
 import Prelude
 
-import Flat (Flat)
 import PlutusCore qualified as PLC
+import PlutusCore.Flat (Flat)
 import PlutusCore.Pretty (Pretty, PrettyBy, PrettyConst, RenderContext)
 import PlutusTx.Code
 
