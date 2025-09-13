@@ -7,6 +7,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BC
 import Data.Coerce
+import Data.Word
 import PlutusCore.Generators.QuickCheck.Utils (multiSplit0, uniqueVectorOf)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
@@ -71,15 +72,22 @@ instance Arbitrary (NoArbitrary a) where
   shrink _ = []
 
 instance Arbitrary Value where
-  arbitrary = do
-    -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
-    -- list of lists.
-    amts <- multiSplit0 0.2 . map unValueAmount =<< arbitrary
-    -- Generate 'TokenName's and 'CurrencySymbol's.
-    currencies <- uniqueNames id =<< traverse (uniqueNames id) amts
-    pure $ Value.fromList currencies
+  arbitrary = genValue (fmap unValueAmount <$> arbitrary)
 
   shrink =
     map Value.fromList
-      . coerce (shrink @[(NoArbitrary ByteString, [(NoArbitrary ByteString, Integer)])])
+      . coerce
+        (shrink @[(NoArbitrary ByteString, [(NoArbitrary ByteString, NoArbitrary Integer)])])
       . Value.toList
+
+genPositiveValue :: Gen Value
+genPositiveValue = genValue (fmap toInteger <$> arbitrary @[Word64])
+
+genValue :: Gen [Integer] -> Gen Value
+genValue genAmt = do
+  -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
+  -- list of lists.
+  amts <- multiSplit0 0.2 =<< genAmt
+  -- Generate 'TokenName's and 'CurrencySymbol's.
+  currencies <- uniqueNames id =<< traverse (uniqueNames id) amts
+  pure $ Value.fromList currencies
