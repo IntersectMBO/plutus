@@ -1,22 +1,25 @@
-{-# LANGUAGE BlockArguments         #-}
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE BlockArguments           #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DefaultSignatures        #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE FunctionalDependencies   #-}
+{-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 
-{-# LANGUAGE StrictData             #-}
+{-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.KnownType
     ( BuiltinError
+    , GEqL (..)
+    , LoopBreaker (..)
     , KnownBuiltinTypeIn
     , KnownBuiltinType
     , BuiltinResult (..)
@@ -48,6 +51,7 @@ import Control.Monad.Except
 import Data.Bifunctor
 import Data.Either.Extras
 import Data.Functor.Identity
+import Data.Kind qualified as GHC
 import Data.String
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
@@ -55,10 +59,20 @@ import Prettyprinter
 import Text.PrettyBy.Internal
 import Universe
 
+type GEqL :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
+class GEqL f a where
+    geqL :: f (Esc a) -> f (Esc b) -> Maybe (a :~: b)
+
+newtype LoopBreaker uni a = LoopBreaker (uni a)
+
+instance GEqL uni a => GEqL (LoopBreaker uni) a where
+    geqL = coerce $ geqL @uni
+    {-# INLINE geqL #-}
+
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
 type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
+    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEqL uni a, uni `HasTermLevel` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".
@@ -277,9 +291,9 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- 'geq' matches on its first argument first, so we make the type tag that will be known
         -- statically (because this function will be inlined) go first in order for GHC to
         -- optimize some of the matching away.
-        case uniExp `geq` uniAct of
+        case uniExp `geqL` uniAct of
             Just Refl -> pure x
-            Nothing   -> throwError $ BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
+            Nothing -> throwError $ BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
