@@ -146,5 +146,7 @@ isCommutative = \case
   RotateByteString                -> False
   CountSetBits                    -> False
   FindFirstSetBit                 -> False
-  ExpModInteger           -> False
-  DropList -> False
+  ExpModInteger                   -> False
+  DropList                        -> False
+  InsertCoin                      -> False
+  UnionValue                      -> True
