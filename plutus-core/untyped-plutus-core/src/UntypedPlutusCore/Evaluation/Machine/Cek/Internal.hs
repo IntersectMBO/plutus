@@ -308,6 +308,7 @@ data CekValue uni fun ann =
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
   | VConstr {-# UNPACK #-} !Word64 !(EmptyOrMultiStack uni fun ann)
+  | VBinds !(ArgStackNonEmpty uni fun ann)
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (CekValue uni fun ann)

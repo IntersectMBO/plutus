@@ -50,6 +50,14 @@ instance (PrettyClassicBy configName name, PrettyUni uni, Pretty fun, Pretty ann
         Case ann arg cs ->
             sexp "case" (consAnnIf config ann
                 (prettyBy config arg : fmap (prettyBy config) (toList cs)))
+        Let ann names body ->
+          sexp "let" (consAnnIf config ann
+              [ parens' (sep $ prettyBy config <$> names)
+              , prettyBy config body
+              ])
+        Bind ann t binds ->
+          sexp "bind" (consAnnIf config ann
+              (prettyBy config t : (prettyBy config <$> binds)))
       where
         prettyTypeOf :: Some (ValueOf uni) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = prettyBy juxtRenderContext $ SomeTypeIn uni

@@ -65,7 +65,7 @@ tags and their used/available encoding possibilities.
 | Data type        | Function          | Bit Width | Total | Used | Remaining |
 |------------------|-------------------|-----------|-------|------|-----------|
 | default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
-| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
+| Terms            | encodeTerm        | 4         | 16    | 10   | 4         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -114,16 +114,18 @@ encodeTerm
     => Term name uni fun ann
     -> Encoding
 encodeTerm = \case
-    Var      ann n      -> encodeTermTag 0 <> encode ann <> encode n
-    Delay    ann t      -> encodeTermTag 1 <> encode ann <> encodeTerm t
-    LamAbs   ann n t    -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
-    Apply    ann t t'   -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
-    Constant ann c      -> encodeTermTag 4 <> encode ann <> encode c
-    Force    ann t      -> encodeTermTag 5 <> encode ann <> encodeTerm t
-    Error    ann        -> encodeTermTag 6 <> encode ann
-    Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
-    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
-    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
+    Var      ann n      -> encodeTermTag 0  <> encode ann <> encode n
+    Delay    ann t      -> encodeTermTag 1  <> encode ann <> encodeTerm t
+    LamAbs   ann n t    -> encodeTermTag 2  <> encode ann <> encode (Binder n) <> encodeTerm t
+    Apply    ann t t'   -> encodeTermTag 3  <> encode ann <> encodeTerm t <> encodeTerm t'
+    Constant ann c      -> encodeTermTag 4  <> encode ann <> encode c
+    Force    ann t      -> encodeTermTag 5  <> encode ann <> encodeTerm t
+    Error    ann        -> encodeTermTag 6  <> encode ann
+    Builtin  ann bn     -> encodeTermTag 7  <> encode ann <> encode bn
+    Constr   ann i es   -> encodeTermTag 8  <> encode ann <> encode i <> encodeListWith encodeTerm es
+    Case     ann arg cs -> encodeTermTag 9  <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
+    Let      ann ns t   -> encodeTermTag 10 <> encode ann <> encode ns <> encodeTerm t
+    Bind     ann t bs   -> encodeTermTag 11 <> encode ann <> encodeTerm t <> encodeListWith encodeTerm bs
 
 decodeTerm
     :: forall name uni fun ann
@@ -161,6 +163,12 @@ decodeTerm version builtinPred = go
         handleTerm 9 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
             Case     <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
+        handleTerm 10 = do
+            -- TODO: fail when version is low
+            Let <$> decode <*> decode <*> go
+        handleTerm 11 = do
+            -- TODO: fail when version is low
+            Bind <$> decode <*> go <*> decodeListWith go
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -189,6 +197,8 @@ sizeTerm tm sz =
     Builtin  ann bn     -> size ann $ size bn sz'
     Constr   ann i es   -> size ann $ size i $ sizeListWith sizeTerm es sz'
     Case     ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (V.toList cs) sz'
+    Let      ann ns t   -> size ann $ size ns $ sizeTerm t sz'
+    Bind     ann t bs   -> size ann $ sizeTerm t $ sizeListWith sizeTerm bs sz'
 
 -- | An encoder for programs.
 --
