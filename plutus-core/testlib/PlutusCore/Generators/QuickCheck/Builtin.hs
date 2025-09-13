@@ -21,8 +21,8 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
+import PlutusCore.Generators.QuickCheck.Value ()
 import PlutusCore.Value (Value)
-import PlutusCore.Value qualified as Value
 
 import Data.ByteString (ByteString, empty)
 import Data.Int
@@ -244,10 +244,6 @@ instance ArbitraryBuiltin Data where
 instance Arbitrary Data where
     arbitrary = arbitraryBuiltin
     shrink = shrinkBuiltin
-
-instance Arbitrary Value where
-    arbitrary = Value.pack <$> arbitrary
-    shrink = fmap Value.pack . shrink . Value.unpack
 
 instance ArbitraryBuiltin Value
 

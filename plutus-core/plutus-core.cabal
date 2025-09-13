@@ -378,6 +378,7 @@ test-suite plutus-core-test
     Parser.Spec
     Pretty.Readable
     TypeSynthesis.Spec
+    Value.Spec
 
   default-language: Haskell2010
   build-depends:
@@ -396,6 +397,8 @@ test-suite plutus-core-test
     , plutus-core                      ^>=1.53
     , plutus-core:plutus-core-testlib
     , prettyprinter
+    , QuickCheck
+    , safe
     , serialise
     , tasty
     , tasty-golden
@@ -798,6 +801,7 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.Substitutions
     PlutusCore.Generators.QuickCheck.Unification
     PlutusCore.Generators.QuickCheck.Utils
+    PlutusCore.Generators.QuickCheck.Value
     PlutusCore.Test
     PlutusIR.Generators.AST
     PlutusIR.Generators.QuickCheck
@@ -813,6 +817,7 @@ library plutus-core-testlib
 
   build-depends:
     , base                        >=4.9     && <5
+    , base16-bytestring
     , bifunctors
     , bytestring
     , containers
@@ -836,6 +841,7 @@ library plutus-core-testlib
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
+    , random
     , size-based
     , Stream
     , tagged

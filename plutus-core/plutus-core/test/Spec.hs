@@ -23,6 +23,7 @@ import Normalization.Type
 import Parser.Spec qualified as Parser
 import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
+import Value.Spec qualified as Value
 
 import PlutusCore
 import PlutusCore.Check.Uniques qualified as Uniques
@@ -257,5 +258,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Check.tests
     , NEAT.tests
     , Parser.tests
+    , Value.tests
     , test_utils
     ]
