@@ -32,32 +32,32 @@ data SimplifierTag : Set where
 {-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
 
 variable
-  𝓁 𝓂 : Level
+  𝓁 𝓂 𝓃 : Level
 
-data ProofOrCE (P : Set 𝓁) : Set (suc 𝓁) where
+data ProofOrCE (P : Set (𝓂 ⊔ 𝓃)) : Set (suc (𝓂 ⊔ 𝓃)) where
   proof : (p : P) → ProofOrCE P
-  ce : (¬p : ¬ P) → {X X' : Set} → SimplifierTag → X → X' → ProofOrCE P
+  ce : {X : Set 𝓂} {X' : Set 𝓃} (¬p : ¬ P) → SimplifierTag → X → X' → ProofOrCE P
 
 decToPCE : {X : Set} {P : Set} → SimplifierTag → Dec P → {before after : X} → ProofOrCE P
 decToPCE _ (yes p) = proof p
 decToPCE tag (no ¬p) {before} {after} = ce ¬p tag before after
 
-pceToDec : {P : Set} → ProofOrCE P → Dec P
+pceToDec : {P : Set (𝓂 ⊔ 𝓃)} → ProofOrCE {𝓂 = 𝓂} {𝓃 = 𝓃} P → Dec P
 pceToDec (proof p) = yes p
 pceToDec (ce ¬p _ _ _) = no ¬p
 
-MatchOrCE : {X X' : Set} {𝓁 : Level} → (P : X → X' → Set 𝓁) → Set (suc 𝓁)
-MatchOrCE {X} {X'} P = (a : X) → (b : X') → ProofOrCE (P a b)
+MatchOrCE : {X : Set 𝓂} {X' : Set 𝓃} → (P : X → X' → Set (𝓂 ⊔ 𝓃)) → Set (suc (𝓂 ⊔ 𝓃))
+MatchOrCE {𝓂 = 𝓂} {𝓃 = 𝓃} {X = X} {X' = X'} P = (a : X) → (b : X') → ProofOrCE {𝓂 = 𝓂} {𝓃 = 𝓃} (P a b)
 
-matchOrCE : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → SimplifierTag → Binary.Decidable P → MatchOrCE P
+matchOrCE : {X : Set 𝓂} {X' : Set 𝓃} → {P : X → X' → Set (𝓂 ⊔ 𝓃)} → SimplifierTag → Binary.Decidable P → MatchOrCE P
 matchOrCE tag P a b with P a b
 ... | yes p = proof p
 ... | no ¬p = ce ¬p tag a b
 
-pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → SimplifierTag → MatchOrCE P → MatchOrCE (Pointwise P)
+pcePointwise : {X : Set 𝓂} {X' : Set 𝓃} {P : X → X' → Set (𝓂 ⊔ 𝓃)} → SimplifierTag → MatchOrCE P → MatchOrCE (Pointwise P)
 pcePointwise tag isP? [] [] = proof Pointwise.[]
-pcePointwise {X = X} tag isP? [] (y ∷ ys) = ce (λ ()) {X = List X} tag [] ys
-pcePointwise {X' = X'} tag isP? (x ∷ xs) [] = ce (λ ()) {X' = List X'} tag xs []
+pcePointwise {X = X} tag isP? [] (y ∷ ys) = ce {X = List X} (λ ()) tag [] ys
+pcePointwise {X' = X'} tag isP? (x ∷ xs) [] = ce {X' = List X'} (λ ()) tag xs []
 pcePointwise tag isP? (x ∷ xs) (y ∷ ys) with isP? x y
 ... | ce ¬p tag b a = ce (λ { (x∼y Pointwise.∷ pp) → ¬p x∼y}) tag b a
 ... | proof p with pcePointwise tag isP? xs ys

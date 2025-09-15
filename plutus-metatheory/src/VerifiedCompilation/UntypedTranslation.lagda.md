@@ -27,18 +27,18 @@ open Eq using (_≡_; refl)
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; MatchOrCE; SimplifierTag)
 open import Data.Sum using (_⊎_;inj₁; inj₂)
-
+open import Level
 ```
 The generic type of a Translation is that it matches one (or more) patterns on the left to one
 (or more) patterns on the right. If there are decision procedures to identify those patterns,
 we can build a decision procedure to apply them recursivley down the AST structure.
 
 ```
-Relation = { X : Set } → {{_ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
+Relation = { X : Set} → {{_ : DecEq X}} → (X ⊢) → (X ⊢) → Set
 
-data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁
+data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set
 
-data TransMatch (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
+data TransMatch (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set where
   var : {x : X} → TransMatch R (` x) (` x) -- We assume we won't want to translate variables individually?
   ƛ   : {x x' : Maybe X ⊢}
            → Translation R x x'
@@ -115,8 +115,8 @@ decPointwiseTranslation?
   → ({ X : Set } {{ _ : DecEq X}} → MatchOrCE (R {X}))
   → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
 decPointwiseTranslation? _ _ [] [] = proof Pointwise.[]
-decPointwiseTranslation? {X' = X'} tag isR? [] (x ∷ ys) = ce (λ ()) {X = List X'} tag [] (x ∷ ys)
-decPointwiseTranslation? {X' = X'} tag isR? (x ∷ xs) [] = ce (λ ()) {X' = List X'} tag (x ∷ xs) []
+decPointwiseTranslation? {X' = X'} tag isR? [] (x ∷ ys) = ce {X = List X'} (λ ()) tag [] (x ∷ ys)
+decPointwiseTranslation? {X' = X'} tag isR? (x ∷ xs) [] = ce {X' = List X'} (λ ()) tag (x ∷ xs) []
 decPointwiseTranslation? tag isR? (x ∷ xs) (y ∷ ys)
     with translation? tag isR? x y | decPointwiseTranslation? tag isR? xs ys
 ... | proof p | proof q = proof (p Pointwise.∷ q)
