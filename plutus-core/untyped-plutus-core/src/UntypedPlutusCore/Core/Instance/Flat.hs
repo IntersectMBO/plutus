@@ -23,7 +23,7 @@ import PlutusCore.Flat
 import PlutusCore.Flat.Decoder
 import PlutusCore.Flat.Encoder
 import PlutusCore.Flat.Encoder.Strict (sizeListWith)
-import PlutusCore.FlatInstances
+import PlutusCore.FlatInstances ()
 import Universe
 
 {-
