@@ -140,6 +140,7 @@ encoders $\E_1, \E_2, \E_3, \ldots$ and decoders $\D_1, \D_2, \D_3\ldots$.
 
 
 \subsection{Lists}
+\label{sec:flat:lists}
 Suppose that we have a set $X$ for which we have defined an encoder $\E_X$ and a
 decoder $\D_X$; we define an encoder $\Elist_X$ which encodes lists of elements
 of $X$ by emitting the encodings of the elements of the list, each preceded by a
@@ -568,12 +569,13 @@ then using $\E_{\B^*}$.  The decoding process is the opposite of this: a
 bytestring is obtained using $\D_{\B^*}$ and this is then decoded from CBOR
 using $\dData$ to obtain a $\ty{data}$ object.
 
-\paragraph{Arrays.} Arrays use the same encoders and decoders as lists: given a
-set $X$ for which we have defined an encoder $\E_X$ and a decoder $\D_X$, arrays
-of elements of $X$ are encoded using $\Elist_X$ and decoded using $\Dlist_X$.
-In practice the run-time implementations of lists and arrays may differ and some
-extra work may be required to convert arrays to lists before encoding and lists
-to arrays after decoding.
+\paragraph{Arrays.} Arrays use the same encoders and decoders as lists (see
+Section~\ref{sec:flat:lists}): given a set $X$ for which we have defined an
+encoder $\E_X$ and a decoder $\D_X$, arrays of elements of $X$ are encoded using
+$\Elist_X$ and decoded using $\Dlist_X$.  In practice the run-time
+implementations of lists and arrays may differ and some extra work may be
+required to convert arrays to lists before encoding and lists to arrays after
+decoding.
 
 \paragraph{BLS12-381 elements.}
 We do not provide serialisation and deserialisation methods for constants of type
