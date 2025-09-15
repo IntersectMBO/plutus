@@ -1188,7 +1188,7 @@ library flat
   ghc-options:
     -funbox-strict-fields -Wno-orphans -Wno-name-shadowing
     -Wno-missing-deriving-strategies -Wno-redundant-constraints
-    -Wno-identities
+    -Wno-identities -Wno-unused-imports
 
   build-depends:
     , array                 >=0.5.1.0
