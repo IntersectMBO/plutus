@@ -128,3 +128,7 @@ test_Value = testGroup "Value"
     , test_shuffle
     , test_split
     ]
+
+-- to/fromdata roundtrip
+-- random builtin value, toData = toData . valueFromBuiltin (valueToDataConsistency)
+-- random builtin value, toData, then fromData == valueFromBuiltin . fromData (valueFromDataConsistency)
