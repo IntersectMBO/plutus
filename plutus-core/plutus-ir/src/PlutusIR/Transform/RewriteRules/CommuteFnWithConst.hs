@@ -151,4 +151,7 @@ isCommutative = \case
   ExpModInteger                   -> False
   DropList                        -> False
   InsertCoin                      -> False
+  DeleteCoin                      -> False
+  LookupCoin                      -> False
   UnionValue                      -> True
+  ValueContains                   -> False

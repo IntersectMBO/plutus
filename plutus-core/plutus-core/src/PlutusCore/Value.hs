@@ -16,6 +16,8 @@ module PlutusCore.Value (
   maxInnerSize,
   insertCoin,
   deleteCoin,
+  lookupCoin,
+  valueContains,
   unionValue,
 ) where
 
@@ -24,6 +26,7 @@ import Control.DeepSeq (NFData)
 import Data.Bifunctor
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64 qualified as Base64
+import Data.Functor
 import Data.Hashable (Hashable)
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
@@ -138,7 +141,8 @@ insertCoin currency token amt v@(Value outer sizes size)
  where
   f
     :: Maybe (Map ByteString Integer)
-    -> ( Maybe Int -- Just (old size of inner map) if the total size grows by 1, otherwise Nothing
+    -> ( -- Just (old size of inner map) if the total size grows by 1, otherwise Nothing
+         Maybe Int
        , Maybe (Map ByteString Integer)
        )
   f = \case
@@ -148,12 +152,38 @@ insertCoin currency token amt v@(Value outer sizes size)
        in (if exists then Nothing else Just (Map.size inner), Just inner')
 {-# INLINEABLE insertCoin #-}
 
--- TODO: implement properly
+-- | \(O(\log \max(m, k))\)
 deleteCoin :: ByteString -> ByteString -> Value -> Value
-deleteCoin currency token (Value outer _ _) =
-  pack $ case Map.lookup currency outer of
-    Nothing    -> outer
-    Just inner -> Map.insert currency (Map.delete token inner) outer
+deleteCoin currency token (Value outer sizes size) = Value outer' sizes' size'
+ where
+  (mold, outer') = Map.alterF f currency outer
+  (sizes', size') = case mold of
+    Just old -> (updateSizes old (old - 1) sizes, size - 1)
+    Nothing  -> (sizes, size)
+  f
+    :: Maybe (Map ByteString Integer)
+    -> ( -- Just (old size of inner map) if the total size shrinks by 1, otherwise Nothing
+         Maybe Int
+       , Maybe (Map ByteString Integer)
+       )
+  f = \case
+    Nothing -> (Nothing, Nothing)
+    Just inner ->
+      let (amt, inner') = Map.updateLookupWithKey (\_ _ -> Nothing) token inner
+       in (amt $> Map.size inner, if Map.null inner' then Nothing else Just inner')
+
+-- | \(O(\log \max(m, k))\)
+lookupCoin :: ByteString -> ByteString -> Value -> Integer
+lookupCoin currency token (unpack -> outer) = case Map.lookup currency outer of
+  Nothing    -> 0
+  Just inner -> Map.findWithDefault 0 token inner
+
+-- | \(O(n_{2}\log \max(m_{1}, k_{1}))\).
+--
+-- @a@ contains @b@ only if all amounts in @b@ are positive.
+valueContains :: Value -> Value -> Bool
+valueContains v =
+  all (\(c, t, a2) -> let a1 = lookupCoin c t v in a2 > 0 && a1 >= a2) . toFlatList
 
 {-| The precise complexity is complicated, but an upper bound
 is \(O(n_{1} \log n_{2}) + O(m)\), where \(n_{1}\) is the total size of the smaller

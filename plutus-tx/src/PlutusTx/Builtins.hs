@@ -160,7 +160,10 @@ module PlutusTx.Builtins (
 
   -- * Value
   insertCoin,
+  deleteCoin,
+  lookupCoin,
   unionValue,
+  valueContains,
 ) where
 
 import Data.Maybe
@@ -952,6 +955,26 @@ insertCoin
 insertCoin = BI.insertCoin
 {-# INLINEABLE insertCoin #-}
 
+deleteCoin
+  :: BuiltinByteString
+  -> BuiltinByteString
+  -> BuiltinValue
+  -> BuiltinValue
+deleteCoin = BI.deleteCoin
+{-# INLINEABLE deleteCoin #-}
+
+lookupCoin
+  :: BuiltinByteString
+  -> BuiltinByteString
+  -> BuiltinValue
+  -> Integer
+lookupCoin = BI.lookupCoin
+{-# INLINEABLE lookupCoin #-}
+
 unionValue :: BuiltinValue -> BuiltinValue -> BuiltinValue
 unionValue = BI.unionValue
 {-# INLINEABLE unionValue #-}
+
+valueContains :: BuiltinValue -> BuiltinValue -> Bool
+valueContains = BI.valueContains
+{-# INLINEABLE valueContains #-}
