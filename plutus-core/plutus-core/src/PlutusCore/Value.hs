@@ -178,12 +178,17 @@ lookupCoin currency token (unpack -> outer) = case Map.lookup currency outer of
   Nothing    -> 0
   Just inner -> Map.findWithDefault 0 token inner
 
--- | \(O(n_{2}\log \max(m_{1}, k_{1}))\).
---
--- @a@ contains @b@ only if all amounts in @b@ are positive.
+{-| \(O(n_{2}\log \max(m_{1}, k_{1}))\).
+
+@a@ contains @b@ if all amounts in @b@ are positive, and each token in @b@ exists
+in @a@ with at least the same amount.
+-}
 valueContains :: Value -> Value -> Bool
-valueContains v =
-  all (\(c, t, a2) -> let a1 = lookupCoin c t v in a2 > 0 && a1 >= a2) . toFlatList
+valueContains v = Map.foldrWithKey' go True . unpack
+ where
+  go c inner = (&&) (Map.foldrWithKey' goInner True inner)
+   where
+    goInner t a2 = (&&) (let a1 = lookupCoin c t v in a2 > 0 && a1 >= a2)
 
 {-| The precise complexity is complicated, but an upper bound
 is \(O(n_{1} \log n_{2}) + O(m)\), where \(n_{1}\) is the total size of the smaller
