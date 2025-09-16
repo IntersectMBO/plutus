@@ -11,7 +11,7 @@ import UntypedPlutusCore.Core
 import Control.Lens
 import Data.ByteString qualified as BS
 import Data.Foldable
-import Flat hiding (to)
+import PlutusCore.Flat hiding (to)
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term name uni fun ann -> Size

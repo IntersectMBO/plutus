@@ -10,7 +10,7 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 import Data.Functor
-import Flat
+import PlutusCore.Flat
 
 test_prettyprinting :: TestTree
 test_prettyprinting =

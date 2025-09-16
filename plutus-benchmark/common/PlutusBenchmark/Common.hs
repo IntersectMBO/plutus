@@ -50,8 +50,8 @@ import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
-import Flat qualified
 import GHC.IO.Encoding (setLocaleEncoding)
+import PlutusCore.Flat qualified as Flat
 import System.Directory
 import System.FilePath
 import System.IO

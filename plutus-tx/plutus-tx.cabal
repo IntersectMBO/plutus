@@ -135,13 +135,13 @@ library
     , deepseq
     , deriving-compat
     , extra
-    , flat                   ^>=0.6
     , formatting
     , hashable
     , lens
     , memory
     , mtl
     , plutus-core            ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-ir
     , prettyprinter
     , serialise
@@ -178,11 +178,11 @@ library plutus-tx-testlib
   build-depends:
     , base                             >=4.9   && <5
     , bytestring
-    , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , plutus-tx                        ^>=1.53

@@ -156,7 +156,7 @@ library
     PlutusCore.Examples.Data.TreeForest
     PlutusCore.Examples.Data.Vec
     PlutusCore.Examples.Everything
-    PlutusCore.Flat
+    PlutusCore.FlatInstances
     PlutusCore.FsTree
     PlutusCore.Mark
     PlutusCore.MkPlc
@@ -319,7 +319,6 @@ library
     , exceptions
     , extra
     , filepath
-    , flat                        ^>=0.6
     , free
     , ghc-prim
     , hashable                    >=1.4
@@ -334,6 +333,7 @@ library
     , multiset
     , nothunks                    ^>=0.2
     , parser-combinators          >=0.4.0
+    , plutus-core:flat
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable
     , primitive
@@ -391,11 +391,11 @@ test-suite plutus-core-test
     , data-default-class
     , extra
     , filepath
-    , flat                             ^>=0.6
     , hedgehog
     , mmorph
     , mtl
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , prettyprinter
     , QuickCheck
@@ -485,11 +485,11 @@ library untyped-plutus-core-testlib
     , cardano-crypto-class
     , data-default-class
     , dlist
-    , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , pretty-show
     , prettyprinter
@@ -587,7 +587,6 @@ library plutus-ir
     , dlist
     , dom-lt
     , extra
-    , flat                 ^>=0.6
     , hashable
     , lens
     , megaparsec
@@ -597,6 +596,7 @@ library plutus-ir
     , multiset
     , parser-combinators   >=0.4.0
     , plutus-core          ^>=1.53
+    , plutus-core:flat
     , prettyprinter        >=1.1.0.1
     , profunctors
     , semigroupoids
@@ -657,12 +657,12 @@ test-suite plutus-ir-test
     , base                             >=4.9   && <5
     , containers
     , filepath
-    , flat                             ^>=0.6
     , hashable
     , hedgehog
     , lens
     , mtl
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , QuickCheck
@@ -717,7 +717,6 @@ executable plutus
     , containers
     , exceptions
     , filepath
-    , flat
     , lens
     , megaparsec
     , microlens
@@ -725,6 +724,7 @@ executable plutus
     , mono-traversable
     , mtl
     , plutus-core            ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-ir
     , prettyprinter
     , primitive
@@ -759,13 +759,13 @@ library plutus-core-execlib
     , aeson
     , base                             >=4.9   && <5
     , bytestring
-    , flat                             ^>=0.6
     , lens
     , megaparsec
     , monoidal-containers
     , mtl
     , optparse-applicative
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , prettyprinter
@@ -1143,3 +1143,130 @@ test-suite index-envs-test
     , quickcheck-instances
     , tasty
     , tasty-quickcheck
+
+----------------------------------------------
+-- flat encoding/decoding
+----------------------------------------------
+
+library flat
+  import:           lang 
+  visibility:       public 
+  hs-source-dirs:   flat/src
+  default-language: Haskell2010
+  exposed-modules:
+    PlutusCore.Flat
+    PlutusCore.Flat.AsBin
+    PlutusCore.Flat.AsSize
+    PlutusCore.Flat.Bits
+    PlutusCore.Flat.Class
+    PlutusCore.Flat.Data.ByteString.Convert
+    PlutusCore.Flat.Data.FloatCast
+    PlutusCore.Flat.Data.ZigZag
+    PlutusCore.Flat.Decoder
+    PlutusCore.Flat.Decoder.Prim
+    PlutusCore.Flat.Decoder.Run
+    PlutusCore.Flat.Decoder.Strict
+    PlutusCore.Flat.Decoder.Types
+    PlutusCore.Flat.Encoder
+    PlutusCore.Flat.Encoder.Prim
+    PlutusCore.Flat.Encoder.Size
+    PlutusCore.Flat.Encoder.Strict
+    PlutusCore.Flat.Encoder.Types
+    PlutusCore.Flat.Endian
+    PlutusCore.Flat.Filler
+    PlutusCore.Flat.Instances
+    PlutusCore.Flat.Instances.Array
+    PlutusCore.Flat.Instances.Base
+    PlutusCore.Flat.Instances.ByteString
+    PlutusCore.Flat.Instances.Containers
+    PlutusCore.Flat.Instances.DList
+    PlutusCore.Flat.Instances.Extra
+    PlutusCore.Flat.Instances.Mono
+    PlutusCore.Flat.Instances.Test
+    PlutusCore.Flat.Instances.Text
+    PlutusCore.Flat.Instances.Unordered
+    PlutusCore.Flat.Instances.Util
+    PlutusCore.Flat.Instances.Vector
+    PlutusCore.Flat.Memory
+    PlutusCore.Flat.Run
+    PlutusCore.Flat.Tutorial
+    PlutusCore.Flat.Types
+
+  ghc-options:
+    -funbox-strict-fields -Wno-orphans -Wno-name-shadowing
+    -Wno-missing-deriving-strategies -Wno-redundant-constraints
+    -Wno-identities -Wno-unused-imports
+
+  build-depends:
+    , array                 >=0.5.1.0
+    , base                  >=4.9     && <5
+    , bytestring            >=0.10.6
+    , containers
+    , deepseq               >=1.4
+    , dlist                 >=0.6
+    , ghc-prim
+    , hashable              >=1.4.0.1
+    , list-t                >=1.0
+    , mono-traversable
+    , pretty                >=1.1.2
+    , primitive
+    , text
+    , unordered-containers
+    , vector
+
+test-suite flat-test
+  import:           lang 
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   flat/test
+  default-language: Haskell2010
+  main-is:          Spec.hs
+  cpp-options:      -DLIST_BIT -DTEST_DECBITS
+  cpp-options:      -DENUM_LARGE
+  ghc-options:
+    -Wno-unused-top-binds -Wno-type-defaults -Wno-missing-signatures
+    -Wno-missing-deriving-strategies -Wno-orphans -Wno-name-shadowing
+    -Wno-redundant-constraints -Wno-unused-imports
+    -Wno-incomplete-uni-patterns -Wno-unused-local-binds
+    -Wno-unused-packages
+
+  other-modules:
+    Test.Data
+    Test.Data.Arbitrary
+    Test.Data.Flat
+    Test.Data.Values
+    Test.Data2
+    Test.Data2.Flat
+    Test.E
+    Test.E.Arbitrary
+    Test.E.Flat
+
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , deepseq
+    , plutus-core:flat
+    , QuickCheck
+    , quickcheck-text
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , text
+
+-- Test for Flat.AsBin Flat.AsSize and listTDecoder
+test-suite flat-big-test
+  import:           lang 
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   flat/test
+  main-is:          Big.hs
+  default-language: Haskell2010
+  ghc-options:
+    -Wno-incomplete-uni-patterns -Wno-missing-signatures
+    -Wno-unused-imports -Wno-name-shadowing
+
+  build-depends:
+    , base
+    , bytestring
+    , list-t
+    , plutus-core:flat
+    , timeit
