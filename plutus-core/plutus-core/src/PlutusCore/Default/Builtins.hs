@@ -2053,7 +2053,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE insertCoinDenotation #-}
        in makeBuiltinMeaning
             insertCoinDenotation
-            (runCostingFunFourArguments . unimplementedCostingFun)
+            (runCostingFunFourArguments . paramInsertCoin)
 
     toBuiltinMeaning _semvar LookupCoin =
       let lookupCoinDenotation :: ByteString -> ByteString -> LogValueOuterOrMaxInner -> Integer
@@ -2069,7 +2069,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE unionValueDenotation #-}
        in makeBuiltinMeaning
             unionValueDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramUnionValue)
 
     toBuiltinMeaning _semvar ValueContains =
       let valueContainsDenotation :: LogValueOuterOrMaxInner -> ValueTotalSize -> BuiltinResult Bool
