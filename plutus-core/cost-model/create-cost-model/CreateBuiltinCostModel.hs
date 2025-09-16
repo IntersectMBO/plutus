@@ -131,6 +131,9 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramLengthOfArray                   = "lengthOfArrayModel"
   , paramListToArray                     = "listToArrayModel"
   , paramIndexArray                      = "indexArrayModel"
+  -- Builtin values
+  , paramInsertCoin                      = "insertCoinModel"
+  , paramUnionValue                      = "unionValueModel"
   }
 
 
@@ -279,6 +282,9 @@ createBuiltinCostModel bmfile rfile = do
   paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
   paramListToArray                     <- getParams readCF1 paramListToArray
   paramIndexArray                      <- getParams readCF2 paramIndexArray
+  -- Builtin values
+  paramInsertCoin                      <- getParams readCF4 paramInsertCoin
+  paramUnionValue                      <- getParams readCF2 paramUnionValue
 
   pure $ BuiltinCostModelBase {..}
 
@@ -441,6 +447,13 @@ readCF3 e = do
     "literal_in_y_or_linear_in_z" -> ModelThreeArgumentsLiteralInYOrLinearInZ <$> error "literal"
     "exp_mod_cost"                -> ModelThreeArgumentsExpModCost            <$> readExpModCostingFunction "y_mem" "z_mem" e
     _                             -> error $ "Unknown three-variable model type: " ++ ty
+
+readCF4 :: MonadR m => SomeSEXP (Region m) -> m ModelFourArguments
+readCF4 e = do
+  ty <- getType e
+  case ty of
+    "constant_cost" -> ModelFourArgumentsConstantCost <$> getConstant e
+    _               -> error $ "Unknown four-variable model type: " ++ ty
 
 readCF6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments
 readCF6 e = do
