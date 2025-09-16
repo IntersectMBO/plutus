@@ -164,7 +164,7 @@ du_isCoCCase'63'_62 v0
                                                                                                                                      (coe
                                                                                                                                         v8)
                                                                                                                                      (let v39
-                                                                                                                                            = MAlonzo.Code.Builtin.d_decBuiltin_418
+                                                                                                                                            = MAlonzo.Code.Builtin.d_decBuiltin_426
                                                                                                                                                 (coe
                                                                                                                                                    v32)
                                                                                                                                                 (coe
@@ -396,7 +396,7 @@ du_isCoCForce'63'_168 v0 v1
                                                                                                                                                                                                        = coe
                                                                                                                                                                                                            MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
                                                                                                                                                                                                            (coe
-                                                                                                                                                                                                              MAlonzo.Code.Builtin.d_decBuiltin_418
+                                                                                                                                                                                                              MAlonzo.Code.Builtin.d_decBuiltin_426
                                                                                                                                                                                                               (coe
                                                                                                                                                                                                                  v30)
                                                                                                                                                                                                               (coe

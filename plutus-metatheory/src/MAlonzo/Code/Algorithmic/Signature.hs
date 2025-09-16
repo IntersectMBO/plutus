@@ -173,7 +173,7 @@ d_btype_30 v0 v1
          (\ v2 v3 v4 ->
             coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v3 v4)
          (\ v2 v3 v4 -> coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v3 v4)
-         (coe MAlonzo.Code.Builtin.d_signature_294 (coe v1)))
+         (coe MAlonzo.Code.Builtin.d_signature_298 (coe v1)))
 -- Algorithmic.Signature.btype-ren
 d_btype'45'ren_42 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
