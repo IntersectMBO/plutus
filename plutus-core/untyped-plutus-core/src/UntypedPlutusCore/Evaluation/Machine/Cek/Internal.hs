@@ -308,7 +308,7 @@ data CekValue uni fun ann =
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
   | VConstr {-# UNPACK #-} !Word64 !(EmptyOrMultiStack uni fun ann)
-  | VBinds !(ArgStackNonEmpty uni fun ann)
+  | VLet ![NamedDeBruijn] !(NTerm uni fun ann) !(CekValEnv uni fun ann)
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (CekValue uni fun ann)
@@ -640,6 +640,11 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
         -- @term@ is fully discharged, so we can return it directly without any further discharging.
         VBuiltin _ term _ -> term
         VConstr ind args -> Constr () ind . map goValue $ argStackToList args
+        VLet names body env ->
+          Let
+            ()
+            ((\(NamedDeBruijn n _ix) -> NamedDeBruijn n deBruijnInitIndex) <$> names)
+            (goValEnv env 1 body)
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
@@ -670,6 +675,8 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
           Error _            -> Error ()
           Constr _ ind args  -> Constr () ind $ map (go shift) args
           Case _ scrut alts  -> Case () (go shift scrut) $ fmap (go shift) alts
+          Let _ names body   -> Let () names (go (shift + fromIntegral (length names)) body)
+          Bind _ t bs        -> Bind () (go shift t) (fmap (go shift) bs)
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
@@ -706,6 +713,8 @@ data Context uni fun ann
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
+    | FrameAwaitLetBinds !(CekValEnv uni fun ann) !(NTerm uni fun ann) ![NTerm uni fun ann] ![CekValue uni fun ann] !(Context uni fun ann)
+    | FrameMine ![CekValue uni fun ann] !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -719,6 +728,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
         VLamAbs {}  -> singletonRose 1
         VBuiltin {} -> singletonRose 1
         VConstr {}  -> singletonRose 1
+        VLet {}  -> singletonRose 1
     {-# INLINE memoryUsage #-}
 
 {- Note [ArgStack vs Spine]
@@ -833,6 +843,16 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
         throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
+    -- ???
+    computeCek !ctx !env (Let _ names body) = do
+        stepAndMaybeSpend BLamAbs
+        returnCek ctx (VLet names body env)
+    computeCek !ctx !env (Bind _ body bs) = do
+        --stepAndMaybeSpend BApply
+        -- computeCek (FrameAwaitLetBinds env t bs ctx) env t
+        case bs of
+          (t : rest) -> computeCek (FrameAwaitLetBinds env body rest [] ctx) env t
+          []         -> computeCek ctx env body
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -872,6 +892,11 @@ enterComputeCek = computeCek
         SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
         SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+    returnCek (FrameMine args ctx) l =
+      case l of
+        VLet _ body env -> computeCek ctx (foldr Env.cons env args) body
+        _               -> error "no"
+
     returnCek (FrameAwaitFunValueN args ctx) fun =
         case args of
           LastStackNonEmpty arg ->
@@ -906,6 +931,14 @@ enterComputeCek = computeCek
             Right (HeadOnly fX) -> computeCek ctx env fX
             Right (HeadSpine f xs) -> computeCek (FrameAwaitFunConN xs ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+    -- returnCek (FrameAwaitLetTerm env bs ctx) e =
+    --   case bs of
+    --     (next : todo) -> computeCek (FrameAwaitLetBinds env e todo [] ctx) env next
+        -- [] -> returnCek ctx e -- no bindings
+    returnCek (FrameAwaitLetBinds env l todo done ctx) e =
+      case todo of
+        (next : todo') -> computeCek (FrameAwaitLetBinds env l todo' (e : done) ctx) env next
+        []             -> computeCek (FrameMine (e : done) ctx) env l
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
