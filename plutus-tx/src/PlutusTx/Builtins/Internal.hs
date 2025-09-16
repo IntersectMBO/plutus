@@ -1092,6 +1092,19 @@ unionValue :: BuiltinValue -> BuiltinValue -> BuiltinValue
 unionValue (BuiltinValue v1) (BuiltinValue v2) = BuiltinValue $ Value.unionValue v1 v2
 {-# OPAQUE unionValue #-}
 
+mkValue :: BuiltinValue -> BuiltinData
+mkValue (BuiltinValue v) = BuiltinData $ Value.valueData v
+{-# OPAQUE mkValue #-}
+
+unsafeDataAsValue :: BuiltinData -> BuiltinValue
+unsafeDataAsValue (BuiltinData d) = case Value.unValueData d of
+  BuiltinSuccess v -> BuiltinValue v
+  BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
+  BuiltinFailure logs err ->
+    traceAll (logs <> pure (display err)) $
+      Haskell.error "Data to Value conversion errored."
+{-# OPAQUE unsafeDataAsValue #-}
+
 caseInteger :: Integer -> [a] -> a
 caseInteger i b = b !! fromIntegral i
 {-# OPAQUE caseInteger #-}

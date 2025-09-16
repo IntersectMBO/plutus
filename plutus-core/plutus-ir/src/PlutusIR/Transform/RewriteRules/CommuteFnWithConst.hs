@@ -152,3 +152,5 @@ isCommutative = \case
   DropList                        -> False
   InsertCoin                      -> False
   UnionValue                      -> True
+  ValueData                       -> False
+  UnValueData                     -> False
