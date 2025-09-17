@@ -182,11 +182,13 @@ lookupCoin currency token (unpack -> outer) = case Map.lookup currency outer of
   Nothing    -> 0
   Just inner -> Map.findWithDefault 0 token inner
 
-{-| \(O(n_{2}\log \max(m_{1}, k_{1}))\).
+{-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
+`Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is
+the size of the largest inner map in the first `Value`.
 
 @a@ contains @b@ if for each @(currency, token, amount)@ in @b@, if @amount > 0@, then
 @lookup currency token a >= amount@, and if @amount < 0@, then
-@lookup currency token a == amount@
+@lookup currency token a == amount@.
 -}
 valueContains :: Value -> Value -> Bool
 valueContains v = Map.foldrWithKey' go True . unpack
