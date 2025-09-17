@@ -1,4 +1,13 @@
 -- editorconfig-checker-disable-file
+
+{-# LANGUAGE CPP #-}
+
+#if __GLASGOW_HASKELL__ >= 914
+-- The `ghc-9.14` alpha release has what looks like a bug;
+-- https://gitlab.haskell.org/ghc/ghc/-/issues/26381
+{-# OPTIONS_GHC -Wno-redundant-constraints  #-}
+#endif
+
 module PlutusCore.Generators.QuickCheck.SubstitutionTests where
 
 import PlutusCore.Generators.QuickCheck

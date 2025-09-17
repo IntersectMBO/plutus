@@ -89,106 +89,132 @@ if impl (ghc >= 9.14)
 -- cabal-allow-newer
 if impl (ghc >= 9.14)
   allow-newer:
+    , Cabal:Cabal-syntax
+    , Cabal:containers
+    , Cabal-syntax:containers
     , OneTuple:base
+    , aeson:containers
     , aeson:data-fix
     , aeson:ghc-prim
+    , aeson:indexed-traversable
     , aeson:scientific
+    , aeson:semialign
     , aeson:template-haskell
     , aeson:text-iso8601
     , aeson:these
     , aeson:time
     , aeson:time-compat
+    , aeson:uuid-types
+    , aeson:witherable
     , assoc:base
     , async:base
-    , base:ghc-internal
     , base:ghc-prim
     , bifunctors:template-haskell
-    , bifunctors:th-abstraction
     , bin:base
     , binary:containers
     , binary-orphans:base
     , boring:base
     , brick:base
     , cborg:base
+    , cborg:containers
     , cborg:ghc-prim
+    , concurrent-output:process
+    , config-ini:containers
+    , config-ini:text
     , constraints-extras:base
     , constraints-extras:template-haskell
+    , containers:base
     , containers:template-haskell
-    , criterion:parsec
+    , criterion:aeson
+    , data-default:containers
+    , data-default-class:data-default
     , data-fix:base
     , dec:base
-    , dependent-map:constraints-extras
+    , deepseq:base
+    , deepseq:ghc-prim
+    , dependent-map:containers
+    , deriving-compat:containers
     , deriving-compat:template-haskell
+    , dictionary-sharing:containers
     , directory:base
-    , exceptions:mtl
-    , filepath:base
+    , directory:time
+    , dom-lt:containers
     , fin:base
     , fin:universe-base
-    , flat:hashable
-    , foldl:base
-    , foldl:bytestring
     , foldl:containers
+    , free:containers
     , free:template-haskell
     , generically:base
-    , ghc-heap:base
     , ghc-heap:containers
-    , ghc-heap:ghc-internal
-    , ghc-heap:ghc-prim
     , hashable:base
     , hashable:containers
     , hashable:ghc-bignum
-    , hedgehog:bytestring
+    , hedgehog:containers
     , hedgehog:lifted-async
     , hedgehog:template-haskell
     , hedgehog:time
+    , hedgehog-fn:hedgehog
+    , hedgehog-quickcheck:hedgehog
     , hsc2hs:base
     , indexed-traversable:base
+    , indexed-traversable:containers
     , indexed-traversable-instances:base
     , integer-conversion:base
     , integer-logarithms:base
     , integer-logarithms:ghc-bignum
     , io-classes:base
     , io-classes:time
-    , lens:array
-    , lens:base
-    , lens:bytestring
+    , lens:containers
     , lens:free
     , lens:template-haskell
     , lifted-async:base
     , list-t:foldl
+    , megaparsec:base
+    , megaparsec:containers
+    , megaparsec:transformers
+    , microlens-th:containers
     , microlens-th:template-haskell
     , microstache:aeson
     , microstache:base
     , microstache:containers
+    , microstache:unordered-containers
     , monoidal-containers:base
+    , monoidal-containers:containers
+    , network-uri:th-compat
     , nonempty-vector:base
+    , nothunks:containers
     , nothunks:time
     , nothunks:wherefrom-compat
+    , ordered-containers:containers
+    , os-string:template-haskell
     , parallel:base
-    , parsec:base
     , parsec:text
+    , plutus-core:dependent-map
+    , plutus-core:microlens-th
     , plutus-core:vty
-    , plutus-ledger-api:nothunks
     , primitive:base
     , process:base
-    , process:filepath
     , process:unix
     , quickcheck-instances:base
-    , quickcheck-instances:bytestring
+    , quickcheck-instances:containers
     , ral:base
+    , ral:boring
+    , random:splitmix
+    , recursion-schemes:containers
     , recursion-schemes:template-haskell
     , scientific:base
+    , scientific:containers
+    , scientific:integer-logarithms
     , scientific:template-haskell
     , semialign:base
+    , semialign:containers
     , semigroupoids:bifunctors
     , serialise:base
-    , serialise:bytestring
     , serialise:containers
     , serialise:ghc-prim
     , serialise:time
     , singletons:base
     , singletons-th:base
-    , singletons-th:mtl
     , singletons-th:singletons
     , singletons-th:template-haskell
     , singletons-th:th-desugar
@@ -197,44 +223,50 @@ if impl (ghc >= 9.14)
     , some:base
     , splitmix:base
     , statistics:parallel
+    , tagged:base
     , tagged:template-haskell
     , tasty-hedgehog:base
-    , test-framework:base
+    , tasty-hedgehog:hedgehog
     , test-framework:time
-    , text:array
-    , text:base
+    , text:binary
     , text:bytestring
     , text:template-haskell
     , text-iso8601:time
     , text-short:base
+    , text-short:bytestring
+    , text-short:ghc-prim
     , text-short:template-haskell
     , th-abstraction:template-haskell
     , th-compat:template-haskell
     , th-desugar:template-haskell
     , th-expand-syns:base
+    , th-expand-syns:containers
     , th-expand-syns:template-haskell
     , th-lift:template-haskell
     , th-lift-instances:th-lift
     , th-orphans:template-haskell
     , these:base
-    , time:deepseq
     , time:template-haskell
     , time-compat:base
     , time-compat:deepseq
     , time-compat:time
+    , transformers:base
     , tree-diff:QuickCheck
     , tree-diff:base
+    , tree-diff:containers
     , tree-diff:time
+    , turtle:containers
     , turtle:time
     , typed-process:async
     , universe-base:base
-    , unix:base
-    , unix:bytestring
+    , universe-base:containers
     , unix:time
+    , unordered-containers:hashable
     , unordered-containers:template-haskell
+    , uuid-types:bytestring
     , uuid-types:template-haskell
     , vector-th-unbox:base
     , vector-th-unbox:template-haskell
     , wherefrom-compat:base
-    , zlib:base
-
+    , wherefrom-compat:ghc-heap
+    , witherable:containers
