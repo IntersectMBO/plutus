@@ -485,6 +485,7 @@ library untyped-plutus-core-testlib
     , cardano-crypto-class
     , data-default-class
     , dlist
+    , filepath
     , hedgehog
     , lens
     , mtl

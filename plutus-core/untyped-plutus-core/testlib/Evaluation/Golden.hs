@@ -419,13 +419,13 @@ goldenVsPretty extn name value =
 
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCK name
-    = goldenVsPretty ".plc.golden" name
+    = goldenVsPretty ".golden.plc" name
     . bimap (fmap eraseTerm) eraseTerm
     . evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
-    = goldenVsPretty ".uplc.golden" name
+    = goldenVsPretty ".golden.uplc" name
     . evaluateCekNoEmit defaultCekParametersForTesting
     . eraseTerm
 
@@ -438,7 +438,7 @@ runTypecheck term =
     inferType tcConfig term
 
 goldenVsTypechecked :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsTypechecked name = goldenVsPretty ".type.golden" name . runTypecheck
+goldenVsTypechecked name = goldenVsPretty ".golden.type" name . runTypecheck
 
 goldenVsTypecheckedEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsTypecheckedEvaluatedCK name term =
