@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2025-09-12T01:28:11Z
+  , hackage.haskell.org 2025-09-16T23:13:00Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2025-09-11T16:20:37Z
+  , cardano-haskell-packages 2025-09-16T10:10:31Z
 
 packages: cardano-constitution
           plutus-benchmark
@@ -75,16 +75,166 @@ source-repository-package
   tag: e814b9171398cbdfecdc6823067156a7e9fc76a3
 
 allow-newer:
-  -- https://github.com/tweag/HaskellR/pull/420
-  , inline-r:singletons-th
-  , inline-r:aeson
-  , inline-r:text
-  , inline-r:template-haskell
-  , inline-r:deepseq
-  , inline-r:bytestring
-  , inline-r:containers
-  , inline-r:primitive
+  -- https://github.com/phadej/vec/issues/121
+  ral:QuickCheck,
+  fin:QuickCheck,
+  bin:QuickCheck,
 
--- https://github.com/IntersectMBO/plutus/pull/7236
-constraints: setup.optparse-applicative >=0.19.0.0
-allow-newer: turtle:optparse-applicative
+if impl (ghc >= 9.14)
+  source-repository-package
+    type: git
+    location: https://github.com/snowleopard/alga/
+    tag: d4e43fb42db05413459fb2df493361d5a666588a
+
+-- cabal-allow-newer
+if impl (ghc >= 9.14)
+  allow-newer:
+    , OneTuple:base
+    , aeson:data-fix
+    , aeson:ghc-prim
+    , aeson:scientific
+    , aeson:template-haskell
+    , aeson:text-iso8601
+    , aeson:these
+    , aeson:time
+    , aeson:time-compat
+    , assoc:base
+    , async:base
+    , base:ghc-internal
+    , base:ghc-prim
+    , bifunctors:template-haskell
+    , bifunctors:th-abstraction
+    , bin:base
+    , binary:containers
+    , binary-orphans:base
+    , boring:base
+    , brick:base
+    , cborg:base
+    , cborg:ghc-prim
+    , constraints-extras:base
+    , constraints-extras:template-haskell
+    , containers:template-haskell
+    , criterion:parsec
+    , data-fix:base
+    , dec:base
+    , dependent-map:constraints-extras
+    , deriving-compat:template-haskell
+    , directory:base
+    , exceptions:mtl
+    , filepath:base
+    , fin:base
+    , fin:universe-base
+    , flat:hashable
+    , foldl:base
+    , foldl:bytestring
+    , foldl:containers
+    , free:template-haskell
+    , generically:base
+    , ghc-heap:base
+    , ghc-heap:containers
+    , ghc-heap:ghc-internal
+    , ghc-heap:ghc-prim
+    , hashable:base
+    , hashable:containers
+    , hashable:ghc-bignum
+    , hedgehog:bytestring
+    , hedgehog:lifted-async
+    , hedgehog:template-haskell
+    , hedgehog:time
+    , hsc2hs:base
+    , indexed-traversable:base
+    , indexed-traversable-instances:base
+    , integer-conversion:base
+    , integer-logarithms:base
+    , integer-logarithms:ghc-bignum
+    , io-classes:base
+    , io-classes:time
+    , lens:array
+    , lens:base
+    , lens:bytestring
+    , lens:free
+    , lens:template-haskell
+    , lifted-async:base
+    , list-t:foldl
+    , microlens-th:template-haskell
+    , microstache:aeson
+    , microstache:base
+    , microstache:containers
+    , monoidal-containers:base
+    , nonempty-vector:base
+    , nothunks:time
+    , nothunks:wherefrom-compat
+    , parallel:base
+    , parsec:base
+    , parsec:text
+    , plutus-core:vty
+    , plutus-ledger-api:nothunks
+    , primitive:base
+    , process:base
+    , process:filepath
+    , process:unix
+    , quickcheck-instances:base
+    , quickcheck-instances:bytestring
+    , ral:base
+    , recursion-schemes:template-haskell
+    , scientific:base
+    , scientific:template-haskell
+    , semialign:base
+    , semigroupoids:bifunctors
+    , serialise:base
+    , serialise:bytestring
+    , serialise:containers
+    , serialise:ghc-prim
+    , serialise:time
+    , singletons:base
+    , singletons-th:base
+    , singletons-th:mtl
+    , singletons-th:singletons
+    , singletons-th:template-haskell
+    , singletons-th:th-desugar
+    , singletons-th:th-orphans
+    , size-based:template-haskell
+    , some:base
+    , splitmix:base
+    , statistics:parallel
+    , tagged:template-haskell
+    , tasty-hedgehog:base
+    , test-framework:base
+    , test-framework:time
+    , text:array
+    , text:base
+    , text:bytestring
+    , text:template-haskell
+    , text-iso8601:time
+    , text-short:base
+    , text-short:template-haskell
+    , th-abstraction:template-haskell
+    , th-compat:template-haskell
+    , th-desugar:template-haskell
+    , th-expand-syns:base
+    , th-expand-syns:template-haskell
+    , th-lift:template-haskell
+    , th-lift-instances:th-lift
+    , th-orphans:template-haskell
+    , these:base
+    , time:deepseq
+    , time:template-haskell
+    , time-compat:base
+    , time-compat:deepseq
+    , time-compat:time
+    , tree-diff:QuickCheck
+    , tree-diff:base
+    , tree-diff:time
+    , turtle:time
+    , typed-process:async
+    , universe-base:base
+    , unix:base
+    , unix:bytestring
+    , unix:time
+    , unordered-containers:template-haskell
+    , uuid-types:template-haskell
+    , vector-th-unbox:base
+    , vector-th-unbox:template-haskell
+    , wherefrom-compat:base
+    , zlib:base
+
