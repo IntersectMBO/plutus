@@ -294,10 +294,11 @@ builtinNames =
   , 'Builtins.expModInteger
   , ''Builtins.BuiltinValue
   , 'Builtins.insertCoin
-  , 'Builtins.deleteCoin
   , 'Builtins.lookupCoin
   , 'Builtins.unionValue
   , 'Builtins.valueContains
+  , 'Builtins.mkValue
+  , 'Builtins.unsafeDataAsValue
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -727,10 +728,11 @@ defineBuiltinTerms = do
           PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
           -- Value
           PLC.InsertCoin -> defineBuiltinInl 'Builtins.insertCoin
-          PLC.DeleteCoin -> defineBuiltinInl 'Builtins.deleteCoin
           PLC.LookupCoin -> defineBuiltinInl 'Builtins.lookupCoin
           PLC.UnionValue -> defineBuiltinInl 'Builtins.unionValue
           PLC.ValueContains -> defineBuiltinInl 'Builtins.valueContains
+          PLC.ValueData -> defineBuiltinInl 'Builtins.mkValue
+          PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
 
 defineBuiltinTypes :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTypes = do

@@ -66,7 +66,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
-import Flat (Flat, flat, unflat)
+import PlutusCore.Flat (Flat, flat, unflat)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe

@@ -93,8 +93,8 @@ library plutus-benchmark-common
     , deepseq
     , directory
     , filepath
-    , flat                         ^>=0.6
     , plutus-core                  ^>=1.53
+    , plutus-core:flat
     , plutus-ledger-api            ^>=1.53
     , plutus-tx:plutus-tx-testlib
     , tasty
@@ -133,12 +133,12 @@ executable nofib-exe
   build-depends:
     , base                     >=4.9   && <5
     , bytestring
-    , flat                     ^>=0.6
     , lens
     , nofib-internal
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.53
+    , plutus-core:flat
     , plutus-tx                ^>=1.53
     , prettyprinter
     , transformers
@@ -289,10 +289,10 @@ library validation-internal
     , criterion                >=1.5.9.0
     , directory
     , filepath
-    , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.53
+    , plutus-core:flat
 
 benchmark validation
   import:         lang, os-support
@@ -317,9 +317,9 @@ test-suite validation-tests
     , bytestring
     , directory
     , filepath
-    , flat                             ^>=0.6
     , plutus-benchmark-common
     , plutus-core                      ^>=1.53
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.53
     , plutus-tx:plutus-tx-testlib
@@ -780,9 +780,9 @@ executable gen-coop-flat
     , coop
     , directory
     , filepath
-    , flat
     , plutus-benchmark-common
     , plutus-core
+    , plutus-core:flat
     , plutus-ledger-api
     , plutus-tx                    ^>=1.53
     , plutus-tx:plutus-tx-testlib

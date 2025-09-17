@@ -1,4 +1,4 @@
 
 ### Added
 
-- Implementations of `deleteCoin`, `lookupCoin` and `valueContains`.
+- Implementations of `LookupCoin` and `ValueContains` primitives.

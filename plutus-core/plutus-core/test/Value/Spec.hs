@@ -77,16 +77,20 @@ prop_lookupAfterDeletion = forAll arbitrary $ \v ->
 
 prop_deleteCoinIdempotent :: Property
 prop_deleteCoinIdempotent = forAll (arbitrary `suchThat` (\v -> V.totalSize v > 0)) $ \v ->
-  let fm = V.toFlatList v
-   in forAll (elements fm) $ \(c, t, _) ->
+  let fl = V.toFlatList v
+   in forAll (elements fl) $ \(c, t, _) ->
         let v' = V.deleteCoin c t v
          in v' === V.deleteCoin c t v'
 
--- `valueContains` is reflexive for values that only contains positive amounts,
--- and irreflexive otherwise.
 prop_containsReflexive :: Property
 prop_containsReflexive = forAll arbitrary $ \v ->
-  property $ (if any (any (< 0)) (V.unpack v) then not else id) (V.valueContains v v)
+  property $ V.valueContains v v
+
+prop_containsAfterDeletion :: Property
+prop_containsAfterDeletion = forAll arbitrary $ \v ->
+  let fl = V.toFlatList v
+      vs = scanr (\(c, t, _) -> V.deleteCoin c t) v fl
+   in conjoin [property (V.valueContains v v') | v' <- vs]
 
 checkSizes :: Value -> Property
 checkSizes v =
@@ -143,4 +147,7 @@ tests =
     , testProperty
         "containsReflexive"
         prop_containsReflexive
+    , testProperty
+        "containsAfterDeletion"
+        prop_containsAfterDeletion
     ]

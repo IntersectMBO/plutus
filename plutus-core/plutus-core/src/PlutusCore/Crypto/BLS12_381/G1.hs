@@ -32,7 +32,7 @@ import Data.ByteString (ByteString, length)
 import Data.Coerce (coerce)
 import Data.Hashable
 import Data.Proxy (Proxy (..))
-import Flat
+import PlutusCore.Flat
 import Prettyprinter
 
 {- Note [Wrapping the BLS12-381 types in Plutus Core].  In the Haskell bindings
