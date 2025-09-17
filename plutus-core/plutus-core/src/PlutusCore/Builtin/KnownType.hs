@@ -61,7 +61,7 @@ import Universe
 
 type GEqL :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class GEqL f a where
-    geqL :: f (Esc a) -> f (Esc b) -> Maybe (a :~: b)
+    geqL :: f (Esc a) -> f (Esc b) -> EvaluationResult (a :~: b)
 
 newtype LoopBreaker uni a = LoopBreaker (uni a)
 
@@ -292,8 +292,9 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- statically (because this function will be inlined) go first in order for GHC to
         -- optimize some of the matching away.
         case uniExp `geqL` uniAct of
-            Just Refl -> pure x
-            Nothing -> throwError $ BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
+            EvaluationSuccess Refl -> pure x
+            EvaluationFailure ->
+                throwError . BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
