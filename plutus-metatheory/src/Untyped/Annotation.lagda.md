@@ -21,7 +21,7 @@ open import Data.Nat using (ℕ)
 open import Data.Product using (_×_;proj₁;_,_)
 open import Untyped.RenamingSubstitution using (weaken; Ren; lift; ren; renList)
 open import Relation.Binary.Core using (REL)
-open import Agda.Primitive using (Level; _⊔_)
+open import Agda.Primitive using (Level; _⊔_; lsuc; lzero)
 ```
 The content of the annotation can be from any arbitrary set
 (although it has to be the same set all the way down the tree).
@@ -122,7 +122,7 @@ data PointwiseAll {A : X → Set a} {B : Y → Set b} (R : {x : X} {y : Y} → A
                      → {axs : All A xs} {bys : All B ys}
                      → R ax by → PointwiseAll R axs bys → PointwiseAll R (ax All.∷ axs) (by All.∷ bys)
 
-data PointwiseAllᵣ {B : Y → Set a} (R : X → {y : Y} → B y → Set b)
+data PointwiseAllᵣ {X : Set a} {B : Y → Set b} (R : X → {y : Y} → B y → Set (a ⊔ b))
                : {Ys : List Y} → List X → All B Ys → Set (a ⊔ b) where
                [] : PointwiseAllᵣ R List.[] All.[]
                _∷_ : {x : X} {xs : List X} {y : Y} {ys : List Y}
@@ -137,6 +137,27 @@ data PointwiseAllₗ {A : X → Set a} (R : {x : X} → A x → Y → Set b)
                      → {ax : A x}
                      → {axs : All A xs}
                      → R ax y → PointwiseAllₗ R axs ys → PointwiseAllₗ R (ax All.∷ axs) (y List.∷ ys)
+
+```
+# Deciding Pointwise All
+```
+open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; MatchOrCE; matchOrCE; SimplifierTag)
+
+pcePointwiseAllᵣ : {X : Set a} {B : Y → Set b} {R : X → {y : Y} → B y → Set (a ⊔ b)}
+                 → SimplifierTag
+                 → ((x : X) → {y : Y} → (by : B y) → ProofOrCE {𝓂 = a} {𝓃 = b} (R x by))
+                 → {Ys : List Y}
+                 → (xs : List X)
+                 → (bys : All B Ys)
+                 → ProofOrCE {𝓂 = a} {𝓃 = b} (PointwiseAllᵣ R xs bys)
+pcePointwiseAllᵣ tag isR? List.[] All.[] = ProofOrCE.proof []
+pcePointwiseAllᵣ {X = X} tag isR? List.[] (px All.∷ ys) = ce {X = List X} (λ ()) tag List.[] (px All.∷ ys)
+pcePointwiseAllᵣ {B = B} {R = R} tag isR? {Ys = Ys} (x List.∷ xs) All.[] = ce {X' = All B Ys} (λ ()) tag (x List.∷ xs) All.[]
+pcePointwiseAllᵣ tag isR? (x List.∷ xs) (px All.∷ ys) with isR? x px
+... | ce ¬p t b a = ce (λ { (x ∷ xx) → ¬p x} ) t b a
+... | proof p with pcePointwiseAllᵣ tag isR? xs ys
+...    | ce ¬p t b a = ce (λ { (x ∷ xx) → ¬p xx} ) t b a
+...    | proof ps = proof (p ∷ ps)
 ```
 # Examples
 

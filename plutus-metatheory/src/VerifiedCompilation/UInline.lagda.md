@@ -27,7 +27,7 @@ open import Data.List using (List; []; _∷_; sum; map)
 open import Data.Nat using (ℕ; _+_; zero; suc)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Untyped.Purity using (Pure)
-open import Untyped.Annotation using (unannotated; weakenAnnotation; Annotation; Annotation′; strip; read; ` ; ƛ; _·_; con; force; delay; constr; case; PointwiseAllᵣ)
+open import Untyped.Annotation using (unannotated; weakenAnnotation; Annotation; Annotation′; strip; read; ` ; ƛ; _·_; con; force; delay; constr; case; PointwiseAllᵣ; pcePointwiseAllᵣ)
 open import Data.Product using (_,_)
 open import Data.List.Relation.Unary.All using (All;toList)
 ```
@@ -67,11 +67,6 @@ zipWeaken □ = □
 zipWeaken (z · x) = zipWeaken z · weaken x
 zipWeaken (z ∘ x) = zipWeaken z ∘ weaken x
 
-{-
-listWeaken : List (X ⊢) → List ((Maybe X) ⊢)
-listWeaken [] = []
-listWeaken (v ∷ vs) = ((weaken v) ∷ (listWeaken vs))
--}
 ```
 Where a term is bound by a lambda, we need to enforce rules about the scopes.
 Particularly, we need to enforce the `Maybe` system of de Bruijn indexing, so
@@ -129,99 +124,14 @@ scope of the terms in `a` and `e`. Consequently we have to introduce a
 new scope `Y`, but will only have constructors for places where this
 matches the scope of the environment.
 
-□
-∅
-((ƛ ƛ (` 1)) · a · b) ~ ((∅ , a , b) , a)
-
-= c· =>
-
-(□ · b)
-∅
-((ƛ ƛ (` 1)) · a) ~ ((∅ , a) , a)
-
-= c· =>
-
-(□ · b · a)
-∅
-((ƛ ƛ (` 1))) ~ (∅ , a)
-
-= cƛ =>
-
-(□ · b)                          (ƛ a) · b
-(∅ , a)            (ƛ a) --->
-( ƛ (` 1)) ---->
-~ (∅ , a)
-
-= cƛ =>
-
-□
-(∅ , a , b)
-(` 1) ~ (∅ , a)
-
-= sub =>
-
-□
-(∅ , a , b)
-(` 1) ~ (∅ , a)
-
-
----
-\PhilBreak
-
-A new example :)
-
-Inlined
-□
-∅
-((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0))) · a · b · c)
-(∅ , ((∅  , a , b)) , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)) · c))
-
-
-= _·_ =>
-
-(□ · c)
-∅
-((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0))) · a · b) ~ ((∅ , a , b)) , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
-
-= c· =>
-
-(□ · c ∘ b)
-∅
-((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0))) · a) ~ ((∅ , a)) , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
-
-= c· =>
-
-(□ · c ∘ b ∘ a)
-∅
-((ƛ ƛ ƛ (f · (` 0) · (` 1) · (` 0)))) ~ ((∅ , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
-
-= ∘ƛ =>
-
-(□ · c ∘ b)
-(∅ , a)
-((ƛ ƛ (f · (` 0) · (` 1) · (` 0)))) ~ ((∅ , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
-
-= ∘ƛ =>
-
-(□ · c)
-(∅ , a , b)
-((ƛ (f · (` 0) · (` 1) · (` 0)))) ~ ((∅ , ƛ (∅ , (∅ , (∅ , (f · c)) · b) · (` 0)))
-
-= bƛ =>
-
-(□)
-(∅ , a , b , c)
-((f · (` 0) · (` 1) · (` 0))) ~ ((∅ , (∅ , (∅ , (f · c)) · b) · (` 0))
-
-
 ```
 
 data Inlined : Zipper X → Bind X → (t₁ : X ⊢) → {t₂ : X ⊢} → Annotation ℕ t₂ → Set₁ where
   sub : {{ _ : DecEq X}} {v : X} {e : Zipper X} {b : Bind X} {t t' : X ⊢}
-          → {a' : Annotation ℕ t'}
+          → {a' : Annotation′ ℕ t'}
           → (get b v) ≡ just t
-          → Inlined e b t' a'
-          → Inlined e b (` v) a'
+          → Inlined e b t' (0 , a')
+          → Inlined e b (` v) (0 , a')
 
   c· : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t t' v : X ⊢}
           → {a' : Annotation′ ℕ t'}
@@ -236,9 +146,9 @@ data Inlined : Zipper X → Bind X → (t₁ : X ⊢) → {t₂ : X ⊢} → Ann
           → Inlined e b (t₁ · v₁) (0 , a₂ · av₂)
 
   cƛ : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
-          → {a₂ : Annotation ℕ t₂}
-          → Inlined (zipWeaken e) (bind b v) t₁ (weakenAnnotation a₂)
-          → Inlined (e ∘ v) b (ƛ t₁) a₂
+          → {a₂' : Annotation′ ℕ t₂}
+          → Inlined (zipWeaken e) (bind b v) t₁ (weakenAnnotation (0 , a₂'))
+          → Inlined (e ∘ v) b (ƛ t₁) (0 , a₂')
 
   ƛb : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
           → {a₂ : Annotation ℕ t₂}
@@ -275,7 +185,8 @@ data Inlined : Zipper X → Bind X → (t₁ : X ⊢) → {t₂ : X ⊢} → Ann
   case :  {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t t' : X ⊢} {ts ts' : List (X ⊢)}
           → {a' : Annotation ℕ t'} {as' : All (Annotation ℕ) ts'}
           → Inlined e b t a'
-          → PointwiseAllᵣ (Inlined e b) ts as' -- This won't work because the constr might have n arguments
+          → PointwiseAllᵣ (Inlined e b) ts as'
+          -- This won't work because the constr might have n arguments; Ask Roman what he meant by this!
           → Inlined e b (case t ts) (0 , (case a' as'))
 
   refl : {{ _ : DecEq X}} {e : Zipper X} {b : Bind X} {t : X ⊢}
@@ -409,14 +320,73 @@ open import Relation.Nullary using (_×-dec_; contradiction)
 open import Agda.Builtin.Sigma using (_,_)
 open Eq using (trans; sym; subst)
 open import Data.Maybe.Properties using (just-injective)
+open import Agda.Primitive using (lzero; lsuc)
 
 isInline? : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → {ast' : X ⊢} → (a' : Annotation ℕ ast') → ProofOrCE (Inline ast a')
 
-isIl? : {X : Set} {{_ : DecEq X}} → (e : Zipper X) → (b : Bind X) → (ast : X ⊢) → {ast'  : X ⊢} → (a' : Annotation ℕ ast') → ProofOrCE (Inlined e b ast a')
+{-# TERMINATING #-}
+isIl? : {X : Set} {{_ : DecEq X}} → (e : Zipper X) → (b : Bind X) → (ast : X ⊢)  → {ast'  : X ⊢} → (a' : Annotation ℕ ast') → ProofOrCE {𝓂 = lzero} {𝓃 = lsuc lzero} (Inlined e b ast a')
 isIl? e b ast (0 , a') with ast ≟ (strip (0 , a'))
 ... | yes refl = proof refl
-... | no ¬refl = {!!}
-isIl? e b ast (suc n , a') = {!!}
+isIl? {X = X} e b (` v) (zero , a') | no ¬refl with (get b v) in getb
+... | nothing = ce {X = X} {X' = Annotation ℕ _} (λ { (sub getbv≡just x₁) → contradiction (trans (sym getbv≡just) getb) λ () ; refl → ¬refl refl}) inlineT v (zero , a')
+... | just t = proof (sub getb refl)
+isIl? {X = X} e b (ƛ ast) (zero , a') | no ¬refl with isLambda? isTerm? (strip (0 , a'))
+... | no ¬lambda with e
+...   | □ = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { (ƛ x) → ¬lambda (islambda (isterm _)) ; refl → ¬refl refl} ) inlineT (ƛ ast) (zero , a')
+...   | ee · x = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { (ƛb x) → ¬lambda (islambda (isterm _)) ; refl → ¬refl refl} ) inlineT (ƛ ast) (zero , a')
+...   | ee ∘ v with isIl? (zipWeaken ee) (bind b v) ast (weakenAnnotation (zero , a'))
+...     | proof p = proof (cƛ p)
+...     | ce ¬p t b a = ce (λ { (cƛ x) → ¬p x ; refl → ¬refl refl} ) t b a
+isIl? e b (ƛ ast) (zero , ƛ NN) | no ¬refl | yes _ with e
+isIl? e b (ƛ ast) (zero , ƛ NN) | no ¬refl | yes _ | □ with isIl? □ (b , (` nothing)) ast NN
+... | proof p = proof (ƛ p)
+... | ce ¬p t b a = ce (λ { (ƛ x) → ¬p x ; refl → ¬refl refl} ) t b a
+isIl? e b (ƛ ast) (zero , ƛ NN) | no ¬refl | yes _ | ee · v with isIl? (zipWeaken ee) (bind b v) ast NN
+... | proof p = proof (ƛb p)
+... | ce ¬p t b a = ce (λ { (ƛb x) → ¬p x ; refl → ¬refl refl} ) t b a
+isIl? e b (ƛ ast) (zero , ƛ NN) | no ¬refl | yes _ | ee ∘ v with isIl? (zipWeaken ee) (bind b v) ast (weakenAnnotation (zero , ƛ NN))
+... | proof p = proof (cƛ p)
+... | ce ¬p t b a = ce (λ { (cƛ x) → ¬p x ; refl → ¬refl refl} ) t b a
+isIl? {X = X} e b (ast · ast₁) (zero , a') | no ¬refl with isApp? isTerm? isTerm? (strip (zero , a'))
+... | no ¬app = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { (x · x₁) → ¬app (isapp (isterm _) (isterm _)) ; refl → ¬refl refl} ) inlineT (ast · ast₁) (zero , a')
+isIl? {X = X} e b (ast · ast₁) (zero , (LL · MM)) | no ¬refl | yes _ with (isIl? □ b ast₁ MM)
+... | ce ¬-il-ast₁-MM t b a = ce (λ { (x · x₁) → ¬-il-ast₁-MM x₁ ; refl → ¬refl refl }) t b a
+... | proof il-ast₁-MM with (isIl? (e · (strip MM)) b ast LL)
+...   | ce ¬il-ast-LL t b a = ce (λ { (x · x₁) → ¬il-ast-LL x ; refl → ¬refl refl} ) t b a
+...   | proof il-ast-LL = proof (il-ast-LL · il-ast₁-MM)
+isIl? {X = X} e b (force ast) (zero , a') | no ¬refl with isForce? isTerm? (strip (zero , a'))
+... | no ¬force = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { (force x) → ¬force (isforce (isterm _)) ; refl → ¬refl refl} ) inlineT (force ast) (zero , a')
+isIl? {X = X} e b (force ast) (zero , force MM) | no ¬refl | yes _ with isIl? e b ast MM
+... | proof p = proof (force p)
+... | ce ¬p t b a = ce (λ { (force x) → ¬p x ; refl → ¬refl refl} ) t b a
+isIl? {X = X} e b (delay ast) (zero , a') | no ¬refl with isDelay? isTerm? (strip (zero , a'))
+... | no ¬delay = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { (delay x) → ¬delay (isdelay (isterm _)) ; refl → ¬refl refl} ) inlineT (force ast) (zero , a')
+isIl? {X = X} e b (delay ast) (zero , delay MM) | no ¬refl | yes _ with isIl? e b ast MM
+... | proof p = proof (delay p)
+... | ce ¬p t b a = ce (λ { (delay x) → ¬p x ; refl → ¬refl refl} ) t b a
+isIl? {X = X} e b (constr i xs) (zero , a') | no ¬refl with isConstr? allTerms? (strip (0 , a'))
+... | no ¬constr = ce {X' = Annotation ℕ _} (λ { (constr x) → ¬constr (isconstr i (allterms _)) ; refl → ¬refl refl}) inlineT (constr i xs) (zero , a')
+isIl? {X = X} e b (constr i xs) (zero , constr i₁ ts) | no ¬refl | yes _ with i ≟ i₁
+... | no ¬i=i₁ = ce {X' = Annotation ℕ _} (λ { (constr x) → ¬i=i₁ refl ; refl → ¬refl refl}) inlineT (constr i xs) (zero , constr i₁ ts)
+... | yes refl with pcePointwiseAllᵣ inlineT (isIl? □ b) xs ts
+...   | ce ¬xs-ts t b a = ce (λ { (constr x) → ¬xs-ts x ; refl → ¬refl refl}) t b a
+...   | proof xs-ts = proof (constr xs-ts)
+isIl? {X = X} e b (case ast ts) (zero , a') | no ¬refl with isCase? isTerm? allTerms? (strip (0 , a'))
+... | no ¬case = ce {X' = Annotation ℕ _} (λ { (case x x₁) → ¬case (iscase (isterm _) (allterms _)) ; refl → ¬refl refl} ) inlineT (case ast ts) (zero , a')
+isIl? {X = X} e b (case ast ts) (zero , case t' ts') | no ¬refl | yes _ with isIl? e b ast t'
+... | ce ¬p t b a = ce (λ { (case x x₁) → ¬p x ; refl → ¬refl refl}) t b a
+... | proof p with pcePointwiseAllᵣ inlineT (isIl? e b) ts ts'
+...   | ce ¬ps t b a = ce (λ { (case x x₁) → ¬ps x₁ ; refl → ¬refl refl}) t b a
+...   | proof ps = proof (case p ps)
+isIl? {X = X} e b (con x) (zero , a') | no ¬refl = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { refl → ¬refl refl} ) inlineT (con x) (zero , a')
+isIl? {X = X} e b (builtin b₁) (zero , a') | no ¬refl = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { refl → ¬refl refl} ) inlineT (builtin b₁) (zero , a')
+isIl? {X = X} e b error (zero , a') | no ¬refl = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { refl → ¬refl refl} ) inlineT error (zero , a')
+isIl? e b ast (suc n , a') with isApp? isTerm? isTerm? ast
+... | yes (isapp (isterm t) (isterm v)) with isIl? (e ∘ v) b t (n , a')
+...   | proof p = proof (c· p)
+...   | ce ¬p tag before after = ce (λ { (c· x) → ¬p x} ) tag before after
+isIl? {X = X} e b ast (suc n , a') | no ¬app = ce {X = X ⊢} {X' = Annotation ℕ _} (λ { (c· x) → ¬app (isapp (isterm _) (isterm _))} ) inlineT ast (suc n , a')
 
 isInline? ast a' with (isIl? □ □ ast a')
 ... | proof p = proof p
