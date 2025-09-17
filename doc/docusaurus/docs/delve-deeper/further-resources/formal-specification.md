@@ -10,6 +10,8 @@ The formal specification of the Plutus Core language provides a comprehensive ma
 
 📄 **[Formal Specification of the Plutus Core Language](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf)**
 
+This specification is periodically updated to reflect changes and improvements to the language and its cost model.
+
 This specification document includes:
 
 - **Syntax and Semantics**: Complete formal definition of the Plutus Core language syntax and operational semantics
@@ -23,3 +25,4 @@ The formal specification serves as the authoritative reference for:
 - Researchers studying the theoretical properties of the language
 - Developers seeking deep understanding of script execution mechanics
 - Auditors verifying the correctness of smart contract implementations
+

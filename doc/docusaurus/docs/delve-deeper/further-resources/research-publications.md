@@ -2,11 +2,9 @@
 sidebar_position: 30
 ---
 
-# Academic Papers
+# Research Publications
 
 This page contains academic papers and research publications related to Plutus, the Extended UTXO model, and smart contract development on Cardano.
-
-## Research Publications
 
 1. Manuel M. T. Chakravarty, James Chapman, Kenneth MacKenzie, Orestis Melkonian, Jann Müller, Michael Peyton Jones, Polina Vinogradova, Philip Wadler, and Joachim Zahnentferner. UTXOma: [UTXOma:UTXO with Multi-Asset Support](https://iohk.io/en/research/library/papers/utxomautxo-with-multi-asset-support/). In *International Symposium on Leveraging Applications of Formal Methods.* Springer, 2020.
 
@@ -25,7 +23,3 @@ This page contains academic papers and research publications related to Plutus, 
 8. Polina Vinogradova and Orestis Melkonian. [Message-passing in the Extended UTxO Ledger Model](https://iohk.io/en/research/library/papers/message-passing-in-the-extended-utxo-ledger-model/). In *8th Workshop on Trusted Smart Contracts (WTSC)*, 2024.
 
 9. Polina Vinogradova, Orestis Melkonian, Philip Wadler, Manuel Chakravarty, Jacco Krijnen Michael Peyton Jones, James Chapman, and Tudor Ferariu. [Structured Contracts in the EUTxO Ledger Model](https://iohk.io/en/research/library/papers/structured-contracts-in-the-eutxo-ledger-model/). In *5th International Workshop on Formal Methods for Blockchains (FMBC)*, 2024.
-
-## Video Resources
-
-10. Manuel MT Chakravarty, Simon Thompson, and Philip Wadler. [Functional smart contracts on cardano](https://www.youtube.com/watch?v=MpWeg6Fg0t8).
