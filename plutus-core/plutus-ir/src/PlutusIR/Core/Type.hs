@@ -36,7 +36,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), notAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Flat ()
+import PlutusCore.FlatInstances ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusPrelude

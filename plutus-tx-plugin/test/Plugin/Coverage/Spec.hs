@@ -6,6 +6,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Plugin.Coverage.Spec (coverage) where
 
@@ -54,10 +55,10 @@ coverage =
       [ embed $
           testGroup
             "Application heads and line coverage"
-            [ mkTests "noBool" noBool Set.empty [30]
-            , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [33]
-            , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [36, 39, 40, 45]
-            , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [48]
+            [ mkTests "noBool" noBool Set.empty [31]
+            , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [34]
+            , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 40, 41, 46]
+            , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
             ]
       , goldenPirReadable "coverageCode" boolOtherFunction
       ]

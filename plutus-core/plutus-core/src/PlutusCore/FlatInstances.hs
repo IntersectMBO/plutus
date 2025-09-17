@@ -11,7 +11,7 @@
 -- | Flat instances for Plutus Core types. Make sure to read Note [Stable
 -- encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
 -- in this file.
-module PlutusCore.Flat
+module PlutusCore.FlatInstances
     ( safeEncodeBits
     ) where
 
@@ -20,11 +20,12 @@ import PlutusCore.Core
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Name.Unique
+import PlutusCore.Value (Value)
 
 import Data.Proxy
-import Flat
-import Flat.Decoder
-import Flat.Encoder
+import PlutusCore.Flat
+import PlutusCore.Flat.Decoder
+import PlutusCore.Flat.Encoder
 import PlutusPrelude
 import Universe
 
@@ -120,6 +121,8 @@ decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
 
 deriving via FlatViaSerialise Data instance Flat Data
+
+deriving via FlatViaSerialise Value instance Flat Value
 
 decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
 decodeKindedUniFlat =

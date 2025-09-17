@@ -27,6 +27,8 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCosted
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 
 import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -40,6 +42,7 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 import Codec.Serialise (serialise)
 import Control.Monad (unless)
 import Control.Monad.Except (throwError)
+import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
@@ -47,13 +50,13 @@ import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Flat hiding (from, to)
-import Flat.Decoder (Get, dBEBits8)
-import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import GHC.Natural (naturalFromInteger)
 import GHC.Num.Integer (Integer (..))
 import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
+import PlutusCore.Flat hiding (from, to)
+import PlutusCore.Flat.Decoder (Get, dBEBits8)
+import PlutusCore.Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import Prettyprinter (viaShow)
 
 -- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
@@ -183,6 +186,12 @@ data DefaultFun
     | LengthOfArray
     | ListToArray
     | IndexArray
+    -- BLS12_381 multi scalar multiplication
+    | Bls12_381_G1_multiScalarMul
+    | Bls12_381_G2_multiScalarMul
+    -- Values
+    | InsertCoin
+    | UnionValue
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2015,6 +2024,40 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
+    toBuiltinMeaning _semvar Bls12_381_G1_multiScalarMul =
+        let bls12_381_G1_multiScalarMulDenotation
+                :: [Integer] -> [BLS12_381.G1.Element] -> BLS12_381.G1.Element
+            bls12_381_G1_multiScalarMulDenotation = BLS12_381.G1.multiScalarMul
+            {-# INLINE bls12_381_G1_multiScalarMulDenotation #-}
+        in makeBuiltinMeaning
+            bls12_381_G1_multiScalarMulDenotation
+            (runCostingFunTwoArguments . paramBls12_381_G1_multiScalarMul)
+
+    toBuiltinMeaning _semvar Bls12_381_G2_multiScalarMul =
+        let bls12_381_G2_multiScalarMulDenotation
+                :: [Integer] -> [BLS12_381.G2.Element] -> BLS12_381.G2.Element
+            bls12_381_G2_multiScalarMulDenotation = BLS12_381.G2.multiScalarMul
+            {-# INLINE bls12_381_G2_multiScalarMulDenotation #-}
+        in makeBuiltinMeaning
+            bls12_381_G2_multiScalarMulDenotation
+            (runCostingFunTwoArguments . paramBls12_381_G2_multiScalarMul)
+
+    toBuiltinMeaning _semvar InsertCoin =
+      let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> Value
+          insertCoinDenotation = Value.insertCoin
+          {-# INLINE insertCoinDenotation #-}
+       in makeBuiltinMeaning
+            insertCoinDenotation
+            (runCostingFunFourArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar UnionValue =
+      let unionValueDenotation :: Value -> Value -> Value
+          unionValueDenotation = Value.unionValue
+          {-# INLINE unionValueDenotation #-}
+       in makeBuiltinMeaning
+            unionValueDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -2163,6 +2206,12 @@ instance Flat DefaultFun where
               ListToArray                     -> 90
               IndexArray                      -> 91
 
+              Bls12_381_G1_multiScalarMul     -> 92
+              Bls12_381_G2_multiScalarMul     -> 93
+
+              InsertCoin                      -> 94
+              UnionValue                      -> 97
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2256,6 +2305,10 @@ instance Flat DefaultFun where
               go 89 = pure LengthOfArray
               go 90 = pure ListToArray
               go 91 = pure IndexArray
+              go 92 = pure Bls12_381_G1_multiScalarMul
+              go 93 = pure Bls12_381_G2_multiScalarMul
+              go 94 = pure InsertCoin
+              go 97 = pure UnionValue
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

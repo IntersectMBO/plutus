@@ -1,5 +1,6 @@
 module Spec.V1.Value where
 
+import PlutusCore.Generators.QuickCheck.Value
 import PlutusLedgerApi.Test.V1.Value as Value
 import PlutusLedgerApi.V1
 import PlutusTx.Numeric qualified as Numeric
@@ -48,7 +49,7 @@ updateInteger i = arbitrary `suchThat` (/= i)
 -- one, being sorted as well.
 freshenTokenNames :: [(TokenName, Integer)] -> Gen [(TokenName, Integer)]
 freshenTokenNames tokens =
-    uniqueNames TokenName (map snd tokens) `suchThat` \tokens' ->
+    uniqueNames (TokenName . toBuiltin) (map snd tokens) `suchThat` \tokens' ->
         sort (filter ((/= 0) . snd) tokens) /= sort (filter ((/= 0) . snd) tokens')
 
 onLists

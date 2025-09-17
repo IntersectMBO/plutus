@@ -21,7 +21,7 @@ import PlutusIR.Transform.RewriteRules qualified as PIR
 import PlutusPrelude (Default)
 import PlutusTx.Code (CompiledCodeIn, getPir, getPlcNoAnn)
 
-import Flat (Flat)
+import PlutusCore.Flat (Flat)
 import Test.Tasty.Extras ()
 
 instance

@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
@@ -20,6 +21,8 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
+import PlutusCore.Generators.QuickCheck.Value ()
+import PlutusCore.Value (Value)
 
 import Data.ByteString (ByteString, empty)
 import Data.Int
@@ -30,7 +33,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Data.Vector.Strict qualified as Strict
-import Test.QuickCheck
+import Test.QuickCheck hiding (Some (..))
 import Test.QuickCheck.Instances.ByteString ()
 import Test.QuickCheck.Instances.Vector ()
 import Universe
@@ -242,6 +245,8 @@ instance Arbitrary Data where
     arbitrary = arbitraryBuiltin
     shrink = shrinkBuiltin
 
+instance ArbitraryBuiltin Value
+
 instance ArbitraryBuiltin BLS12_381.G1.Element where
     arbitraryBuiltin =
       BLS12_381.G1.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
@@ -416,6 +421,7 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                , JustSomeType DefaultUniBLS12_381_G1_Element
                , JustSomeType DefaultUniBLS12_381_G2_Element
                , JustSomeType DefaultUniBLS12_381_MlResult
+               , JustSomeType DefaultUniValue
                ]
            SingType `SingKindArrow` SingType ->
                 [ genDefaultUniApply | size > 10 ]

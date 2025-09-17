@@ -23,6 +23,7 @@ import Normalization.Type
 import Parser.Spec qualified as Parser
 import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
+import Value.Spec qualified as Value
 
 import PlutusCore
 import PlutusCore.Check.Uniques qualified as Uniques
@@ -40,10 +41,10 @@ import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
-import Flat qualified
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import PlutusCore.Flat qualified as Flat
 import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.Golden
@@ -257,5 +258,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Check.tests
     , NEAT.tests
     , Parser.tests
+    , Value.tests
     , test_utils
     ]

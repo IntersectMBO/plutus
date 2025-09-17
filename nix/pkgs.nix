@@ -1,5 +1,6 @@
 { inputs, system }:
 
+# Provides `pkgs` with project overlays and workarounds.
 import inputs.nixpkgs {
   inherit system;
   config = inputs.haskell-nix.config;

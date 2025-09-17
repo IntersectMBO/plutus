@@ -14,7 +14,7 @@ import PlutusTx.Test qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 
 import Data.ByteString qualified as BS
-import Flat
+import PlutusCore.Flat
 import System.Directory (listDirectory)
 import System.FilePath
 

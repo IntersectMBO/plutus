@@ -80,8 +80,8 @@ import Data.Proxy (Proxy (..))
 import Data.SatInt
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Flat (Flat)
 import GHC.TypeLits (symbolVal)
+import PlutusCore.Flat (Flat)
 import Prettyprinter ((<+>))
 
 import Text.Megaparsec (errorBundlePretty)
