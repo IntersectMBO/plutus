@@ -17,11 +17,14 @@ module PlutusCore.Value (
   insertCoin,
   deleteCoin,
   unionValue,
+  valueData,
+  unValueData,
 ) where
 
 import Codec.Serialise (Serialise)
 import Control.DeepSeq (NFData)
 import Data.Bifunctor
+import Data.Bitraversable
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64 qualified as Base64
 import Data.Hashable (Hashable)
@@ -33,7 +36,8 @@ import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
-
+import PlutusCore.Builtin.Result
+import PlutusCore.Data (Data (..))
 import PlutusPrelude (Pretty (..))
 
 type NestedMap = Map ByteString (Map ByteString Integer)
@@ -184,6 +188,38 @@ unionValue (unpack -> vA) (unpack -> vB) =
       vA
       vB
 {-# INLINEABLE unionValue #-}
+
+-- | \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
+-- This is the denotation of @ValueData@ in Plutus V1, V2 and V3.
+valueData :: Value -> Data
+valueData = Map . fmap (bimap B tokensData) . Map.toList . unpack
+  where
+    tokensData :: Map ByteString Integer -> Data
+    tokensData = Map . fmap (bimap B I) . Map.toList
+{-# INLINEABLE valueData #-}
+
+-- | \(O(n \log n)\). Decodes `Data` into `Value`, in the same way as non-builtin @Value@.
+-- This is the denotation of @UnValueData@ in Plutus V1, V2 and V3.
+unValueData :: Data -> BuiltinResult Value
+unValueData = fmap pack . \case
+  Map cs -> fmap (Map.fromListWith (Map.unionWith (+))) (traverse (bitraverse unB unTokens) cs)
+  _ -> fail "unValueData: non-Map constructor"
+  where
+    unB :: Data -> BuiltinResult ByteString
+    unB = \case
+      B b -> pure b
+      _ -> fail "unValueData: non-B constructor"
+
+    unI :: Data -> BuiltinResult Integer
+    unI = \case
+      I i -> pure i
+      _ -> fail "unValueData: non-I constructor"
+
+    unTokens :: Data -> BuiltinResult (Map ByteString Integer)
+    unTokens = \case
+      Map ts -> fmap (Map.fromListWith (+)) (traverse (bitraverse unB unI) ts)
+      _ -> fail "unValueData: non-Map constructor"
+{-# INLINEABLE unValueData #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.
 updateSizes :: Int -> Int -> IntMap Int -> IntMap Int

@@ -295,6 +295,8 @@ builtinNames =
   , ''Builtins.BuiltinValue
   , 'Builtins.insertCoin
   , 'Builtins.unionValue
+  , 'Builtins.mkValue
+  , 'Builtins.unsafeDataAsValue
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -725,6 +727,8 @@ defineBuiltinTerms = do
           -- Value
           PLC.InsertCoin -> defineBuiltinInl 'Builtins.insertCoin
           PLC.UnionValue -> defineBuiltinInl 'Builtins.unionValue
+          PLC.ValueData -> defineBuiltinInl 'Builtins.mkValue
+          PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
 
 defineBuiltinTypes :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTypes = do
