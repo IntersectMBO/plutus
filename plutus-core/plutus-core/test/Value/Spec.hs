@@ -61,6 +61,37 @@ prop_insertCoinIdempotent = forAll arbitrary $ \v ->
   let fm = V.toFlatList v
    in v === F.foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
 
+prop_lookupAfterInsertion :: Property
+prop_lookupAfterInsertion = forAll arbitrary $ \(v, amt) ->
+  forAll (genShortHex (V.totalSize v)) $ \currency ->
+    forAll (genShortHex (V.totalSize v)) $ \token ->
+      let v' = V.insertCoin currency token amt v
+       in V.lookupCoin currency token v' === amt
+
+prop_lookupAfterDeletion :: Property
+prop_lookupAfterDeletion = forAll arbitrary $ \v ->
+  forAll (genShortHex (V.totalSize v)) $ \currency ->
+    forAll (genShortHex (V.totalSize v)) $ \token ->
+      let v' = V.deleteCoin currency token v
+       in V.lookupCoin currency token v' === 0
+
+prop_deleteCoinIdempotent :: Property
+prop_deleteCoinIdempotent = forAll (arbitrary `suchThat` (\v -> V.totalSize v > 0)) $ \v ->
+  let fl = V.toFlatList v
+   in forAll (elements fl) $ \(c, t, _) ->
+        let v' = V.deleteCoin c t v
+         in v' === V.deleteCoin c t v'
+
+prop_containsReflexive :: Property
+prop_containsReflexive = forAll arbitrary $ \v ->
+  property $ V.valueContains v v
+
+prop_containsAfterDeletion :: Property
+prop_containsAfterDeletion = forAll arbitrary $ \v ->
+  let fl = V.toFlatList v
+      vs = scanr (\(c, t, _) -> V.deleteCoin c t) v fl
+   in conjoin [property (V.valueContains v v') | v' <- vs]
+
 checkSizes :: Value -> Property
 checkSizes v =
   (expectedMaxInnerSize === actualMaxInnerSize)
@@ -104,4 +135,19 @@ tests =
     , testProperty
         "insertCoinIdempotent"
         prop_insertCoinIdempotent
+    , testProperty
+        "lookupAfterInsertion"
+        prop_lookupAfterInsertion
+    , testProperty
+        "lookupAfterDeletion"
+        prop_lookupAfterDeletion
+    , testProperty
+        "deleteCoinIdempotent"
+        prop_deleteCoinIdempotent
+    , testProperty
+        "containsReflexive"
+        prop_containsReflexive
+    , testProperty
+        "containsAfterDeletion"
+        prop_containsAfterDeletion
     ]

@@ -16,14 +16,20 @@ module PlutusCore.Value (
   maxInnerSize,
   insertCoin,
   deleteCoin,
+  lookupCoin,
+  valueContains,
   unionValue,
+  valueData,
+  unValueData,
 ) where
 
 import Codec.Serialise (Serialise)
 import Control.DeepSeq (NFData)
 import Data.Bifunctor
+import Data.Bitraversable
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64 qualified as Base64
+import Data.Functor
 import Data.Hashable (Hashable)
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
@@ -33,7 +39,8 @@ import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
-
+import PlutusCore.Builtin.Result
+import PlutusCore.Data (Data (..))
 import PlutusPrelude (Pretty (..))
 
 type NestedMap = Map ByteString (Map ByteString Integer)
@@ -138,7 +145,8 @@ insertCoin currency token amt v@(Value outer sizes size)
  where
   f
     :: Maybe (Map ByteString Integer)
-    -> ( Maybe Int -- Just (old size of inner map) if the total size grows by 1, otherwise Nothing
+    -> ( -- Just (old size of inner map) if the total size grows by 1, otherwise Nothing
+         Maybe Int
        , Maybe (Map ByteString Integer)
        )
   f = \case
@@ -148,12 +156,52 @@ insertCoin currency token amt v@(Value outer sizes size)
        in (if exists then Nothing else Just (Map.size inner), Just inner')
 {-# INLINEABLE insertCoin #-}
 
--- TODO: implement properly
+-- | \(O(\log \max(m, k))\)
 deleteCoin :: ByteString -> ByteString -> Value -> Value
-deleteCoin currency token (Value outer _ _) =
-  pack $ case Map.lookup currency outer of
-    Nothing    -> outer
-    Just inner -> Map.insert currency (Map.delete token inner) outer
+deleteCoin currency token (Value outer sizes size) = Value outer' sizes' size'
+ where
+  (mold, outer') = Map.alterF f currency outer
+  (sizes', size') = case mold of
+    Just old -> (updateSizes old (old - 1) sizes, size - 1)
+    Nothing  -> (sizes, size)
+  f
+    :: Maybe (Map ByteString Integer)
+    -> ( -- Just (old size of inner map) if the total size shrinks by 1, otherwise Nothing
+         Maybe Int
+       , Maybe (Map ByteString Integer)
+       )
+  f = \case
+    Nothing -> (Nothing, Nothing)
+    Just inner ->
+      let (amt, inner') = Map.updateLookupWithKey (\_ _ -> Nothing) token inner
+       in (amt $> Map.size inner, if Map.null inner' then Nothing else Just inner')
+
+-- | \(O(\log \max(m, k))\)
+lookupCoin :: ByteString -> ByteString -> Value -> Integer
+lookupCoin currency token (unpack -> outer) = case Map.lookup currency outer of
+  Nothing    -> 0
+  Just inner -> Map.findWithDefault 0 token inner
+
+{-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
+`Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is
+the size of the largest inner map in the first `Value`.
+
+@a@ contains @b@ if for each @(currency, token, amount)@ in @b@, if @amount > 0@, then
+@lookup currency token a >= amount@, and if @amount < 0@, then
+@lookup currency token a == amount@.
+-}
+valueContains :: Value -> Value -> Bool
+valueContains v = Map.foldrWithKey' go True . unpack
+ where
+  go c inner = (&&) (Map.foldrWithKey' goInner True inner)
+   where
+    goInner t a2 =
+      (&&)
+        ( let a1 = lookupCoin c t v
+           in if a2 > 0
+                then a1 >= a2
+                else a1 == a2
+        )
 
 {-| The precise complexity is complicated, but an upper bound
 is \(O(n_{1} \log n_{2}) + O(m)\), where \(n_{1}\) is the total size of the smaller
@@ -184,6 +232,41 @@ unionValue (unpack -> vA) (unpack -> vB) =
       vA
       vB
 {-# INLINEABLE unionValue #-}
+
+{-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
+This is the denotation of @ValueData@ in Plutus V1, V2 and V3.
+-}
+valueData :: Value -> Data
+valueData = Map . fmap (bimap B tokensData) . Map.toList . unpack
+ where
+  tokensData :: Map ByteString Integer -> Data
+  tokensData = Map . fmap (bimap B I) . Map.toList
+{-# INLINEABLE valueData #-}
+
+{-| \(O(n \log n)\). Decodes `Data` into `Value`, in the same way as non-builtin @Value@.
+This is the denotation of @UnValueData@ in Plutus V1, V2 and V3.
+-}
+unValueData :: Data -> BuiltinResult Value
+unValueData =
+  fmap pack . \case
+    Map cs -> fmap (Map.fromListWith (Map.unionWith (+))) (traverse (bitraverse unB unTokens) cs)
+    _ -> fail "unValueData: non-Map constructor"
+ where
+  unB :: Data -> BuiltinResult ByteString
+  unB = \case
+    B b -> pure b
+    _ -> fail "unValueData: non-B constructor"
+
+  unI :: Data -> BuiltinResult Integer
+  unI = \case
+    I i -> pure i
+    _ -> fail "unValueData: non-I constructor"
+
+  unTokens :: Data -> BuiltinResult (Map ByteString Integer)
+  unTokens = \case
+    Map ts -> fmap (Map.fromListWith (+)) (traverse (bitraverse unB unI) ts)
+    _ -> fail "unValueData: non-Map constructor"
+{-# INLINEABLE unValueData #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.
 updateSizes :: Int -> Int -> IntMap Int -> IntMap Int

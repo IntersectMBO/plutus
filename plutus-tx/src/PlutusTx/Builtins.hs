@@ -159,8 +159,12 @@ module PlutusTx.Builtins (
   findFirstSetBit,
 
   -- * Value
-  insertCoin,
-  unionValue,
+  BI.insertCoin,
+  BI.lookupCoin,
+  BI.unionValue,
+  BI.valueContains,
+  BI.mkValue,
+  BI.unsafeDataAsValue,
 ) where
 
 import Data.Maybe
@@ -169,7 +173,7 @@ import PlutusTx.Builtins.HasBuiltin
 import PlutusTx.Builtins.HasOpaque
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
                                    BuiltinBLS12_381_G2_Element (..), BuiltinBLS12_381_MlResult (..),
-                                   BuiltinByteString (..), BuiltinData, BuiltinString, BuiltinValue)
+                                   BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
 
@@ -942,16 +946,3 @@ expModInteger
   -> Integer
 expModInteger = BI.expModInteger
 {-# INLINEABLE expModInteger #-}
-
-insertCoin
-  :: BuiltinByteString
-  -> BuiltinByteString
-  -> Integer
-  -> BuiltinValue
-  -> BuiltinValue
-insertCoin = BI.insertCoin
-{-# INLINEABLE insertCoin #-}
-
-unionValue :: BuiltinValue -> BuiltinValue -> BuiltinValue
-unionValue = BI.unionValue
-{-# INLINEABLE unionValue #-}

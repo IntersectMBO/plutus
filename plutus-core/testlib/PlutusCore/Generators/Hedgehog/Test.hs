@@ -84,7 +84,7 @@ sampleProgramValueGolden
     -> IO ()
 sampleProgramValueGolden folder name genTerm = do
     let filePlc       = folder </> (name ++ ".plc")
-        filePlcGolden = folder </> (name ++ ".plc.golden")
+        filePlcGolden = folder </> (name ++ ".golden.plc")
     (program, value) <- getSampleProgramAndValue genTerm
     Text.writeFile filePlc       $ displayPlc program
     Text.writeFile filePlcGolden $ displayPlc value

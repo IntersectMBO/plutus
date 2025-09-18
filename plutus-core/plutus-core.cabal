@@ -485,6 +485,7 @@ library untyped-plutus-core-testlib
     , cardano-crypto-class
     , data-default-class
     , dlist
+    , filepath
     , hedgehog
     , lens
     , mtl
@@ -1195,7 +1196,7 @@ library flat
   ghc-options:
     -funbox-strict-fields -Wno-orphans -Wno-name-shadowing
     -Wno-missing-deriving-strategies -Wno-redundant-constraints
-    -Wno-identities -Wno-unused-imports
+    -Wno-identities -Wno-unused-imports -O2
 
   build-depends:
     , array                 >=0.5.1.0
