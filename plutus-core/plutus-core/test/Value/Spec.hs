@@ -7,8 +7,7 @@ module Value.Spec (tests) where
 import Data.Foldable qualified as F
 import Data.Map.Strict qualified as Map
 import Data.Maybe
-import PlutusCore.Generators.QuickCheck.Builtin ()
-import PlutusCore.Generators.QuickCheck.Value (genShortHex)
+import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin, genShortHex)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as V
 import Safe.Foldable (maximumMay)
@@ -34,19 +33,21 @@ prop_packPreservesInvariants = forAll arbitrary $ \nm ->
 
 -- | Verifies that @insertCoin@ correctly updates the sizes
 prop_insertCoinBookkeeping :: Property
-prop_insertCoinBookkeeping = forAll arbitrary $ \(v, amt) ->
+prop_insertCoinBookkeeping = forAll arbitrary $ \v ->
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let v' = V.insertCoin currency token amt v
-       in checkSizes v'
+      forAll arbitraryBuiltin $ \amt ->
+        let v' = V.insertCoin currency token amt v
+         in checkSizes v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
 prop_insertCoinPreservesInvariants :: Property
-prop_insertCoinPreservesInvariants = forAll arbitrary $ \(v, amt) ->
+prop_insertCoinPreservesInvariants = forAll arbitrary $ \v ->
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let v' = V.insertCoin currency token amt v
-       in checkInvariants v'
+      forAll arbitraryBuiltin $ \amt ->
+        let v' = V.insertCoin currency token amt v
+         in checkInvariants v'
 
 prop_unionCommutative :: Property
 prop_unionCommutative = forAll arbitrary $ \(v, v') ->
@@ -62,11 +63,12 @@ prop_insertCoinIdempotent = forAll arbitrary $ \v ->
    in v === F.foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
 
 prop_lookupAfterInsertion :: Property
-prop_lookupAfterInsertion = forAll arbitrary $ \(v, amt) ->
+prop_lookupAfterInsertion = forAll arbitrary $ \v ->
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let v' = V.insertCoin currency token amt v
-       in V.lookupCoin currency token v' === amt
+      forAll arbitraryBuiltin $ \amt ->
+        let v' = V.insertCoin currency token amt v
+         in V.lookupCoin currency token v' === amt
 
 prop_lookupAfterDeletion :: Property
 prop_lookupAfterDeletion = forAll arbitrary $ \v ->
