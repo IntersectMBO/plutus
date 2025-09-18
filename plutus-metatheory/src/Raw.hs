@@ -6,8 +6,6 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wall #-}
--- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Raw where
 
@@ -45,6 +43,7 @@ data RTyCon = RTyConAtom AtomicTyCon
             | RTyConList
             | RTyConArray
             | RTyConPair
+            | RTyConValue
             deriving Show
 
 
@@ -98,6 +97,7 @@ convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyCo
 convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
 convTyCon (SomeTypeIn DefaultUniProtoArray)           = RTyCon RTyConArray
 convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
+convTyCon (SomeTypeIn DefaultUniValue)                = RTyCon RTyConValue
 convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
@@ -154,6 +154,7 @@ unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult)
 unconvTyCon RTyConList              = SomeTypeIn DefaultUniProtoList
 unconvTyCon RTyConArray             = SomeTypeIn DefaultUniProtoArray
 unconvTyCon RTyConPair              = SomeTypeIn DefaultUniProtoPair
+unconvTyCon RTyConValue             = SomeTypeIn DefaultUniValue
 
 
 tmnames, tynames :: String
