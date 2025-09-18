@@ -53,10 +53,10 @@ arbitraryConstant =
             , (1, pure (zeroTerm @g))
             ]
 
-{- Generate an arbitrary scalar.  Scalars map on to elements of Z_p where p is the
-   381-bit prime involved in BLS12_381.  This generator supplies integers up to
-   10000 bits long to give us some confidence that the reduction is handled
-   properly.
+{- Generate an arbitrary scalar.  Scalars map onto elements of Z_p where p is the
+   255-bit prime order of the groups involved in BLS12_381.  This generator
+   supplies integers up to 10000 bits long to give us some confidence that the
+   reduction is handled properly.
 -}
 arbitraryScalar :: Gen PlcTerm
 arbitraryScalar =
