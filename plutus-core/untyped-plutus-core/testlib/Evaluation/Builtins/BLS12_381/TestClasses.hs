@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE TypeOperators       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Evaluation.Builtins.BLS12_381.TestClasses
@@ -25,15 +26,16 @@ import Test.QuickCheck (Arbitrary (..))
 
 -- We could re-use the AbelianGroup class here, but that uses <> and `mempty`
 -- and that's confusing.
-class (Eq a, Show a, Arbitrary a, ArbitraryBuiltin a) => TestableAbelianGroup a
+class (Eq a, Show a, Arbitrary a, ArbitraryBuiltin a, DefaultUni `Contains` a) => TestableAbelianGroup a
     where
-      groupName     :: String
-      zeroTerm      :: PlcTerm
-      addTerm       :: PlcTerm -> PlcTerm -> PlcTerm
-      negTerm       :: PlcTerm -> PlcTerm
-      scalarMulTerm :: PlcTerm -> PlcTerm -> PlcTerm
-      eqTerm        :: PlcTerm -> PlcTerm -> PlcTerm
-      toTerm        :: a -> PlcTerm
+      groupName          :: String
+      zeroTerm           :: PlcTerm
+      addTerm            :: PlcTerm -> PlcTerm -> PlcTerm
+      negTerm            :: PlcTerm -> PlcTerm
+      scalarMulTerm      :: PlcTerm -> PlcTerm -> PlcTerm
+      multiScalarMulTerm :: PlcTerm -> PlcTerm -> PlcTerm
+      eqTerm             :: PlcTerm -> PlcTerm -> PlcTerm
+      toTerm             :: a -> PlcTerm
 
 class TestableAbelianGroup a => HashAndCompress a
     where
@@ -48,7 +50,7 @@ class TestableAbelianGroup a => HashAndCompress a
  element directly without using quite low-level operations on the curve
  because a random point on the curve is highly unlikely to be in the subgroup
  G1, but fortunately `hashToGroup` always produces an element of the subgroup,
- so we can produce random elements of G1 by hasing random bytestrings. -}
+ so we can produce random elements of G1 by hashing random bytestrings. -}
 instance Arbitrary G1.Element
     where
       arbitrary =
@@ -58,13 +60,14 @@ instance Arbitrary G1.Element
 
 instance TestableAbelianGroup G1.Element
     where
-      groupName     = "G1"
-      zeroTerm      = mkApp1 Bls12_381_G1_uncompress $ bytestring $ pack (0xc0 : replicate 47 0x00)
-      addTerm       = mkApp2 Bls12_381_G1_add
-      negTerm       = mkApp1 Bls12_381_G1_neg
-      scalarMulTerm = mkApp2 Bls12_381_G1_scalarMul
-      eqTerm        = mkApp2 Bls12_381_G1_equal
-      toTerm        = mkConstant ()
+      groupName          = "G1"
+      zeroTerm           = mkApp1 Bls12_381_G1_uncompress $ bytestring $ pack (0xc0 : replicate 47 0x00)
+      addTerm            = mkApp2 Bls12_381_G1_add
+      negTerm            = mkApp1 Bls12_381_G1_neg
+      scalarMulTerm      = mkApp2 Bls12_381_G1_scalarMul
+      multiScalarMulTerm = mkApp2 Bls12_381_G1_multiScalarMul
+      eqTerm             = mkApp2 Bls12_381_G1_equal
+      toTerm             = mkConstant ()
 
 instance HashAndCompress G1.Element
     where
@@ -84,13 +87,14 @@ instance Arbitrary G2.Element
 
 instance TestableAbelianGroup G2.Element
     where
-      groupName     = "G2"
-      zeroTerm      = mkApp1 Bls12_381_G2_uncompress $ bytestring $ pack (0xc0 : replicate 95 0x00)
-      addTerm       = mkApp2 Bls12_381_G2_add
-      negTerm       = mkApp1 Bls12_381_G2_neg
-      scalarMulTerm = mkApp2 Bls12_381_G2_scalarMul
-      eqTerm        = mkApp2 Bls12_381_G2_equal
-      toTerm        = mkConstant ()
+      groupName          = "G2"
+      zeroTerm           = mkApp1 Bls12_381_G2_uncompress $ bytestring $ pack (0xc0 : replicate 95 0x00)
+      addTerm            = mkApp2 Bls12_381_G2_add
+      negTerm            = mkApp1 Bls12_381_G2_neg
+      scalarMulTerm      = mkApp2 Bls12_381_G2_scalarMul
+      multiScalarMulTerm = mkApp2 Bls12_381_G2_multiScalarMul
+      eqTerm             = mkApp2 Bls12_381_G2_equal
+      toTerm             = mkConstant ()
 
 instance HashAndCompress G2.Element
     where

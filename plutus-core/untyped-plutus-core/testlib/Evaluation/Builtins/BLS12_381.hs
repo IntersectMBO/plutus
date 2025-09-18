@@ -29,6 +29,8 @@ import Test.QuickCheck hiding (Some (..))
 import Test.Tasty
 import Test.Tasty.QuickCheck hiding (Some (..))
 
+import PlutusCore.MkPlc (mkConstant)
+
 -- QuickCheck utilities
 
 mkTestName :: forall g. TestableAbelianGroup g => String -> String
@@ -39,11 +41,29 @@ withNTests = withMaxSuccess 200
 
 -- QuickCheck generators for scalars and group elements as PLC terms
 
-arbitraryConstant :: forall g. TestableAbelianGroup g => Gen PlcTerm
-arbitraryConstant = toTerm <$> (arbitrary @g)
+-- An arbitrary nonzero group element.  For the BLS12-381 groups it's highly
+-- unlikely that we'll get the zero element, but let's make sure.
+arbitraryNonZeroConstant :: forall g. TestableAbelianGroup g => Gen PlcTerm
+arbitraryNonZeroConstant = (toTerm <$> (arbitrary @g)) `suchThat` ((/=) (zeroTerm @g))
 
+-- For most tests we want to make sure that we get the zero point reasonably often.
+arbitraryConstant :: forall g. TestableAbelianGroup g => Gen PlcTerm
+arbitraryConstant =
+  frequency [ (9, arbitraryNonZeroConstant @g)
+            , (1, pure (zeroTerm @g))
+            ]
+
+{- Generate an arbitrary scalar.  Scalars map on to elements of Z_p where p is the
+   381-bit prime involved in BLS12_381.  This generator supplies integers up to
+   10000 bits long to give us some confidence that the reduction is handled
+   properly.
+-}
 arbitraryScalar :: Gen PlcTerm
-arbitraryScalar = integer <$> (arbitrary @Integer)
+arbitraryScalar =
+  integer <$>
+  frequency [ (1, arbitrary @Integer)
+            , (4, choose (-b, b))]
+  where b = (2::Integer)^(10000::Integer)
 
 -- Constructing pairing terms
 
@@ -239,6 +259,74 @@ test_Z_action_good =
          , test_scalarMul_periodic           @g
          ]
 
+---------------- Multi-scalar multiplication behaves correctly ----------------
+
+{- Check that multiScalarMul [s_1, ..., s_m] [p_1, ..., p_n] =
+      0 + (s_1*p_1) + ... + (s_r*p_r) where r = min m n
+-}
+test_multiScalarMul_correct :: forall g. TestableAbelianGroup g => TestTree
+test_multiScalarMul_correct =
+  testProperty
+  (mkTestName @g "multiScalarMul_is_iterated_mul_and_add") .
+  withNTests $ do
+     scalars <- listOf (arbitrary @Integer)
+     points  <- listOf (arbitrary @g)
+     let e1 = multiScalarMulTerm @g (mkConstant () scalars) (mkConstant () points)
+         mkMulAdd acc (s, x) = addTerm @g acc (scalarMulTerm @g s x)
+         scalarTerms = fmap (mkConstant ()) scalars
+         pointTerms  = fmap (mkConstant ()) points
+         e2 = foldl mkMulAdd (zeroTerm @g) (zip scalarTerms pointTerms)
+         -- ^ Remember that zip truncates the longer list and `multiScalarMul`
+         -- is supposed to disregard extra elements if the inputs have different
+         -- lengths.
+     pure $ evalTerm e1 === evalTerm e2
+
+-- Check that multiScalarMul returns the zero point if the list of scalars is empty
+test_multiScalarMul_no_scalars :: forall g. TestableAbelianGroup g => TestTree
+test_multiScalarMul_no_scalars =
+  testProperty
+  (mkTestName @g "multiScalarMul_returns_zero_if_no_scalars") .
+  withNTests $ do
+     points <- listOf (arbitrary @g)
+     let e = multiScalarMulTerm @g (mkConstant () ([] @Integer)) (mkConstant () points)
+     pure $ evalTerm e === evalTerm (zeroTerm @g)
+
+-- Check that multiScalarMul returns the zero point if the list of points is empty
+test_multiScalarMul_no_points :: forall g. TestableAbelianGroup g => TestTree
+test_multiScalarMul_no_points =
+  testProperty
+  (mkTestName @g "multiScalarMul_returns_zero_if_no_points") .
+  withNTests $ do
+     scalars <- listOf (arbitrary @Integer)
+     let e = multiScalarMulTerm @g (mkConstant () scalars) (mkConstant () ([] @g))
+     pure $ evalTerm e === evalTerm (zeroTerm @g)
+
+{- Check that the result of multiScalarMul doesn't change if you permute the input
+   pairs (disregarding extra inputs when the two input lists are of different
+   lengths).
+-}
+test_multiScalarMul_permutation :: forall g. TestableAbelianGroup g => TestTree
+test_multiScalarMul_permutation =
+  testProperty
+  (mkTestName @g "multiScalarMul_invariant_under_permutation") .
+  withNTests $ do
+     l <- listOf (arbitrary @(Integer, g))
+     l' <- shuffle l
+     let (scalars, points) = unzip l
+         (scalars', points') = unzip l'
+         e1 = multiScalarMulTerm @g (mkConstant () scalars) (mkConstant () points)
+         e2 = multiScalarMulTerm @g (mkConstant () scalars') (mkConstant () points')
+     pure $ evalTerm e1 === evalTerm e2
+
+
+test_multiScalarMul :: forall g. TestableAbelianGroup g => TestTree
+test_multiScalarMul =
+  testGroup (printf "Multi-scalar multiplication behaves correctly for %s" $ groupName @g)
+  [ test_multiScalarMul_correct     @g
+  , test_multiScalarMul_no_scalars  @g
+  , test_multiScalarMul_no_points   @g
+  , test_multiScalarMul_permutation @g
+  ]
 
 {- Generic tests for the HashAndCompress class.  Later these are instantiated at
    the G1 and G2 types. -}
@@ -437,16 +525,17 @@ test_pairing_balanced =
           e3 = finalVerifyTerm e1 e2
       pure $ evalTerm e3 === cekSuccessTrue
 
--- finalVerify returns False for random inputs
+-- Cheack that `finalVerify` returns False for random inputs.  We exclude the
+-- zero points because `millerLoop` returns 1 if either of its inputs is zero.
 test_random_pairing :: TestTree
 test_random_pairing =
     testProperty
     "pairing_random_unequal" .
     withNTests $ do
-       p1 <- arbitraryConstant @G1.Element
-       p2 <- arbitraryConstant @G1.Element
-       q1 <- arbitraryConstant @G2.Element
-       q2 <- arbitraryConstant @G2.Element
+       p1 <- arbitraryNonZeroConstant @G1.Element
+       p2 <- arbitraryNonZeroConstant @G1.Element
+       q1 <- arbitraryNonZeroConstant @G2.Element
+       q2 <- arbitraryNonZeroConstant @G2.Element
        pure $ p1 /= p2 && q1 /= q2 ==>
             let e = finalVerifyTerm (millerLoopTerm p1 q1) (millerLoopTerm p2 q2)
             in evalTerm e === cekSuccessFalse
@@ -459,11 +548,13 @@ test_BLS12_381 = testGroup "BLS12-381" [
          testGroup "G1 properties"
          [ test_is_an_abelian_group @G1.Element
          , test_Z_action_good       @G1.Element
+         , test_multiScalarMul      @G1.Element
          , test_compress_hash       @G1.Element
          ]
         , testGroup "G2 properties"
          [ test_is_an_abelian_group @G2.Element
          , test_Z_action_good       @G2.Element
+         , test_multiScalarMul      @G2.Element
          , test_compress_hash       @G2.Element
          ]
         , testGroup "Pairing properties"
