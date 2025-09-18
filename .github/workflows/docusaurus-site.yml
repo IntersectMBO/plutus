@@ -52,7 +52,7 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}" 
           # These match the URL expected by rossjrw/pr-preview-action@v1.6.2:
           export DOCUSAURUS_URL="https://plutus.cardano.intersectmbo.org"
-          export DOCUSAURUS_BASE_URL="/pr-preview/pr-${PR_NUMBER}"
+          export DOCUSAURUS_BASE_URL="/pr-preview/docs/pr-${PR_NUMBER}"
           nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
       - name: Deploy Preview Site 
