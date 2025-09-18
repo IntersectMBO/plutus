@@ -171,27 +171,6 @@ program
                                                                                                                                     [ (constr 0
                                                                                                                                          [ 2
                                                                                                                                          , (constr 1
-<<<<<<< HEAD:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.uplc.golden
-                                                                                                                                              [ cse
-                                                                                                                                              , (constr 1
-                                                                                                                                                   [ cse
-                                                                                                                                                   , (constr 0
-                                                                                                                                                        [  ]) ]) ]) ])
-                                                                                                                                    , (constr 0
-                                                                                                                                         [  ]) ]) ]) ]))
-                                                                                                                    (constr 3
-                                                                                                                       [ (constr 1
-                                                                                                                            [ cse
-                                                                                                                            , (constr 1
-                                                                                                                                 [ (constr 0
-                                                                                                                                      [ (constr 0
-                                                                                                                                           [  ])
-                                                                                                                                      , (constr 1
-                                                                                                                                           [ cse
-                                                                                                                                           , cse ]) ])
-                                                                                                                                 , (constr 0
-                                                                                                                                      [  ]) ]) ]) ]))
-=======
                                                                                                                                               [ (constr 1
                                                                                                                                                    [ (constr 0
                                                                                                                                                         [ (constr 1
@@ -739,11 +718,18 @@ program
                                                                                                                                                                                                                                                                                                     [  ]) ]) ]) ]) ])
                                                                                                                                                                                                                                                                            , (constr 0
                                                                                                                                                                                                                                                                                 [  ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])))
->>>>>>> fa5c9e64ec395661eff8f6a5ce3d784e1100833c:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.golden.uplc
                                                                                                                  (constr 3
                                                                                                                     [ (constr 1
                                                                                                                          [ cse
-                                                                                                                         , cse ]) ]))
+                                                                                                                         , (constr 1
+                                                                                                                              [ (constr 0
+                                                                                                                                   [ (constr 0
+                                                                                                                                        [  ])
+                                                                                                                                   , (constr 1
+                                                                                                                                        [ cse
+                                                                                                                                        , cse ]) ])
+                                                                                                                              , (constr 0
+                                                                                                                                   [  ]) ]) ]) ]))
                                                                                                               (constr 3
                                                                                                                  [ (constr 1
                                                                                                                       [ cse
@@ -753,55 +739,17 @@ program
                                                                                                                                      [  ])
                                                                                                                                 , (constr 1
                                                                                                                                      [ cse
-                                                                                                                                     , cse ]) ])
+                                                                                                                                     , (constr 1
+                                                                                                                                          [ (cse
+                                                                                                                                               5)
+                                                                                                                                          , (constr 0
+                                                                                                                                               [  ]) ]) ]) ])
                                                                                                                            , (constr 0
                                                                                                                                 [  ]) ]) ]) ]))
                                                                                                            (constr 3
                                                                                                               [ (constr 1
                                                                                                                    [ cse
-                                                                                                                   , (constr 1
-<<<<<<< HEAD:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.uplc.golden
-                                                                                                                        [ cse
-                                                                                                                        , (constr 1
-                                                                                                                             [ cse
-                                                                                                                             , (constr 0
-                                                                                                                                  [  ]) ]) ]) ])
-                                                                                                              , (constr 0
-                                                                                                                   [  ]) ]))
-                                                                                                        (constr 0
-                                                                                                           [ (constr 1
-                                                                                                                [  ])
-                                                                                                           , (constr 1
-                                                                                                                [ cse
-                                                                                                                , (constr 1
-                                                                                                                     [ cse
-                                                                                                                     , (constr 0
-                                                                                                                          [  ]) ]) ]) ]))
-                                                                                                     (constr 0
-                                                                                                        [ (constr 1
-                                                                                                             [  ])
-                                                                                                        , (constr 1
-                                                                                                             [ cse
-                                                                                                             , cse ]) ]))
-                                                                                                  (constr 1
-                                                                                                     [ (constr 0
-                                                                                                          [ (constr 0
-                                                                                                               [  ])
-                                                                                                          , cse ])
-                                                                                                     , (constr 0
-                                                                                                          [  ]) ]))
-=======
-                                                                                                                        [ (constr 0
-                                                                                                                             [ (constr 0
-                                                                                                                                  [  ])
-                                                                                                                             , (constr 1
-                                                                                                                                  [ cse
-                                                                                                                                  , (constr 1
-                                                                                                                                       [ cse
-                                                                                                                                       , (constr 0
-                                                                                                                                            [  ]) ]) ]) ])
-                                                                                                                        , (constr 0
-                                                                                                                             [  ]) ]) ]) ]))
+                                                                                                                   , cse ]) ]))
                                                                                                         (constr 1
                                                                                                            [ (constr 3
                                                                                                                 [ (constr 1
@@ -822,8 +770,7 @@ program
                                                                                                              , (constr 1
                                                                                                                   [ cse
                                                                                                                   , (constr 1
-                                                                                                                       [ (cse
-                                                                                                                            10)
+                                                                                                                       [ cse
                                                                                                                        , (constr 0
                                                                                                                             [  ]) ]) ]) ])
                                                                                                         , (constr 0
@@ -833,17 +780,16 @@ program
                                                                                                           [  ])
                                                                                                      , (constr 1
                                                                                                           [ cse
-                                                                                                          , cse ]) ]))
->>>>>>> fa5c9e64ec395661eff8f6a5ce3d784e1100833c:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.golden.uplc
+                                                                                                          , (constr 1
+                                                                                                               [ cse
+                                                                                                               , (constr 0
+                                                                                                                    [  ]) ]) ]) ]))
                                                                                                (constr 0
                                                                                                   [ (constr 1
                                                                                                        [  ])
                                                                                                   , (constr 1
                                                                                                        [ cse
-                                                                                                       , (constr 1
-                                                                                                            [ cse
-                                                                                                            , (constr 0
-                                                                                                                 [  ]) ]) ]) ]))
+                                                                                                       , cse ]) ]))
                                                                                             (constr 1
                                                                                                [ (constr 0
                                                                                                     [ (constr 0
@@ -861,8 +807,10 @@ program
                                                                                                       , (constr 0
                                                                                                            [  ]) ]) ]) ]))
                                                                                       (constr 1
-<<<<<<< HEAD:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.uplc.golden
-                                                                                         [ cse
+                                                                                         [ (constr 0
+                                                                                              [ (constr 2
+                                                                                                   [  ])
+                                                                                              , cse ])
                                                                                          , (constr 0
                                                                                               [  ]) ]))
                                                                                    (constr 1
@@ -873,88 +821,42 @@ program
                                                                                                 [ 500000000
                                                                                                 , (constr 0
                                                                                                      [  ]) ]) ])
-=======
-                                                                                         [ (constr 0
-                                                                                              [ (constr 2
-                                                                                                   [  ])
-                                                                                              , cse ])
-                                                                                         , (constr 0
-                                                                                              [  ]) ]))
-                                                                                   (constr 1
-                                                                                      [ (cse
-                                                                                           1)
->>>>>>> fa5c9e64ec395661eff8f6a5ce3d784e1100833c:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.golden.uplc
                                                                                       , (constr 0
                                                                                            [  ]) ]))
                                                                                 (constr 1
-                                                                                   [ (constr 0
-                                                                                        [ (constr 0
-                                                                                             [  ])
-                                                                                        , (constr 1
-                                                                                             [ 500000000
-                                                                                             , (constr 0
-                                                                                                  [  ]) ]) ])
+                                                                                   [ cse
                                                                                    , (constr 0
                                                                                         [  ]) ]))
-<<<<<<< HEAD:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.uplc.golden
-                                                                             (cse
-                                                                                2))
-                                                                          (constr 0
-                                                                             [ (constr 1
-                                                                                  [  ])
-                                                                             , cse ]))
-                                                                       (cse 1))
-                                                                    (cse 10))
-                                                                 (cse 100))
-                                                              (cse 5))
-                                                           (constr 0
-                                                              [ (constr 1 [])
-                                                              , (constr 1
-                                                                   [ 1
-                                                                   , (constr 0
-                                                                        [  ]) ]) ]))
-                                                        (cse 4))
-                                                     (cse 1))
-                                                  (unsafeRatio 9 10))
-                                               (unsafeRatio 4))
-                                            (unsafeRatio 51))
-                                         (constr 1 [0, (constr 0 [])]))
-                                      (unsafeRatio 1))
-                                   (unsafeRatio 3))
-                                (unsafeRatio 0))
-=======
                                                                              (constr 1
-                                                                                [ (cse
-                                                                                     4)
+                                                                                [ cse
                                                                                 , (constr 0
                                                                                      [  ]) ]))
                                                                           (constr 1
-                                                                             [ cse
+                                                                             [ (cse
+                                                                                  1)
                                                                              , (constr 0
                                                                                   [  ]) ]))
-                                                                       (constr 0
-                                                                          [ (constr 1
-                                                                               [  ])
-                                                                          , cse ]))
-                                                                    (cse 100))
-                                                                 (cse 1))
-                                                              (constr 0
-                                                                 [ (constr 1 [])
-                                                                 , (constr 1
-                                                                      [ 1
-                                                                      , (constr 0
-                                                                           [  ]) ]) ]))
-                                                           (cse 5))
-                                                        (cse 2))
-                                                     (cse 10))
-                                                  (unsafeRatio 4))
-                                               (unsafeRatio 1))
-                                            (constr 1 [0, (constr 0 [])]))
-                                         (unsafeRatio 3))
-                                      (unsafeRatio 51))
+                                                                       (cse 1))
+                                                                    (cse 4))
+                                                                 (cse 2))
+                                                              (cse 10))
+                                                           (constr 0
+                                                              [ (constr 1 [])
+                                                              , cse ]))
+                                                        (cse 100))
+                                                     (constr 0
+                                                        [ (constr 1 [])
+                                                        , (constr 1
+                                                             [ 1
+                                                             , (constr 0
+                                                                  []) ]) ]))
+                                                  (unsafeRatio 9 10))
+                                               (unsafeRatio 4))
+                                            (unsafeRatio 1))
+                                         (unsafeRatio 51))
+                                      (constr 1 [0, (constr 0 [])]))
                                    (unsafeRatio 0))
-                                (unsafeRatio 9))
->>>>>>> fa5c9e64ec395661eff8f6a5ce3d784e1100833c:cardano-constitution/test/Cardano/Constitution/Validator/GoldenTests/sorted.golden.uplc
+                                (unsafeRatio 3))
                              ((\s -> s s)
                                 (\s arg ->
                                    delay

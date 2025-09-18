@@ -80,7 +80,7 @@ tests = testGroup' "Golden" $ fmap const
 -- HELPERS
 
 mkPath :: String -> [String] -> FilePath
-mkPath vName exts = foldl1 (</>) ["test","Cardano","Constitution","Validator","Data","GoldenTests", foldl (<.>) vName (exts++["golden"])]
+mkPath vName exts = foldl1 (</>) ["test","Cardano","Constitution","Validator","Data","GoldenTests", foldl (<.>) vName ("golden" : exts)]
 
 runForBudget :: (ToData ctx)
              => CompiledCode ConstitutionValidator
