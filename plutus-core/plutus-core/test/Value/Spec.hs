@@ -4,6 +4,7 @@
 
 module Value.Spec (tests) where
 
+import Data.ByteString qualified as B
 import Data.Foldable qualified as F
 import Data.Map.Strict qualified as Map
 import Data.Maybe
@@ -23,7 +24,7 @@ prop_packUnpackRoundtrip = forAll arbitrary $ \v ->
 -- | Verifies that @pack@ correctly updates the sizes
 prop_packBookkeeping :: Property
 prop_packBookkeeping = forAll arbitrary $ \nm ->
-  checkSizes (V.pack nm)
+  checkBookKeeping (V.pack nm)
 
 {-| Verifies that @pack@ preserves @Value@ invariants, i.e.,
 no empty inner map or zero amount.
@@ -38,7 +39,7 @@ prop_insertCoinBookkeeping = forAll arbitrary $ \(v, amt) ->
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
       let v' = V.insertCoin currency token amt v
-       in checkSizes v'
+       in checkBookKeeping v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
 prop_insertCoinPreservesInvariants :: Property
@@ -92,15 +93,25 @@ prop_containsAfterDeletion = forAll arbitrary $ \v ->
       vs = scanr (\(c, t, _) -> V.deleteCoin c t) v fl
    in conjoin [property (V.valueContains v v') | v' <- vs]
 
-checkSizes :: Value -> Property
-checkSizes v =
+checkBookKeeping :: Value -> Property
+checkBookKeeping v =
   (expectedMaxInnerSize === actualMaxInnerSize)
     .&&. (expectedSize === actualSize)
+    .&&. (expectedMaxKeyLength === actualMaxKeyLength)
  where
   expectedMaxInnerSize = fromMaybe 0 . maximumMay $ Map.map Map.size (V.unpack v)
   actualMaxInnerSize = V.maxInnerSize v
   expectedSize = sum $ Map.map Map.size (V.unpack v)
   actualSize = V.totalSize v
+  expectedMaxKeyLength =
+    let maxOuter =
+          fromMaybe 0 . maximumMay $
+            [B.length k | k <- Map.keys (V.unpack v)]
+        maxInner =
+          fromMaybe 0 . maximumMay $
+            [B.length k | inner <- Map.elems (V.unpack v), k <- Map.keys inner]
+     in max maxOuter maxInner
+  actualMaxKeyLength = V.maxKeyLength v
 
 checkInvariants :: Value -> Property
 checkInvariants (V.unpack -> v) =

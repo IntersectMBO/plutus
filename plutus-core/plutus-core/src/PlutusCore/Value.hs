@@ -14,6 +14,7 @@ module PlutusCore.Value (
   toFlatList,
   totalSize,
   maxInnerSize,
+  maxKeyLength,
   insertCoin,
   deleteCoin,
   lookupCoin,
@@ -28,6 +29,7 @@ import Control.DeepSeq (NFData)
 import Data.Bifunctor
 import Data.Bitraversable
 import Data.ByteString (ByteString)
+import Data.ByteString qualified as B
 import Data.ByteString.Base64 qualified as Base64
 import Data.Functor
 import Data.Hashable (Hashable)
@@ -59,6 +61,10 @@ data Value
 
       Invariant: all values are positive.
       -}
+      !(IntMap Int)
+      {- ^ Map from length to the number of `ByteString`s of that length
+      (across both outer and inner maps).
+      -}
       {-# UNPACK #-} !Int
       -- ^ Total size, i.e., sum total of inner map sizes
   deriving stock (Eq, Show, Generic)
@@ -69,7 +75,7 @@ data Value
 The map is guaranteed to not contain empty inner map or zero amount.
 -}
 unpack :: Value -> NestedMap
-unpack (Value v _ _) = v
+unpack (Value v _ _ _) = v
 {-# INLINE unpack #-}
 
 {-| Pack a map from (currency symbol, token name) to amount into a `Value`.
@@ -82,11 +88,19 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' (normalize -> v) = Value v sizes size
+pack' (normalize -> v) = Value v sizes lens size
  where
-  (sizes, size) = Map.foldl' alg (mempty, 0) v
-  alg (ss, s) inner =
+  (sizes, lens, size) = Map.foldrWithKey' alg (mempty, mempty, 0) v
+  alg currency inner (ss, ls, s) =
     ( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss
+    , IntMap.unionWith
+        (+)
+        (IntMap.alter (maybe (Just 1) (Just . (+ 1))) (B.length currency) ls)
+        ( Map.foldrWithKey'
+            (\token _ -> IntMap.alter (maybe (Just 1) (Just . (+ 1))) (B.length token))
+            mempty
+            inner
+        )
     , s + Map.size inner
     )
 {-# INLINEABLE pack' #-}
@@ -95,16 +109,20 @@ pack' (normalize -> v) = Value v sizes size
 contained in the `Value`.
 -}
 totalSize :: Value -> Int
-totalSize (Value _ _ size) = size
+totalSize (Value _ _ _ size) = size
 {-# INLINE totalSize #-}
 
 -- | Size of the largest inner map.
 maxInnerSize :: Value -> Int
-maxInnerSize (Value _ sizes _) = maybe 0 fst (IntMap.lookupMax sizes)
+maxInnerSize (Value _ sizes _ _) = maybe 0 fst (IntMap.lookupMax sizes)
 {-# INLINE maxInnerSize #-}
 
+-- | Maximum `ByteString` length, across both outer and inner maps.
+maxKeyLength :: Value -> Int
+maxKeyLength (Value _ _ lens _) = maybe 0 fst (IntMap.lookupMax lens)
+
 empty :: Value
-empty = Value mempty mempty 0
+empty = Value mempty mempty mempty 0
 {-# INLINE empty #-}
 
 toList :: Value -> [(ByteString, [(ByteString, Integer)])]
@@ -134,47 +152,59 @@ instance Pretty Value where
 the size of the largest inner map.
 -}
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
-insertCoin currency token amt v@(Value outer sizes size)
+insertCoin currency token amt v@(Value outer sizes lens size)
   | amt == 0 = deleteCoin currency token v
   | otherwise =
-      let (mold, outer') = Map.alterF f currency outer
-          (sizes', size') = case mold of
-            Just old -> (updateSizes old (old + 1) sizes, size + 1)
-            Nothing  -> (sizes, size)
-       in Value outer' sizes' size'
+      let (r, outer') = Map.alterF f currency outer
+          (sizes', lens', size') = case r of
+            Just (old, currencyInserted) ->
+              ( updateSizes old (old + 1) sizes
+              , (if currencyInserted then incLen (B.length currency) else id) (incLen (B.length token) lens)
+              , size + 1
+              )
+            Nothing -> (sizes, lens, size)
+       in Value outer' sizes' lens' size'
  where
   f
     :: Maybe (Map ByteString Integer)
-    -> ( -- Just (old size of inner map) if the total size grows by 1, otherwise Nothing
-         Maybe Int
+    -> ( -- Just (old size of inner map, whether it is a new currency)
+         -- if the total size grows by 1, otherwise Nothing
+         Maybe (Int, Bool)
        , Maybe (Map ByteString Integer)
        )
   f = \case
-    Nothing -> (Just 0, Just (Map.singleton token amt))
+    Nothing -> (Just (0, True), Just (Map.singleton token amt))
     Just inner ->
       let (isJust -> exists, inner') = Map.insertLookupWithKey (\_ _ _ -> amt) token amt inner
-       in (if exists then Nothing else Just (Map.size inner), Just inner')
+       in (if exists then Nothing else Just (Map.size inner, False), Just inner')
 {-# INLINEABLE insertCoin #-}
 
 -- | \(O(\log \max(m, k))\)
 deleteCoin :: ByteString -> ByteString -> Value -> Value
-deleteCoin currency token (Value outer sizes size) = Value outer' sizes' size'
+deleteCoin currency token (Value outer sizes lens size) = Value outer' sizes' lens' size'
  where
-  (mold, outer') = Map.alterF f currency outer
-  (sizes', size') = case mold of
-    Just old -> (updateSizes old (old - 1) sizes, size - 1)
-    Nothing  -> (sizes, size)
+  (r, outer') = Map.alterF f currency outer
+  (sizes', lens', size') = case r of
+    Just (old, currencyDeleted) ->
+      ( updateSizes old (old - 1) sizes
+      , (if currencyDeleted then decLen (B.length currency) else id) (decLen (B.length token) lens)
+      , size - 1
+      )
+    Nothing -> (sizes, lens, size)
   f
     :: Maybe (Map ByteString Integer)
-    -> ( -- Just (old size of inner map) if the total size shrinks by 1, otherwise Nothing
-         Maybe Int
+    -> ( -- Just (old size of inner map, whether a currency is deleted)
+         -- if the total size shrinks by 1, otherwise Nothing
+         Maybe (Int, Bool)
        , Maybe (Map ByteString Integer)
        )
   f = \case
     Nothing -> (Nothing, Nothing)
     Just inner ->
       let (amt, inner') = Map.updateLookupWithKey (\_ _ -> Nothing) token inner
-       in (amt $> Map.size inner, if Map.null inner' then Nothing else Just inner')
+       in ( amt $> (Map.size inner, Map.null inner')
+          , if Map.null inner' then Nothing else Just inner'
+          )
 
 -- | \(O(\log \max(m, k))\)
 lookupCoin :: ByteString -> ByteString -> Value -> Integer
@@ -204,9 +234,8 @@ valueContains v = Map.foldrWithKey' go True . unpack
         )
 
 {-| The precise complexity is complicated, but an upper bound
-is \(O(n_{1} \log n_{2}) + O(m)\), where \(n_{1}\) is the total size of the smaller
-value, \(n_{2}\) is the total size of the bigger value, and \(m\) is the
-combined size of the outer maps.
+is \(O(n_{1} \log n_{2}) + O(n_{2})\), where \(n_{1}\) is the total size of the smaller
+value, and \(n_{2}\) is the total size of the bigger value.
 -}
 unionValue :: Value -> Value -> Value
 unionValue (unpack -> vA) (unpack -> vB) =
@@ -281,3 +310,11 @@ updateSizes old new = dec . inc
       then id
       else IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1)) old
 {-# INLINEABLE updateSizes #-}
+
+incLen :: Int -> IntMap Int -> IntMap Int
+incLen = IntMap.alter (maybe (Just 1) (Just . (+ 1)))
+{-# INLINEABLE incLen #-}
+
+decLen :: Int -> IntMap Int -> IntMap Int
+decLen = IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1))
+{-# INLINEABLE decLen #-}
