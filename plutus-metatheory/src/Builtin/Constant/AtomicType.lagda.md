@@ -16,7 +16,7 @@ open import Data.String using (String)
 open import Data.Unit using (⊤)
 open import Relation.Binary using (DecidableEquality)
 
-open import Utils using (ByteString;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
+open import Utils using (ByteString;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;Value)
 open import Utils.Reflection using (defDec)
 
 ```
@@ -33,12 +33,13 @@ data AtomicTyCon : Set where
   aUnit                 : AtomicTyCon
   aBool                 : AtomicTyCon
   aData                 : AtomicTyCon
+  aValue                : AtomicTyCon
   aBls12-381-g1-element : AtomicTyCon
   aBls12-381-g2-element : AtomicTyCon
   aBls12-381-mlresult   : AtomicTyCon
 
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConBS | ATyConStr | ATyConUnit | ATyConBool | ATyConData | ATyConBLS12_381_G1_Element | ATyConBLS12_381_G2_Element | ATyConBLS12_381_MlResult) #-}
+{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConBS | ATyConStr | ATyConUnit | ATyConBool | ATyConData | ATyConValue | ATyConBLS12_381_G1_Element | ATyConBLS12_381_G2_Element | ATyConBLS12_381_MlResult) #-}
 
 ```
 
@@ -59,6 +60,7 @@ unquoteDef decAtomicTyCon = defDec (quote AtomicTyCon) decAtomicTyCon
 ⟦ aUnit ⟧at = ⊤
 ⟦ aBool ⟧at = Bool
 ⟦ aData ⟧at = DATA
+⟦ aValue ⟧at = Value
 ⟦ aBls12-381-g1-element ⟧at = Bls12-381-G1-Element
 ⟦ aBls12-381-g2-element ⟧at = Bls12-381-G2-Element
 ⟦ aBls12-381-mlresult ⟧at = Bls12-381-MlResult

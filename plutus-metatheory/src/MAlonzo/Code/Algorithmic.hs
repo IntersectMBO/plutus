@@ -48,10 +48,10 @@ data T_'9839'Kinded_40
   = C_'9839'_42 | C_K'9839'_48 T_'9839'Kinded_40
 -- Algorithmic.lemma♯Kinded
 d_lemma'9839'Kinded_58 ::
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_656 ->
+  MAlonzo.Code.Utils.T_Kind_656 ->
+  MAlonzo.Code.Utils.T_Kind_656 ->
+  MAlonzo.Code.Utils.T_Kind_656 ->
   T_'9839'Kinded_40 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -100,7 +100,7 @@ d_sty2ty_84 v0
   = coe
       MAlonzo.Code.Type.BetaNormal.C_ne_20
       (coe
-         MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_186
+         MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_188
          (\ v1 v2 v3 -> coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v3)
          (coe
             (\ v1 v2 v3 v4 -> coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v4))
@@ -154,11 +154,11 @@ data T__'8866'__178
     C__'183'__196 MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
                   T__'8866'__178 T__'8866'__178 |
     C_Λ_202 T__'8866'__178 |
-    C__'183''8902'_'47'__212 MAlonzo.Code.Utils.T_Kind_652
+    C__'183''8902'_'47'__212 MAlonzo.Code.Utils.T_Kind_656
                              MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 T__'8866'__178
                              MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 |
     C_wrap_220 T__'8866'__178 |
-    C_unwrap_230 MAlonzo.Code.Utils.T_Kind_652
+    C_unwrap_230 MAlonzo.Code.Utils.T_Kind_656
                  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
                  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 T__'8866'__178 |
     C_constr_240 MAlonzo.Code.Data.Fin.Base.T_Fin_10
