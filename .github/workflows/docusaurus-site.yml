@@ -60,6 +60,7 @@ jobs:
         uses: rossjrw/pr-preview-action@v1.6.2
         with:
           source-dir: doc/docusaurus/build
+          umbrella-dir: pr-preview/docs
 
 
       

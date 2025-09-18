@@ -1,6 +1,6 @@
 # This workflow builds and deploys various papers.
 # 
-# On pull requests, this workflow builds the site and deploys a temporary preview
+# On pull requests, this workflow builds the papers and deploys a temporary preview
 # to gh-pages, but only if the relevant files have changed.
 #
 # This workflow runs on all push to master and can also be triggered manually.
@@ -61,3 +61,4 @@ jobs:
         uses: rossjrw/pr-preview-action@v1.6.2
         with:
           source-dir: _resources
+          umbrella-dir: pr-preview/resources
