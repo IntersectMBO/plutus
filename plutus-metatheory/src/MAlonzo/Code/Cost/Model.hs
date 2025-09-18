@@ -134,7 +134,7 @@ d_runModel_104 v0 v1 v2
              (coe
                 mulInt (coe v6)
                 (coe
-                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                    (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4))))
              (coe v5)
       C_quadraticCostIn1_20 v4 v5 v6 v7
@@ -147,15 +147,15 @@ d_runModel_104 v0 v1 v2
                    (coe
                       mulInt (coe v7)
                       (coe
-                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                          (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4))))
                    (coe
-                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                       (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4))))
                 (coe
                    mulInt (coe v6)
                    (coe
-                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                       (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4)))))
              (coe v5)
       C_quadraticCostIn2_24 v4 v5 v6 v7 v8 v9 v10 v11 v12
@@ -176,42 +176,42 @@ d_runModel_104 v0 v1 v2
                                (coe
                                   mulInt (coe v10)
                                   (coe
-                                     MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                     MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                      (coe
                                         MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4))))
                                (coe
-                                  MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                  MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                   (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4))))
                             (coe
                                mulInt
                                (coe
                                   mulInt (coe v11)
                                   (coe
-                                     MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                     MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                      (coe
                                         MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4))))
                                (coe
-                                  MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                  MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                   (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v5)))))
                          (coe
                             mulInt
                             (coe
                                mulInt (coe v12)
                                (coe
-                                  MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                  MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                   (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v5))))
                             (coe
-                               MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                               MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v5)))))
                       (coe
                          mulInt (coe v8)
                          (coe
-                            MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                            MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                             (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4)))))
                    (coe
                       mulInt (coe v9)
                       (coe
-                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                          (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v5)))))
                 (coe v7))
       C_withInteractionIn_28 v4 v5 v6 v7 v8 v9
@@ -226,20 +226,20 @@ d_runModel_104 v0 v1 v2
                       (coe
                          mulInt (coe v9)
                          (coe
-                            MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                            MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                             (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4))))
                       (coe
-                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                          (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v5))))
                    (coe
                       mulInt (coe v7)
                       (coe
-                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                         MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                          (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v4)))))
                 (coe
                    mulInt (coe v8)
                    (coe
-                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                       (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v2) (coe v5)))))
              (coe v6)
       C_literalCostIn_32 v4 v5
@@ -277,7 +277,7 @@ d_runModel_104 v0 v1 v2
                    MAlonzo.Code.Data.Vec.Base.d_sum_420 v0
                    (coe
                       MAlonzo.Code.Data.Vec.Base.du_map_178
-                      (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78) (coe v2))))
+                      (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82) (coe v2))))
              (coe v4)
       C_multipliedSizes_40 v4 v5
         -> coe
@@ -288,7 +288,7 @@ d_runModel_104 v0 v1 v2
                    d_prod_84 v0
                    (coe
                       MAlonzo.Code.Data.Vec.Base.du_map_178
-                      (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78) (coe v2))))
+                      (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82) (coe v2))))
              (coe v4)
       C_minSize_44 v4 v5
         -> let v6 = subInt (coe v0) (coe (1 :: Integer)) in
@@ -301,7 +301,7 @@ d_runModel_104 v0 v1 v2
                       d_minimum_92 (coe v6)
                       (coe
                          MAlonzo.Code.Data.Vec.Base.du_map_178
-                         (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78) (coe v2))))
+                         (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82) (coe v2))))
                 (coe v4))
       C_maxSize_48 v4 v5
         -> let v6 = subInt (coe v0) (coe (1 :: Integer)) in
@@ -314,7 +314,7 @@ d_runModel_104 v0 v1 v2
                       d_maximum_88 (coe v6)
                       (coe
                          MAlonzo.Code.Data.Vec.Base.du_map_178
-                         (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78) (coe v2))))
+                         (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82) (coe v2))))
                 (coe v4))
       C_twoArgumentsSubtractedSizes_50 v3 v4 v5
         -> case coe v2 of
@@ -329,8 +329,8 @@ d_runModel_104 v0 v1 v2
                                  MAlonzo.Code.Data.Nat.Base.d__'8852'__208 (coe v5)
                                  (coe
                                     MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22
-                                    (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v7))
-                                    (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v10)))))
+                                    (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v7))
+                                    (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v10)))))
                            (coe v3)
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -345,8 +345,8 @@ d_runModel_104 v0 v1 v2
                               MAlonzo.Code.Data.Bool.Base.du_if_then_else__44
                               (coe
                                  ltInt
-                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v6))
-                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v9)))
+                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v6))
+                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v9)))
                               (coe v3)
                               (coe
                                  d_runModel_104 (coe (2 :: Integer)) (coe v4)
@@ -368,8 +368,8 @@ d_runModel_104 v0 v1 v2
                               MAlonzo.Code.Data.Bool.Base.du_if_then_else__44
                               (coe
                                  ltInt
-                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v9))
-                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v6)))
+                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v9))
+                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v6)))
                               (coe v3)
                               (coe
                                  d_runModel_104 (coe (2 :: Integer)) (coe v4)
@@ -393,8 +393,8 @@ d_runModel_104 v0 v1 v2
                                  MAlonzo.Code.Data.Bool.Base.d_not_22
                                  (coe
                                     eqInt
-                                    (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v6))
-                                    (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v9))))
+                                    (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v6))
+                                    (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v9))))
                               (coe v3)
                               (coe
                                  d_runModel_104 (coe (2 :: Integer)) (coe v4)
@@ -416,8 +416,8 @@ d_runModel_104 v0 v1 v2
                               MAlonzo.Code.Data.Bool.Base.du_if_then_else__44
                               (coe
                                  ltInt
-                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v9))
-                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78 (coe v6)))
+                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v9))
+                                 (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82 (coe v6)))
                               (coe
                                  d_runModel_104 (coe (2 :: Integer)) (coe v4)
                                  (coe
@@ -448,12 +448,12 @@ d_runModel_104 v0 v1 v2
                                      (coe
                                         mulInt (coe v4)
                                         (coe
-                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                            (coe v10)))
                                      (coe
                                         mulInt (coe v5)
                                         (coe
-                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                            (coe v13))))
                                   (coe v3)
                            _ -> MAlonzo.RTE.mazUnreachableError
@@ -474,11 +474,11 @@ d_runModel_104 v0 v1 v2
                                         d_maximum_88 (coe (1 :: Integer))
                                         (coe
                                            MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                                           (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                           (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                               (coe v9))
                                            (coe
                                               MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                                              (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                              (MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                  (coe v12))
                                               (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32)))))
                                   (coe v3)
@@ -499,10 +499,10 @@ d_runModel_104 v0 v1 v2
                                      (coe
                                         ltInt
                                         (coe
-                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                            (coe v13))
                                         (coe
-                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                           MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                            (coe v7)))
                                      (coe
                                         addInt
@@ -523,23 +523,23 @@ d_runModel_104 v0 v1 v2
                                                              (coe
                                                                 mulInt (coe v5)
                                                                 (coe
-                                                                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                                    (coe v10)))
                                                              (coe
-                                                                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                                 (coe v13)))
                                                           (coe
-                                                             MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                             MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                              (coe v13)))
                                                        (coe
                                                           mulInt
                                                           (coe
                                                              mulInt (coe v4)
                                                              (coe
-                                                                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                                 (coe v10)))
                                                           (coe
-                                                             MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                             MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                              (coe v13))))
                                                     (coe v3))
                                                  (coe (2 :: Integer)))
@@ -550,23 +550,23 @@ d_runModel_104 v0 v1 v2
                                                     (coe
                                                        mulInt (coe v5)
                                                        (coe
-                                                          MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                          MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                           (coe v10)))
                                                     (coe
-                                                       MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                       MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                        (coe v13)))
                                                  (coe
-                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                     (coe v13))))
                                            (coe
                                               mulInt
                                               (coe
                                                  mulInt (coe v4)
                                                  (coe
-                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                     (coe v10)))
                                               (coe
-                                                 MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                 MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                  (coe v13))))
                                         (coe v3))
                                      (coe
@@ -580,23 +580,23 @@ d_runModel_104 v0 v1 v2
                                                  (coe
                                                     mulInt (coe v5)
                                                     (coe
-                                                       MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                       MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                        (coe v10)))
                                                  (coe
-                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                     (coe v13)))
                                               (coe
-                                                 MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                 MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                  (coe v13)))
                                            (coe
                                               mulInt
                                               (coe
                                                  mulInt (coe v4)
                                                  (coe
-                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                    MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                     (coe v10)))
                                               (coe
-                                                 MAlonzo.Code.Cost.Size.d_defaultValueMeasure_78
+                                                 MAlonzo.Code.Cost.Size.d_defaultValueMeasure_82
                                                  (coe v13))))
                                         (coe v3)))
                            _ -> MAlonzo.RTE.mazUnreachableError
@@ -605,331 +605,462 @@ d_runModel_104 v0 v1 v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Model.convertRawModel
 d_convertRawModel_328 ::
+  MAlonzo.Code.Cost.Raw.T_RawModel_144 ->
+  Integer -> Maybe T_CostingModel_8
+d_convertRawModel_328 v0
+  = case coe v0 of
+      MAlonzo.Code.Cost.Raw.C_ConstantCost_146 v1
+        -> coe
+             (\ v2 ->
+                coe
+                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                  (coe C_constantCost_12 v1))
+      MAlonzo.Code.Cost.Raw.C_AddedSizes_148 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       coe
+                         MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                         (coe C_addedSizes_36 v2 v3))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_MultipliedSizes_150 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       coe
+                         MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                         (coe C_multipliedSizes_40 v2 v3))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_MinSize_152 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            _ | coe geqInt (coe v4) (coe (1 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_minSize_44 v2 v3)
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_MaxSize_154 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            _ | coe geqInt (coe v4) (coe (1 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_maxSize_48 v2 v3)
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInX_156 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            _ | coe geqInt (coe v4) (coe (1 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_linearCostIn_16 (coe MAlonzo.Code.Data.Fin.Base.C_zero_12) v2
+                                     v3)
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInY_158 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            _ | coe geqInt (coe v4) (coe (2 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_linearCostIn_16
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
+                                     v2 v3)
+                            1 -> coe v5
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInZ_160 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            _ | coe geqInt (coe v4) (coe (3 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_linearCostIn_16
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe
+                                           MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                           (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
+                                     v2 v3)
+                            2 -> coe v5
+                            1 -> coe v5
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInU_162 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            _ | coe geqInt (coe v4) (coe (4 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_linearCostIn_16
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe
+                                           MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                           (coe
+                                              MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                              (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
+                                     v2 v3)
+                            3 -> coe v5
+                            2 -> coe v5
+                            1 -> coe v5
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInY2_164 v1 v2
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            _ | coe geqInt (coe v5) (coe (2 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_linearCostIn_16
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
+                                     v3 v4)
+                            1 -> coe v6
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LiteralInYOrLinearInZ_166 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            _ | coe geqInt (coe v4) (coe (3 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_literalCostIn_32
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
+                                     (coe
+                                        C_linearCostIn_16
+                                        (coe
+                                           MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                           (coe
+                                              MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                              (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
+                                        v2 v3))
+                            2 -> coe v5
+                            1 -> coe v5
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInMaxYZ_168 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v2 v3
+               -> coe
+                    (\ v4 ->
+                       let v5 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v4 of
+                            3 -> coe
+                                   MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                   (coe C_twoArgumentsLinearInMaxYZ_62 (coe v2) (coe v3))
+                            _ | coe geqInt (coe v4) (coe (3 :: Integer)) -> coe v5
+                            2 -> coe v5
+                            1 -> coe v5
+                            _ -> coe v5))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInXAndY_170 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkTwoVariableLinearFunction_74 v2 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            _ | coe geqInt (coe v5) (coe (2 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_withInteractionIn_28
+                                     (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
+                                     v2 v3 v4 (0 :: Integer))
+                            1 -> coe v6
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_LinearInYAndZ_172 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkTwoVariableLinearFunction_74 v2 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            3 -> coe
+                                   MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                   (coe C_twoArgumentsLinearInYAndZ_60 (coe v2) (coe v3) (coe v4))
+                            _ | coe geqInt (coe v5) (coe (3 :: Integer)) -> coe v6
+                            2 -> coe v6
+                            1 -> coe v6
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_QuadraticInX_174 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkOneVariableQuadraticFunction_58 v2 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            _ | coe geqInt (coe v5) (coe (1 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_quadraticCostIn1_20
+                                     (coe MAlonzo.Code.Data.Fin.Base.C_zero_12) v2 v3 v4)
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_QuadraticInY_176 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkOneVariableQuadraticFunction_58 v2 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            _ | coe geqInt (coe v5) (coe (2 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_quadraticCostIn1_20
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
+                                     v2 v3 v4)
+                            1 -> coe v6
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_QuadraticInZ_178 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkOneVariableQuadraticFunction_58 v2 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            _ | coe geqInt (coe v5) (coe (3 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_quadraticCostIn1_20
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe
+                                           MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                           (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
+                                     v2 v3 v4)
+                            2 -> coe v6
+                            1 -> coe v6
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_QuadraticInXAndY_180 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkTwoVariableQuadraticFunction_106 v2 v3 v4 v5 v6 v7 v8
+               -> coe
+                    (\ v9 ->
+                       let v10 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v9 of
+                            _ | coe geqInt (coe v9) (coe (2 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_quadraticCostIn2_24
+                                     (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
+                                     v2 v3 v4 v5 v6 v7 v8)
+                            1 -> coe v10
+                            _ -> coe v10))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_WithInteractionInXAndY_182 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkTwoVariableWithInteractionFunction_126 v2 v3 v4 v5
+               -> coe
+                    (\ v6 ->
+                       let v7 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v6 of
+                            _ | coe geqInt (coe v6) (coe (2 :: Integer)) ->
+                                coe
+                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                  (coe
+                                     C_withInteractionIn_28
+                                     (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)
+                                     (coe
+                                        MAlonzo.Code.Data.Fin.Base.C_suc_16
+                                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
+                                     v2 v3 v4 v5)
+                            1 -> coe v7
+                            _ -> coe v7))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_SubtractedSizes_184 v1 v2
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            2 -> coe
+                                   MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                   (coe C_twoArgumentsSubtractedSizes_50 (coe v3) (coe v4) (coe v2))
+                            _ | coe geqInt (coe v5) (coe (2 :: Integer)) -> coe v6
+                            1 -> coe v6
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Cost.Raw.C_ConstAboveDiagonal_186 v1 v2
+        -> coe d_'46'extendedlambda15_478 (coe v1) (coe v2)
+      MAlonzo.Code.Cost.Raw.C_ConstBelowDiagonal_188 v1 v2
+        -> coe d_'46'extendedlambda16_484 (coe v1) (coe v2)
+      MAlonzo.Code.Cost.Raw.C_ConstOffDiagonal_190 v1 v2
+        -> coe d_'46'extendedlambda17_490 (coe v1) (coe v2)
+      MAlonzo.Code.Cost.Raw.C_AboveAndBelowDiagonal_192 v1 v2
+        -> coe d_'46'extendedlambda18_496 (coe v1) (coe v2)
+      MAlonzo.Code.Cost.Raw.C_ExpModCost_194 v1
+        -> case coe v1 of
+             MAlonzo.Code.Cost.Raw.C_mkExpModCostingFunction_142 v2 v3 v4
+               -> coe
+                    (\ v5 ->
+                       let v6 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+                       coe
+                         (case coe v5 of
+                            3 -> coe
+                                   MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                                   (coe C_threeArgumentsExpModCost_64 (coe v2) (coe v3) (coe v4))
+                            _ | coe geqInt (coe v5) (coe (3 :: Integer)) -> coe v6
+                            2 -> coe v6
+                            1 -> coe v6
+                            _ -> coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
+-- Cost.Model..extendedlambda15
+d_'46'extendedlambda15_478 ::
   Integer ->
-  MAlonzo.Code.Cost.Raw.T_RawModel_144 -> Maybe T_CostingModel_8
-d_convertRawModel_328 v0 v1
-  = let v2 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+  MAlonzo.Code.Cost.Raw.T_RawModel_144 ->
+  Integer -> Maybe T_CostingModel_8
+d_'46'extendedlambda15_478 v0 v1 v2
+  = let v3 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
     coe
-      (case coe v1 of
-         MAlonzo.Code.Cost.Raw.C_ConstantCost_146 v3
-           -> coe
-                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                (coe C_constantCost_12 v3)
-         MAlonzo.Code.Cost.Raw.C_AddedSizes_148 v3
-           -> case coe v3 of
-                MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                  -> coe
-                       MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                       (coe C_addedSizes_36 v4 v5)
-                _ -> MAlonzo.RTE.mazUnreachableError
-         MAlonzo.Code.Cost.Raw.C_MultipliedSizes_150 v3
-           -> case coe v3 of
-                MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                  -> coe
-                       MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                       (coe C_multipliedSizes_40 v4 v5)
-                _ -> MAlonzo.RTE.mazUnreachableError
-         MAlonzo.Code.Cost.Raw.C_MinSize_152 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (1 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_minSize_44 v4 v5)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_MaxSize_154 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (1 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_maxSize_48 v4 v5)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LinearInX_156 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (1 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_linearCostIn_16 (coe MAlonzo.Code.Data.Fin.Base.C_zero_12) v4 v5)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LinearInY_158 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_linearCostIn_16
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
-                                v4 v5)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LinearInZ_160 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (3 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_linearCostIn_16
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe
-                                      MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                      (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
-                                v4 v5)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                2 -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LinearInU_162 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (4 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_linearCostIn_16
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe
-                                      MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                      (coe
-                                         MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                         (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
-                                v4 v5)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                3 -> coe v2
-                2 -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LinearInY2_164 v3 v4
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v5 v6
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_linearCostIn_16
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
-                                v5 v6)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LiteralInYOrLinearInZ_166 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (3 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_literalCostIn_32
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
-                                (coe
-                                   C_linearCostIn_16
-                                   (coe
-                                      MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                      (coe
-                                         MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                         (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
-                                   v4 v5))
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                2 -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LinearInMaxYZ_168 v3
-           -> case coe v0 of
-                3 -> case coe v3 of
-                       MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v4 v5
-                         -> coe
-                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                              (coe C_twoArgumentsLinearInMaxYZ_62 (coe v4) (coe v5))
-                       _ -> MAlonzo.RTE.mazUnreachableError
-                _ | coe geqInt (coe v0) (coe (3 :: Integer)) -> coe v2
-                2 -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_LinearInYAndZ_172 v3
-           -> case coe v0 of
-                3 -> case coe v3 of
-                       MAlonzo.Code.Cost.Raw.C_mkTwoVariableLinearFunction_74 v4 v5 v6
-                         -> coe
-                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                              (coe C_twoArgumentsLinearInYAndZ_60 (coe v4) (coe v5) (coe v6))
-                       _ -> MAlonzo.RTE.mazUnreachableError
-                _ | coe geqInt (coe v0) (coe (3 :: Integer)) -> coe v2
-                2 -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_QuadraticInX_174 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkOneVariableQuadraticFunction_58 v4 v5 v6
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_quadraticCostIn1_20 (coe MAlonzo.Code.Data.Fin.Base.C_zero_12) v4
-                                v5 v6)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_QuadraticInY_176 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkOneVariableQuadraticFunction_58 v4 v5 v6
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_quadraticCostIn1_20
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
-                                v4 v5 v6)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_QuadraticInZ_178 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (3 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkOneVariableQuadraticFunction_58 v4 v5 v6
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_quadraticCostIn1_20
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe
-                                      MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                      (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
-                                v4 v5 v6)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                2 -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_QuadraticInXAndY_180 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkTwoVariableQuadraticFunction_106 v4 v5 v6 v7 v8 v9 v10
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_quadraticCostIn2_24 (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
-                                v4 v5 v6 v7 v8 v9 v10)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_WithInteractionInXAndY_182 v3
-           -> case coe v0 of
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) ->
-                    case coe v3 of
-                      MAlonzo.Code.Cost.Raw.C_mkTwoVariableWithInteractionFunction_126 v4 v5 v6 v7
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                C_withInteractionIn_28 (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)
-                                (coe
-                                   MAlonzo.Code.Data.Fin.Base.C_suc_16
-                                   (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
-                                v4 v5 v6 v7)
-                      _ -> MAlonzo.RTE.mazUnreachableError
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_SubtractedSizes_184 v3 v4
-           -> case coe v0 of
-                2 -> case coe v3 of
-                       MAlonzo.Code.Cost.Raw.C_mkLinearFunction_42 v5 v6
-                         -> coe
-                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                              (coe C_twoArgumentsSubtractedSizes_50 (coe v5) (coe v6) (coe v4))
-                       _ -> MAlonzo.RTE.mazUnreachableError
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_ConstAboveDiagonal_186 v3 v4
-           -> case coe v0 of
-                2 -> coe
-                       MAlonzo.Code.Data.Maybe.Base.du_map_64
-                       (coe C_twoArgumentsConstAboveDiagonal_52 (coe v3))
-                       (d_convertRawModel_328 (coe (2 :: Integer)) (coe v4))
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_ConstBelowDiagonal_188 v3 v4
-           -> case coe v0 of
-                2 -> coe
-                       MAlonzo.Code.Data.Maybe.Base.du_map_64
-                       (coe C_twoArgumentsConstBelowDiagonal_54 (coe v3))
-                       (d_convertRawModel_328 (coe (2 :: Integer)) (coe v4))
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_ConstOffDiagonal_190 v3 v4
-           -> case coe v0 of
-                2 -> coe
-                       MAlonzo.Code.Data.Maybe.Base.du_map_64
-                       (coe C_twoArgumentsConstOffDiagonal_56 (coe v3))
-                       (d_convertRawModel_328 (coe (2 :: Integer)) (coe v4))
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_AboveAndBelowDiagonal_192 v3 v4
-           -> case coe v0 of
-                2 -> coe
-                       MAlonzo.Code.Data.Maybe.Base.du_map_64
-                       (coe C_twoArgumentsAboveAndBelowDiagonal_58 (coe v3))
-                       (d_convertRawModel_328 (coe (2 :: Integer)) (coe v4))
-                _ | coe geqInt (coe v0) (coe (2 :: Integer)) -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         MAlonzo.Code.Cost.Raw.C_ExpModCost_194 v3
-           -> case coe v0 of
-                3 -> case coe v3 of
-                       MAlonzo.Code.Cost.Raw.C_mkExpModCostingFunction_142 v4 v5 v6
-                         -> coe
-                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                              (coe C_threeArgumentsExpModCost_64 (coe v4) (coe v5) (coe v6))
-                       _ -> MAlonzo.RTE.mazUnreachableError
-                _ | coe geqInt (coe v0) (coe (3 :: Integer)) -> coe v2
-                2 -> coe v2
-                1 -> coe v2
-                _ -> coe v2
-         _ -> coe v2)
+      (case coe v2 of
+         2 -> coe
+                MAlonzo.Code.Data.Maybe.Base.du_map_64
+                (coe C_twoArgumentsConstAboveDiagonal_52 (coe v0))
+                (coe d_convertRawModel_328 v1 (2 :: Integer))
+         _ | coe geqInt (coe v2) (coe (2 :: Integer)) -> coe v3
+         1 -> coe v3
+         _ -> coe v3)
+-- Cost.Model..extendedlambda16
+d_'46'extendedlambda16_484 ::
+  Integer ->
+  MAlonzo.Code.Cost.Raw.T_RawModel_144 ->
+  Integer -> Maybe T_CostingModel_8
+d_'46'extendedlambda16_484 v0 v1 v2
+  = let v3 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+    coe
+      (case coe v2 of
+         2 -> coe
+                MAlonzo.Code.Data.Maybe.Base.du_map_64
+                (coe C_twoArgumentsConstBelowDiagonal_54 (coe v0))
+                (coe d_convertRawModel_328 v1 (2 :: Integer))
+         _ | coe geqInt (coe v2) (coe (2 :: Integer)) -> coe v3
+         1 -> coe v3
+         _ -> coe v3)
+-- Cost.Model..extendedlambda17
+d_'46'extendedlambda17_490 ::
+  Integer ->
+  MAlonzo.Code.Cost.Raw.T_RawModel_144 ->
+  Integer -> Maybe T_CostingModel_8
+d_'46'extendedlambda17_490 v0 v1 v2
+  = let v3 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+    coe
+      (case coe v2 of
+         2 -> coe
+                MAlonzo.Code.Data.Maybe.Base.du_map_64
+                (coe C_twoArgumentsConstOffDiagonal_56 (coe v0))
+                (coe d_convertRawModel_328 v1 (2 :: Integer))
+         _ | coe geqInt (coe v2) (coe (2 :: Integer)) -> coe v3
+         1 -> coe v3
+         _ -> coe v3)
+-- Cost.Model..extendedlambda18
+d_'46'extendedlambda18_496 ::
+  Integer ->
+  MAlonzo.Code.Cost.Raw.T_RawModel_144 ->
+  Integer -> Maybe T_CostingModel_8
+d_'46'extendedlambda18_496 v0 v1 v2
+  = let v3 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+    coe
+      (case coe v2 of
+         2 -> coe
+                MAlonzo.Code.Data.Maybe.Base.du_map_64
+                (coe C_twoArgumentsAboveAndBelowDiagonal_58 (coe v0))
+                (coe d_convertRawModel_328 v1 (2 :: Integer))
+         _ | coe geqInt (coe v2) (coe (2 :: Integer)) -> coe v3
+         1 -> coe v3
+         _ -> coe v3)
 -- Cost.Model.convertCpuAndMemoryModel
-d_convertCpuAndMemoryModel_478 ::
+d_convertCpuAndMemoryModel_530 ::
   Integer ->
   MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196 ->
   Maybe T_BuiltinModel_68
-d_convertCpuAndMemoryModel_478 v0 v1
+d_convertCpuAndMemoryModel_530 v0 v1
   = case coe v1 of
       MAlonzo.Code.Cost.Raw.C_mkCpuAndMemoryModel_206 v2 v3
-        -> let v4 = d_convertRawModel_328 (coe v0) (coe v2) in
+        -> let v4 = coe d_convertRawModel_328 v2 v0 in
            coe
-             (let v5 = d_convertRawModel_328 (coe v0) (coe v3) in
+             (let v5 = coe d_convertRawModel_328 v3 v0 in
               coe
                 (case coe v4 of
                    MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v6
@@ -942,14 +1073,14 @@ d_convertCpuAndMemoryModel_478 v0 v1
                    _ -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Model.getModel
-d_getModel_502 ::
+d_getModel_554 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   MAlonzo.Code.Utils.T_List_454
     (MAlonzo.Code.Utils.T__'215'__436
        MAlonzo.Code.Agda.Builtin.String.T_String_6
        MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196) ->
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_getModel_502 v0 v1
+d_getModel_554 v0 v1
   = case coe v1 of
       MAlonzo.Code.Utils.C_'91''93'_458
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
@@ -965,13 +1096,13 @@ d_getModel_502 v0 v1
                                (\ v6 ->
                                   coe
                                     MAlonzo.Code.Data.String.Properties.du_'8776''45'reflexive_8
-                                    (coe MAlonzo.Code.Builtin.d_showBuiltin_464 (coe v0)))
+                                    (coe MAlonzo.Code.Builtin.d_showBuiltin_492 (coe v0)))
                                (coe
                                   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.du_decidable_112
                                   (coe MAlonzo.Code.Data.Char.Properties.d__'8799'__14)
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12
-                                     (MAlonzo.Code.Builtin.d_showBuiltin_464 (coe v0)))
+                                     (MAlonzo.Code.Builtin.d_showBuiltin_492 (coe v0)))
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12 v4))) in
                   coe
@@ -980,7 +1111,7 @@ d_getModel_502 v0 v1
                               MAlonzo.Code.Data.Maybe.Base.du_map_64
                               (\ v7 ->
                                  coe MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v0) (coe v7))
-                              (d_convertCpuAndMemoryModel_478
+                              (d_convertCpuAndMemoryModel_530
                                  (coe
                                     addInt (coe (1 :: Integer))
                                     (coe
@@ -990,27 +1121,27 @@ d_getModel_502 v0 v1
                                        (coe
                                           MAlonzo.Code.Data.List.NonEmpty.Base.d_tail_32
                                           (coe
-                                             MAlonzo.Code.Builtin.Signature.d_args_86
-                                             (coe MAlonzo.Code.Builtin.d_signature_298 (coe v0))))))
+                                             MAlonzo.Code.Builtin.Signature.d_args_88
+                                             (coe MAlonzo.Code.Builtin.d_signature_312 (coe v0))))))
                                  (coe v5))
-                       else coe d_getModel_502 (coe v0) (coe v3))
+                       else coe d_getModel_554 (coe v0) (coe v3))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Model.dummyModel
-d_dummyModel_538 :: Integer -> T_BuiltinModel_68
-d_dummyModel_538 ~v0 = du_dummyModel_538
-du_dummyModel_538 :: T_BuiltinModel_68
-du_dummyModel_538
+d_dummyModel_590 :: Integer -> T_BuiltinModel_68
+d_dummyModel_590 ~v0 = du_dummyModel_590
+du_dummyModel_590 :: T_BuiltinModel_68
+du_dummyModel_590
   = coe
       C_constructor_80 (coe C_constantCost_12 (0 :: Integer))
       (coe C_constantCost_12 (0 :: Integer))
 -- Cost.Model.lookupModel
-d_lookupModel_544 ::
+d_lookupModel_596 ::
   [MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14] ->
   MAlonzo.Code.Builtin.T_Builtin_2 -> T_BuiltinModel_68
-d_lookupModel_544 v0 v1
+d_lookupModel_596 v0 v1
   = case coe v0 of
-      [] -> coe du_dummyModel_538
+      [] -> coe du_dummyModel_590
       (:) v2 v3
         -> case coe v2 of
              MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
@@ -1021,17 +1152,17 @@ d_lookupModel_544 v0 v1
                             (\ v6 ->
                                coe
                                  MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
-                                 (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v4)))
+                                 (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4)))
                             (coe
                                MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                (coe
-                                  eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v4))
-                                  (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v1)))
+                                  eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4))
+                                  (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v1)))
                                (coe
                                   MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                   (coe
-                                     eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v4))
-                                     (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v1))))) in
+                                     eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4))
+                                     (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v1))))) in
                   coe
                     (case coe v6 of
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v7 v8
@@ -1050,7 +1181,7 @@ d_lookupModel_544 v0 v1
                                         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v10 v11
                                           -> if coe v10
                                                then coe seq (coe v11) (coe v5)
-                                               else coe d_lookupModel_544 (coe v3) (coe v1)
+                                               else coe d_lookupModel_596 (coe v3) (coe v1)
                                         _ -> MAlonzo.RTE.mazUnreachableError)
                               else (let v9
                                           = seq
@@ -1065,22 +1196,22 @@ d_lookupModel_544 v0 v1
                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v10 v11
                                            -> if coe v10
                                                 then coe seq (coe v11) (coe v5)
-                                                else coe d_lookupModel_544 (coe v3) (coe v1)
+                                                else coe d_lookupModel_596 (coe v3) (coe v1)
                                          _ -> MAlonzo.RTE.mazUnreachableError))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Model.allJust
-d_allJust_580 :: () -> [Maybe AgdaAny] -> Maybe [AgdaAny]
-d_allJust_580 ~v0 v1 = du_allJust_580 v1
-du_allJust_580 :: [Maybe AgdaAny] -> Maybe [AgdaAny]
-du_allJust_580 v0
+d_allJust_632 :: () -> [Maybe AgdaAny] -> Maybe [AgdaAny]
+d_allJust_632 ~v0 v1 = du_allJust_632 v1
+du_allJust_632 :: [Maybe AgdaAny] -> Maybe [AgdaAny]
+du_allJust_632 v0
   = case coe v0 of
       [] -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v0)
       (:) v1 v2
         -> case coe v1 of
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3
-               -> let v4 = coe du_allJust_580 (coe v2) in
+               -> let v4 = coe du_allJust_632 (coe v2) in
                   coe
                     (case coe v4 of
                        MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v5
@@ -1094,21 +1225,21 @@ du_allJust_580 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Model.ModelAssignment
-d_ModelAssignment_602 :: ()
-d_ModelAssignment_602 = erased
+d_ModelAssignment_654 :: ()
+d_ModelAssignment_654 = erased
 -- Cost.Model.createMap
-d_createMap_606 ::
+d_createMap_658 ::
   MAlonzo.Code.Utils.T_List_454
     (MAlonzo.Code.Utils.T__'215'__436
        MAlonzo.Code.Agda.Builtin.String.T_String_6
        MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196) ->
   Maybe (MAlonzo.Code.Builtin.T_Builtin_2 -> T_BuiltinModel_68)
-d_createMap_606 v0
+d_createMap_658 v0
   = coe
-      MAlonzo.Code.Data.Maybe.Base.du_map_64 d_lookupModel_544
+      MAlonzo.Code.Data.Maybe.Base.du_map_64 d_lookupModel_596
       (coe
-         du_allJust_580
+         du_allJust_632
          (coe
             MAlonzo.Code.Data.List.Base.du_map_22
-            (coe (\ v1 -> d_getModel_502 (coe v1) (coe v0)))
-            (coe MAlonzo.Code.Builtin.d_builtinList_466)))
+            (coe (\ v1 -> d_getModel_554 (coe v1) (coe v0)))
+            (coe MAlonzo.Code.Builtin.d_builtinList_494)))

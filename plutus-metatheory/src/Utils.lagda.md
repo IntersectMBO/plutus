@@ -402,6 +402,43 @@ eqBls12-381-MlResult _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-MlResult = (==) #-}
 ```
 
+## Value
+
+The Value type is currently postulated, but should eventually be implemented,
+for example as nested maps. 
+
+```
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1872)
+postulate Value : Set
+{-# FOREIGN GHC import qualified PlutusCore.Value as V #-}
+{-# COMPILE GHC Value = type V.Value #-}
+```
+
+```
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "Untyped.Equality".
+eqValue : Value → Value → Bool
+eqValue _ _ = Bool.true
+{-# COMPILE GHC eqValue = (==) #-}
+```
+
+### Constructing constants of type Value
+
+Since the Value type is postulated, we also postulate a way to construct Value
+constants, which is used for printing Value constants when dumping certifier
+traces in Haskell (AgdaUnparse).
+
+```
+postulate valueFromList : List (ByteString × List (ByteString × ℤ)) → Value
+```
+
+An Agda implementation of Value should only have quantities in the interval
+-2^127 ... 2^127-1, and must have ordered keys and no duplicated keys (see UPLC
+specification pdf for more detail). Therefore, a function like `valueFromList`
+would be partial in practice. For the time being, we keep the postulate as a
+total function for convenience and because we expect the Haskell code to enforce
+these constraints already.
+
 ## Kinds
 
 The kind of types is `*`. Plutus core core is based on System Fω which

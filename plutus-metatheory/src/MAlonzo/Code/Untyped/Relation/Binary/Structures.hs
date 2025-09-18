@@ -97,7 +97,7 @@ data T_TermCompatible_30
                        AgdaAny ->
                        MAlonzo.Code.Untyped.Relation.Binary.Core.T_Pointwise_20 ->
                        AgdaAny)
-                      (MAlonzo.Code.RawU.T_TmCon_202 -> Integer -> AgdaAny)
+                      (MAlonzo.Code.RawU.T_TmCon_204 -> Integer -> AgdaAny)
                       (Integer -> MAlonzo.Code.Builtin.T_Builtin_2 -> AgdaAny)
                       (Integer -> AgdaAny)
 -- Untyped.Relation.Binary.Structures.TermCompatible.compat-var
@@ -179,7 +179,7 @@ d_compat'45'case_132 v0
 -- Untyped.Relation.Binary.Structures.TermCompatible.compat-con
 d_compat'45'con_138 ::
   T_TermCompatible_30 ->
-  MAlonzo.Code.RawU.T_TmCon_202 -> Integer -> AgdaAny
+  MAlonzo.Code.RawU.T_TmCon_204 -> Integer -> AgdaAny
 d_compat'45'con_138 v0
   = case coe v0 of
       C_constructor_150 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 -> coe v8

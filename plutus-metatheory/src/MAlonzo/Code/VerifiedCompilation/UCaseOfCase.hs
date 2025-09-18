@@ -168,7 +168,7 @@ d_isCoCCase'63'_58 v0 v1
                                                                                                                                                    coe
                                                                                                                                                      MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
                                                                                                                                                      (coe
-                                                                                                                                                        MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                        MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                                                                                                         (coe
                                                                                                                                                            v33)))
                                                                                                                                                 (coe
@@ -176,11 +176,11 @@ d_isCoCCase'63'_58 v0 v1
                                                                                                                                                    (coe
                                                                                                                                                       eqInt
                                                                                                                                                       (coe
-                                                                                                                                                         MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                         MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                                                                                                          (coe
                                                                                                                                                             v33))
                                                                                                                                                       (coe
-                                                                                                                                                         MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                         MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                                                                                                          (coe
                                                                                                                                                             MAlonzo.Code.Builtin.C_ifThenElse_60)))
                                                                                                                                                    (coe
@@ -188,11 +188,11 @@ d_isCoCCase'63'_58 v0 v1
                                                                                                                                                       (coe
                                                                                                                                                          eqInt
                                                                                                                                                          (coe
-                                                                                                                                                            MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                            MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                                                                                                             (coe
                                                                                                                                                                v33))
                                                                                                                                                          (coe
-                                                                                                                                                            MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                            MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                                                                                                             (coe
                                                                                                                                                                MAlonzo.Code.Builtin.C_ifThenElse_60))))) in
                                                                                                                                       coe
@@ -473,7 +473,7 @@ d_isCoCForce'63'_162 v0 v1
                                                                                                                                                                                                        = coe
                                                                                                                                                                                                            MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                                                                                                            (coe
-                                                                                                                                                                                                              MAlonzo.Code.Builtin.d_decBuiltin_440
+                                                                                                                                                                                                              MAlonzo.Code.Builtin.d_decBuiltin_468
                                                                                                                                                                                                               (coe
                                                                                                                                                                                                                  v30)
                                                                                                                                                                                                               (coe
