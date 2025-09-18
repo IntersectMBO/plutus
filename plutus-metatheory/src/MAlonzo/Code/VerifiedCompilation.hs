@@ -215,12 +215,12 @@ du_cert_96 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.checkScope
 d_checkScope_100 ::
-  MAlonzo.Code.RawU.T_Untyped_208 ->
+  MAlonzo.Code.RawU.T_Untyped_210 ->
   Maybe MAlonzo.Code.Untyped.T__'8866'_14
 d_checkScope_100 v0
   = coe
       MAlonzo.Code.Utils.du_eitherToMaybe_112
-      (coe MAlonzo.Code.Untyped.d_scopeCheckU0_288 (coe v0))
+      (coe MAlonzo.Code.Untyped.d_scopeCheckU0_290 (coe v0))
 -- VerifiedCompilation.checkScopeᵗ
 d_checkScope'7511'_102 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
@@ -229,7 +229,7 @@ d_checkScope'7511'_102 ::
           MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
           MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
        MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_80)
-    MAlonzo.Code.RawU.T_Untyped_208 ->
+    MAlonzo.Code.RawU.T_Untyped_210 ->
   Maybe
     (MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
        (MAlonzo.Code.Utils.T__'215'__436

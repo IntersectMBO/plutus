@@ -36,8 +36,9 @@ import Builtin.Constant.Type as Syn
 We mutually define normal forms and neutral terms. It is guaranteed
 that no further beta reductions are possible. Neutral terms can be
 variables, neutral applications (where the term in the function
-position cannot be a lambda), or recursive types. Normal forms can be
-pi types, function types, lambdas or neutral terms.
+position cannot be a lambda), or type constants. Normal forms can be
+pi types, function types, lambdas, neutral terms, type constants,
+recursive types or SOPs.
 
 ```
 data _⊢Nf⋆_ : Ctx⋆ → Kind → Set

@@ -242,6 +242,8 @@ instance
   HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResult }
   HsEqDATA : HsEq U.DATA
   HsEqDATA = record { hsEq = U.eqDATA }
+  HsEqValue : HsEq U.Value
+  HsEqValue = record { hsEq = U.eqValue }
 
 HsEq-⟦_⟧tag : (t : TyTag) → HsEq ⟦ t ⟧tag
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = fromDec
@@ -250,6 +252,7 @@ HsEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = HsEqDATA
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = HsEqValue
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = HsEqBlsG1
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = HsEqBlsG2
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = HsEqBlsMlResult
@@ -306,6 +309,7 @@ decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._�
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = builtinEq

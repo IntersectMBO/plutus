@@ -402,6 +402,34 @@ eqBls12-381-MlResult _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-MlResult = (==) #-}
 ```
 
+## Value
+
+The Value type is postulated, but should be denoted as nested maps. This is only
+possible if all the associated built-in functions are implemented in Agda too.
+
+```
+
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1872)
+
+postulate Value : Set
+{-# FOREIGN GHC import qualified PlutusCore.Value as V #-}
+{-# COMPILE GHC Value = type V.Value #-}
+
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqValue : Value → Value → Bool
+eqValue _ _ = Bool.true
+{-# COMPILE GHC eqValue = (==) #-}
+
+
+-- This is a temporary helper for agdaUnparse so it can print Value literals
+-- (which have no representation in Agda yet). An actual Value should have only
+-- quantities between -2^127 ... 2^127-1, but we assume only valid quantities
+-- can be agdaUnparsed.
+postulate valueFromList : List (ByteString × List (ByteString × ℤ)) → Value
+
+```
+
 ## Kinds
 
 The kind of types is `*`. Plutus core core is based on System Fω which
