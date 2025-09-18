@@ -1088,9 +1088,22 @@ insertCoin (BuiltinByteString c) (BuiltinByteString t) amt (BuiltinValue v) =
   BuiltinValue $ Value.insertCoin c t amt v
 {-# OPAQUE insertCoin #-}
 
+lookupCoin
+  :: BuiltinByteString
+  -> BuiltinByteString
+  -> BuiltinValue
+  -> Integer
+lookupCoin (BuiltinByteString c) (BuiltinByteString t) (BuiltinValue v) =
+  Value.lookupCoin c t v
+{-# OPAQUE lookupCoin #-}
+
 unionValue :: BuiltinValue -> BuiltinValue -> BuiltinValue
 unionValue (BuiltinValue v1) (BuiltinValue v2) = BuiltinValue $ Value.unionValue v1 v2
 {-# OPAQUE unionValue #-}
+
+valueContains :: BuiltinValue -> BuiltinValue -> Bool
+valueContains (BuiltinValue v1) (BuiltinValue v2) = Value.valueContains v1 v2
+{-# OPAQUE valueContains #-}
 
 mkValue :: BuiltinValue -> BuiltinData
 mkValue (BuiltinValue v) = BuiltinData $ Value.valueData v

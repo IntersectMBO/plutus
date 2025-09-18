@@ -294,7 +294,9 @@ builtinNames =
   , 'Builtins.expModInteger
   , ''Builtins.BuiltinValue
   , 'Builtins.insertCoin
+  , 'Builtins.lookupCoin
   , 'Builtins.unionValue
+  , 'Builtins.valueContains
   , 'Builtins.mkValue
   , 'Builtins.unsafeDataAsValue
   ]
@@ -726,7 +728,9 @@ defineBuiltinTerms = do
           PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
           -- Value
           PLC.InsertCoin -> defineBuiltinInl 'Builtins.insertCoin
+          PLC.LookupCoin -> defineBuiltinInl 'Builtins.lookupCoin
           PLC.UnionValue -> defineBuiltinInl 'Builtins.unionValue
+          PLC.ValueContains -> defineBuiltinInl 'Builtins.valueContains
           PLC.ValueData -> defineBuiltinInl 'Builtins.mkValue
           PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
 

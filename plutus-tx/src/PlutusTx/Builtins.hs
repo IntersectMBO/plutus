@@ -160,7 +160,9 @@ module PlutusTx.Builtins (
 
   -- * Value
   BI.insertCoin,
+  BI.lookupCoin,
   BI.unionValue,
+  BI.valueContains,
   BI.mkValue,
   BI.unsafeDataAsValue,
 ) where

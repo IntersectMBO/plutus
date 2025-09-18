@@ -191,7 +191,9 @@ data DefaultFun
     | Bls12_381_G2_multiScalarMul
     -- Values
     | InsertCoin
+    | LookupCoin
     | UnionValue
+    | ValueContains
     | ValueData
     | UnValueData
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
@@ -2052,12 +2054,28 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             insertCoinDenotation
             (runCostingFunFourArguments . unimplementedCostingFun)
 
+    toBuiltinMeaning _semvar LookupCoin =
+      let lookupCoinDenotation :: ByteString -> ByteString -> Value -> Integer
+          lookupCoinDenotation = Value.lookupCoin
+          {-# INLINE lookupCoinDenotation #-}
+       in makeBuiltinMeaning
+            lookupCoinDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar UnionValue =
       let unionValueDenotation :: Value -> Value -> Value
           unionValueDenotation = Value.unionValue
           {-# INLINE unionValueDenotation #-}
        in makeBuiltinMeaning
             unionValueDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ValueContains =
+      let valueContainsDenotation :: Value -> Value -> Bool
+          valueContainsDenotation = Value.valueContains
+          {-# INLINE valueContainsDenotation #-}
+       in makeBuiltinMeaning
+            valueContainsDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ValueData =
@@ -2228,9 +2246,9 @@ instance Flat DefaultFun where
               Bls12_381_G2_multiScalarMul     -> 93
 
               InsertCoin                      -> 94
-              -- LookupCoin -> 95
+              LookupCoin                      -> 95
               UnionValue                      -> 96
-              -- ValueContains -> 97
+              ValueContains                   -> 97
               ValueData                       -> 98
               UnValueData                     -> 99
 
@@ -2330,7 +2348,9 @@ instance Flat DefaultFun where
               go 92 = pure Bls12_381_G1_multiScalarMul
               go 93 = pure Bls12_381_G2_multiScalarMul
               go 94 = pure InsertCoin
+              go 95 = pure LookupCoin
               go 96 = pure UnionValue
+              go 97 = pure ValueContains
               go 98 = pure ValueData
               go 99 = pure UnValueData
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
