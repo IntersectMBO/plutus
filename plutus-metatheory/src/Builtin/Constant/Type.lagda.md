@@ -36,4 +36,5 @@ data TyCon : Kind → Set where
   list       : TyCon (♯ ⇒ ♯)
   array       : TyCon (♯ ⇒ ♯)
   pair       : TyCon (♯ ⇒ (♯ ⇒ ♯))
+  value       : TyCon ♯
 ```
