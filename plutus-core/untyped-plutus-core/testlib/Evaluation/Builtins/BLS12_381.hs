@@ -17,6 +17,7 @@ import Evaluation.Builtins.Common (PlcTerm, TypeErrorOrCekResult (..), bytestrin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
+import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin)
 import UntypedPlutusCore qualified as UPLC
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 (scalarPeriod)
@@ -38,6 +39,7 @@ mkTestName s = printf "%s_%s" (groupName @g) s
 
 withNTests :: Testable prop => prop -> Property
 withNTests = withMaxSuccess 200
+
 
 -- QuickCheck generators for scalars and group elements as PLC terms
 
@@ -61,7 +63,7 @@ arbitraryConstant =
 arbitraryScalar :: Gen PlcTerm
 arbitraryScalar =
   integer <$>
-  frequency [ (1, arbitrary @Integer)
+  frequency [ (1, arbitraryBuiltin @Integer)
             , (4, choose (-b, b))]
   where b = (2::Integer)^(10000::Integer)
 
@@ -275,7 +277,7 @@ test_multiScalarMul_correct =
          mkMulAdd acc (s, x) = addTerm @g acc (scalarMulTerm @g s x)
          scalarTerms = fmap (mkConstant ()) scalars
          pointTerms  = fmap (mkConstant ()) points
-         e2 = foldl mkMulAdd (zeroTerm @g) (zip scalarTerms pointTerms)
+         e2 = List.foldl' mkMulAdd (zeroTerm @g) (zip scalarTerms pointTerms)
          -- ^ Remember that zip truncates the longer list and `multiScalarMul`
          -- is supposed to disregard extra elements if the inputs have different
          -- lengths.
