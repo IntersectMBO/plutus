@@ -937,6 +937,7 @@ executable cost-model-budgeting-bench
     Benchmarks.Strings
     Benchmarks.Tracing
     Benchmarks.Unit
+    Benchmarks.Values
     Common
     CriterionExtensions
     Generators
