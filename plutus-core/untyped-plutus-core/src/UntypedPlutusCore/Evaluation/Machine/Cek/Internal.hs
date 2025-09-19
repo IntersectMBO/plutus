@@ -714,7 +714,7 @@ data Context uni fun ann
     | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
     | FrameAwaitLetBinds !(CekValEnv uni fun ann) !(NTerm uni fun ann) ![NTerm uni fun ann] ![CekValue uni fun ann] !(Context uni fun ann)
-    | FrameMine ![CekValue uni fun ann] !(Context uni fun ann)
+    | FrameAwaitLet ![CekValue uni fun ann] !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -892,9 +892,10 @@ enterComputeCek = computeCek
         SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
         SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-    returnCek (FrameMine args ctx) l =
+    returnCek (FrameAwaitLet args ctx) l =
       case l of
-        VLet _ body env -> computeCek ctx (foldr Env.cons env args) body
+        VLet names body env
+          | length names == length args -> computeCek ctx (foldr Env.cons env args) body
         _               -> error "no"
 
     returnCek (FrameAwaitFunValueN args ctx) fun =
@@ -938,7 +939,7 @@ enterComputeCek = computeCek
     returnCek (FrameAwaitLetBinds env l todo done ctx) e =
       case todo of
         (next : todo') -> computeCek (FrameAwaitLetBinds env l todo' (e : done) ctx) env next
-        []             -> computeCek (FrameMine (e : done) ctx) env l
+        []             -> computeCek (FrameAwaitLet (e : done) ctx) env l
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
