@@ -54,13 +54,16 @@ data Value
       Invariants: no empty inner map, and no zero amount.
       -}
       !(IntMap Int)
-      {- ^ Map from size to the number of inner maps that have that size,
-      useful for efficient retrieval of the size of the largest inner map.
+      {- ^ Map from size to the number of inner maps that have that size.
+      This allows efficient retrieval of the size of the largest inner map,
+      which is useful for costing of operations like `lookupCoin`.
 
       Invariant: all values are positive.
       -}
       {-# UNPACK #-} !Int
-      -- ^ Total size, i.e., sum total of inner map sizes
+      {-^ Total size, i.e., sum total of inner map sizes. This avoids recomputing
+      the total size during the costing of operations like `unionValue`.
+      -}
   deriving stock (Eq, Show, Generic)
   deriving anyclass (Hashable, Serialise, NFData)
 
