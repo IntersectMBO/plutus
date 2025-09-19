@@ -7,7 +7,7 @@ module Value.Spec (tests) where
 import Data.Foldable qualified as F
 import Data.Map.Strict qualified as Map
 import Data.Maybe
-import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin, genShortHex)
+import PlutusCore.Generators.QuickCheck.Builtin (ValueAmount (..), genShortHex)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as V
 import Safe.Foldable (maximumMay)
@@ -15,84 +15,79 @@ import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-prop_packUnpackRoundtrip :: Property
-prop_packUnpackRoundtrip = forAll arbitrary $ \v ->
-  v === V.pack (V.unpack v)
+prop_packUnpackRoundtrip :: Value -> Property
+prop_packUnpackRoundtrip v = v === V.pack (V.unpack v)
 
 -- | Verifies that @pack@ correctly updates the sizes
-prop_packBookkeeping :: Property
-prop_packBookkeeping = forAll arbitrary $ \nm ->
-  checkSizes (V.pack nm)
+prop_packBookkeeping :: V.NestedMap -> Property
+prop_packBookkeeping = checkSizes . V.pack
 
 {-| Verifies that @pack@ preserves @Value@ invariants, i.e.,
 no empty inner map or zero amount.
 -}
-prop_packPreservesInvariants :: Property
-prop_packPreservesInvariants = forAll arbitrary $ \nm ->
-  checkInvariants (V.pack nm)
+prop_packPreservesInvariants :: V.NestedMap -> Property
+prop_packPreservesInvariants = checkInvariants . V.pack
 
 -- | Verifies that @insertCoin@ correctly updates the sizes
-prop_insertCoinBookkeeping :: Property
-prop_insertCoinBookkeeping = forAll arbitrary $ \v ->
+prop_insertCoinBookkeeping :: Value -> ValueAmount -> Property
+prop_insertCoinBookkeeping v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      forAll arbitraryBuiltin $ \amt ->
-        let v' = V.insertCoin currency token amt v
-         in checkSizes v'
+      let v' = V.insertCoin currency token amt v
+       in checkSizes v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
-prop_insertCoinPreservesInvariants :: Property
-prop_insertCoinPreservesInvariants = forAll arbitrary $ \v ->
+prop_insertCoinPreservesInvariants :: Value -> ValueAmount -> Property
+prop_insertCoinPreservesInvariants v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      forAll arbitraryBuiltin $ \amt ->
-        let v' = V.insertCoin currency token amt v
-         in checkInvariants v'
+      let v' = V.insertCoin currency token amt v
+       in checkInvariants v'
 
-prop_unionCommutative :: Property
-prop_unionCommutative = forAll arbitrary $ \(v, v') ->
-  V.unionValue v v' === V.unionValue v' v
+prop_unionCommutative :: Value -> Value -> Property
+prop_unionCommutative v v' = V.unionValue v v' === V.unionValue v' v
 
-prop_unionAssociative :: Property
-prop_unionAssociative = forAll arbitrary $ \(v1, v2, v3) ->
+prop_unionAssociative :: Value -> Value -> Value -> Property
+prop_unionAssociative v1 v2 v3 =
   V.unionValue v1 (V.unionValue v2 v3) === V.unionValue (V.unionValue v1 v2) v3
 
-prop_insertCoinIdempotent :: Property
-prop_insertCoinIdempotent = forAll arbitrary $ \v ->
-  let fm = V.toFlatList v
-   in v === F.foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
+prop_insertCoinIdempotent :: Value -> Property
+prop_insertCoinIdempotent v = v === F.foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
+ where
+  fm = V.toFlatList v
 
-prop_lookupAfterInsertion :: Property
-prop_lookupAfterInsertion = forAll arbitrary $ \v ->
+prop_lookupAfterInsertion :: Value -> ValueAmount -> Property
+prop_lookupAfterInsertion v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      forAll arbitraryBuiltin $ \amt ->
-        let v' = V.insertCoin currency token amt v
-         in V.lookupCoin currency token v' === amt
+      let v' = V.insertCoin currency token amt v
+       in V.lookupCoin currency token v' === amt
 
-prop_lookupAfterDeletion :: Property
-prop_lookupAfterDeletion = forAll arbitrary $ \v ->
+prop_lookupAfterDeletion :: Value -> Property
+prop_lookupAfterDeletion v =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
       let v' = V.deleteCoin currency token v
        in V.lookupCoin currency token v' === 0
 
-prop_deleteCoinIdempotent :: Property
-prop_deleteCoinIdempotent = forAll (arbitrary `suchThat` (\v -> V.totalSize v > 0)) $ \v ->
-  let fl = V.toFlatList v
-   in forAll (elements fl) $ \(c, t, _) ->
-        let v' = V.deleteCoin c t v
-         in v' === V.deleteCoin c t v'
+prop_deleteCoinIdempotent :: Value -> Property
+prop_deleteCoinIdempotent v0 =
+  forAll (elements fl) $ \(c, t, _) ->
+    let v' = V.deleteCoin c t v
+     in v' === V.deleteCoin c t v'
+ where
+  v = if V.totalSize v0 > 0 then v0 else V.insertCoin "c" "t" 1 v0
+  fl = V.toFlatList v
 
-prop_containsReflexive :: Property
-prop_containsReflexive = forAll arbitrary $ \v ->
-  property $ V.valueContains v v
+prop_containsReflexive :: Value -> Property
+prop_containsReflexive v = property $ V.valueContains v v
 
-prop_containsAfterDeletion :: Property
-prop_containsAfterDeletion = forAll arbitrary $ \v ->
-  let fl = V.toFlatList v
-      vs = scanr (\(c, t, _) -> V.deleteCoin c t) v fl
-   in conjoin [property (V.valueContains v v') | v' <- vs]
+prop_containsAfterDeletion :: Value -> Property
+prop_containsAfterDeletion v =
+  conjoin [property (V.valueContains v v') | v' <- vs]
+ where
+  fl = V.toFlatList v
+  vs = scanr (\(c, t, _) -> V.deleteCoin c t) v fl
 
 checkSizes :: Value -> Property
 checkSizes v =
