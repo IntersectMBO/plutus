@@ -1,12 +1,13 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Evaluation.Builtins.BLS12_381.TestClasses
 where
 
-import Evaluation.Builtins.Common (PlcTerm, bytestring, mkApp1, mkApp2)
+import Evaluation.Builtins.Common (PlcTerm, mkApp1, mkApp2)
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
@@ -14,8 +15,8 @@ import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Builtin (ArbitraryBuiltin)
 import PlutusCore.MkPlc (mkConstant)
 
-import Data.ByteString as BS (ByteString, empty, pack)
-import Test.QuickCheck (Arbitrary (..))
+import Data.ByteString as BS (ByteString, empty)
+import Test.QuickCheck (Arbitrary (..), Gen, frequency, suchThat)
 
 ---------------- Typeclasses for groups ----------------
 
@@ -29,13 +30,20 @@ import Test.QuickCheck (Arbitrary (..))
 class (Eq a, Show a, Arbitrary a, ArbitraryBuiltin a, DefaultUni `Contains` a) => TestableAbelianGroup a
     where
       groupName          :: String
-      zeroTerm           :: PlcTerm
+      zero               :: a
       addTerm            :: PlcTerm -> PlcTerm -> PlcTerm
       negTerm            :: PlcTerm -> PlcTerm
       scalarMulTerm      :: PlcTerm -> PlcTerm -> PlcTerm
       multiScalarMulTerm :: PlcTerm -> PlcTerm -> PlcTerm
       eqTerm             :: PlcTerm -> PlcTerm -> PlcTerm
-      toTerm             :: a -> PlcTerm
+
+zeroTerm :: forall g. TestableAbelianGroup g => PlcTerm
+zeroTerm = mkConstant () $ zero @g
+
+-- An arbitrary nonzero group element.  For the BLS12-381 groups it's highly
+-- unlikely that we'll get the zero element, but let's make sure.
+arbitraryNonZero :: forall g. TestableAbelianGroup g => Gen g
+arbitraryNonZero = (arbitrary @g) `suchThat` ((/=) (zero @g))
 
 class TestableAbelianGroup a => HashAndCompress a
     where
@@ -45,6 +53,7 @@ class TestableAbelianGroup a => HashAndCompress a
       uncompressTerm  :: PlcTerm -> PlcTerm
       hashToGroupTerm :: PlcTerm -> PlcTerm -> PlcTerm
 
+---------- Instances for G1 ----------
 
 {- | Generate an arbitrary element of G1.  It's tricky to construct such an
  element directly without using quite low-level operations on the curve
@@ -53,21 +62,23 @@ class TestableAbelianGroup a => HashAndCompress a
  so we can produce random elements of G1 by hashing random bytestrings. -}
 instance Arbitrary G1.Element
     where
-      arbitrary =
-          G1.hashToGroup <$> arbitrary <*> pure BS.empty >>= \case
-            Left err -> error $ "Arbitrary instance for G1.Element:" ++ show err
-            Right p  -> pure p
+      arbitrary = frequency [ (9, arbitraryElement)
+                            , (1, pure $ G1.offchain_zero)
+                            ]
+        where arbitraryElement =
+                G1.hashToGroup <$> arbitrary <*> pure BS.empty >>= \case
+                Left err -> error $ "Arbitrary instance for G1.Element:" ++ show err
+                Right p  -> pure p
 
 instance TestableAbelianGroup G1.Element
     where
       groupName          = "G1"
-      zeroTerm           = mkApp1 Bls12_381_G1_uncompress $ bytestring $ pack (0xc0 : replicate 47 0x00)
+      zero               = G1.offchain_zero
       addTerm            = mkApp2 Bls12_381_G1_add
       negTerm            = mkApp1 Bls12_381_G1_neg
       scalarMulTerm      = mkApp2 Bls12_381_G1_scalarMul
       multiScalarMulTerm = mkApp2 Bls12_381_G1_multiScalarMul
       eqTerm             = mkApp2 Bls12_381_G1_equal
-      toTerm             = mkConstant ()
 
 instance HashAndCompress G1.Element
     where
@@ -77,24 +88,28 @@ instance HashAndCompress G1.Element
       uncompressTerm  = mkApp1 Bls12_381_G1_uncompress
       hashToGroupTerm = mkApp2 Bls12_381_G1_hashToGroup
 
+---------- Instances for G2 ----------
+
 -- | See the comment for the Arbitrary instance for G1.
 instance Arbitrary G2.Element
     where
-      arbitrary =
-        G2.hashToGroup <$> arbitrary <*> pure BS.empty >>= \case
-            Left err -> error $ "Arbitrary instance for G2.Element:" ++ show err
-            Right p  -> pure p
+      arbitrary = frequency [ (9, arbitraryElement)
+                            , (1, pure $ G2.offchain_zero)
+                            ]
+        where arbitraryElement =
+                G2.hashToGroup <$> arbitrary <*> pure BS.empty >>= \case
+                Left err -> error $ "Arbitrary instance for G2.Element:" ++ show err
+                Right p  -> pure p
 
 instance TestableAbelianGroup G2.Element
     where
       groupName          = "G2"
-      zeroTerm           = mkApp1 Bls12_381_G2_uncompress $ bytestring $ pack (0xc0 : replicate 95 0x00)
+      zero               = G2.offchain_zero
       addTerm            = mkApp2 Bls12_381_G2_add
       negTerm            = mkApp1 Bls12_381_G2_neg
       scalarMulTerm      = mkApp2 Bls12_381_G2_scalarMul
       multiScalarMulTerm = mkApp2 Bls12_381_G2_multiScalarMul
       eqTerm             = mkApp2 Bls12_381_G2_equal
-      toTerm             = mkConstant ()
 
 instance HashAndCompress G2.Element
     where
