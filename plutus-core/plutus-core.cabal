@@ -842,7 +842,6 @@ library plutus-core-testlib
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
-    , random
     , size-based
     , Stream
     , tagged
