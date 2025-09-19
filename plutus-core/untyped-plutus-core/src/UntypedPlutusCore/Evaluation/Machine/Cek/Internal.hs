@@ -894,7 +894,8 @@ enterComputeCek = computeCek
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
     returnCek (FrameMine args ctx) l =
       case l of
-        VLet _ body env -> computeCek ctx (foldr Env.cons env args) body
+        VLet names body env
+          | length names == length args -> computeCek ctx (foldr Env.cons env args) body
         _               -> error "no"
 
     returnCek (FrameAwaitFunValueN args ctx) fun =
