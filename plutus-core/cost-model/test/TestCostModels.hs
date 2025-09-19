@@ -387,6 +387,10 @@ main =
               , $(genTest 1 "listToArray")
               , $(genTest 2 "indexArray") Everywhere
 
+              -- Builtin Values
+              , $(genTest 3 "lookupCoin")
+              , $(genTest 2 "valueContains") Everywhere
+
               -- Data
               , $(genTest 6 "chooseData")
               , $(genTest 2 "constrData") Everywhere

@@ -152,6 +152,8 @@ arity <- function(name) {
         "LengthOfArray" = 1,
         "ListToArray" = 1,
         "IndexArray" = 2,
+        "LookupCoin" = 3,
+        "ValueContains" = 2,
         -1  ## Default for missing values
         )
 }
@@ -804,10 +806,27 @@ modelFun <- function(path) {
 
     dropListModel   <- linearInX     ("DropList")
 
-    ## Arrays 
+    ## Arrays
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
+
+    ## Values
+    ## LookupCoin is O(log n + log m) where n is outer map size, m is inner map size
+    ## Since we can't model logarithmic functions directly, we use linear approximation
+    ## which should be conservative (overestimates cost)
+    lookupCoinModel <- linearInZ ("LookupCoin")
+
+    ## ValueContains is O(n₂ × log max(m₁, k₁)) where n₂ is the total size of the second Value
+    ## We model this as linear in the sum of sizes, which is conservative
+    valueContainsModel <- {
+        fname <- "ValueContains"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers()
+        m <- lm(t ~ I(x_mem + y_mem), filtered)
+        mk.result(m, "added_sizes")
+    }
 
     ##### Models to be returned to Haskell #####
 
@@ -902,7 +921,9 @@ modelFun <- function(path) {
         dropListModel                        = dropListModel,
         lengthOfArrayModel                   = lengthOfArrayModel,
         listToArrayModel                     = listToArrayModel,
-        indexArrayModel                      = indexArrayModel
+        indexArrayModel                      = indexArrayModel,
+        lookupCoinModel                      = lookupCoinModel,
+        valueContainsModel                   = valueContainsModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
