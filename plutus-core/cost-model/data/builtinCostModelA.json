@@ -1205,5 +1205,31 @@
             "arguments": 4,
             "type": "constant_cost"
         }
+    },
+    "lookupCoin": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_in_z"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "valueContains": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "added_sizes"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
     }
 }

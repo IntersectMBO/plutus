@@ -355,6 +355,9 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramLengthOfArray                   = unitCostOneArgument
     , paramListToArray                     = unitCostOneArgument
     , paramIndexArray                      = unitCostTwoArguments
+    -- Builtin values
+    , paramLookupCoin                      = unitCostThreeArguments
+    , paramValueContains                   = unitCostTwoArguments
     }
 
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)

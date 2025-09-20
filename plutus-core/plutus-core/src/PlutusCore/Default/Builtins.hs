@@ -2060,7 +2060,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE lookupCoinDenotation #-}
        in makeBuiltinMeaning
             lookupCoinDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . paramLookupCoin)
 
     toBuiltinMeaning _semvar UnionValue =
       let unionValueDenotation :: Value -> Value -> Value
@@ -2076,7 +2076,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning
             valueContainsDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramValueContains)
 
     toBuiltinMeaning _semvar ValueData =
         let valueDataDenotation :: Value -> Data
