@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 
 module PlutusBenchmark.NaturalSort (naturalSort)
 where
