@@ -1,0 +1,630 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Parser.Builtin</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Parser.Builtin.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Parser.Builtin</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:cachedBuiltin"
+	      >cachedBuiltin</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinFunction"
+	      >builtinFunction</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conInteger"
+	      >conInteger</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:hexByte"
+	      >hexByte</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conBS"
+	      >conBS</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conText"
+	      >conText</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conUnit"
+	      >conUnit</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:conBool"
+	      >conBool</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conList"
+	      >conList</a
+	      > &#8759; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:conArray"
+	      >conArray</a
+	      > &#8759; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+	      >Vector</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:conPair"
+	      >conPair</a
+	      > &#8759; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > b) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (a, b)</li
+	    ><li class="src short"
+	    ><a href="#v:conDataNoParens"
+	      >conDataNoParens</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	      >Data</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conData"
+	      >conData</a
+	      > &#8759; <a href="PlutusCore-Parser-Builtin.html#t:ExpectParens" title="PlutusCore.Parser.Builtin"
+	      >ExpectParens</a
+	      > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	      >Data</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:con0xBS"
+	      >con0xBS</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conBLS12_381_G1_Element"
+	      >conBLS12_381_G1_Element</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+	      >Element</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:conBLS12_381_G2_Element"
+	      >conBLS12_381_G2_Element</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+	      >Element</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:constantOf"
+	      >constantOf</a
+	      > &#8759; <a href="PlutusCore-Parser-Builtin.html#t:ExpectParens" title="PlutusCore.Parser.Builtin"
+	      >ExpectParens</a
+	      > &#8594; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:constant"
+	      >constant</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >))</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ExpectParens"
+	      >ExpectParens</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:ExpectParensYes"
+		  >ExpectParensYes</a
+		  ></li
+		><li
+		>| <a href="#v:ExpectParensNo"
+		  >ExpectParensNo</a
+		  ></li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cachedBuiltin" class="def"
+	    >cachedBuiltin</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#cachedBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:cachedBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinFunction" class="def"
+	    >builtinFunction</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#builtinFunction" class="link"
+	    >Source</a
+	    > <a href="#v:builtinFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for builtin functions. Atm the parser can only parse <code
+	      ><a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		>DefaultFun</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conInteger" class="def"
+	    >conInteger</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conInteger" class="link"
+	    >Source</a
+	    > <a href="#v:conInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for integer constants.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:hexByte" class="def"
+	    >hexByte</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#hexByte" class="link"
+	    >Source</a
+	    > <a href="#v:hexByte" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for a pair of hex digits to a Word8.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conBS" class="def"
+	    >conBS</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conBS" class="link"
+	    >Source</a
+	    > <a href="#v:conBS" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for bytestring constants. They start with &quot;#&quot;.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conText" class="def"
+	    >conText</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conText" class="link"
+	    >Source</a
+	    > <a href="#v:conText" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for string constants (wrapped in double quotes).  Note that
+ Data.Text.pack &quot;performs replacement on invalid scalar values&quot;, which means
+ that Unicode surrogate code points (corresponding to integers in the range
+ 0xD800-0xDFFF) are converted to the Unicode replacement character U+FFFD
+ (decimal 65533).  Thus `(con string &quot;XxD800Z&quot;)` parses to a <code
+	      >Text</code
+	      > object
+ whose second character is U+FFFD.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conUnit" class="def"
+	    >conUnit</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > () <a href="src/PlutusCore.Parser.Builtin.html#conUnit" class="link"
+	    >Source</a
+	    > <a href="#v:conUnit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for unit.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conBool" class="def"
+	    >conBool</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conBool" class="link"
+	    >Source</a
+	    > <a href="#v:conBool" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for bool.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conList" class="def"
+	    >conList</a
+	    > &#8759; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > [a] <a href="src/PlutusCore.Parser.Builtin.html#conList" class="link"
+	    >Source</a
+	    > <a href="#v:conList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for lists.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conArray" class="def"
+	    >conArray</a
+	    > &#8759; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+	    >Vector</a
+	    > a) <a href="src/PlutusCore.Parser.Builtin.html#conArray" class="link"
+	    >Source</a
+	    > <a href="#v:conArray" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for arrays.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conPair" class="def"
+	    >conPair</a
+	    > &#8759; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > b) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (a, b) <a href="src/PlutusCore.Parser.Builtin.html#conPair" class="link"
+	    >Source</a
+	    > <a href="#v:conPair" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for pairs.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conDataNoParens" class="def"
+	    >conDataNoParens</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conDataNoParens" class="link"
+	    >Source</a
+	    > <a href="#v:conDataNoParens" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conData" class="def"
+	    >conData</a
+	    > &#8759; <a href="PlutusCore-Parser-Builtin.html#t:ExpectParens" title="PlutusCore.Parser.Builtin"
+	    >ExpectParens</a
+	    > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conData" class="link"
+	    >Source</a
+	    > <a href="#v:conData" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:con0xBS" class="def"
+	    >con0xBS</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#con0xBS" class="link"
+	    >Source</a
+	    > <a href="#v:con0xBS" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conBLS12_381_G1_Element" class="def"
+	    >conBLS12_381_G1_Element</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+	    >Element</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conBLS12_381_G1_Element" class="link"
+	    >Source</a
+	    > <a href="#v:conBLS12_381_G1_Element" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conBLS12_381_G2_Element" class="def"
+	    >conBLS12_381_G2_Element</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+	    >Element</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#conBLS12_381_G2_Element" class="link"
+	    >Source</a
+	    > <a href="#v:conBLS12_381_G2_Element" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:constantOf" class="def"
+	    >constantOf</a
+	    > &#8759; <a href="PlutusCore-Parser-Builtin.html#t:ExpectParens" title="PlutusCore.Parser.Builtin"
+	    >ExpectParens</a
+	    > &#8594; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.Builtin.html#constantOf" class="link"
+	    >Source</a
+	    > <a href="#v:constantOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for constants of the given type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:constant" class="def"
+	    >constant</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >)) <a href="src/PlutusCore.Parser.Builtin.html#constant" class="link"
+	    >Source</a
+	    > <a href="#v:constant" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser of constants whose type is in <code
+	      ><a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		>DefaultUni</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ExpectParens" class="def"
+	    >ExpectParens</a
+	    > <a href="src/PlutusCore.Parser.Builtin.html#ExpectParens" class="link"
+	    >Source</a
+	    > <a href="#t:ExpectParens" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ExpectParensYes" class="def"
+		  >ExpectParensYes</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExpectParensNo" class="def"
+		  >ExpectParensNo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
