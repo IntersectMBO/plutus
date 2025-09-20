@@ -596,6 +596,14 @@ BUILTIN dropList = λ
   { (app (app (app⋆ base) (V-con integer n)) (V-con (list t) l)) → inj₂ (V-con (list t) (dropLIST n l))
   ; _ -> inj₁ userError
   }
+BUILTIN bls12-381-G1-multiScalarMul = λ
+  { (app (app base (V-con (list integer) is)) (V-con (list bls12-381-g1-element) es)) -> inj₂ (V-con bls12-381-g1-element (BLS12-381-G1-multiScalarMul (toList is) (toList es)))
+  ;  _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-multiScalarMul = λ
+  { (app (app base (V-con (list integer) is)) (V-con (list bls12-381-g2-element) es)) -> inj₂ (V-con bls12-381-g2-element (BLS12-381-G2-multiScalarMul (toList is) (toList es)))
+  ;  _ -> inj₁ userError
+  }
 
 -- Take an apparently more general index and show that it is a fully applied builtin.
 mkFullyAppliedBuiltin : ∀ { b }

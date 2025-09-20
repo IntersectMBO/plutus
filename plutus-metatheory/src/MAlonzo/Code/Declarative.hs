@@ -124,7 +124,7 @@ d_btype_42 v0 v1
          (\ v2 v3 -> coe MAlonzo.Code.Type.C_con_36 v3)
          (\ v2 v3 v4 -> coe MAlonzo.Code.Type.C__'8658'__26 v3 v4)
          (\ v2 v3 v4 -> coe MAlonzo.Code.Type.C_Π_24 v3 v4)
-         (coe MAlonzo.Code.Builtin.d_signature_294 (coe v1)))
+         (coe MAlonzo.Code.Builtin.d_signature_298 (coe v1)))
 -- Declarative.btype-ren
 d_btype'45'ren_50 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
