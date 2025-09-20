@@ -154,7 +154,7 @@ import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isPure, isWorkFree)
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (ForceDelay), SimplifierT,
-                                               recordSimplification)
+                                               initSimplifierTerm, recordSimplification)
 
 import Control.Lens (transformOf)
 import Control.Monad (guard)
@@ -170,7 +170,10 @@ forceDelay
     -> SimplifierT name uni fun a m (Term name uni fun a)
 forceDelay semVar term = do
     let result = transformOf termSubterms (processTerm semVar) term
-    recordSimplification term ForceDelay result
+    recordSimplification
+        (initSimplifierTerm term)
+        ForceDelay
+        (initSimplifierTerm result)
     return result
 
 {- | Checks whether the term is of the right form, and "pushes"
