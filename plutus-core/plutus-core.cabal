@@ -803,7 +803,6 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.Substitutions
     PlutusCore.Generators.QuickCheck.Unification
     PlutusCore.Generators.QuickCheck.Utils
-    PlutusCore.Generators.QuickCheck.Value
     PlutusCore.Test
     PlutusIR.Generators.AST
     PlutusIR.Generators.QuickCheck
@@ -843,7 +842,6 @@ library plutus-core-testlib
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
-    , random
     , size-based
     , Stream
     , tagged
@@ -1150,8 +1148,8 @@ test-suite index-envs-test
 ----------------------------------------------
 
 library flat
-  import:           lang 
-  visibility:       public 
+  import:           lang
+  visibility:       public
   hs-source-dirs:   flat/src
   default-language: Haskell2010
   exposed-modules:
@@ -1216,7 +1214,7 @@ library flat
     , vector
 
 test-suite flat-test
-  import:           lang 
+  import:           lang
   type:             exitcode-stdio-1.0
   hs-source-dirs:   flat/test
   default-language: Haskell2010
@@ -1256,7 +1254,7 @@ test-suite flat-test
 
 -- Test for Flat.AsBin Flat.AsSize and listTDecoder
 test-suite flat-big-test
-  import:           lang 
+  import:           lang
   type:             exitcode-stdio-1.0
   hs-source-dirs:   flat/test
   main-is:          Big.hs

@@ -836,3 +836,18 @@ test-suite cardano-loans-test
     , plutus-core:plutus-core-testlib  ^>=1.53
     , plutus-tx:plutus-tx-testlib
     , tasty
+
+benchmark flat-decode
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: flat-decode/bench
+  build-depends:
+    , base               >=4.9 && <5
+    , bytestring
+    , criterion
+    , deepseq
+    , flat
+    , plutus-core
+    , plutus-ledger-api
+    , vector

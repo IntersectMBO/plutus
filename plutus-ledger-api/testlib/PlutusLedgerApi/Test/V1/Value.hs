@@ -8,8 +8,8 @@ import PlutusLedgerApi.V1
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.List qualified as ListTx
 
+import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Utils (multiSplit0)
-import PlutusCore.Generators.QuickCheck.Value
 import PlutusCore.Value qualified as PLC
 
 import Data.Bifunctor

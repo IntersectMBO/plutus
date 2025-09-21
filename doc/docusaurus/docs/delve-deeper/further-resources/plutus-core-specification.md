@@ -2,11 +2,9 @@
 sidebar_position: 10
 ---
 
-# Formal Specification
+# Plutus Core Specification
 
-## Plutus Core Language Specification
-
-The formal specification of the Plutus Core language provides a comprehensive mathematical foundation for understanding the semantics and behavior of Plutus smart contracts.
+The formal specification provides a comprehensive mathematical foundation for understanding the semantics and behavior of Plutus smart contracts.
 
 📄 **[Formal Specification of the Plutus Core Language](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf)**
 
@@ -25,4 +23,3 @@ The formal specification serves as the authoritative reference for:
 - Researchers studying the theoretical properties of the language
 - Developers seeking deep understanding of script execution mechanics
 - Auditors verifying the correctness of smart contract implementations
-

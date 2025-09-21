@@ -262,8 +262,8 @@ typeMismatchError uniExp uniAct =
 -- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
 -- make 'ReadKnownM' a type synonym for convenience: that way we don't need to derive all the
 -- instances (and add new ones whenever we need them), wrap and unwrap all the time (including in
--- user code), which can be non-trivial for such performance-sensitive code (see e.g. 'coerceVia'
--- and 'coerceArg') and there is no abstraction barrier anyway.
+-- user code), which can be non-trivial for such performance-sensitive code (see e.g. '(#.)' and
+-- 'coerceArg') and there is no abstraction barrier anyway.
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either BuiltinError
 
@@ -425,7 +425,7 @@ instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
-    readKnown = coerceVia (fmap SomeConstant .) asConstant
+    readKnown = fmap SomeConstant #. asConstant
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where

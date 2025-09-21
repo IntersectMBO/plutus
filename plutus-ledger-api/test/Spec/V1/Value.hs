@@ -1,7 +1,7 @@
 module Spec.V1.Value where
 
 import PlutusCore.Builtin (BuiltinResult (..))
-import PlutusCore.Generators.QuickCheck.Value
+import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Value qualified as PLC
 import PlutusLedgerApi.Test.V1.Value as Value
 import PlutusLedgerApi.V1
