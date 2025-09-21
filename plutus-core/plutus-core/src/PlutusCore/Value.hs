@@ -88,16 +88,16 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' (normalize -> v) = Value v sizes lens size
+pack' v = Value v sizes lens size
  where
   (sizes, lens, size) = Map.foldrWithKey' alg (mempty, mempty, 0) v
   alg currency inner (ss, ls, s) =
-    ( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss
+    ( incCount (Map.size inner) ss
     , IntMap.unionWith
         (+)
-        (IntMap.alter (maybe (Just 1) (Just . (+ 1))) (B.length currency) ls)
+        (incCount (B.length currency) ls)
         ( Map.foldrWithKey'
-            (\token _ -> IntMap.alter (maybe (Just 1) (Just . (+ 1))) (B.length token))
+            (\token _ -> incCount (B.length token))
             mempty
             inner
         )
@@ -159,7 +159,8 @@ insertCoin currency token amt v@(Value outer sizes lens size)
           (sizes', lens', size') = case r of
             Just (old, currencyInserted) ->
               ( updateSizes old (old + 1) sizes
-              , (if currencyInserted then incLen (B.length currency) else id) (incLen (B.length token) lens)
+              , (if currencyInserted then incCount (B.length currency) else id)
+                  (incCount (B.length token) lens)
               , size + 1
               )
             Nothing -> (sizes, lens, size)
@@ -304,16 +305,17 @@ updateSizes old new = dec . inc
   inc =
     if new == 0
       then id
-      else IntMap.alter (maybe (Just 1) (Just . (+ 1))) new
+      else incCount new
   dec =
     if old == 0
       then id
       else IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1)) old
 {-# INLINEABLE updateSizes #-}
 
-incLen :: Int -> IntMap Int -> IntMap Int
-incLen = IntMap.alter (maybe (Just 1) (Just . (+ 1)))
-{-# INLINEABLE incLen #-}
+-- | Increment the count at the given key.
+incCount :: Int -> IntMap Int -> IntMap Int
+incCount = IntMap.alter (maybe (Just 1) (Just . (+ 1)))
+{-# INLINEABLE incCount #-}
 
 decLen :: Int -> IntMap Int -> IntMap Int
 decLen = IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1))
