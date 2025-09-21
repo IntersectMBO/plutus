@@ -6,9 +6,7 @@ sidebar_position: 35
 
 This page contains video resources related to Plutus and smart contract development on Cardano.
 
-## Featured Videos
-
-### Functional Smart Contracts on Cardano
+## Functional Smart Contracts on Cardano
 
 A presentation by Manuel MT Chakravarty, Simon Thompson, and Philip Wadler about functional smart contracts on Cardano.
 
