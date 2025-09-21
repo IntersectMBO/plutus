@@ -4,6 +4,7 @@
 
 module Value.Spec (tests) where
 
+import Data.ByteString qualified as B
 import Data.Foldable qualified as F
 import Data.Map.Strict qualified as Map
 import Data.Maybe
@@ -20,7 +21,8 @@ prop_packUnpackRoundtrip v = v === V.pack (V.unpack v)
 
 -- | Verifies that @pack@ correctly updates the sizes
 prop_packBookkeeping :: V.NestedMap -> Property
-prop_packBookkeeping = checkSizes . V.pack
+prop_packBookkeeping = checkBookKeeping . V.pack
+
 
 {-| Verifies that @pack@ preserves @Value@ invariants, i.e.,
 no empty inner map or zero amount.
@@ -34,7 +36,7 @@ prop_insertCoinBookkeeping v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
       let v' = V.insertCoin currency token amt v
-       in checkSizes v'
+       in checkBookKeeping v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
 prop_insertCoinPreservesInvariants :: Value -> ValueAmount -> Property
@@ -89,15 +91,25 @@ prop_containsAfterDeletion v =
   fl = V.toFlatList v
   vs = scanr (\(c, t, _) -> V.deleteCoin c t) v fl
 
-checkSizes :: Value -> Property
-checkSizes v =
+checkBookKeeping :: Value -> Property
+checkBookKeeping v =
   (expectedMaxInnerSize === actualMaxInnerSize)
     .&&. (expectedSize === actualSize)
+    .&&. (expectedMaxKeyLength === actualMaxKeyLength)
  where
   expectedMaxInnerSize = fromMaybe 0 . maximumMay $ Map.map Map.size (V.unpack v)
   actualMaxInnerSize = V.maxInnerSize v
   expectedSize = sum $ Map.map Map.size (V.unpack v)
   actualSize = V.totalSize v
+  expectedMaxKeyLength =
+    let maxOuter =
+          fromMaybe 0 . maximumMay $
+            [B.length k | k <- Map.keys (V.unpack v)]
+        maxInner =
+          fromMaybe 0 . maximumMay $
+            [B.length k | inner <- Map.elems (V.unpack v), k <- Map.keys inner]
+     in max maxOuter maxInner
+  actualMaxKeyLength = V.maxKeyLength v
 
 checkInvariants :: Value -> Property
 checkInvariants (V.unpack -> v) =
