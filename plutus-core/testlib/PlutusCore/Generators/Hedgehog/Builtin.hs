@@ -85,6 +85,7 @@ instance GenArbitraryTerm DefaultUni where
 
 data SomeGen uni = forall a. uni `HasTermLevel` a => SomeGen (Gen a)
 
+
 genArbitraryBuiltin
     :: forall a. (ArbitraryBuiltin a, DefaultUni `HasTermLevel` a) => SomeGen DefaultUni
 genArbitraryBuiltin = SomeGen $ unAsArbitraryBuiltin <$> arbitrary @(AsArbitraryBuiltin a)
