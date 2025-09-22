@@ -1,6 +1,6 @@
 -- Multi-scalar multiplication is itertated multiply-and-add, invariant under permutation and association.
 -- msm [n1,n2,n3,n4,n5,n6] [p1,p2,p3,p4,p5,p6] = n4*p4+((n3*p3+n1*p1)+(n6*p6+(n2*p2+n5*p5)))
--- No infinite points in input.
+-- No infinite points in the input.
 (program 1.0.0
  [(builtin bls12_381_G2_equal)
   [(builtin bls12_381_G2_multiScalarMul)
