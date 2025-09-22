@@ -5,3 +5,4 @@ speakers:
 categories:
   - Talk
 ---
+Making imperative thinking run efficiently on a functional runtime: tooling for high-performance Plutus.
