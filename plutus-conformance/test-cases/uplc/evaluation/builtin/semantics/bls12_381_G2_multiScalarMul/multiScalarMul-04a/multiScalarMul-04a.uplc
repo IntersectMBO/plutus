@@ -24,7 +24,7 @@
   ]
   [(builtin bls12_381_G2_add)
    [(builtin bls12_381_G2_scalarMul) -- n4*p4
-    (con integer -7) 
+    (con integer -7)
     (con bls12_381_G2_element 0xae3599a81b41ef63eeeb16e167148350d8f80cba79b3bc46ad165a78b56b9fa156a53567ec2dad87278a53f7042a0983044ef32094dab679b26a6a4fb6a34dd54f26a0d89b1881e3c49158b12d6328c3a875bfe72636229abe52bf910ec6315b)
    ]
    [(builtin bls12_381_G2_add)
