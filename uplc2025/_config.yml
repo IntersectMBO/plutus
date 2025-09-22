@@ -1,0 +1,135 @@
+title: UPLC (UPLC Programming Language Conference) 2025
+preposition: at
+description: >-
+  Conference of a random organization on January 1st in Zurich, Switzerland
+baseurl: '/uplc2025' # the subpath of your site, e.g. /blog
+url: 'https://plutus.cardano.intersectmbo.org/' # the base hostname & protocol for your site, e.g. https://example.com
+
+remote_theme: 'DigitaleGesellschaft/jekyll-theme-conference@v3.6.6'
+
+# Build settings
+markdown: kramdown
+sass:
+  style: compressed
+
+# Additional exclude from processing
+exclude:
+  - vendor
+  - .github/
+  - README.md
+  - LICENSE.md
+  - REDISTRIBUTED.md
+  - purgecss.config.js
+
+# Collections and their defaults
+collections:
+  talks:
+    output: true
+    permalink: /:collection/:title/
+  speakers:
+    output: true
+    permalink: /:collection/:title/
+  rooms:
+    output: true
+    permalink: /:collection/:title/
+
+defaults:
+  - scope:
+      path: ''
+      type: talks
+    values:
+      layout: talk
+  - scope:
+      path: ''
+      type: speakers
+    values:
+      layout: speaker
+  - scope:
+      path: ''
+      type: rooms
+    values:
+      layout: room
+
+conference:
+  # Language
+  lang: en
+
+  # Show theme errors:
+  show_errors: True
+
+  # Navigation bar
+  navigation:
+    breakpoint: md
+    links:
+      - name: Home
+        absolute_url: https://services.iohk.io/uplc?hs_preview=CxXNrOOn-196054468379
+      - name: Location
+        relative_url: /location/
+
+  # Link Preview for Sharing
+  link_preview:
+    # also adapt "preposition" property at top for more meaningful descriptions
+    disable: false
+    img:
+      twitter: 'twitter_preview.png' # inside /assets/images/
+      open_graph: 'facebook_preview.png' # inside /assets/images/
+
+  # Main landing page
+  main:
+    # logo:
+    #   img: ''
+    links:
+      - name: Program
+        relative_url: /program/
+
+  info_bars:
+    - text: The program is a work in progress. Check back regularly for updates.
+      color: warning
+
+  talks:
+    # Talk categories
+    main_categories:
+      - name: Talk
+        color: success
+      - name: Workshop
+        color: info
+      - name: Panel
+        color: warning
+      - name: Other
+        color: dark
+
+    # Hide icons on talk overview page
+    hide_icons: false
+
+  speakers:
+    # Show first and last name
+    show_firstname: true
+
+  location:
+    # Disable links to locations
+    hide: false
+    # URL of location / room overview page
+    url: '/location'
+    # Main page title shown on location/room navigation bar
+    navbar_title: 'Location'
+    # Show map on location main page.  Set `map: false` if you don't want to
+    # display it.
+    map:
+      # Initial map center point
+      home_coord: 55.94480115682893, -3.1891769282389166
+      # Alternative map providers can be found on https://leaflet-extras.github.io/leaflet-providers/preview/
+      # The following do match the Bootstrap design not too badly:
+      #   - Thunderforest.Neighbourhood
+      #   - Esri.WorldTopoMap
+      map_provider: 'OpenStreetMap.Mapnik'
+      default_zoom: 17
+
+  program:
+    # URL of program page
+    url: '/program'
+
+    # Time steps in program table
+    time_steps: 10 # in minutes
+
+    # Show intermediary time steps (next to full hours)
+    show_alltimes: true

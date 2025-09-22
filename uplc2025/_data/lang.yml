@@ -1,0 +1,189 @@
+version: 8
+
+en:
+  pronoun:
+    and: and
+    at: at
+    by: by
+    for: for
+    in: in
+    on_: "on"
+  overview: Overview
+  more_information: More Information
+  live:
+    live: Live
+    stream: Live Stream
+    streams: Live Streams
+    pre_stream: Live stream has not started yet.
+    pause_stream: Live stream is currently paused.
+    post_stream: Live stream has ended.
+    time:
+      in: in
+      since: since
+      weeks: weeks
+      week: week
+      days: days
+      day: day
+      hours: hours
+      hour: hour
+      minutes: minutes
+      minute: minute
+      soon: soon
+      now: now
+  location:
+    rooms: Rooms
+    directions: Directions
+    talks: Talks in this room
+    focus_conf: Center map on conference location
+    focus_me: Show my current location
+  program:
+    title: Program
+    legend: Caption
+  speaker:
+    overview: Speakers
+    title: Speaker
+    talks: Talks at this conference
+  talk:
+    overview: Talks
+    title: Talk
+
+de:
+  pronoun:
+    and: und
+    at: um
+    by: von
+    for: für
+    in: im Raum
+    on_: am
+  overview: Übersicht
+  more_information: Weitere Informationen
+  live:
+    live: Live
+    stream: Live Stream
+    streams: Live Streams
+    pre_stream: Der Live Stream hat noch nicht begonnen.
+    pause_stream: Der Live Stream ist derzeit pausiert.
+    post_stream: Der Live Stream ist beendet.
+    time:
+      in: in
+      since: seit
+      weeks: Wochen
+      week: Woche
+      days: Tagen
+      day: Tag
+      hours: Stunden
+      hour: Stunde
+      minutes: Minuten
+      minute: Minute
+      soon: demnächst
+      now: jetzt
+  location:
+    rooms: Räume
+    directions: Anreise
+    talks: Vorträge in diesem Raum
+    focus_conf: Karte auf den Konferenz-Ort zentrieren
+    focus_me: Meinen aktuellen Standort anzeigen
+  program:
+    title: Programm
+    legend: Legende
+  speaker:
+    overview: Redner:innen
+    title: Redner:in
+    talks: Vorträge an dieser Konferenz
+  talk:
+    overview: Vorträge
+    title: Vortrag
+
+fr:
+  pronoun:
+    and: et
+    at: à
+    by: de
+    for: pour
+    in: dans
+    on_: le
+  overview: Aperçu
+  more_information: Plus d'informations
+  live:
+    live: En direct
+    stream: Diffusion en direct
+    streams: Diffusions en direct
+    pre_stream: La diffusion en direct n'a pas encore commencé.
+    pause_stream: La diffusion est actuellement en pause.
+    post_stream: La diffusion en direct est terminée.
+    time:
+      in: dans
+      since: depuis
+      weeks: semaines
+      week: semaine
+      days: jours
+      day: jour
+      hours: heures
+      hour: heure
+      minutes: minutes
+      minute: minute
+      soon: à venir
+      now: maintenant
+  location:
+    rooms: Salles
+    directions: Directions
+    talks: Présentations dans cette salle
+    focus_conf: Centrer la carte sur le lieu de la conférence
+    focus_me: Afficher ma localisation actuelle
+  program:
+    title: Programme
+    legend: Légende
+  speaker:
+    overview: Intervenants
+    title: Intervenant
+    talks: Présentations lors de cette conférence
+  talk:
+    overview: Présentations
+    title: Présentation
+
+pt:
+  pronoun:
+    and: e
+    at: às
+    by: de
+    for: por
+    in: em
+    on_: "no"
+  overview: Visão geral
+  more_information: Mais informações
+  live:
+    live: Ao vivo
+    stream: Transmissão ao vivo
+    streams: Transmissãos ao vivo
+    pre_stream: A transmissão ao vivo ainda não começou.
+    pause_stream: A transmissão está atualmente em pausa.
+    post_stream: A transmissão ao vivo terminou.
+    time:
+      in: em
+      since: hà
+      weeks: semanas
+      week: semana
+      days: dias
+      day: dia
+      hours: horas
+      hour: hora
+      minutes: minutos
+      minute: minuto
+      soon: em breve
+      now: agora
+  location:
+    rooms: Salas
+    directions: Direções
+    talks: Apresentações nesta sala
+    focus_conf: Centralizar o mapa para o local da conferência
+    focus_me: Mostrar minha localização atual
+  program:
+    title: Programa
+    legend: Legenda
+  speaker:
+    overview: Palestrantes
+    title: Palestrante
+    talks: Apresentações nesta conferência
+  talk:
+    overview: Apresentações
+    title: Apresentação

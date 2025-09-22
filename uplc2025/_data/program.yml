@@ -1,0 +1,126 @@
+days:
+- name: Oct 28
+  abbr: Tue
+  date: 2025-10-28
+  rooms:
+  - name: Room 1
+    talks:
+      - name: Fifty-three Years of Plutus
+        time_start: '9:30'
+        time_end: '10:30'
+      - name: Plutarch Talk
+        time_start: '10:50'
+        time_end: '11:30'
+      - name: Formal Methods Panel
+        time_start: '13:30'
+        time_end: '14:30'
+      - name: UPLC-CAPE
+        time_start: '14:40'
+        time_end: '15:40'
+      - name: Aiken
+        time_start: '15:50'
+        time_end: '16:50'
+      - name: TBD-Firth
+        time_start: '17:00'
+        time_end: '17:20'
+  - name: Room 2
+    talks:
+      - name: 'From Jai to UPLC: An Unlikely Toolchain'
+        time_start: '10:50'
+        time_end: '11:30'
+      - name: Casing on Builtin Types
+        time_start: '14:50'
+        time_end: '15:30'
+      - name: How to zk-SNARK on Cardano
+        time_start: '15:50'
+        time_end: '16:30'
+      - name: TBD-Wu
+        time_start: '16:40'
+        time_end: '17:20'
+  - name: Common Area
+    talks:
+      - name: Registration & Coffee
+        time_start: '9:00'
+        time_end: '9:30'
+
+- name: Oct 29
+  abbr: Wed
+  date: 2025-10-29
+  rooms:
+    - name: Room 1
+      talks:
+        - name: Pushing the Limits of UPLC
+          time_start: '9:30'
+          time_end: '10:30'
+        - name: The Geology of Pebble
+          time_start: '10:50'
+          time_end: '11:30'
+        - name: UPLC AMA
+          time_start: '13:30'
+          time_end: '14:30'
+        - name: Compiling UPLC to RISC-V
+          time_start: '14:40'
+          time_end: '15:40'
+        - name: Plutarch Workshop
+          time_start: '15:50'
+          time_end: '16:50'
+    - name: Room 2
+      talks:
+        - name: Plinth
+          time_start: '10:50'
+          time_end: '11:30'
+        - name: UPLC Costing
+          time_start: '14:50'
+          time_end: '15:30'
+        - name: TBD-Tudor
+          time_start: '15:40'
+          time_end: '16:20'
+        - name: Cardano High Assurance's Mission
+          time_start: '16:30'
+          time_end: '17:10'
+    - name: Common Area
+      talks:
+        - name: Registration & Coffee
+          time_start: '9:00'
+          time_end: '9:30'
+        - name: Dinner for all attendees
+          time_start: '19:00'
+          time_end: '21:00'
+
+- name: Oct 30
+  abbr: Thu
+  date: 2025-10-30
+  rooms:
+    - name: Room 1
+      talks:
+        - name: Smart Contract Verification
+          time_start: '9:30'
+          time_end: '10:30'
+        - name: Gastronomy UPLC Debugger
+          time_start: '10:50'
+          time_end: '11:30'
+        - name: Certified Compilation
+          time_start: '13:30'
+          time_end: '14:10'
+        - name: Unconference
+          time_start: '14:30'
+          time_end: '17:00'
+    - name: Room 2
+      talks:
+        - name: TBD-Jacco
+          time_start: '10:50'
+          time_end: '11:30'
+        - name: TBD-1
+          time_start: '13:30'
+          time_end: '14:10'
+        - name: Unconference
+          time_start: '14:30'
+          time_end: '17:00'
+    - name: Common Area
+      talks:
+        - name: Registration & Coffee
+          time_start: '9:00'
+          time_end: '9:30'
+        - name: Unconference
+          time_start: '14:30'
+          time_end: '17:00'

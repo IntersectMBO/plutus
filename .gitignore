@@ -115,3 +115,8 @@ plutus-pab/test-node/alonzo-purple/db
 .nvimrc
 release-*
 TestCert.*
+
+**/.DS_Store
+**/_site/**/**
+**/.jekyll-metadata
+**/.jekyll-cache

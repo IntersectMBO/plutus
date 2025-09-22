@@ -1,0 +1,44 @@
+name: Deploy UPLC 2025 Agenda
+
+on:
+  push:
+    branches: [uplc2025] # only this branch triggers deployment
+
+permissions:
+  contents: write # needed for pushing to gh-pages
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2' # or your preferred version
+          bundler-cache: true
+
+      - name: Install gems
+        working-directory: uplc2025
+        run: |
+          bundle install --path vendor/bundle
+
+      - name: Build Jekyll
+        working-directory: uplc2025
+        run: |
+          JEKYLL_ENV=production bundle exec jekyll build \
+            --destination ../build
+
+      # Publish to gh-pages under target folder "uplc2025"
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          # token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: build
+          target-folder: uplc2025 # <- site will be served at /uplc2025
+          # clean: true # wipe old files in that folder
+          single-commit: true
