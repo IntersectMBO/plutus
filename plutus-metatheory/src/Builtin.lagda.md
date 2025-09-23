@@ -118,7 +118,7 @@ data Builtin : Set where
   mkPairData                      : Builtin
   mkNilData                       : Builtin
   mkNilPairData                   : Builtin
-  -- BLS12-381
+  -- Initial BLS12-381 operations
   -- G1
   bls12-381-G1-add                : Builtin
   bls12-381-G1-neg                : Builtin
