@@ -1,4 +1,11 @@
 
+<a id='changelog-1.54.0.0'></a>
+# 1.54.0.0 — 2025-09-18
+
+## Added
+
+- Added the bls MSM built-in to plutus-core in #4255
+
 <a id='changelog-1.51.0.0'></a>
 # 1.51.0.0 — 2025-07-30
 
