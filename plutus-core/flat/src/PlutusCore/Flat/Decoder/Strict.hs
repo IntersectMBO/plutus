@@ -55,15 +55,33 @@ import Numeric.Natural (Natural)
 import PlutusCore.Flat.Data.ZigZag
 #include "MachDeps.h"
 
-{-# INLINE decodeListWith #-}
 decodeListWith :: Get a -> Get [a]
-decodeListWith dec = go
-  where
-    go = do
-      b <- dBool
-      if b
-        then (:) <$> dec <*> go
-        else return []
+decodeListWith dec = do
+  b <- dBool
+  if b
+    then Get $
+         \end s -> do
+           GetResult s' h <- runGet dec end s
+           if s' /= s
+             then runGet ((h:) <$> goNormal) end s'
+             else runGet ((h:) <$> goZero h) end s'
+    else pure []
+    where
+      goNormal = do
+        b <- dBool
+        if b
+          then (:) <$> dec <*> goNormal
+          else pure []
+      {-# INLINE goNormal #-}
+      goZero x = goZero'
+        where goZero' = do
+                b <- dBool
+                if b
+                  then (x:) <$> goZero'
+                  else pure []
+              {-# INLINE goZero' #-}
+      {-# INLINE goZero #-}
+{-# INLINE decodeListWith #-}
 
 decodeArrayWith :: Get a -> Get [a]
 decodeArrayWith dec = DL.toList <$> getAsL_ dec
