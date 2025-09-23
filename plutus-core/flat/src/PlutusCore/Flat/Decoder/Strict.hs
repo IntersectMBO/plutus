@@ -63,24 +63,27 @@ decodeListWith dec = do
          \end s -> do
            GetResult s' h <- runGet dec end s
            if s' /= s
-             then runGet ((h:) <$> goNormal) end s'
-             else runGet ((h:) <$> goZero h) end s'
+             then
+             let goNormal = do
+                   b <- dBool
+                   if b
+                     then (:) <$> dec <*> goNormal
+                     else pure []
+                 {-# INLINE goNormal #-}
+             in runGet ((h:) <$> goNormal) end s'
+             else
+             let goZero x =
+                   let goZero'= do
+                         b <- dBool
+                         if b
+                           then (x:) <$> goZero'
+                           else pure []
+                       {-# INLINE goZero' #-}
+                   in goZero'
+                 {-# INLINE goZero #-}
+             in runGet ((h:) <$> goZero h) end s'
     else pure []
     where
-      goNormal = do
-        b <- dBool
-        if b
-          then (:) <$> dec <*> goNormal
-          else pure []
-      {-# INLINE goNormal #-}
-      goZero x = goZero'
-        where goZero' = do
-                b <- dBool
-                if b
-                  then (x:) <$> goZero'
-                  else pure []
-              {-# INLINE goZero' #-}
-      {-# INLINE goZero #-}
 {-# INLINE decodeListWith #-}
 
 decodeArrayWith :: Get a -> Get [a]
