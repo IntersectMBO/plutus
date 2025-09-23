@@ -1,0 +1,44 @@
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE OverloadedStrings #-}
+
+{- | This benchmark cases measures efficiency of builtin case operations. Each branches exclusively
+   contain casing operations only.
+-}
+
+module Main (main) where
+
+import Criterion.Main
+
+import PlutusBenchmark.Common (benchTermCek, getConfig, mkMostRecentEvalCtx)
+import PlutusLedgerApi.Common (EvaluationContext)
+
+import PlutusBenchmark.Data qualified as Data
+
+import Control.Exception
+import Data.ByteString as BS
+import Data.Functor
+
+benchmarks :: EvaluationContext -> [Benchmark]
+benchmarks ctx =
+    [ bgroup "data"
+      [ mkBMs "conDeconI" Data.conDeconI
+      , mkBMs "conI" Data.conI
+      , mkBMs "conDeconB - short" (Data.conDeconB "helloworld")
+      , mkBMs "conB - short" (Data.conB "helloworld")
+      , mkBMs "conDeconB - long" (Data.conDeconB $ BS.replicate 10000 97)
+      , mkBMs "conB - long" (Data.conB $ BS.replicate 10000 97)
+      , mkBMs "constr no release" (Data.constrDataNoRelease)
+      , mkBMs "constr with release" (Data.constrDataWithRelease)
+      ]
+    ]
+    where
+      mkBMs name f =
+        bgroup name $ [2000, 4000..12000] <&> \n ->
+          bench (show n) $ benchTermCek ctx (f n)
+
+main :: IO ()
+main = do
+  -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
+  config <- getConfig 15.0
+  evalCtx <- evaluate mkMostRecentEvalCtx
+  defaultMainWith config $ benchmarks evalCtx

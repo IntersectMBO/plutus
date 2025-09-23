@@ -277,6 +277,32 @@ benchmark casing
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.54
 
+---------------- data ----------------
+
+library data-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  data/src
+  exposed-modules: PlutusBenchmark.Data
+  build-depends:
+    , base                     >=4.9   && <5
+    , bytestring
+    , mtl
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.54
+
+benchmark data
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: data/bench
+  build-depends:
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , data-internal
+    , plutus-benchmark-common
+    , plutus-ledger-api        ^>=1.54
+
 ---------------- validation ----------------
 
 library validation-internal
