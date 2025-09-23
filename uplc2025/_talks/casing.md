@@ -1,5 +1,5 @@
 ---
-name: Casing on Builtin Types
+name: Casing on Constants
 speakers:
   - Roman Kireev
 categories:

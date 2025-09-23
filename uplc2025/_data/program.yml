@@ -28,7 +28,7 @@ days:
       - name: 'From Jai to UPLC: An Unlikely Toolchain'
         time_start: '10:50'
         time_end: '11:30'
-      - name: Casing on Builtin Types
+      - name: Casing on Constants
         time_start: '14:50'
         time_end: '15:30'
       - name: How to zk-SNARK on Cardano
