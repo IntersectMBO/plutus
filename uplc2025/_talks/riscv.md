@@ -5,4 +5,5 @@ speakers:
   - Riley Kilgore
 categories:
   - Workshop
+  - Remote
 ---
