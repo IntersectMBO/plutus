@@ -1,8 +1,7 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-{- | This benchmark cases measures efficiency of builtin case operations. Each branches exclusively
-   contain casing operations only.
+{- | This benchmark cases measures efficiency of 'Data' construction.
 -}
 
 module Main (main) where
@@ -29,6 +28,8 @@ benchmarks ctx =
       , mkBMs "conB - long" (Data.conB $ BS.replicate 10000 97)
       , mkBMs "constr no release, 2000 chuck size" (Data.constrDataNoRelease 2000)
       , mkBMs "constr with release, 2000 chuck size" (Data.constrDataWithRelease 2000)
+      , mkBMs "list no release, 2000 chuck size" (Data.listDataNoRelease 2000)
+      , mkBMs "list with release, 2000 chuck size" (Data.listDataWithRelease 2000)
       ]
     ]
     where

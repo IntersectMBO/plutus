@@ -92,7 +92,7 @@ constrDataWithRelease chuckSize i =
   debruijnTermUnsafe $ comp (i-1) d
   where
     dataTy = PLC.mkTyBuiltin @_ @PLC.Data ()
-    nilData = mkConstant @([PLC.Data]) () []
+    nilData = mkConstant @[PLC.Data] () []
     d = mkConstant @PLC.Data () (PLC.I 42)
     work t =
       (apply ()
@@ -132,13 +132,85 @@ constrDataNoRelease chuckSize i =
   debruijnTermUnsafe $ comp (i-1) d
   where
     dataTy = PLC.mkTyBuiltin @_ @PLC.Data ()
-    nilData = mkConstant @([PLC.Data]) () []
+    nilData = mkConstant @[PLC.Data] () []
     d = mkConstant @PLC.Data () (PLC.I 42)
     work t =
       (apply ()
         (apply ()
           (builtin () PLC.ConstrData)
           (mkConstant @Integer () 1))
+        (apply () (apply () (tyInst () (builtin () PLC.MkCons) dataTy) t) nilData))
+    comp 0 t = work t
+    comp n t
+      | n `mod` chuckSize == 0 = runQuote $ do
+          x <- freshName "x"
+          pure $
+            apply ()
+              (lamAbs () x dataTy (comp (n - 1) $ work t))
+              (mkConstant @() () ())
+      | otherwise = runQuote $ do
+          pure $ comp (n - 1) $ work t
+
+{-
+Given amount "i" and chuck size,
+
+[ (\x ->
+    [ (\x ->
+        <repeat (i / chuckSize) times>
+      )
+      (List [List [List [List ...chuck size amount...]]])
+    ])
+  (List [List [List [List ...chuck size amount...]]])
+]
+-}
+listDataWithRelease :: Integer -> Integer -> Term
+listDataWithRelease chuckSize i =
+  debruijnTermUnsafe $ comp (i-1) d
+  where
+    dataTy = PLC.mkTyBuiltin @_ @PLC.Data ()
+    nilData = mkConstant @[PLC.Data] () []
+    d = mkConstant @PLC.Data () (PLC.I 42)
+    work t =
+      (apply ()
+        (builtin () PLC.ListData)
+        (apply () (apply () (tyInst () (builtin () PLC.MkCons) dataTy) t) nilData))
+    comp 0 t = work t
+    comp n t
+      | n `mod` chuckSize == 0 = runQuote $ do
+          x <- freshName "x"
+          pure $
+            apply ()
+              (lamAbs () x dataTy (comp (n - 1) d))
+              (work t)
+      | otherwise = runQuote $ do
+          pure $ comp (n - 1) $ work t
+
+{-
+Given amount "i" and chuck size,
+
+[ (\x ->
+    [ (\x ->
+        ...<repeat (i / chuckSize) times>...
+          [ (\x -> (List [List [List [List ..."i" times...]]]))
+        ()
+       ])
+      ()
+    ])
+  ()
+]
+
+We make these lambda abstractions and unit binds to keep it fair against 'listDataWithRelease'
+-}
+listDataNoRelease :: Integer -> Integer -> Term
+listDataNoRelease chuckSize i =
+  debruijnTermUnsafe $ comp (i-1) d
+  where
+    dataTy = PLC.mkTyBuiltin @_ @PLC.Data ()
+    nilData = mkConstant @[PLC.Data] () []
+    d = mkConstant @PLC.Data () (PLC.I 42)
+    work t =
+      (apply ()
+        (builtin () PLC.ListData)
         (apply () (apply () (tyInst () (builtin () PLC.MkCons) dataTy) t) nilData))
     comp 0 t = work t
     comp n t
