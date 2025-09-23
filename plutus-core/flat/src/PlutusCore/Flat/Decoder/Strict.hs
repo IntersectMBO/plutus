@@ -83,7 +83,6 @@ decodeListWith dec = do
                  {-# INLINE goZero #-}
              in runGet ((h:) <$> goZero h) end s'
     else pure []
-    where
 {-# INLINE decodeListWith #-}
 
 decodeArrayWith :: Get a -> Get [a]
