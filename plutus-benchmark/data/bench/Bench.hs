@@ -27,8 +27,8 @@ benchmarks ctx =
       , mkBMs "conB - short" (Data.conB "helloworld")
       , mkBMs "conDeconB - long" (Data.conDeconB $ BS.replicate 10000 97)
       , mkBMs "conB - long" (Data.conB $ BS.replicate 10000 97)
-      , mkBMs "constr no release" (Data.constrDataNoRelease)
-      , mkBMs "constr with release" (Data.constrDataWithRelease)
+      , mkBMs "constr no release, 2000 chuck size" (Data.constrDataNoRelease 2000)
+      , mkBMs "constr with release, 2000 chuck size" (Data.constrDataWithRelease 2000)
       ]
     ]
     where

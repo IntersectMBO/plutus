@@ -7,7 +7,7 @@ import Control.Monad.Except
 import Data.ByteString (ByteString)
 import Data.Either
 import PlutusBenchmark.Common (Term)
-import PlutusCore (DefaultUni (..), SomeTypeIn (..), Type (..), freshName, runQuote)
+import PlutusCore (freshName, runQuote)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
@@ -75,11 +75,22 @@ conB bs i =
           (lamAbs () x intTy t)
           (apply () (builtin () PLC.BData) (mkConstant @ByteString () bs))
 
-constrDataWithRelease :: Integer -> Term
-constrDataWithRelease i =
+{-
+Given amount "i" and chuck size,
+
+[ (\x ->
+    [ (\x ->
+        <repeat (i / chuckSize) times>
+      )
+      (Constr 1 [Constr 1 [Constr 1 [Constr 1 ...chuck size amount...]]])
+    ])
+  (Constr 1 [Constr 1 [Constr 1 [Constr 1 ...chuck size amount...]]])
+]
+-}
+constrDataWithRelease :: Integer -> Integer -> Term
+constrDataWithRelease chuckSize i =
   debruijnTermUnsafe $ comp (i-1) d
   where
-    chuckSize = 2000
     dataTy = PLC.mkTyBuiltin @_ @PLC.Data ()
     nilData = mkConstant @([PLC.Data]) () []
     d = mkConstant @PLC.Data () (PLC.I 42)
@@ -100,11 +111,26 @@ constrDataWithRelease i =
       | otherwise = runQuote $ do
           pure $ comp (n - 1) $ work t
 
-constrDataNoRelease :: Integer -> Term
-constrDataNoRelease i =
+{-
+Given amount "i" and chuck size,
+
+[ (\x ->
+    [ (\x ->
+        ...<repeat (i / chuckSize) times>...
+          [ (\x -> (Constr 1 [Constr 1 [Constr 1 [Constr 1 ..."i" times...]]]))
+        ()
+       ])
+      ()
+    ])
+  ()
+]
+
+We make these lambda abstractions and unit binds to keep it fair against 'constrDataWithRelease'
+-}
+constrDataNoRelease :: Integer -> Integer -> Term
+constrDataNoRelease chuckSize i =
   debruijnTermUnsafe $ comp (i-1) d
   where
-    chuckSize = 2000
     dataTy = PLC.mkTyBuiltin @_ @PLC.Data ()
     nilData = mkConstant @([PLC.Data]) () []
     d = mkConstant @PLC.Data () (PLC.I 42)
