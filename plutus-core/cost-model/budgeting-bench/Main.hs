@@ -17,6 +17,7 @@ import Benchmarks.Pairs qualified
 import Benchmarks.Strings qualified
 import Benchmarks.Tracing qualified
 import Benchmarks.Unit qualified
+import Benchmarks.Values qualified
 
 import Criterion.Main
 import Criterion.Types as C
@@ -60,6 +61,7 @@ main = do
         <> Benchmarks.Strings.makeBenchmarks     gen
         <> Benchmarks.Tracing.makeBenchmarks     gen
         <> Benchmarks.Unit.makeBenchmarks        gen
+        <> Benchmarks.Values.makeBenchmarks      gen
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
