@@ -193,6 +193,11 @@ data BuiltinCostModelBase f =
     , paramLengthOfArray                   :: f ModelOneArgument
     , paramListToArray                     :: f ModelOneArgument
     , paramIndexArray                      :: f ModelTwoArguments
+    -- Builtin values
+    , paramLookupCoin                      :: f ModelThreeArguments
+    , paramValueContains                   :: f ModelTwoArguments
+    , paramValueData                       :: f ModelOneArgument
+    , paramUnValueData                     :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

@@ -131,6 +131,11 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramLengthOfArray                   = "lengthOfArrayModel"
   , paramListToArray                     = "listToArrayModel"
   , paramIndexArray                      = "indexArrayModel"
+  -- Builtin values
+  , paramLookupCoin                      = "lookupCoinModel"
+  , paramValueContains                   = "valueContainsModel"
+  , paramValueData                       = "valueDataModel"
+  , paramUnValueData                     = "unValueDataModel"
   }
 
 
@@ -279,6 +284,11 @@ createBuiltinCostModel bmfile rfile = do
   paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
   paramListToArray                     <- getParams readCF1 paramListToArray
   paramIndexArray                      <- getParams readCF2 paramIndexArray
+  -- Builtin values
+  paramLookupCoin                      <- getParams readCF3 paramLookupCoin
+  paramValueContains                   <- getParams readCF2 paramValueContains
+  paramValueData                       <- getParams readCF1 paramValueData
+  paramUnValueData                     <- getParams readCF1 paramUnValueData
 
   pure $ BuiltinCostModelBase {..}
 
