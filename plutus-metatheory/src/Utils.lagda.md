@@ -185,6 +185,13 @@ eqByteString _ _ = Bool.true
 {-# COMPILE GHC eqByteString = (==) #-}
 
 ```
+## Value
+
+```
+
+postulate Value : Set
+
+```
 ## Record Types
 ```
 
