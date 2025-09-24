@@ -36,7 +36,7 @@ open import Relation.Nullary using (does;yes;no;¬_)
 open import Data.Unit using (⊤;tt)
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 
-open import Utils using (♯;ByteString;DATA;List;Array;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
+open import Utils using (♯;ByteString;DATA;Value;List;Array;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
 open import Utils.Decidable using (dcong;dcong₂)
 import Builtin as B
 open import Builtin using (Builtin;equals)
@@ -69,7 +69,7 @@ of the default universe.
 
 Tags are indexed by the real type they represent.
 The `Esc` datatype is used in the Haskell implementation to "escape" any kind into Type.
-For constants, we only care about kind *, but we need it to match the Haskell implementation.
+For constants, we only care about kind `*`, but we need it to match the Haskell implementation.
 ```
 data Esc (a : Set) : Set where
 {-# INJECTIVE Esc #-}
@@ -81,6 +81,7 @@ data Tag : Set → Set where
   string               : Tag (Esc String)
   bool                 : Tag (Esc Bool)
   unit                 : Tag (Esc ⊤)
+  value                : Tag (Esc Value)
   pdata                : Tag (Esc DATA)
   pair                 : ∀{A B} → Tag (Esc A) → Tag (Esc B) → Tag (Esc (A × B))
   list                 : ∀{A} → Tag (Esc A) → Tag (Esc (List A))
@@ -237,6 +238,7 @@ tag2TyTag string = B.string
 tag2TyTag bool = B.bool
 tag2TyTag unit = B.unit
 tag2TyTag pdata = B.pdata
+tag2TyTag value = B.value
 tag2TyTag bls12-381-g1-element = B.bls12-381-g1-element
 tag2TyTag bls12-381-g2-element = B.bls12-381-g2-element
 tag2TyTag bls12-381-mlresult = B.bls12-381-mlresult
@@ -251,6 +253,7 @@ tagLemma string = refl
 tagLemma bool = refl
 tagLemma unit = refl
 tagLemma pdata = refl
+tagLemma value = refl
 tagLemma (pair t u) = cong₂ _×_ (tagLemma t) (tagLemma u)
 tagLemma (list t) = cong List (tagLemma t)
 tagLemma (array t) = cong Array (tagLemma t)
@@ -265,6 +268,7 @@ tagCon2TmCon (tagCon string x) = tmCon (B.string) x
 tagCon2TmCon (tagCon bool x) = tmCon (B.bool) x
 tagCon2TmCon (tagCon unit x) = tmCon (B.unit) tt
 tagCon2TmCon (tagCon pdata x) = tmCon (B.pdata) x
+tagCon2TmCon (tagCon value x) = tmCon (B.value) x
 tagCon2TmCon (tagCon bls12-381-g1-element x) = tmCon (B.bls12-381-g1-element) x
 tagCon2TmCon (tagCon bls12-381-g2-element x) = tmCon (B.bls12-381-g2-element) x
 tagCon2TmCon (tagCon bls12-381-mlresult x) = tmCon (B.bls12-381-mlresult) x
@@ -284,7 +288,7 @@ tyTag2Tag (atomic aString) = String ,, string
 tyTag2Tag (atomic aUnit) = ⊤ ,, unit
 tyTag2Tag (atomic aBool) = Bool ,, bool
 tyTag2Tag (atomic aData) = DATA ,, pdata
--- tyTag2Tag (atomic aValue) = ?
+tyTag2Tag (atomic aValue) = Value ,, value
 tyTag2Tag (atomic aBls12-381-g1-element) = Bls12-381-G1-Element ,, bls12-381-g1-element
 tyTag2Tag (atomic aBls12-381-g2-element) = Bls12-381-G2-Element ,, bls12-381-g2-element
 tyTag2Tag (atomic aBls12-381-mlresult) = Bls12-381-MlResult ,, bls12-381-mlresult
@@ -302,7 +306,7 @@ tyTagLemma (atomic aString) = refl
 tyTagLemma (atomic aUnit) = refl
 tyTagLemma (atomic aBool) = refl
 tyTagLemma (atomic aData) = refl
--- tyTagLemma (atomic aValue) = ?
+tyTagLemma (atomic aValue) = refl
 tyTagLemma (atomic aBls12-381-g1-element) = refl
 tyTagLemma (atomic aBls12-381-g2-element) = refl
 tyTagLemma (atomic aBls12-381-mlresult) = refl
@@ -317,7 +321,7 @@ tmCon2TagCon (tmCon (atomic aString) x) = tagCon string x
 tmCon2TagCon (tmCon (atomic aUnit) x) = tagCon unit tt
 tmCon2TagCon (tmCon (atomic aBool) x) = tagCon bool x
 tmCon2TagCon (tmCon (atomic aData) x) = tagCon pdata x
--- tmCon2TagCon (tmCon (atomic aValue) x) = ?
+tmCon2TagCon (tmCon (atomic aValue) x) = tagCon value x
 tmCon2TagCon (tmCon (atomic aBls12-381-g1-element) x) = tagCon bls12-381-g1-element x
 tmCon2TagCon (tmCon (atomic aBls12-381-g2-element) x) = tagCon bls12-381-g2-element x
 tmCon2TagCon (tmCon (atomic aBls12-381-mlresult) x) = tagCon bls12-381-mlresult x
