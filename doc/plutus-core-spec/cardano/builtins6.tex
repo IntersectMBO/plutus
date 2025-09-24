@@ -48,9 +48,9 @@ Some valid constant expressions are thus:
 The sixth batch of built-in types is defined in Table~\ref{table:built-in-type-operators-6}.
 Operations are defined in Table~\ref{table:built-in-functions-6}.
 
-\setlength{\LTleft}{-12mm}  % Shift the table left a bit to centre it on the page
+\setlength{\LTleft}{-23mm}  % Shift the table left a bit to centre it on the page
 \renewcommand*{\arraystretch}{1.25}  %% Stretch the space between the rows by a factor of 25%
-\begin{longtable}[H]{|l|p{45mm}|p{70mm}|c|c|}
+\begin{longtable}[H]{|l|p{50mm}|p{58mm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
     & & & fail? & \\
@@ -84,14 +84,14 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
       & $[] \mapsto 0$
         \newline 
         $[x_1,\ldots,x_n] \mapsto n\ (n \geq 1)$ 
-      &  
-      & \\
+      & 
+      & \ref{note:array-semantics}\\
     \TT{listToArray} 
       & $[\forall a_\#, \listOf{a_\#}] \to \arrayOf{a_\#}$ 
       & $[] \mapsto []$
         \newline 
         $[x_1,\ldots,x_n] \mapsto [x_1,\ldots,x_n]\ (n \geq 1)$
-      & & \\
+      & & \ref{note:array-semantics}\\
     \TT{indexArray} 
       & $[\forall a_\#, \arrayOf{a_\#}, \ty{integer}]$ \text{$\;\;\; \to \ty{a_\#}$}
       &  $([x_1,\ldots,x_n], k)$
@@ -102,7 +102,21 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
             x_{k+1}   & \text{if $0 \leq k \leq n-1$} \\ \relax
             \errorX   & \text{if $k > n-1$}\\
         \end{array}\right.$}  
-      & Yes & \\
+      & Yes & \ref{note:array-semantics}\\[2mm]
+    \TT{bls12\_381\_G1\_multiScalarMul}  &
+    $[ \listOf{\ty{integer}}$,
+      \text{\; ${\listOf{\ty{bls12\_381\_G1\_element}}} ]$}
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$}
+      & $([n_1, \ldots, n_k],[a_1, \ldots, a_l])$
+      \newline
+      \text{$\: \mapsto n_1a_1+\cdots+n_ra_r$ \ where $r=\min(k,l)$} &  No & \ref{note:msm-semantics}\\[2mm]
+    \TT{bls12\_381\_G2\_multiScalarMul}  &
+    $[ \listOf{\ty{integer}}$,
+      \text{\; ${\listOf{\ty{bls12\_381\_G2\_element}}} ]$}
+      \text{\;\; $ \to \ty{bls12\_381\_G2\_element}$}
+      & $([n_1, \ldots, n_k],[a_1, \ldots, a_l])$
+      \newline
+      \text{$\: \mapsto n_1a_1+\cdots+n_ra_r$ \ where $r=\min(k,l)$} &  No & \ref{note:msm-semantics}\\[2mm]
 \hline
 \end{longtable}
 
@@ -127,5 +141,22 @@ follows, for example, from Proposition I.3.1 of~\cite{Koblitz-GTM}.  See
 Note~\ref{note:integer-division-functions} of
 Section~\ref{sec:built-in-functions-1} for the definition of $\modfn$.
 
+\note{Semantics of arrays.}
+\label{note:array-semantics}
+The denotation of the array type is identical to that of lists, but we expect
+that in practice arrays will be implemented in such a way that the
+\texttt{lengthOfArray} and \texttt{indexArray} functions will be constant time and
+\texttt{listToArray} may be nontrivial, requiring linear time.
 
-
+\note{BLS12-381 multi-scalar multiplication.}
+\label{note:msm-semantics}
+We have added two multi-scalar-multiplication operations for BLS12-381
+types. Given lists of scalars $[n_1, \ldots, n_k]$ and group elements
+$[a_1, \ldots, a_l]$ these compute the group sum of the scalar products $n_ia_i$
+with $1 \leq i \leq \min(k,l)$. The input lists are allowed to be of different
+lengths but the longer one is effectively truncated to make them the same
+length.  If either list is empty then the result of the function is the zero
+element of the relevant group.  Multi-scalar multiplication can already be
+performed using the standard group addition and scalar multiplication functions
+from Batch 4, but having dedicated functions allows for significantly more
+efficient implementation.

@@ -1,0 +1,2 @@
+[ -> obscuredFunction (test/Plugin/Profiling/Spec.hs:184:1-184:16)
+, <- obscuredFunction (test/Plugin/Profiling/Spec.hs:184:1-184:16) ]

@@ -1,2 +1,0 @@
-[ -> swap (test/Plugin/Profiling/Spec.hs:148:1-148:4)
-, <- swap (test/Plugin/Profiling/Spec.hs:148:1-148:4) ]

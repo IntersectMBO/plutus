@@ -5,6 +5,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.NoFib.Knights where
 

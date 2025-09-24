@@ -1,0 +1,12 @@
+[ -> useTypeclass (test/Plugin/Profiling/Spec.hs:168:1-168:12)
+, -> methodA (test/Plugin/Profiling/Spec.hs:157:3-157:30)
+, <- methodA (test/Plugin/Profiling/Spec.hs:157:3-157:30)
+, -> addInteger
+, <- addInteger
+, -> methodB (test/Plugin/Profiling/Spec.hs:158:3-158:30)
+, <- methodB (test/Plugin/Profiling/Spec.hs:158:3-158:30)
+, -> subtractInteger
+, <- subtractInteger
+, -> addInteger
+, <- addInteger
+, <- useTypeclass (test/Plugin/Profiling/Spec.hs:168:1-168:12) ]

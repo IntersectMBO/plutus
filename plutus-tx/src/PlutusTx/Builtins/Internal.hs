@@ -58,6 +58,7 @@ import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
 import PlutusCore.Value qualified as PLC
+import PlutusCore.Value qualified as Value
 import Prettyprinter (viaShow)
 
 {-
@@ -738,6 +739,11 @@ bls12_381_G1_scalarMul
 bls12_381_G1_scalarMul n (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.scalarMul n a)
 {-# OPAQUE bls12_381_G1_scalarMul #-}
 
+bls12_381_G1_multiScalarMul :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_multiScalarMul (BuiltinList ns) (BuiltinList ps) =
+  BuiltinBLS12_381_G1_Element (BLS12_381.G1.multiScalarMul ns (fmap (\(BuiltinBLS12_381_G1_Element p) -> p) ps))
+{-# OPAQUE bls12_381_G1_multiScalarMul #-}
+
 -- | Compresses a G1 element to a bytestring and never fails.
 bls12_381_G1_compress :: BuiltinBLS12_381_G1_Element -> BuiltinByteString
 bls12_381_G1_compress (BuiltinBLS12_381_G1_Element a) = BuiltinByteString (BLS12_381.G1.compress a)
@@ -805,6 +811,11 @@ bls12_381_G2_scalarMul
   :: BuiltinInteger -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_scalarMul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.scalarMul n a)
 {-# OPAQUE bls12_381_G2_scalarMul #-}
+
+bls12_381_G2_multiScalarMul :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_multiScalarMul (BuiltinList ns) (BuiltinList ps) =
+  BuiltinBLS12_381_G2_Element (BLS12_381.G2.multiScalarMul ns (fmap (\(BuiltinBLS12_381_G2_Element p) -> p) ps))
+{-# OPAQUE bls12_381_G2_multiScalarMul #-}
 
 -- | Compresses a G2 element to a bytestring and never fails.
 bls12_381_G2_compress :: BuiltinBLS12_381_G2_Element -> BuiltinByteString
@@ -1066,6 +1077,46 @@ expModInteger b e m =
     BuiltinSuccess bs -> toInteger bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ toInteger bs
 {-# OPAQUE expModInteger #-}
+
+insertCoin
+  :: BuiltinByteString
+  -> BuiltinByteString
+  -> BuiltinInteger
+  -> BuiltinValue
+  -> BuiltinValue
+insertCoin (BuiltinByteString c) (BuiltinByteString t) amt (BuiltinValue v) =
+  BuiltinValue $ Value.insertCoin c t amt v
+{-# OPAQUE insertCoin #-}
+
+lookupCoin
+  :: BuiltinByteString
+  -> BuiltinByteString
+  -> BuiltinValue
+  -> Integer
+lookupCoin (BuiltinByteString c) (BuiltinByteString t) (BuiltinValue v) =
+  Value.lookupCoin c t v
+{-# OPAQUE lookupCoin #-}
+
+unionValue :: BuiltinValue -> BuiltinValue -> BuiltinValue
+unionValue (BuiltinValue v1) (BuiltinValue v2) = BuiltinValue $ Value.unionValue v1 v2
+{-# OPAQUE unionValue #-}
+
+valueContains :: BuiltinValue -> BuiltinValue -> Bool
+valueContains (BuiltinValue v1) (BuiltinValue v2) = Value.valueContains v1 v2
+{-# OPAQUE valueContains #-}
+
+mkValue :: BuiltinValue -> BuiltinData
+mkValue (BuiltinValue v) = BuiltinData $ Value.valueData v
+{-# OPAQUE mkValue #-}
+
+unsafeDataAsValue :: BuiltinData -> BuiltinValue
+unsafeDataAsValue (BuiltinData d) = case Value.unValueData d of
+  BuiltinSuccess v -> BuiltinValue v
+  BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
+  BuiltinFailure logs err ->
+    traceAll (logs <> pure (display err)) $
+      Haskell.error "Data to Value conversion errored."
+{-# OPAQUE unsafeDataAsValue #-}
 
 caseInteger :: Integer -> [a] -> a
 caseInteger i b = b !! fromIntegral i

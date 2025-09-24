@@ -1,5 +1,8 @@
 { pkgs }:
 
+# R wrapper with required packages for benchmarking and analysis.
+# Add more R packages here as needed.
+# Used in: `nix/project.nix` (as build-tools) and `nix/shell.nix` common tools.
 pkgs.rWrapper.override {
   packages = [
     pkgs.rPackages.tidyverse

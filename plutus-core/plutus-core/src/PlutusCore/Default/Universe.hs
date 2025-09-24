@@ -6,6 +6,7 @@
 -- to test that some constraints are solvable
 {-# OPTIONS -Wno-redundant-constraints #-}
 
+{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE CPP                      #-}
@@ -42,9 +43,9 @@ module PlutusCore.Default.Universe
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
-import PlutusCore.Builtin
 import PlutusPrelude
 
+import PlutusCore.Builtin
 import PlutusCore.Core.Type (Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -391,12 +392,30 @@ So, what to do? We adopt the following strategy:
 
 Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
 supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
+
+We used to use newtype- and via-deriving for implementations of relevant instances, but at some
+point GHC stopped attaching @INLINE@ annotations to those causing the GHC Core for builtins to have
+multiple 'readKnown' and 'makeKnown' calls, so now we don't rely on deriving and implement instances
+manually.
 -}
 
--- | For deriving 'KnownTypeAst', 'MakeKnown' and 'ReadKnown' instances via 'Integer'.
-newtype AsInteger a = AsInteger
-    { unAsInteger :: a
-    }
+-- | 'coerce' the argument, then call 'makeKnown'.
+makeKnownCoerce
+    :: forall b term a. (MakeKnownIn DefaultUni term b, Coercible a b)
+    => a -> BuiltinResult term
+makeKnownCoerce = coerceArg $ makeKnown @_ @_ @b
+{-# INLINE makeKnownCoerce #-}
+
+-- | Call 'readKnown', then 'coerce' the argument.
+readKnownCoerce
+    :: forall b term a. (ReadKnownIn DefaultUni term b, Coercible b a)
+    => term -> ReadKnownM a
+readKnownCoerce = fmap coerce #. readKnown @_ @_ @b
+{-# INLINE readKnownCoerce #-}
+
+-- | For deriving 'KnownTypeAst' instances via 'Integer' (no constructor, because we don't need any
+-- for 'KnownTypeAst').
+data AsInteger a
 
 instance KnownTypeAst tyname DefaultUni (AsInteger a) where
     type IsBuiltin _ _ = 'False
@@ -404,128 +423,161 @@ instance KnownTypeAst tyname DefaultUni (AsInteger a) where
     type ToBinds _ acc _ = acc
     typeAst = toTypeAst $ Proxy @Integer
 
-instance (KnownBuiltinTypeIn DefaultUni term Integer, Integral a) =>
-        MakeKnownIn DefaultUni term (AsInteger a) where
-    makeKnown = makeKnown . toInteger . unAsInteger
-    {-# INLINE makeKnown #-}
+makeKnownAsInteger
+    :: forall term a. (KnownBuiltinTypeIn DefaultUni term Integer, Integral a)
+    => a -> BuiltinResult term
+makeKnownAsInteger = makeKnown . toInteger
+{-# INLINE makeKnownAsInteger #-}
 
-instance (KnownBuiltinTypeIn DefaultUni term Integer, Integral a, Bounded a, Typeable a) =>
-        ReadKnownIn DefaultUni term (AsInteger a) where
-    readKnown term =
-        -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
-        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
-        -- (go figure why).
-        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
-            -- We don't make use here of 'toIntegralSized' because of performance considerations,
-            -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
-            -- TODO: benchmark an alternative 'integerToIntMaybe', modified from @ghc-bignum@
-            if fromIntegral (minBound :: a) <= i && i <= fromIntegral (maxBound :: a)
-                then pure . AsInteger $ fromIntegral i
-                else throwError . operationalUnliftingError $ fold
-                        [ Text.pack $ show i
-                        , " is not within the bounds of "
-                        , Text.pack . show . typeRep $ Proxy @a
-                        ]
-    {-# INLINE readKnown #-}
+readKnownAsInteger
+    :: forall term a.
+       (KnownBuiltinTypeIn DefaultUni term Integer, Integral a, Bounded a, Typeable a)
+    => term -> ReadKnownM a
+readKnownAsInteger term =
+    -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
+    -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+    -- (go figure why).
+    inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+        -- We don't make use here of 'toIntegralSized' because of performance considerations,
+        -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
+        -- TODO: benchmark an alternative 'integerToIntMaybe', modified from @ghc-bignum@
+        if fromIntegral (minBound :: a) <= i && i <= fromIntegral (maxBound :: a)
+            then pure $ fromIntegral i
+            else throwError . operationalUnliftingError $ fold
+                    [ Text.pack $ show i
+                    , " is not within the bounds of "
+                    , Text.pack . show . typeRep $ Proxy @a
+                    ]
+{-# INLINE readKnownAsInteger #-}
 
 #if WORD_SIZE_IN_BITS == 64
 -- See Note [Integral types as Integer].
 deriving via AsInteger Int instance
-    KnownTypeAst tyname DefaultUni Int
-deriving via AsInteger Int instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Int
+        KnownTypeAst tyname DefaultUni Int
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Int where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
 instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Int where
     readKnown term = fromIntegral @Int64 @Int <$> readKnown term
     {-# INLINE readKnown #-}
 
 deriving via AsInteger Word instance
-    KnownTypeAst tyname DefaultUni Word
-deriving via AsInteger Word instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Word
+        KnownTypeAst tyname DefaultUni Word
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Word where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
 instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word where
     readKnown term = fromIntegral @Word64 @Word <$> readKnown term
     {-# INLINE readKnown #-}
 #endif
 
 deriving via AsInteger Int8 instance
-    KnownTypeAst tyname DefaultUni Int8
-deriving via AsInteger Int8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Int8
-deriving via AsInteger Int8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Int8
+        KnownTypeAst tyname DefaultUni Int8
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Int8 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Int8 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Int16 instance
-    KnownTypeAst tyname DefaultUni Int16
-deriving via AsInteger Int16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Int16
-deriving via AsInteger Int16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Int16
+        KnownTypeAst tyname DefaultUni Int16
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Int16 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Int16 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Int32 instance
-    KnownTypeAst tyname DefaultUni Int32
-deriving via AsInteger Int32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Int32
-deriving via AsInteger Int32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Int32
+        KnownTypeAst tyname DefaultUni Int32
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Int32 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Int32 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Int64 instance
-    KnownTypeAst tyname DefaultUni Int64
-deriving via AsInteger Int64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Int64
-deriving via AsInteger Int64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Int64
+        KnownTypeAst tyname DefaultUni Int64
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Int64 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Int64 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Word8 instance
-    KnownTypeAst tyname DefaultUni Word8
-deriving via AsInteger Word8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Word8
-deriving via AsInteger Word8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Word8
+        KnownTypeAst tyname DefaultUni Word8
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Word8 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word8 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Word16 instance
-    KnownTypeAst tyname DefaultUni Word16
-deriving via AsInteger Word16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Word16
-deriving via AsInteger Word16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Word16
+        KnownTypeAst tyname DefaultUni Word16
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Word16 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word16 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Word32 instance
-    KnownTypeAst tyname DefaultUni Word32
-deriving via AsInteger Word32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Word32
-deriving via AsInteger Word32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Word32
+        KnownTypeAst tyname DefaultUni Word32
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Word32 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word32 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Word64 instance
-    KnownTypeAst tyname DefaultUni Word64
-deriving via AsInteger Word64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Word64
-deriving via AsInteger Word64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term Word64
+        KnownTypeAst tyname DefaultUni Word64
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Word64 where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word64 where
+    readKnown = readKnownAsInteger
+    {-# INLINE readKnown #-}
 
 deriving newtype instance
-    KnownTypeAst tyname DefaultUni NumBytesCostedAsNumWords
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term NumBytesCostedAsNumWords
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term NumBytesCostedAsNumWords
+        KnownTypeAst tyname DefaultUni NumBytesCostedAsNumWords
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+        MakeKnownIn DefaultUni term NumBytesCostedAsNumWords where
+    makeKnown = makeKnownCoerce @Integer
+    {-# INLINE makeKnown #-}
+
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+        ReadKnownIn DefaultUni term NumBytesCostedAsNumWords where
+    readKnown = readKnownCoerce @Integer
+    {-# INLINE readKnown #-}
 
 deriving newtype instance
-    KnownTypeAst tyname DefaultUni IntegerCostedLiterally
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term IntegerCostedLiterally
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term IntegerCostedLiterally
+            KnownTypeAst tyname DefaultUni IntegerCostedLiterally
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+        MakeKnownIn DefaultUni term IntegerCostedLiterally where
+    makeKnown = makeKnownCoerce @Integer
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+        ReadKnownIn DefaultUni term IntegerCostedLiterally where
+    readKnown = readKnownCoerce @Integer
+    {-# INLINE readKnown #-}
 
 deriving via AsInteger Natural instance
-    KnownTypeAst tyname DefaultUni Natural
-deriving via AsInteger Natural instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term Natural
-instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Natural where
+        KnownTypeAst tyname DefaultUni Natural
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+        MakeKnownIn DefaultUni term Natural where
+    makeKnown = makeKnownAsInteger
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+        ReadKnownIn DefaultUni term Natural where
     readKnown term =
         -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
-        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
-        -- (go figure why).
+        -- Funnily, we don't really need 'inline' here, unlike in the default implementation of
+        -- 'readKnown' (go figure why), but we still use it just to be sure.
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
             -- TODO: benchmark alternatives:signumInteger,integerIsNegative,integerToNaturalThrow
             if i >= 0

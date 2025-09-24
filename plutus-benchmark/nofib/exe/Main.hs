@@ -15,8 +15,8 @@ import Data.Char (isSpace)
 import Data.Foldable (traverse_)
 import Data.SatInt
 import Data.String (fromString)
-import Flat qualified
 import Options.Applicative as Opt hiding (action)
+import PlutusCore.Flat qualified as Flat
 import Prettyprinter (Doc, indent, line, vsep)
 import System.Exit (exitFailure)
 import System.IO

@@ -44,6 +44,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.Value (Value)
 
 import GHC.Plugins qualified as GHC
 
@@ -256,6 +257,7 @@ builtinNames =
   , 'Builtins.bls12_381_G1_add
   , 'Builtins.bls12_381_G1_neg
   , 'Builtins.bls12_381_G1_scalarMul
+  , 'Builtins.bls12_381_G1_multiScalarMul
   , 'Builtins.bls12_381_G1_compress
   , 'Builtins.bls12_381_G1_uncompress
   , 'Builtins.bls12_381_G1_hashToGroup
@@ -266,6 +268,7 @@ builtinNames =
   , 'Builtins.bls12_381_G2_add
   , 'Builtins.bls12_381_G2_neg
   , 'Builtins.bls12_381_G2_scalarMul
+  , 'Builtins.bls12_381_G2_multiScalarMul
   , 'Builtins.bls12_381_G2_compress
   , 'Builtins.bls12_381_G2_uncompress
   , 'Builtins.bls12_381_G2_hashToGroup
@@ -289,6 +292,13 @@ builtinNames =
   , 'Builtins.countSetBits
   , 'Builtins.findFirstSetBit
   , 'Builtins.expModInteger
+  , ''Builtins.BuiltinValue
+  , 'Builtins.insertCoin
+  , 'Builtins.lookupCoin
+  , 'Builtins.unionValue
+  , 'Builtins.valueContains
+  , 'Builtins.mkValue
+  , 'Builtins.unsafeDataAsValue
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -684,12 +694,14 @@ defineBuiltinTerms = do
           PLC.Bls12_381_G1_add -> defineBuiltinInl 'Builtins.bls12_381_G1_add
           PLC.Bls12_381_G1_neg -> defineBuiltinInl 'Builtins.bls12_381_G1_neg
           PLC.Bls12_381_G1_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G1_scalarMul
+          PLC.Bls12_381_G1_multiScalarMul -> defineBuiltinInl 'Builtins.bls12_381_G1_multiScalarMul
           PLC.Bls12_381_G1_compress -> defineBuiltinInl 'Builtins.bls12_381_G1_compress
           PLC.Bls12_381_G1_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G1_uncompress
           PLC.Bls12_381_G1_hashToGroup -> defineBuiltinInl 'Builtins.bls12_381_G1_hashToGroup
           PLC.Bls12_381_G2_equal -> defineBuiltinInl 'Builtins.bls12_381_G2_equals
           PLC.Bls12_381_G2_add -> defineBuiltinInl 'Builtins.bls12_381_G2_add
           PLC.Bls12_381_G2_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G2_scalarMul
+          PLC.Bls12_381_G2_multiScalarMul -> defineBuiltinInl 'Builtins.bls12_381_G2_multiScalarMul
           PLC.Bls12_381_G2_neg -> defineBuiltinInl 'Builtins.bls12_381_G2_neg
           PLC.Bls12_381_G2_compress -> defineBuiltinInl 'Builtins.bls12_381_G2_compress
           PLC.Bls12_381_G2_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G2_uncompress
@@ -714,6 +726,13 @@ defineBuiltinTerms = do
           PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
           PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
           PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
+          -- Value
+          PLC.InsertCoin -> defineBuiltinInl 'Builtins.insertCoin
+          PLC.LookupCoin -> defineBuiltinInl 'Builtins.lookupCoin
+          PLC.UnionValue -> defineBuiltinInl 'Builtins.unionValue
+          PLC.ValueContains -> defineBuiltinInl 'Builtins.valueContains
+          PLC.ValueData -> defineBuiltinInl 'Builtins.mkValue
+          PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
 
 defineBuiltinTypes :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTypes = do
@@ -739,6 +758,7 @@ defineBuiltinTypes = do
   defineBuiltinType ''Builtins.BuiltinBLS12_381_MlResult . ($> annMayInline) $
     PLC.toTypeAst $
       Proxy @BLS12_381.Pairing.MlResult
+  defineBuiltinType ''Builtins.BuiltinValue . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Value
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
 lookupBuiltinTerm :: (Compiling uni fun m ann) => TH.Name -> m (PIRTerm uni fun)

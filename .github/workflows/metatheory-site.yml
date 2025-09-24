@@ -57,6 +57,20 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref_name }}
 
+      - name: Delete Oldest Build
+        run: |
+          # Delete the oldest metatheory build if there are more than 10 builds.
+          if [[ $(ls -1A metatheory | wc -l) -gt 10 ]]; then
+            OLDEST_BUILD=$(ls -1A metatheory | sort | head -n 1)
+            rm -rf metatheory/$OLDEST_BUILD
+
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git rm -r --cached metatheory/$OLDEST_BUILD || true
+            git commit -am "Delete oldest metatheory build $OLDEST_BUILD"
+            git push origin gh-pages
+          fi  
+
       - name: Build Site
         run: | 
           nix build --accept-flake-config .#metatheory-site

@@ -224,9 +224,9 @@ instance
 instance (uni `PLC.HasTypeLevel` Data) => Typeable uni BuiltinData where
   typeRep _ = typeRepBuiltin (Proxy @Data)
 
--- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1703)
-instance Typeable uni BuiltinValue where
-  typeRep = Haskell.error "Not Implemented"
+-- See Note [Lift and Typeable instances for builtins]
+instance (uni `PLC.HasTypeLevel` Value) => Typeable uni BuiltinValue where
+  typeRep _ = typeRepBuiltin (Proxy @Value)
 
 -- See Note [Lift and Typeable instances for builtins]
 instance (uni `PLC.HasTermLevel` Data) => Lift uni BuiltinData where

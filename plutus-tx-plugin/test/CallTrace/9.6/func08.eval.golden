@@ -1,7 +1,0 @@
-An error has occurred:
-The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
-Caused by: error
-
-Trace:
--> func (test/CallTrace/Spec.hs:78:1-78:4)
--> $fMyClassInOtherModuleInteger_$cmyClassFuncInOtherModule (test/CallTrace/OtherModule.hs:19:3-19:26)

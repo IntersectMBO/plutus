@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE Strict          #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Strictness.Spec where
 

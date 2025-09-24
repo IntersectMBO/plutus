@@ -11,7 +11,7 @@ module PlutusIR.Core.Instance.Pretty () where
 import PlutusPrelude
 
 import PlutusCore qualified as PLC
-import PlutusCore.Flat ()
+import PlutusCore.FlatInstances ()
 import PlutusCore.Pretty qualified as PLC
 
 import PlutusIR.Core.Instance.Pretty.Readable ()
