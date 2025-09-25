@@ -41,7 +41,7 @@ let
     phases = "installPhase";
     OLD_AGDA = agda-tools.agda-packages.agda.withPackages [
       agda-tools.agda-stdlib
-      # metatheory-agda-package
+      metatheory-agda-package
     ];
     installPhase = ''
       mkdir -p $out/bin
