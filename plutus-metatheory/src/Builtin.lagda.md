@@ -32,10 +32,10 @@ open import Relation.Binary using (DecidableEquality)
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
-open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
+open import Utils using (ByteString;Maybe;DATA;Value;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
-                 using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+                 using (integer;string;bytestring;unit;bool;pdata;value;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯ renaming (pair to bpair; list to blist; array to barray)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType
@@ -97,9 +97,9 @@ data Builtin : Set where
   tailList                        : Builtin
   nullList                        : Builtin
   -- Arrays
-  lengthOfArray             : Builtin
-  listToArray                  : Builtin
-  indexArray                  : Builtin
+  lengthOfArray                   : Builtin
+  listToArray                     : Builtin
+  indexArray                      : Builtin
   -- Data
   chooseData                      : Builtin
   constrData                      : Builtin
@@ -114,6 +114,13 @@ data Builtin : Set where
   unBData                         : Builtin
   equalsData                      : Builtin
   serialiseData                   : Builtin
+  -- Value
+  insertCoin                      : Builtin
+  lookupCoin                      : Builtin
+  unionValue                      : Builtin
+  valueContains                   : Builtin
+  valueData                       : Builtin
+  unValueData                     : Builtin
   -- Misc constructors
   mkPairData                      : Builtin
   mkNilData                       : Builtin
@@ -303,9 +310,9 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature headList                        = ∀a [ list a ]⟶ a ↑
     signature tailList                        = ∀a [ list a ]⟶ list a
     signature nullList                        = ∀a [ list a ]⟶ bool ↑
-    signature lengthOfArray              = ∀a [ array a ]⟶ integer ↑
-    signature listToArray                   = ∀a [ list a ]⟶ array a
-    signature indexArray                    = ∀a [ array a , integer ↑ ]⟶ a ↑
+    signature lengthOfArray                   = ∀a [ array a ]⟶ integer ↑
+    signature listToArray                     = ∀a [ list a ]⟶ array a
+    signature indexArray                      = ∀a [ array a , integer ↑ ]⟶ a ↑
     signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A ]⟶ A
     signature constrData                      = ∙ [ integer ↑ , list pdata ]⟶ pdata ↑
     signature mapData                         = ∙ [ list (bpair pdata pdata) ]⟶ pdata ↑
@@ -322,6 +329,12 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature mkPairData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ pair pdata pdata
     signature mkNilData                       = ∙ [ unit ↑ ]⟶ list pdata
     signature mkNilPairData                   = ∙ [ unit ↑ ]⟶ list (bpair pdata pdata)
+    signature insertCoin                      = ∙ [ bytestring ↑ , bytestring ↑ , integer ↑ , value ↑ ]⟶ value ↑
+    signature lookupCoin                      = ∙ [ bytestring ↑ , bytestring ↑ , value ↑ ]⟶ integer ↑
+    signature unionValue                      = ∙ [ value ↑ , value ↑ ]⟶ value ↑
+    signature valueContains                   = ∙ [ value ↑ , value ↑ ]⟶ bool ↑
+    signature valueData                       = ∙ [ value ↑ ]⟶ pdata ↑
+    signature unValueData                     = ∙ [ pdata ↑ ]⟶ value ↑
     signature bls12-381-G1-add                = ∙ [ bls12-381-g1-element ↑ , bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
     signature bls12-381-G1-neg                = ∙ [ bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
     signature bls12-381-G1-scalarMul          = ∙ [ integer ↑ , bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
@@ -430,6 +443,12 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | UnBData
                                           | EqualsData
                                           | SerialiseData
+                                          | InsertCoin
+                                          | LookupCoin
+                                          | UnionValue
+                                          | ValueContains
+                                          | ValueData
+                                          | UnValueData
                                           | MkPairData
                                           | MkNilData
                                           | MkNilPairData
@@ -504,6 +523,12 @@ postulate
   ENCODEUTF8                  : String → ByteString
   DECODEUTF8                  : ByteString → Maybe String
   serialiseDATA               : DATA → ByteString
+  insertCOIN                  : ByteString → ByteString → Int → Value → Value
+  lookupCOIN                  : ByteString → ByteString → Value → Int
+  unionVALUE                  : Value → Value → Value
+  valueCONTAINS               : Value → Value → Bool
+  valueDATA                   : Value → DATA
+  unValueDATA                 : DATA → Maybe Value
   BLS12-381-G1-add            : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-neg            : Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-scalarMul      : Int → Bls12-381-G1-Element → Bls12-381-G1-Element

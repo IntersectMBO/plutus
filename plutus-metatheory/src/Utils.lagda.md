@@ -185,21 +185,6 @@ eqByteString _ _ = Bool.true
 {-# COMPILE GHC eqByteString = (==) #-}
 
 ```
-## Value
-
-```
-
-postulate Value : Set
-{-# FOREIGN GHC import qualified PlutusCore.Value as V #-}
-{-# COMPILE GHC Value = type V.Value #-}
-
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-eqValue : Value → Value → Bool
-eqValue _ _ = Bool.true
-{-# COMPILE GHC eqValue = (==) #-}
-
-```
 ## Record Types
 ```
 
@@ -368,6 +353,22 @@ postulate Bls12-381-MlResult : Set
 eqBls12-381-MlResult : Bls12-381-MlResult → Bls12-381-MlResult → Bool
 eqBls12-381-MlResult _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-MlResult = (==) #-}
+```
+
+## Value
+
+```
+
+postulate Value : Set
+{-# FOREIGN GHC import qualified PlutusCore.Value as V #-}
+{-# COMPILE GHC Value = type V.Value #-}
+
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqValue : Value → Value → Bool
+eqValue _ _ = Bool.true
+{-# COMPILE GHC eqValue = (==) #-}
+
 ```
 
 ## Kinds

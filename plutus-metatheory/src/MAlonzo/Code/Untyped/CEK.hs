@@ -473,7 +473,7 @@ d_BUILTIN_278 v0
                                                                                                       MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                       v27)
                                                                                                    (coe
-                                                                                                      MAlonzo.Code.Builtin.d_div_308
+                                                                                                      MAlonzo.Code.Builtin.d_div_324
                                                                                                       v21
                                                                                                       v25)))
                                                                                       _ -> coe v19
@@ -547,7 +547,7 @@ d_BUILTIN_278 v0
                                                                                                       MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                       v27)
                                                                                                    (coe
-                                                                                                      MAlonzo.Code.Builtin.d_quot_310
+                                                                                                      MAlonzo.Code.Builtin.d_quot_326
                                                                                                       v21
                                                                                                       v25)))
                                                                                       _ -> coe v19
@@ -621,7 +621,7 @@ d_BUILTIN_278 v0
                                                                                                       MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                       v27)
                                                                                                    (coe
-                                                                                                      MAlonzo.Code.Builtin.d_rem_312
+                                                                                                      MAlonzo.Code.Builtin.d_rem_328
                                                                                                       v21
                                                                                                       v25)))
                                                                                       _ -> coe v19
@@ -695,7 +695,7 @@ d_BUILTIN_278 v0
                                                                                                       MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                       v27)
                                                                                                    (coe
-                                                                                                      MAlonzo.Code.Builtin.d_mod_314
+                                                                                                      MAlonzo.Code.Builtin.d_mod_330
                                                                                                       v21
                                                                                                       v25)))
                                                                                       _ -> coe v19
@@ -990,7 +990,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v27)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_concat_320
+                                                                                                   MAlonzo.Code.Builtin.d_concat_336
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -1045,7 +1045,7 @@ d_BUILTIN_278 v0
                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                                                         -> let v28
                                                                                                  = coe
-                                                                                                     MAlonzo.Code.Builtin.d_cons_322
+                                                                                                     MAlonzo.Code.Builtin.d_cons_338
                                                                                                      v21
                                                                                                      v25 in
                                                                                            coe
@@ -1144,7 +1144,7 @@ d_BUILTIN_278 v0
                                                                                                                                   MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                                                   v39)
                                                                                                                                (coe
-                                                                                                                                  MAlonzo.Code.Builtin.d_slice_324
+                                                                                                                                  MAlonzo.Code.Builtin.d_slice_340
                                                                                                                                   v29
                                                                                                                                   v33
                                                                                                                                   v37))
@@ -1203,7 +1203,7 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_lengthBS_304
+                                                                    MAlonzo.Code.Builtin.d_lengthBS_320
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
@@ -1273,7 +1273,7 @@ d_BUILTIN_278 v0
                                                                                                                          (coe
                                                                                                                             v25)
                                                                                                                          (coe
-                                                                                                                            MAlonzo.Code.Builtin.d_lengthBS_304
+                                                                                                                            MAlonzo.Code.Builtin.d_lengthBS_320
                                                                                                                             v21) in
                                                                                                                coe
                                                                                                                  (case coe
@@ -1293,7 +1293,7 @@ d_BUILTIN_278 v0
                                                                                                                                            MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                                                            v27)
                                                                                                                                         (coe
-                                                                                                                                           MAlonzo.Code.Builtin.d_index_306
+                                                                                                                                           MAlonzo.Code.Builtin.d_index_322
                                                                                                                                            v21
                                                                                                                                            v25)))
                                                                                                                            else coe
@@ -1373,7 +1373,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_equals_342
+                                                                                                   MAlonzo.Code.Builtin.d_equals_358
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -1435,7 +1435,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_B'60'_326
+                                                                                                   MAlonzo.Code.Builtin.d_B'60'_342
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -1497,7 +1497,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_B'60''61'_328
+                                                                                                   MAlonzo.Code.Builtin.d_B'60''61'_344
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -1545,7 +1545,7 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_SHA2'45'256_330
+                                                                    MAlonzo.Code.Builtin.d_SHA2'45'256_346
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
@@ -1588,7 +1588,7 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_SHA3'45'256_332
+                                                                    MAlonzo.Code.Builtin.d_SHA3'45'256_348
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
@@ -1631,7 +1631,7 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_BLAKE2B'45'256_334
+                                                                    MAlonzo.Code.Builtin.d_BLAKE2B'45'256_350
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
@@ -1700,7 +1700,7 @@ d_BUILTIN_278 v0
                                                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                                                                                        -> let v40
                                                                                                                                 = coe
-                                                                                                                                    MAlonzo.Code.Builtin.d_verifyEd25519Sig_336
+                                                                                                                                    MAlonzo.Code.Builtin.d_verifyEd25519Sig_352
                                                                                                                                     v29
                                                                                                                                     v33
                                                                                                                                     v37 in
@@ -1804,7 +1804,7 @@ d_BUILTIN_278 v0
                                                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                                                                                        -> let v40
                                                                                                                                 = coe
-                                                                                                                                    MAlonzo.Code.Builtin.d_verifyEcdsaSecp256k1Sig_338
+                                                                                                                                    MAlonzo.Code.Builtin.d_verifyEcdsaSecp256k1Sig_354
                                                                                                                                     v29
                                                                                                                                     v33
                                                                                                                                     v37 in
@@ -1908,7 +1908,7 @@ d_BUILTIN_278 v0
                                                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                                                                                        -> let v40
                                                                                                                                 = coe
-                                                                                                                                    MAlonzo.Code.Builtin.d_verifySchnorrSecp256k1Sig_340
+                                                                                                                                    MAlonzo.Code.Builtin.d_verifySchnorrSecp256k1Sig_356
                                                                                                                                     v29
                                                                                                                                     v33
                                                                                                                                     v37 in
@@ -2110,7 +2110,7 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_ENCODEUTF8_344
+                                                                    MAlonzo.Code.Builtin.d_ENCODEUTF8_360
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
@@ -2147,7 +2147,7 @@ d_BUILTIN_278 v0
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                          -> let v16
                                                                   = coe
-                                                                      MAlonzo.Code.Builtin.d_DECODEUTF8_346
+                                                                      MAlonzo.Code.Builtin.d_DECODEUTF8_362
                                                                       v13 in
                                                             coe
                                                               (case coe v16 of
@@ -2285,7 +2285,7 @@ d_BUILTIN_278 v0
                                                                     -> coe
                                                                          MAlonzo.Code.Utils.C_inj'8322'_14
                                                                          (coe
-                                                                            MAlonzo.Code.Builtin.d_TRACE_318
+                                                                            MAlonzo.Code.Builtin.d_TRACE_334
                                                                             erased v26 v9)
                                                                   _ -> coe v10
                                                            _ -> coe v10
@@ -2336,7 +2336,7 @@ d_BUILTIN_278 v0
                                                                -> case coe v28 of
                                                                     MAlonzo.Code.Builtin.Signature.C_pair_24 v31 v32
                                                                       -> case coe v29 of
-                                                                           MAlonzo.Code.Utils.C__'44'__384 v33 v34
+                                                                           MAlonzo.Code.Utils.C__'44'__380 v33 v34
                                                                              -> coe
                                                                                   MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                   (coe
@@ -2392,7 +2392,7 @@ d_BUILTIN_278 v0
                                                                -> case coe v28 of
                                                                     MAlonzo.Code.Builtin.Signature.C_pair_24 v31 v32
                                                                       -> case coe v29 of
-                                                                           MAlonzo.Code.Utils.C__'44'__384 v33 v34
+                                                                           MAlonzo.Code.Utils.C__'44'__380 v33 v34
                                                                              -> coe
                                                                                   MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                   (coe
@@ -2436,11 +2436,11 @@ d_BUILTIN_278 v0
                                                                     -> case coe v39 of
                                                                          MAlonzo.Code.Builtin.Signature.C_list_16 v42
                                                                            -> case coe v40 of
-                                                                                MAlonzo.Code.Utils.C_'91''93'_392
+                                                                                MAlonzo.Code.Utils.C_'91''93'_388
                                                                                   -> coe
                                                                                        MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                        (coe v17)
-                                                                                MAlonzo.Code.Utils.C__'8759'__394 v43 v44
+                                                                                MAlonzo.Code.Utils.C__'8759'__390 v43 v44
                                                                                   -> coe
                                                                                        MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                        (coe v9)
@@ -2499,7 +2499,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_list_16
                                                                                                    v25)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Utils.C__'8759'__394
+                                                                                                   MAlonzo.Code.Utils.C__'8759'__390
                                                                                                    (coe
                                                                                                       v26)
                                                                                                    (coe
@@ -2553,7 +2553,7 @@ d_BUILTIN_278 v0
                                                      -> case coe v20 of
                                                           MAlonzo.Code.Builtin.Signature.C_list_16 v23
                                                             -> case coe v21 of
-                                                                 MAlonzo.Code.Utils.C__'8759'__394 v24 v25
+                                                                 MAlonzo.Code.Utils.C__'8759'__390 v24 v25
                                                                    -> coe
                                                                         MAlonzo.Code.Utils.C_inj'8322'_14
                                                                         (coe
@@ -2599,7 +2599,7 @@ d_BUILTIN_278 v0
                                                      -> case coe v20 of
                                                           MAlonzo.Code.Builtin.Signature.C_list_16 v23
                                                             -> case coe v21 of
-                                                                 MAlonzo.Code.Utils.C__'8759'__394 v24 v25
+                                                                 MAlonzo.Code.Utils.C__'8759'__390 v24 v25
                                                                    -> coe
                                                                         MAlonzo.Code.Utils.C_inj'8322'_14
                                                                         (coe
@@ -2648,7 +2648,7 @@ d_BUILTIN_278 v0
                                                      -> case coe v20 of
                                                           MAlonzo.Code.Builtin.Signature.C_list_16 v23
                                                             -> case coe v21 of
-                                                                 MAlonzo.Code.Utils.C_'91''93'_392
+                                                                 MAlonzo.Code.Utils.C_'91''93'_388
                                                                    -> coe
                                                                         MAlonzo.Code.Utils.C_inj'8322'_14
                                                                         (coe
@@ -2659,7 +2659,7 @@ d_BUILTIN_278 v0
                                                                                  MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                            (coe
                                                                               MAlonzo.Code.Agda.Builtin.Bool.C_true_10))
-                                                                 MAlonzo.Code.Utils.C__'8759'__394 v24 v25
+                                                                 MAlonzo.Code.Utils.C__'8759'__390 v24 v25
                                                                    -> coe
                                                                         MAlonzo.Code.Utils.C_inj'8322'_14
                                                                         (coe
@@ -2718,7 +2718,7 @@ d_BUILTIN_278 v0
                                                                        (coe
                                                                           MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                     (coe
-                                                                       MAlonzo.Code.Utils.d_HSlengthOfArray_486
+                                                                       MAlonzo.Code.Utils.d_HSlengthOfArray_482
                                                                        erased v21))
                                                           _ -> coe v19
                                                    _ -> coe v19)
@@ -2766,7 +2766,7 @@ d_BUILTIN_278 v0
                                                                        MAlonzo.Code.Builtin.Signature.C_array_20
                                                                        v23)
                                                                     (coe
-                                                                       MAlonzo.Code.Utils.d_HSlistToArray_490
+                                                                       MAlonzo.Code.Utils.d_HSlistToArray_486
                                                                        erased v21))
                                                           _ -> coe v19
                                                    _ -> coe v19)
@@ -2826,7 +2826,7 @@ d_BUILTIN_278 v0
                                                                                                                    (coe
                                                                                                                       v30)
                                                                                                                    (coe
-                                                                                                                      MAlonzo.Code.Utils.d_HSlengthOfArray_486
+                                                                                                                      MAlonzo.Code.Utils.d_HSlengthOfArray_482
                                                                                                                       erased
                                                                                                                       v26) in
                                                                                                          coe
@@ -2846,7 +2846,7 @@ d_BUILTIN_278 v0
                                                                                                                                   (coe
                                                                                                                                      v28)
                                                                                                                                   (coe
-                                                                                                                                     MAlonzo.Code.Utils.d_HSindexArray_492
+                                                                                                                                     MAlonzo.Code.Utils.d_HSindexArray_488
                                                                                                                                      erased
                                                                                                                                      v26
                                                                                                                                      v30)))
@@ -2915,27 +2915,27 @@ d_BUILTIN_278 v0
                                                                                               MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                                                                                                 -> case coe
                                                                                                           v54 of
-                                                                                                     MAlonzo.Code.Utils.C_ConstrDATA_500 v57 v58
+                                                                                                     MAlonzo.Code.Utils.C_ConstrDATA_496 v57 v58
                                                                                                        -> coe
                                                                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                                             (coe
                                                                                                                v38)
-                                                                                                     MAlonzo.Code.Utils.C_MapDATA_502 v57
+                                                                                                     MAlonzo.Code.Utils.C_MapDATA_498 v57
                                                                                                        -> coe
                                                                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                                             (coe
                                                                                                                v31)
-                                                                                                     MAlonzo.Code.Utils.C_ListDATA_504 v57
+                                                                                                     MAlonzo.Code.Utils.C_ListDATA_500 v57
                                                                                                        -> coe
                                                                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                                             (coe
                                                                                                                v24)
-                                                                                                     MAlonzo.Code.Utils.C_iDATA_506 v57
+                                                                                                     MAlonzo.Code.Utils.C_iDATA_502 v57
                                                                                                        -> coe
                                                                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                                             (coe
                                                                                                                v17)
-                                                                                                     MAlonzo.Code.Utils.C_bDATA_508 v57
+                                                                                                     MAlonzo.Code.Utils.C_bDATA_504 v57
                                                                                                        -> coe
                                                                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                                             (coe
@@ -3005,7 +3005,7 @@ d_BUILTIN_278 v0
                                                                                                           MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                           v29)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.Utils.C_ConstrDATA_500
+                                                                                                          MAlonzo.Code.Utils.C_ConstrDATA_496
                                                                                                           (coe
                                                                                                              v21)
                                                                                                           (coe
@@ -3065,7 +3065,7 @@ d_BUILTIN_278 v0
                                                                                                 MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                 v22)
                                                                                              (coe
-                                                                                                MAlonzo.Code.Utils.C_MapDATA_502
+                                                                                                MAlonzo.Code.Utils.C_MapDATA_498
                                                                                                 (coe
                                                                                                    v13)))
                                                                                    _ -> coe v11
@@ -3115,7 +3115,7 @@ d_BUILTIN_278 v0
                                                                            MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                            v17)
                                                                         (coe
-                                                                           MAlonzo.Code.Utils.C_ListDATA_504
+                                                                           MAlonzo.Code.Utils.C_ListDATA_500
                                                                            (coe v13)))
                                                               _ -> coe v11
                                                        _ -> coe v11
@@ -3160,7 +3160,7 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))
                                                                  (coe
-                                                                    MAlonzo.Code.Utils.C_iDATA_506
+                                                                    MAlonzo.Code.Utils.C_iDATA_502
                                                                     (coe v13)))
                                                        _ -> coe v11
                                                 _ -> coe v11
@@ -3204,7 +3204,7 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))
                                                                  (coe
-                                                                    MAlonzo.Code.Utils.C_bDATA_508
+                                                                    MAlonzo.Code.Utils.C_bDATA_504
                                                                     (coe v13)))
                                                        _ -> coe v11
                                                 _ -> coe v11
@@ -3240,7 +3240,7 @@ d_BUILTIN_278 v0
                                                   -> case coe v15 of
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                                                          -> case coe v13 of
-                                                              MAlonzo.Code.Utils.C_ConstrDATA_500 v16 v17
+                                                              MAlonzo.Code.Utils.C_ConstrDATA_496 v16 v17
                                                                 -> coe
                                                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                                                      (coe
@@ -3257,7 +3257,7 @@ d_BUILTIN_278 v0
                                                                                  MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                  v15)))
                                                                         (coe
-                                                                           MAlonzo.Code.Utils.C__'44'__384
+                                                                           MAlonzo.Code.Utils.C__'44'__380
                                                                            (coe v16) (coe v17)))
                                                               _ -> coe v11
                                                        _ -> coe v11
@@ -3294,7 +3294,7 @@ d_BUILTIN_278 v0
                                                   -> case coe v15 of
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                                                          -> case coe v13 of
-                                                              MAlonzo.Code.Utils.C_MapDATA_502 v16
+                                                              MAlonzo.Code.Utils.C_MapDATA_498 v16
                                                                 -> coe
                                                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                                                      (coe
@@ -3345,7 +3345,7 @@ d_BUILTIN_278 v0
                                                   -> case coe v15 of
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                                                          -> case coe v13 of
-                                                              MAlonzo.Code.Utils.C_ListDATA_504 v16
+                                                              MAlonzo.Code.Utils.C_ListDATA_500 v16
                                                                 -> coe
                                                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                                                      (coe
@@ -3391,7 +3391,7 @@ d_BUILTIN_278 v0
                                                   -> case coe v15 of
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                                                          -> case coe v13 of
-                                                              MAlonzo.Code.Utils.C_iDATA_506 v16
+                                                              MAlonzo.Code.Utils.C_iDATA_502 v16
                                                                 -> coe
                                                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                                                      (coe
@@ -3436,7 +3436,7 @@ d_BUILTIN_278 v0
                                                   -> case coe v15 of
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                                                          -> case coe v13 of
-                                                              MAlonzo.Code.Utils.C_bDATA_508 v16
+                                                              MAlonzo.Code.Utils.C_bDATA_504 v16
                                                                 -> coe
                                                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                                                      (coe
@@ -3502,7 +3502,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Utils.d_eqDATA_510
+                                                                                                   MAlonzo.Code.Utils.d_eqDATA_506
                                                                                                    (coe
                                                                                                       v21)
                                                                                                    (coe
@@ -3553,14 +3553,444 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_serialiseDATA_348
+                                                                    MAlonzo.Code.Builtin.d_serialiseDATA_364
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_mkPairData_112
+      MAlonzo.Code.Builtin.C_insertCoin_112
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_app_106 v16 v17
+                                 -> let v18
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v16 of
+                                         C_app_106 v24 v25
+                                           -> let v26
+                                                    = coe
+                                                        MAlonzo.Code.Utils.C_inj'8321'_12
+                                                        (coe MAlonzo.Code.Utils.C_userError_352) in
+                                              coe
+                                                (case coe v24 of
+                                                   C_app_106 v32 v33
+                                                     -> let v34
+                                                              = coe
+                                                                  MAlonzo.Code.Utils.C_inj'8321'_12
+                                                                  (coe
+                                                                     MAlonzo.Code.Utils.C_userError_352) in
+                                                        coe
+                                                          (case coe v32 of
+                                                             C_base_94
+                                                               -> let v35
+                                                                        = coe
+                                                                            MAlonzo.Code.Utils.C_inj'8321'_12
+                                                                            (coe
+                                                                               MAlonzo.Code.Utils.C_userError_352) in
+                                                                  coe
+                                                                    (case coe v33 of
+                                                                       C_V'45'con_50 v36 v37
+                                                                         -> case coe v36 of
+                                                                              MAlonzo.Code.Builtin.Signature.C_atomic_12 v39
+                                                                                -> case coe v39 of
+                                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
+                                                                                       -> case coe
+                                                                                                 v25 of
+                                                                                            C_V'45'con_50 v40 v41
+                                                                                              -> case coe
+                                                                                                        v40 of
+                                                                                                   MAlonzo.Code.Builtin.Signature.C_atomic_12 v43
+                                                                                                     -> case coe
+                                                                                                               v43 of
+                                                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
+                                                                                                            -> case coe
+                                                                                                                      v17 of
+                                                                                                                 C_V'45'con_50 v44 v45
+                                                                                                                   -> case coe
+                                                                                                                             v44 of
+                                                                                                                        MAlonzo.Code.Builtin.Signature.C_atomic_12 v47
+                                                                                                                          -> case coe
+                                                                                                                                    v47 of
+                                                                                                                               MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
+                                                                                                                                 -> case coe
+                                                                                                                                           v9 of
+                                                                                                                                      C_V'45'con_50 v48 v49
+                                                                                                                                        -> case coe
+                                                                                                                                                  v48 of
+                                                                                                                                             MAlonzo.Code.Builtin.Signature.C_atomic_12 v51
+                                                                                                                                               -> case coe
+                                                                                                                                                         v51 of
+                                                                                                                                                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                                                                                                                                                      -> coe
+                                                                                                                                                           MAlonzo.Code.Utils.C_inj'8322'_14
+                                                                                                                                                           (coe
+                                                                                                                                                              C_V'45'con_50
+                                                                                                                                                              (coe
+                                                                                                                                                                 MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                                                                                                                 v51)
+                                                                                                                                                              (coe
+                                                                                                                                                                 MAlonzo.Code.Builtin.d_insertCOIN_366
+                                                                                                                                                                 v37
+                                                                                                                                                                 v41
+                                                                                                                                                                 v45
+                                                                                                                                                                 v49))
+                                                                                                                                                    _ -> coe
+                                                                                                                                                           v35
+                                                                                                                                             _ -> coe
+                                                                                                                                                    v35
+                                                                                                                                      _ -> coe
+                                                                                                                                             v35
+                                                                                                                               _ -> coe
+                                                                                                                                      v35
+                                                                                                                        _ -> coe
+                                                                                                                               v35
+                                                                                                                 _ -> coe
+                                                                                                                        v35
+                                                                                                          _ -> coe
+                                                                                                                 v35
+                                                                                                   _ -> coe
+                                                                                                          v35
+                                                                                            _ -> coe
+                                                                                                   v35
+                                                                                     _ -> coe v35
+                                                                              _ -> coe v35
+                                                                       _ -> coe v35)
+                                                             _ -> coe v34)
+                                                   _ -> coe v26)
+                                         _ -> coe v18)
+                               _ -> coe v10)
+                     _ -> coe v2))
+      MAlonzo.Code.Builtin.C_lookupCoin_114
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_app_106 v16 v17
+                                 -> let v18
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v16 of
+                                         C_app_106 v24 v25
+                                           -> let v26
+                                                    = coe
+                                                        MAlonzo.Code.Utils.C_inj'8321'_12
+                                                        (coe MAlonzo.Code.Utils.C_userError_352) in
+                                              coe
+                                                (case coe v24 of
+                                                   C_base_94
+                                                     -> let v27
+                                                              = coe
+                                                                  MAlonzo.Code.Utils.C_inj'8321'_12
+                                                                  (coe
+                                                                     MAlonzo.Code.Utils.C_userError_352) in
+                                                        coe
+                                                          (case coe v25 of
+                                                             C_V'45'con_50 v28 v29
+                                                               -> case coe v28 of
+                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12 v31
+                                                                      -> case coe v31 of
+                                                                           MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
+                                                                             -> case coe v17 of
+                                                                                  C_V'45'con_50 v32 v33
+                                                                                    -> case coe
+                                                                                              v32 of
+                                                                                         MAlonzo.Code.Builtin.Signature.C_atomic_12 v35
+                                                                                           -> case coe
+                                                                                                     v35 of
+                                                                                                MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
+                                                                                                  -> case coe
+                                                                                                            v9 of
+                                                                                                       C_V'45'con_50 v36 v37
+                                                                                                         -> case coe
+                                                                                                                   v36 of
+                                                                                                              MAlonzo.Code.Builtin.Signature.C_atomic_12 v39
+                                                                                                                -> case coe
+                                                                                                                          v39 of
+                                                                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                                                                                                                       -> coe
+                                                                                                                            MAlonzo.Code.Utils.C_inj'8322'_14
+                                                                                                                            (coe
+                                                                                                                               C_V'45'con_50
+                                                                                                                               (coe
+                                                                                                                                  MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                                                                                  (coe
+                                                                                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
+                                                                                                                               (coe
+                                                                                                                                  MAlonzo.Code.Builtin.d_lookupCOIN_368
+                                                                                                                                  v29
+                                                                                                                                  v33
+                                                                                                                                  v37))
+                                                                                                                     _ -> coe
+                                                                                                                            v27
+                                                                                                              _ -> coe
+                                                                                                                     v27
+                                                                                                       _ -> coe
+                                                                                                              v27
+                                                                                                _ -> coe
+                                                                                                       v27
+                                                                                         _ -> coe
+                                                                                                v27
+                                                                                  _ -> coe v27
+                                                                           _ -> coe v27
+                                                                    _ -> coe v27
+                                                             _ -> coe v27)
+                                                   _ -> coe v26)
+                                         _ -> coe v18)
+                               _ -> coe v10)
+                     _ -> coe v2))
+      MAlonzo.Code.Builtin.C_unionValue_116
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_app_106 v16 v17
+                                 -> let v18
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v16 of
+                                         C_base_94
+                                           -> let v19
+                                                    = coe
+                                                        MAlonzo.Code.Utils.C_inj'8321'_12
+                                                        (coe MAlonzo.Code.Utils.C_userError_352) in
+                                              coe
+                                                (case coe v17 of
+                                                   C_V'45'con_50 v20 v21
+                                                     -> case coe v20 of
+                                                          MAlonzo.Code.Builtin.Signature.C_atomic_12 v23
+                                                            -> case coe v23 of
+                                                                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                                                                   -> case coe v9 of
+                                                                        C_V'45'con_50 v24 v25
+                                                                          -> case coe v24 of
+                                                                               MAlonzo.Code.Builtin.Signature.C_atomic_12 v27
+                                                                                 -> case coe v27 of
+                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                                                                                        -> coe
+                                                                                             MAlonzo.Code.Utils.C_inj'8322'_14
+                                                                                             (coe
+                                                                                                C_V'45'con_50
+                                                                                                (coe
+                                                                                                   MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                                                   v27)
+                                                                                                (coe
+                                                                                                   MAlonzo.Code.Builtin.d_unionVALUE_370
+                                                                                                   v21
+                                                                                                   v25))
+                                                                                      _ -> coe v19
+                                                                               _ -> coe v19
+                                                                        _ -> coe v19
+                                                                 _ -> coe v19
+                                                          _ -> coe v19
+                                                   _ -> coe v19)
+                                         _ -> coe v18)
+                               _ -> coe v10)
+                     _ -> coe v2))
+      MAlonzo.Code.Builtin.C_valueContains_118
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_app_106 v16 v17
+                                 -> let v18
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v16 of
+                                         C_base_94
+                                           -> let v19
+                                                    = coe
+                                                        MAlonzo.Code.Utils.C_inj'8321'_12
+                                                        (coe MAlonzo.Code.Utils.C_userError_352) in
+                                              coe
+                                                (case coe v17 of
+                                                   C_V'45'con_50 v20 v21
+                                                     -> case coe v20 of
+                                                          MAlonzo.Code.Builtin.Signature.C_atomic_12 v23
+                                                            -> case coe v23 of
+                                                                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                                                                   -> case coe v9 of
+                                                                        C_V'45'con_50 v24 v25
+                                                                          -> case coe v24 of
+                                                                               MAlonzo.Code.Builtin.Signature.C_atomic_12 v27
+                                                                                 -> case coe v27 of
+                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                                                                                        -> coe
+                                                                                             MAlonzo.Code.Utils.C_inj'8322'_14
+                                                                                             (coe
+                                                                                                C_V'45'con_50
+                                                                                                (coe
+                                                                                                   MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                                                   (coe
+                                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
+                                                                                                (coe
+                                                                                                   MAlonzo.Code.Builtin.d_valueCONTAINS_372
+                                                                                                   v21
+                                                                                                   v25))
+                                                                                      _ -> coe v19
+                                                                               _ -> coe v19
+                                                                        _ -> coe v19
+                                                                 _ -> coe v19
+                                                          _ -> coe v19
+                                                   _ -> coe v19)
+                                         _ -> coe v18)
+                               _ -> coe v10)
+                     _ -> coe v2))
+      MAlonzo.Code.Builtin.C_valueData_120
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_base_94
+                                 -> let v11
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v9 of
+                                         C_V'45'con_50 v12 v13
+                                           -> case coe v12 of
+                                                MAlonzo.Code.Builtin.Signature.C_atomic_12 v15
+                                                  -> case coe v15 of
+                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                                                         -> coe
+                                                              MAlonzo.Code.Utils.C_inj'8322'_14
+                                                              (coe
+                                                                 C_V'45'con_50
+                                                                 (coe
+                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                    (coe
+                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))
+                                                                 (coe
+                                                                    MAlonzo.Code.Builtin.d_valueDATA_374
+                                                                    v13))
+                                                       _ -> coe v11
+                                                _ -> coe v11
+                                         _ -> coe v11)
+                               _ -> coe v10)
+                     _ -> coe v2))
+      MAlonzo.Code.Builtin.C_unValueData_122
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_base_94
+                                 -> let v11
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v9 of
+                                         C_V'45'con_50 v12 v13
+                                           -> case coe v12 of
+                                                MAlonzo.Code.Builtin.Signature.C_atomic_12 v15
+                                                  -> case coe v15 of
+                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
+                                                         -> let v16
+                                                                  = coe
+                                                                      MAlonzo.Code.Builtin.d_unValueDATA_376
+                                                                      v13 in
+                                                            coe
+                                                              (case coe v16 of
+                                                                 MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v17
+                                                                   -> coe
+                                                                        MAlonzo.Code.Utils.C_inj'8322'_14
+                                                                        (coe
+                                                                           C_V'45'con_50
+                                                                           (coe
+                                                                              MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                              (coe
+                                                                                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20))
+                                                                           (coe v17))
+                                                                 MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
+                                                                   -> coe
+                                                                        MAlonzo.Code.Utils.C_inj'8321'_12
+                                                                        (coe
+                                                                           MAlonzo.Code.Utils.C_userError_352)
+                                                                 _ -> MAlonzo.RTE.mazUnreachableError)
+                                                       _ -> coe v11
+                                                _ -> coe v11
+                                         _ -> coe v11)
+                               _ -> coe v10)
+                     _ -> coe v2))
+      MAlonzo.Code.Builtin.C_mkPairData_124
         -> coe
              (\ v1 ->
                 let v2
@@ -3614,7 +4044,7 @@ d_BUILTIN_278 v0
                                                                                                       MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                       v27))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Utils.C__'44'__384
+                                                                                                   MAlonzo.Code.Utils.C__'44'__380
                                                                                                    (coe
                                                                                                       v21)
                                                                                                    (coe
@@ -3628,7 +4058,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_mkNilData_114
+      MAlonzo.Code.Builtin.C_mkNilData_126
         -> coe
              (\ v1 ->
                 let v2
@@ -3669,13 +4099,13 @@ d_BUILTIN_278 v0
                                                                           (coe
                                                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)))
                                                                     (coe
-                                                                       MAlonzo.Code.Utils.C_'91''93'_392)))
+                                                                       MAlonzo.Code.Utils.C_'91''93'_388)))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_mkNilPairData_116
+      MAlonzo.Code.Builtin.C_mkNilPairData_128
         -> coe
              (\ v1 ->
                 let v2
@@ -3722,13 +4152,13 @@ d_BUILTIN_278 v0
                                                                              (coe
                                                                                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))))
                                                                     (coe
-                                                                       MAlonzo.Code.Utils.C_'91''93'_392)))
+                                                                       MAlonzo.Code.Utils.C_'91''93'_388)))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'add_118
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'add_130
         -> coe
              (\ v1 ->
                 let v2
@@ -3777,7 +4207,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v27)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'add_350
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'add_378
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -3789,7 +4219,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'neg_120
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'neg_132
         -> coe
              (\ v1 ->
                 let v2
@@ -3825,14 +4255,14 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'neg_352
+                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'neg_380
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'scalarMul_122
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'scalarMul_134
         -> coe
              (\ v1 ->
                 let v2
@@ -3881,7 +4311,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v27)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'scalarMul_354
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'scalarMul_382
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -3893,7 +4323,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'equal_124
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'equal_136
         -> coe
              (\ v1 ->
                 let v2
@@ -3943,7 +4373,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'equal_356
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'equal_384
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -3955,7 +4385,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'hashToGroup_126
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'hashToGroup_138
         -> coe
              (\ v1 ->
                 let v2
@@ -3998,7 +4428,7 @@ d_BUILTIN_278 v0
                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                                                         -> let v28
                                                                                                  = coe
-                                                                                                     MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'hashToGroup_358
+                                                                                                     MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'hashToGroup_386
                                                                                                      v21
                                                                                                      v25 in
                                                                                            coe
@@ -4030,7 +4460,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'compress_128
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'compress_140
         -> coe
              (\ v1 ->
                 let v2
@@ -4067,14 +4497,14 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'compress_360
+                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'compress_388
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'uncompress_130
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'uncompress_142
         -> coe
              (\ v1 ->
                 let v2
@@ -4104,7 +4534,7 @@ d_BUILTIN_278 v0
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                          -> let v16
                                                                   = coe
-                                                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'uncompress_362
+                                                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'uncompress_390
                                                                       v13 in
                                                             coe
                                                               (case coe v16 of
@@ -4129,7 +4559,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'add_132
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'add_144
         -> coe
              (\ v1 ->
                 let v2
@@ -4178,7 +4608,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v27)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'add_364
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'add_392
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -4190,7 +4620,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'neg_134
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'neg_146
         -> coe
              (\ v1 ->
                 let v2
@@ -4226,14 +4656,14 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'neg_366
+                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'neg_394
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'scalarMul_136
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'scalarMul_148
         -> coe
              (\ v1 ->
                 let v2
@@ -4282,7 +4712,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v27)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'scalarMul_368
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'scalarMul_396
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -4294,7 +4724,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'equal_138
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'equal_150
         -> coe
              (\ v1 ->
                 let v2
@@ -4344,7 +4774,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'equal_370
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'equal_398
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -4356,7 +4786,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'hashToGroup_140
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'hashToGroup_152
         -> coe
              (\ v1 ->
                 let v2
@@ -4399,7 +4829,7 @@ d_BUILTIN_278 v0
                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                                                         -> let v28
                                                                                                  = coe
-                                                                                                     MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'hashToGroup_372
+                                                                                                     MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'hashToGroup_400
                                                                                                      v21
                                                                                                      v25 in
                                                                                            coe
@@ -4431,7 +4861,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'compress_142
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'compress_154
         -> coe
              (\ v1 ->
                 let v2
@@ -4468,14 +4898,14 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'compress_374
+                                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'compress_402
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'uncompress_144
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'uncompress_156
         -> coe
              (\ v1 ->
                 let v2
@@ -4505,7 +4935,7 @@ d_BUILTIN_278 v0
                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                                                          -> let v16
                                                                   = coe
-                                                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'uncompress_376
+                                                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'uncompress_404
                                                                       v13 in
                                                             coe
                                                               (case coe v16 of
@@ -4530,7 +4960,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'millerLoop_146
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'millerLoop_158
         -> coe
              (\ v1 ->
                 let v2
@@ -4580,7 +5010,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_26))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'millerLoop_378
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'millerLoop_406
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -4592,7 +5022,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'mulMlResult_148
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'mulMlResult_160
         -> coe
              (\ v1 ->
                 let v2
@@ -4641,7 +5071,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v27)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'mulMlResult_380
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'mulMlResult_408
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -4653,7 +5083,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_bls12'45'381'45'finalVerify_150
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'finalVerify_162
         -> coe
              (\ v1 ->
                 let v2
@@ -4703,7 +5133,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'finalVerify_382
+                                                                                                   MAlonzo.Code.Builtin.d_BLS12'45'381'45'finalVerify_410
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -4715,7 +5145,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_keccak'45'256_152
+      MAlonzo.Code.Builtin.C_keccak'45'256_164
         -> coe
              (\ v1 ->
                 let v2
@@ -4751,14 +5181,14 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_KECCAK'45'256_384
+                                                                    MAlonzo.Code.Builtin.d_KECCAK'45'256_412
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_blake2b'45'224_154
+      MAlonzo.Code.Builtin.C_blake2b'45'224_166
         -> coe
              (\ v1 ->
                 let v2
@@ -4794,14 +5224,14 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_BLAKE2B'45'224_386
+                                                                    MAlonzo.Code.Builtin.d_BLAKE2B'45'224_414
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_byteStringToInteger_156
+      MAlonzo.Code.Builtin.C_byteStringToInteger_168
         -> coe
              (\ v1 ->
                 let v2
@@ -4851,7 +5281,7 @@ d_BUILTIN_278 v0
                                                                                                    (coe
                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_BStoI_388
+                                                                                                   MAlonzo.Code.Builtin.d_BStoI_416
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -4863,7 +5293,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_integerToByteString_158
+      MAlonzo.Code.Builtin.C_integerToByteString_170
         -> coe
              (\ v1 ->
                 let v2
@@ -4925,7 +5355,7 @@ d_BUILTIN_278 v0
                                                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
                                                                                                                        -> let v40
                                                                                                                                 = coe
-                                                                                                                                    MAlonzo.Code.Builtin.d_ItoBS_390
+                                                                                                                                    MAlonzo.Code.Builtin.d_ItoBS_418
                                                                                                                                     v29
                                                                                                                                     v33
                                                                                                                                     v37 in
@@ -4967,7 +5397,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_andByteString_160
+      MAlonzo.Code.Builtin.C_andByteString_172
         -> coe
              (\ v1 ->
                 let v2
@@ -5035,7 +5465,7 @@ d_BUILTIN_278 v0
                                                                                                                                   MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                                                   v39)
                                                                                                                                (coe
-                                                                                                                                  MAlonzo.Code.Builtin.d_andBYTESTRING_392
+                                                                                                                                  MAlonzo.Code.Builtin.d_andBYTESTRING_420
                                                                                                                                   v29
                                                                                                                                   v33
                                                                                                                                   v37))
@@ -5057,7 +5487,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_orByteString_162
+      MAlonzo.Code.Builtin.C_orByteString_174
         -> coe
              (\ v1 ->
                 let v2
@@ -5125,7 +5555,7 @@ d_BUILTIN_278 v0
                                                                                                                                   MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                                                   v39)
                                                                                                                                (coe
-                                                                                                                                  MAlonzo.Code.Builtin.d_orBYTESTRING_394
+                                                                                                                                  MAlonzo.Code.Builtin.d_orBYTESTRING_422
                                                                                                                                   v29
                                                                                                                                   v33
                                                                                                                                   v37))
@@ -5147,7 +5577,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_xorByteString_164
+      MAlonzo.Code.Builtin.C_xorByteString_176
         -> coe
              (\ v1 ->
                 let v2
@@ -5215,7 +5645,7 @@ d_BUILTIN_278 v0
                                                                                                                                   MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                                                   v39)
                                                                                                                                (coe
-                                                                                                                                  MAlonzo.Code.Builtin.d_xorBYTESTRING_396
+                                                                                                                                  MAlonzo.Code.Builtin.d_xorBYTESTRING_424
                                                                                                                                   v29
                                                                                                                                   v33
                                                                                                                                   v37))
@@ -5237,7 +5667,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_complementByteString_166
+      MAlonzo.Code.Builtin.C_complementByteString_178
         -> coe
              (\ v1 ->
                 let v2
@@ -5273,14 +5703,14 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_complementBYTESTRING_398
+                                                                    MAlonzo.Code.Builtin.d_complementBYTESTRING_426
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_readBit_168
+      MAlonzo.Code.Builtin.C_readBit_180
         -> coe
              (\ v1 ->
                 let v2
@@ -5323,7 +5753,7 @@ d_BUILTIN_278 v0
                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
                                                                                         -> let v28
                                                                                                  = coe
-                                                                                                     MAlonzo.Code.Builtin.d_readBIT_400
+                                                                                                     MAlonzo.Code.Builtin.d_readBIT_428
                                                                                                      v21
                                                                                                      v25 in
                                                                                            coe
@@ -5355,7 +5785,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_writeBits_170
+      MAlonzo.Code.Builtin.C_writeBits_182
         -> coe
              (\ v1 ->
                 let v2
@@ -5420,10 +5850,10 @@ d_BUILTIN_278 v0
                                                                                                                             MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16
                                                                                                                               -> let v42
                                                                                                                                        = coe
-                                                                                                                                           MAlonzo.Code.Builtin.d_writeBITS_402
+                                                                                                                                           MAlonzo.Code.Builtin.d_writeBITS_430
                                                                                                                                            v29
                                                                                                                                            (coe
-                                                                                                                                              MAlonzo.Code.Utils.du_toList_420
+                                                                                                                                              MAlonzo.Code.Utils.du_toList_416
                                                                                                                                               (coe
                                                                                                                                                  v33))
                                                                                                                                            v39 in
@@ -5466,7 +5896,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_replicateByte_172
+      MAlonzo.Code.Builtin.C_replicateByte_184
         -> coe
              (\ v1 ->
                 let v2
@@ -5509,7 +5939,7 @@ d_BUILTIN_278 v0
                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
                                                                                         -> let v28
                                                                                                  = coe
-                                                                                                     MAlonzo.Code.Builtin.d_replicateBYTE_404
+                                                                                                     MAlonzo.Code.Builtin.d_replicateBYTE_432
                                                                                                      v21
                                                                                                      v25 in
                                                                                            coe
@@ -5541,7 +5971,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_shiftByteString_174
+      MAlonzo.Code.Builtin.C_shiftByteString_186
         -> coe
              (\ v1 ->
                 let v2
@@ -5590,7 +6020,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v23)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_shiftBYTESTRING_406
+                                                                                                   MAlonzo.Code.Builtin.d_shiftBYTESTRING_434
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -5602,7 +6032,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_rotateByteString_176
+      MAlonzo.Code.Builtin.C_rotateByteString_188
         -> coe
              (\ v1 ->
                 let v2
@@ -5651,7 +6081,7 @@ d_BUILTIN_278 v0
                                                                                                    MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                                                    v23)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.Builtin.d_rotateBYTESTRING_408
+                                                                                                   MAlonzo.Code.Builtin.d_rotateBYTESTRING_436
                                                                                                    v21
                                                                                                    v25))
                                                                                       _ -> coe v19
@@ -5663,7 +6093,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_countSetBits_178
+      MAlonzo.Code.Builtin.C_countSetBits_190
         -> coe
              (\ v1 ->
                 let v2
@@ -5700,14 +6130,14 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_countSetBITS_410
+                                                                    MAlonzo.Code.Builtin.d_countSetBITS_438
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_findFirstSetBit_180
+      MAlonzo.Code.Builtin.C_findFirstSetBit_192
         -> coe
              (\ v1 ->
                 let v2
@@ -5744,14 +6174,14 @@ d_BUILTIN_278 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_findFirstSetBIT_412
+                                                                    MAlonzo.Code.Builtin.d_findFirstSetBIT_440
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_ripemd'45'160_182
+      MAlonzo.Code.Builtin.C_ripemd'45'160_194
         -> coe
              (\ v1 ->
                 let v2
@@ -5787,14 +6217,14 @@ d_BUILTIN_278 v0
                                                                     MAlonzo.Code.Builtin.Signature.C_atomic_12
                                                                     v15)
                                                                  (coe
-                                                                    MAlonzo.Code.Builtin.d_RIPEMD'45'160_414
+                                                                    MAlonzo.Code.Builtin.d_RIPEMD'45'160_442
                                                                     v13))
                                                        _ -> coe v11
                                                 _ -> coe v11
                                          _ -> coe v11)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_expModInteger_184
+      MAlonzo.Code.Builtin.C_expModInteger_196
         -> coe
              (\ v1 ->
                 let v2
@@ -5856,7 +6286,7 @@ d_BUILTIN_278 v0
                                                                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
                                                                                                                        -> let v40
                                                                                                                                 = coe
-                                                                                                                                    MAlonzo.Code.Builtin.d_expModINTEGER_416
+                                                                                                                                    MAlonzo.Code.Builtin.d_expModINTEGER_444
                                                                                                                                     v29
                                                                                                                                     v33
                                                                                                                                     v37 in
@@ -5897,7 +6327,7 @@ d_BUILTIN_278 v0
                                          _ -> coe v18)
                                _ -> coe v10)
                      _ -> coe v2))
-      MAlonzo.Code.Builtin.C_dropList_186
+      MAlonzo.Code.Builtin.C_dropList_198
         -> coe
              (\ v1 ->
                 let v2
@@ -5936,7 +6366,7 @@ d_BUILTIN_278 v0
                                                                                              MAlonzo.Code.Builtin.Signature.C_list_16
                                                                                              v32)
                                                                                           (coe
-                                                                                             MAlonzo.Code.Utils.du_dropLIST_436
+                                                                                             MAlonzo.Code.Utils.du_dropLIST_432
                                                                                              (coe
                                                                                                 v26)
                                                                                              (coe
@@ -5950,20 +6380,174 @@ d_BUILTIN_278 v0
                                       _ -> coe v10
                                _ -> coe v10)
                      _ -> coe v2))
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'multiScalarMul_200
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_app_106 v16 v17
+                                 -> let v18
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v16 of
+                                         C_base_94
+                                           -> let v19
+                                                    = coe
+                                                        MAlonzo.Code.Utils.C_inj'8321'_12
+                                                        (coe MAlonzo.Code.Utils.C_userError_352) in
+                                              coe
+                                                (case coe v17 of
+                                                   C_V'45'con_50 v20 v21
+                                                     -> case coe v20 of
+                                                          MAlonzo.Code.Builtin.Signature.C_list_16 v23
+                                                            -> case coe v23 of
+                                                                 MAlonzo.Code.Builtin.Signature.C_atomic_12 v25
+                                                                   -> case coe v25 of
+                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
+                                                                          -> case coe v9 of
+                                                                               C_V'45'con_50 v26 v27
+                                                                                 -> case coe v26 of
+                                                                                      MAlonzo.Code.Builtin.Signature.C_list_16 v29
+                                                                                        -> case coe
+                                                                                                  v29 of
+                                                                                             MAlonzo.Code.Builtin.Signature.C_atomic_12 v31
+                                                                                               -> case coe
+                                                                                                         v31 of
+                                                                                                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22
+                                                                                                      -> coe
+                                                                                                           MAlonzo.Code.Utils.C_inj'8322'_14
+                                                                                                           (coe
+                                                                                                              C_V'45'con_50
+                                                                                                              (coe
+                                                                                                                 MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                                                                 v31)
+                                                                                                              (coe
+                                                                                                                 MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'multiScalarMul_446
+                                                                                                                 (coe
+                                                                                                                    MAlonzo.Code.Utils.du_toList_416
+                                                                                                                    (coe
+                                                                                                                       v21))
+                                                                                                                 (coe
+                                                                                                                    MAlonzo.Code.Utils.du_toList_416
+                                                                                                                    (coe
+                                                                                                                       v27))))
+                                                                                                    _ -> coe
+                                                                                                           v19
+                                                                                             _ -> coe
+                                                                                                    v19
+                                                                                      _ -> coe v19
+                                                                               _ -> coe v19
+                                                                        _ -> coe v19
+                                                                 _ -> coe v19
+                                                          _ -> coe v19
+                                                   _ -> coe v19)
+                                         _ -> coe v18)
+                               _ -> coe v10)
+                     _ -> coe v2))
+      MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'multiScalarMul_202
+        -> coe
+             (\ v1 ->
+                let v2
+                      = coe
+                          MAlonzo.Code.Utils.C_inj'8321'_12
+                          (coe MAlonzo.Code.Utils.C_userError_352) in
+                coe
+                  (case coe v1 of
+                     C_app_106 v8 v9
+                       -> let v10
+                                = coe
+                                    MAlonzo.Code.Utils.C_inj'8321'_12
+                                    (coe MAlonzo.Code.Utils.C_userError_352) in
+                          coe
+                            (case coe v8 of
+                               C_app_106 v16 v17
+                                 -> let v18
+                                          = coe
+                                              MAlonzo.Code.Utils.C_inj'8321'_12
+                                              (coe MAlonzo.Code.Utils.C_userError_352) in
+                                    coe
+                                      (case coe v16 of
+                                         C_base_94
+                                           -> let v19
+                                                    = coe
+                                                        MAlonzo.Code.Utils.C_inj'8321'_12
+                                                        (coe MAlonzo.Code.Utils.C_userError_352) in
+                                              coe
+                                                (case coe v17 of
+                                                   C_V'45'con_50 v20 v21
+                                                     -> case coe v20 of
+                                                          MAlonzo.Code.Builtin.Signature.C_list_16 v23
+                                                            -> case coe v23 of
+                                                                 MAlonzo.Code.Builtin.Signature.C_atomic_12 v25
+                                                                   -> case coe v25 of
+                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
+                                                                          -> case coe v9 of
+                                                                               C_V'45'con_50 v26 v27
+                                                                                 -> case coe v26 of
+                                                                                      MAlonzo.Code.Builtin.Signature.C_list_16 v29
+                                                                                        -> case coe
+                                                                                                  v29 of
+                                                                                             MAlonzo.Code.Builtin.Signature.C_atomic_12 v31
+                                                                                               -> case coe
+                                                                                                         v31 of
+                                                                                                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24
+                                                                                                      -> coe
+                                                                                                           MAlonzo.Code.Utils.C_inj'8322'_14
+                                                                                                           (coe
+                                                                                                              C_V'45'con_50
+                                                                                                              (coe
+                                                                                                                 MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                                                                                 v31)
+                                                                                                              (coe
+                                                                                                                 MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'multiScalarMul_448
+                                                                                                                 (coe
+                                                                                                                    MAlonzo.Code.Utils.du_toList_416
+                                                                                                                    (coe
+                                                                                                                       v21))
+                                                                                                                 (coe
+                                                                                                                    MAlonzo.Code.Utils.du_toList_416
+                                                                                                                    (coe
+                                                                                                                       v27))))
+                                                                                                    _ -> coe
+                                                                                                           v19
+                                                                                             _ -> coe
+                                                                                                    v19
+                                                                                      _ -> coe v19
+                                                                               _ -> coe v19
+                                                                        _ -> coe v19
+                                                                 _ -> coe v19
+                                                          _ -> coe v19
+                                                   _ -> coe v19)
+                                         _ -> coe v18)
+                               _ -> coe v10)
+                     _ -> coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.CEK.mkFullyAppliedBuiltin
-d_mkFullyAppliedBuiltin_910 ::
+d_mkFullyAppliedBuiltin_964 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   Integer ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__120 ->
   Integer ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__120 -> T_BApp_42 -> T_BApp_42
-d_mkFullyAppliedBuiltin_910 ~v0 ~v1 ~v2 ~v3 ~v4 v5
-  = du_mkFullyAppliedBuiltin_910 v5
-du_mkFullyAppliedBuiltin_910 :: T_BApp_42 -> T_BApp_42
-du_mkFullyAppliedBuiltin_910 v0 = coe v0
+d_mkFullyAppliedBuiltin_964 ~v0 ~v1 ~v2 ~v3 ~v4 v5
+  = du_mkFullyAppliedBuiltin_964 v5
+du_mkFullyAppliedBuiltin_964 :: T_BApp_42 -> T_BApp_42
+du_mkFullyAppliedBuiltin_964 v0 = coe v0
 -- Untyped.CEK.BUILTIN'
-d_BUILTIN''_954 ::
+d_BUILTIN''_1008 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   Integer ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__120 ->
@@ -5972,21 +6556,21 @@ d_BUILTIN''_954 ::
   T_BApp_42 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Utils.T_RuntimeError_348 T_Value_14
-d_BUILTIN''_954 v0 ~v1 ~v2 ~v3 ~v4 v5 = du_BUILTIN''_954 v0 v5
-du_BUILTIN''_954 ::
+d_BUILTIN''_1008 v0 ~v1 ~v2 ~v3 ~v4 v5 = du_BUILTIN''_1008 v0 v5
+du_BUILTIN''_1008 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   T_BApp_42 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Utils.T_RuntimeError_348 T_Value_14
-du_BUILTIN''_954 v0 v1 = coe d_BUILTIN_278 v0 v1
+du_BUILTIN''_1008 v0 v1 = coe d_BUILTIN_278 v0 v1
 -- Untyped.CEK.ival
-d_ival_960 :: MAlonzo.Code.Builtin.T_Builtin_2 -> T_Value_14
-d_ival_960 v0
+d_ival_1014 :: MAlonzo.Code.Builtin.T_Builtin_2 -> T_Value_14
+d_ival_1014 v0
   = coe
       d_V'45'I_258 (coe v0) (coe (0 :: Integer))
       (coe
          MAlonzo.Code.Builtin.Signature.d_fv_98
-         (coe MAlonzo.Code.Builtin.d_signature_294 (coe v0)))
+         (coe MAlonzo.Code.Builtin.d_signature_310 (coe v0)))
       (coe MAlonzo.Code.Utils.C_start_124) (coe (0 :: Integer))
       (coe
          MAlonzo.Code.Data.List.Base.du_foldr_216
@@ -5997,33 +6581,33 @@ d_ival_960 v0
             MAlonzo.Code.Data.List.NonEmpty.Base.d_tail_32
             (coe
                MAlonzo.Code.Builtin.Signature.d_args_88
-               (coe MAlonzo.Code.Builtin.d_signature_294 (coe v0)))))
+               (coe MAlonzo.Code.Builtin.d_signature_310 (coe v0)))))
       (coe MAlonzo.Code.Utils.C_start_124) (coe C_base_94)
 -- Untyped.CEK.pushValueFrames
-d_pushValueFrames_964 :: T_Stack_6 -> T_Stack_6 -> T_Stack_6
-d_pushValueFrames_964 v0 v1
+d_pushValueFrames_1018 :: T_Stack_6 -> T_Stack_6 -> T_Stack_6
+d_pushValueFrames_1018 v0 v1
   = case coe v1 of
       C_ε_10 -> coe v0
       C__'44'__12 v2 v3
         -> coe
-             d_pushValueFrames_964
+             d_pushValueFrames_1018
              (coe C__'44'__12 (coe v0) (coe C_'45''183'v_202 (coe v3))) (coe v2)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.CEK.lookup?
-d_lookup'63'_976 :: () -> Integer -> [AgdaAny] -> Maybe AgdaAny
-d_lookup'63'_976 ~v0 v1 v2 = du_lookup'63'_976 v1 v2
-du_lookup'63'_976 :: Integer -> [AgdaAny] -> Maybe AgdaAny
-du_lookup'63'_976 v0 v1
+d_lookup'63'_1030 :: () -> Integer -> [AgdaAny] -> Maybe AgdaAny
+d_lookup'63'_1030 ~v0 v1 v2 = du_lookup'63'_1030 v1 v2
+du_lookup'63'_1030 :: Integer -> [AgdaAny] -> Maybe AgdaAny
+du_lookup'63'_1030 v0 v1
   = case coe v1 of
       [] -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       (:) v2 v3
         -> case coe v0 of
              0 -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v2)
              _ -> let v4 = subInt (coe v0) (coe (1 :: Integer)) in
-                  coe (coe du_lookup'63'_976 (coe v4) (coe v3))
+                  coe (coe du_lookup'63'_1030 (coe v4) (coe v3))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.CEK.lookup?-deterministic
-d_lookup'63''45'deterministic_1000 ::
+d_lookup'63''45'deterministic_1054 ::
   () ->
   AgdaAny ->
   AgdaAny ->
@@ -6032,10 +6616,10 @@ d_lookup'63''45'deterministic_1000 ::
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_lookup'63''45'deterministic_1000 = erased
+d_lookup'63''45'deterministic_1054 = erased
 -- Untyped.CEK.step
-d_step_1022 :: T_State_218 -> T_State_218
-d_step_1022 v0
+d_step_1076 :: T_State_218 -> T_State_218
+d_step_1076 v0
   = case coe v0 of
       C__'894'_'9659'__222 v2 v3 v4
         -> case coe v4 of
@@ -6078,7 +6662,7 @@ d_step_1022 v0
                     C__'894'_'9659'__222
                     (coe C__'44'__12 (coe v2) (coe C_case'45'_216 v3 v6)) v3 v5
              MAlonzo.Code.Untyped.C_builtin_44 v5
-               -> coe C__'9669'__224 (coe v2) (coe d_ival_960 (coe v5))
+               -> coe C__'9669'__224 (coe v2) (coe d_ival_1014 (coe v5))
              MAlonzo.Code.Untyped.C_error_46 -> coe C_'9670'_228
              _ -> MAlonzo.RTE.mazUnreachableError
       C__'9669'__224 v1 v2
@@ -6105,7 +6689,7 @@ d_step_1022 v0
                              -> case coe v10 of
                                   0 -> coe
                                          MAlonzo.Code.Utils.du_either_22
-                                         (coe du_BUILTIN''_954 (coe v6) (coe C_app_106 v12 v2))
+                                         (coe du_BUILTIN''_1008 (coe v6) (coe C_app_106 v12 v2))
                                          (coe (\ v13 -> coe C_'9670'_228))
                                          (coe C__'9669'__224 (coe v3))
                                   _ -> let v13 = subInt (coe v10) (coe (1 :: Integer)) in
@@ -6124,7 +6708,7 @@ d_step_1022 v0
                            C_V'45'ƛ_46 v6 v7 -> coe C_'9670'_228
                            C_V'45'con_50 v5 v6 -> coe C_'9670'_228
                            C_V'45'delay_54 v6 v7
-                             -> coe d_step_1022 (coe C__'894'_'9659'__222 v3 v6 v7)
+                             -> coe d_step_1076 (coe C__'894'_'9659'__222 v3 v6 v7)
                            C_V'45'constr_60 v5 v6 -> coe C_'9670'_228
                            C_V'45'I'8658'_74 v5 v6 v7 v8 v9 v10 v11 -> coe C_'9670'_228
                            C_V'45'IΠ_90 v5 v6 v7 v8 v9 v10 v11 v12
@@ -6163,8 +6747,8 @@ d_step_1022 v0
                                   MAlonzo.Code.Data.Maybe.Base.du_maybe_32
                                   (coe
                                      C__'894'_'9659'__222
-                                     (coe d_pushValueFrames_964 (coe v3) (coe v9)) (coe v6))
-                                  (coe C_'9670'_228) (coe du_lookup'63'_976 (coe v8) (coe v7))
+                                     (coe d_pushValueFrames_1018 (coe v3) (coe v9)) (coe v6))
+                                  (coe C_'9670'_228) (coe du_lookup'63'_1030 (coe v8) (coe v7))
                            C_V'45'I'8658'_74 v8 v9 v10 v11 v12 v13 v14 -> coe C_'9670'_228
                            C_V'45'IΠ_90 v8 v9 v10 v11 v12 v13 v14 v15 -> coe C_'9670'_228
                            _ -> MAlonzo.RTE.mazUnreachableError
@@ -6174,24 +6758,24 @@ d_step_1022 v0
       C_'9670'_228 -> coe v0
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.CEK.stepper
-d_stepper_1264 ::
+d_stepper_1318 ::
   Integer ->
   T_State_218 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Utils.T_RuntimeError_348 T_State_218
-d_stepper_1264 v0 v1
+d_stepper_1318 v0 v1
   = case coe v0 of
       0 -> coe
              MAlonzo.Code.Utils.C_inj'8321'_12
              (coe MAlonzo.Code.Utils.C_gasError_350)
       _ -> let v2 = subInt (coe v0) (coe (1 :: Integer)) in
            coe
-             (let v3 = d_step_1022 (coe v1) in
+             (let v3 = d_step_1076 (coe v1) in
               coe
                 (case coe v3 of
                    C__'894'_'9659'__222 v5 v6 v7
-                     -> coe d_stepper_1264 (coe v2) (coe C__'894'_'9659'__222 v5 v6 v7)
-                   C__'9669'__224 v4 v5 -> coe d_stepper_1264 (coe v2) (coe v3)
+                     -> coe d_stepper_1318 (coe v2) (coe C__'894'_'9659'__222 v5 v6 v7)
+                   C__'9669'__224 v4 v5 -> coe d_stepper_1318 (coe v2) (coe v3)
                    C_'9633'_226 v4 -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v3)
                    C_'9670'_228 -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v3)
                    _ -> MAlonzo.RTE.mazUnreachableError))

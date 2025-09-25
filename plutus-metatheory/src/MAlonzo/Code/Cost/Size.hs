@@ -41,18 +41,18 @@ d_byteStringSize_6 ::
 d_byteStringSize_6 = size
 -- Cost.Size.g1ElementSize
 d_g1ElementSize_8 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_644 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_640 -> Integer
 d_g1ElementSize_8 = size
 -- Cost.Size.g2ElementSize
 d_g2ElementSize_10 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_648 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_644 -> Integer
 d_g2ElementSize_10 = size
 -- Cost.Size.mlResultElementSize
 d_mlResultElementSize_12 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_652 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_648 -> Integer
 d_mlResultElementSize_12 = size
 -- Cost.Size.dataSize
-d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_498 -> Integer
+d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_494 -> Integer
 d_dataSize_14 = size
 -- Cost.Size.boolSize
 d_boolSize_16 :: Bool -> Integer
@@ -66,7 +66,7 @@ d_stringSize_20 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> Integer
 d_stringSize_20 = size
 -- Cost.Size.valueSize
-d_valueSize_22 :: MAlonzo.Code.Utils.T_Value_362 -> Integer
+d_valueSize_22 :: MAlonzo.Code.Utils.T_Value_652 -> Integer
 d_valueSize_22 = size
 -- Cost.Size.defaultConstantMeasure
 d_defaultConstantMeasure_24 ::
@@ -99,14 +99,10 @@ d_defaultConstantMeasure_24 v0
                       -> coe d_mlResultElementSize_12 v2
                     _ -> MAlonzo.RTE.mazUnreachableError
              MAlonzo.Code.Builtin.Signature.C_list_16 v4
-               -> let v5 = coe MAlonzo.Code.Utils.du_length_398 (coe v2) in
-                  coe
-                    (case coe v2 of
-                       MAlonzo.Code.Utils.C_'91''93'_392 -> coe (1 :: Integer)
-                       _ -> coe v5)
+               -> coe MAlonzo.Code.Utils.du_length_394 (coe v2)
              MAlonzo.Code.Builtin.Signature.C_array_20 v4
                -> let v5
-                        = coe MAlonzo.Code.Utils.d_HSlengthOfArray_486 erased v2 in
+                        = coe MAlonzo.Code.Utils.d_HSlengthOfArray_482 erased v2 in
                   coe
                     (case coe v5 of
                        0 -> coe (1 :: Integer)
@@ -117,9 +113,9 @@ d_defaultConstantMeasure_24 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Size.defaultValueMeasure
-d_defaultValueMeasure_84 ::
+d_defaultValueMeasure_82 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_defaultValueMeasure_84 v0
+d_defaultValueMeasure_82 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
