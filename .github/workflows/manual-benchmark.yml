@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 100
 
       - name: React With Rocket 
-        uses: actions/github-script@v7.1.0
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.reactions.createForIssueComment({
@@ -47,7 +47,7 @@ jobs:
 
       - name: Extract Benchmark Name
         id: extract-benchmark
-        uses: actions/github-script@v7.1.0
+        uses: actions/github-script@v8
         with:
           script: |
             const regex = /^\/benchmark\s*([^\s]*)\s*(ghc96|ghc98|ghc910)?\s*$/;
@@ -62,7 +62,7 @@ jobs:
 
       - name: Extract Branch Name
         id: extract-branch
-        uses: actions/github-script@v7.1.0
+        uses: actions/github-script@v8
         with:
           script: | 
             async function isPullRequest() {
@@ -106,7 +106,7 @@ jobs:
             } 
 
       - name: Publish GH Action Link
-        uses: actions/github-script@v7.1.0
+        uses: actions/github-script@v8
         with:
           script: | 
             async function getJobUrl() {
@@ -135,7 +135,7 @@ jobs:
 
 
       - name: Publish Results
-        uses: actions/github-script@v7.1.0
+        uses: actions/github-script@v8
         with:
           script: | 
             const fs = require("fs");
