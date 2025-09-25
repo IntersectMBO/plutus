@@ -26,6 +26,7 @@ on:
 
 jobs:
   Send:
+    name: Send Slack Message
     runs-on: [ubuntu-latest]
     steps:
       - name: Prepare Slack Message

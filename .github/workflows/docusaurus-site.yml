@@ -21,7 +21,7 @@ on:
 
 jobs:
   run:
-    name: Run 
+    name: Build & Deploy Docusaurus Site 
     runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write
