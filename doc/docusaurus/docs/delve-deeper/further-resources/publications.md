@@ -1,11 +1,10 @@
 ---
-sidebar_position: 40
+sidebar_position: 5
 ---
 
-# Further Resources
+# Publications
 
-1. [Formal Specification of
-the Plutus Core Language](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf).
+1. Ziyang Liu, Kenneth MacKenzie, Roman Kireev, Michael Peyton Jones, Philip Wadler, and Manuel Chakravarty. [Plinth: A Plugin-Powered Language Built on Haskell (Experience Report)](https://iohk.io/en/research/library/papers/plinth-a-plugin-powered-language-built-on-haskell-experience-report/). In *Proceedings of the 18th ACM SIGPLAN International Haskell Symposium (Haskell ’25)*, ACM, 2025.
 
 2. Manuel M. T. Chakravarty, James Chapman, Kenneth MacKenzie, Orestis Melkonian, Jann Müller, Michael Peyton Jones, Polina Vinogradova, Philip Wadler, and Joachim Zahnentferner. UTXOma: [UTXOma:UTXO with Multi-Asset Support](https://iohk.io/en/research/library/papers/utxomautxo-with-multi-asset-support/). In *International Symposium on Leveraging Applications of Formal Methods.* Springer, 2020.
 
@@ -24,5 +23,3 @@ the Plutus Core Language](https://plutus.cardano.intersectmbo.org/resources/plut
 9. Polina Vinogradova and Orestis Melkonian. [Message-passing in the Extended UTxO Ledger Model](https://iohk.io/en/research/library/papers/message-passing-in-the-extended-utxo-ledger-model/). In *8th Workshop on Trusted Smart Contracts (WTSC)*, 2024.
 
 10. Polina Vinogradova, Orestis Melkonian, Philip Wadler, Manuel Chakravarty, Jacco Krijnen Michael Peyton Jones, James Chapman, and Tudor Ferariu. [Structured Contracts in the EUTxO Ledger Model](https://iohk.io/en/research/library/papers/structured-contracts-in-the-eutxo-ledger-model/). In *5th International Workshop on Formal Methods for Blockchains (FMBC)*, 2024.
-
-11. Manuel MT Chakravarty, Simon Thompson, and Philip Wadler. [Functional smart contracts on cardano](https://www.youtube.com/watch?v=MpWeg6Fg0t8).

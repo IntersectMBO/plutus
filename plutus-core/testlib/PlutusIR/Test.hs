@@ -42,7 +42,7 @@ import PlutusIR.Compiler as PIR
 import PlutusIR.Parser (Parser, pTerm, parse)
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
-import System.FilePath (joinPath, (</>))
+import System.FilePath (joinPath, splitExtension, (</>))
 
 import Data.Hashable
 import Data.Text qualified as T
@@ -145,10 +145,11 @@ withGoldenFileM :: String -> (T.Text -> IO T.Text) -> TestNested
 withGoldenFileM name op = do
   dir <- currentDir
   let testFile = dir </> name
-      goldenFile = dir </> name ++ ".golden"
+      goldenFile = dir </> base ++ ".golden" ++ ext
   embed $ goldenVsTextM name goldenFile (op =<< T.readFile testFile)
   where
     currentDir = joinPath <$> ask
+    (base, ext) = splitExtension name
 
 -- TODO: deduplicate with the Plutus Core one
 ppCatch :: (a -> Doc ann) -> ExceptT SomeException IO a -> IO T.Text

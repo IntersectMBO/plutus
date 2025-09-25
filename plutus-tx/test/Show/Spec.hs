@@ -40,7 +40,7 @@ showByteStringBase16 = property $ do
 goldenShow :: forall a. (Show a) => TestName -> a -> TestNested
 goldenShow name x = do
   path <- ask
-  let fp = foldr (</>) (name ++ ".show.golden") path
+  let fp = foldr (</>) (name ++ ".golden.show") path
   embed $ goldenVsText name fp . fromBuiltin $ show x
 
 data ProductD = ProductC Integer [Bool]

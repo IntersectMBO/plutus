@@ -1,6 +1,8 @@
 module Spec.V1.Value where
 
-import PlutusCore.Generators.QuickCheck.Value
+import PlutusCore.Builtin (BuiltinResult (..))
+import PlutusCore.Generators.QuickCheck.Builtin
+import PlutusCore.Value qualified as PLC
 import PlutusLedgerApi.Test.V1.Value as Value
 import PlutusLedgerApi.V1
 import PlutusTx.Numeric qualified as Numeric
@@ -120,6 +122,19 @@ test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
     let (valueL, valueR) = split value
     in Numeric.negate valueL <> valueR <=> value
 
+-- | Test that builtin and non-builtin values are encoded identically in Data.
+test_toData :: TestTree
+test_toData = testProperty "toData" . scaleTestsBy 10 $ \v ->
+    PLC.valueData v === toData (valueFromBuiltin v)
+
+-- | Test that builtin and non-builtin values are decoded identically from Data.
+test_fromData :: TestTree
+test_fromData = testProperty "fromData" . scaleTestsBy 10 $ \v ->
+    let d = PLC.valueData v
+     in case PLC.unValueData d of
+          BuiltinSuccess v' -> valueFromBuiltin v' === unsafeFromData d
+          _                 -> property False
+
 test_Value :: TestTree
 test_Value = testGroup "Value"
     [ test_laws
@@ -127,4 +142,6 @@ test_Value = testGroup "Value"
     , test_updateSomeTokenNames
     , test_shuffle
     , test_split
+    , test_toData
+    , test_fromData
     ]

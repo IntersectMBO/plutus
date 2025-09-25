@@ -7,8 +7,8 @@
 module PlutusLedgerApi.Test.V3.MintValue where
 
 import Data.Coerce (coerce)
+import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0)
-import PlutusCore.Generators.QuickCheck.Value
 import PlutusLedgerApi.V3
 import PlutusLedgerApi.V3.MintValue (MintValue (..))
 import PlutusTx.AssocMap qualified as Map

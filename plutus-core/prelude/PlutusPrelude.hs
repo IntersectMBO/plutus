@@ -40,6 +40,7 @@ module PlutusPrelude
     , coerceVia
     , coerceArg
     , coerceRes
+    , (#.)
     , Generic
     , NFData
     , Natural
@@ -181,6 +182,12 @@ coerceArg = coerce
 coerceRes :: Coercible s t => (a -> s) -> a -> t
 coerceRes = coerce
 {-# INLINE coerceRes #-}
+
+-- See Note [Function coercion] in GHC.Internal.Data.Functor.Utils.
+-- | Same as @(.)@, but ignores the first argument and uses a no-op coerction instead.
+(#.) :: Coercible b c => (b -> c) -> (a -> b) -> a -> c
+(#.) _ = coerce
+{-# INLINE (#.) #-}
 
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 (<<$>>) = fmap . fmap

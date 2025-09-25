@@ -26,7 +26,7 @@ import PlutusCore.Flat.Encoder.Strict (eFiller, sFillerMax)
 -- Used to align encoded values at byte/word boundaries.
 data Filler = FillerBit !Filler
             | FillerEnd
-  deriving (Show, Eq, Ord, Typeable, Generic, NFData)
+  deriving (Show, Eq, Ord, Generic, NFData)
 
 -- |Use a special encoding for the filler
 instance Flat Filler where
@@ -40,7 +40,7 @@ instance Flat Filler where
 #ifdef ETA_VERSION
 
 data PostAligned a = PostAligned { postValue :: a, postFiller :: Filler }
-  deriving (Show, Eq, Ord, Typeable, Generic, NFData)
+  deriving (Show, Eq, Ord, Generic, NFData)
 
 instance Flat a => Flat (PostAligned a) where
   encode (PostAligned val fill) = trampolineEncoding (encode val) <> encode fill
@@ -48,7 +48,7 @@ instance Flat a => Flat (PostAligned a) where
 #else
 
 data PostAligned a = PostAligned { postValue :: a, postFiller :: Filler }
-  deriving (Show, Eq, Ord, Typeable, Generic, NFData,Flat)
+  deriving (Show, Eq, Ord, Generic, NFData,Flat)
 
 #endif
 
@@ -56,7 +56,7 @@ data PostAligned a = PostAligned { postValue :: a, postFiller :: Filler }
 --
 -- Useful to prealign ByteArrays, Texts and any structure that can be encoded more efficiently when byte aligned.
 data PreAligned a = PreAligned { preFiller :: Filler, preValue :: a }
-  deriving (Show, Eq, Ord, Typeable, Generic, NFData, Flat)
+  deriving (Show, Eq, Ord, Generic, NFData, Flat)
 
 -- |Length of a filler in bits
 fillerLength :: Num a => Filler -> a

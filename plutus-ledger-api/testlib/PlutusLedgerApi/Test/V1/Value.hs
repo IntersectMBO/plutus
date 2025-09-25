@@ -8,10 +8,13 @@ import PlutusLedgerApi.V1
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.List qualified as ListTx
 
+import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Utils (multiSplit0)
-import PlutusCore.Generators.QuickCheck.Value
+import PlutusCore.Value qualified as PLC
 
+import Data.Bifunctor
 import Data.Coerce
+import Data.Map.Strict qualified as Map
 import Test.QuickCheck
 
 -- | Convert a list representation of a 'Value' to the 'Value'.
@@ -50,3 +53,12 @@ instance Arbitrary Value where
         = map listsToValue
         . coerce (shrink @[(NoArbitrary CurrencySymbol, [(NoArbitrary TokenName, Integer)])])
         . valueToLists
+
+valueFromBuiltin :: PLC.Value -> Value
+valueFromBuiltin =
+  listsToValue
+    . fmap (bimap (CurrencySymbol . toBuiltin) inner)
+    . Map.toList
+    . PLC.unpack
+ where
+  inner = fmap (first (TokenName . toBuiltin)) . Map.toList
