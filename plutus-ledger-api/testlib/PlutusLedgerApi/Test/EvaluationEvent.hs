@@ -158,7 +158,7 @@ renderTestFailures testFailures =
 
 -- | Re-evaluate an on-chain script evaluation event.
 checkEvaluationEvent
-  :: EvaluationContext
+  :: EvaluationContext DefaultFun
   -> [Int64]
   -- ^ Cost parameters
   -> ScriptEvaluationEvent

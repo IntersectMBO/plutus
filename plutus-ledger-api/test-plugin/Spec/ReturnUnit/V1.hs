@@ -11,6 +11,7 @@
 
 module Spec.ReturnUnit.V1 where
 
+import PlutusLedgerApi.Common (DefaultFun)
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
 import PlutusLedgerApi.V1 as V1
@@ -35,7 +36,7 @@ tests =
     , expectSuccess "too many parameters" tooManyParameters (I 1)
     ]
 
-evalCtx :: V1.EvaluationContext
+evalCtx :: V1.EvaluationContext DefaultFun
 evalCtx =
   fst . unsafeFromRight . runWriterT . V1.mkEvaluationContext $
     fmap snd V1.costModelParamsForTesting

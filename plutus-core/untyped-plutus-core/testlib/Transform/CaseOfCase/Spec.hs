@@ -133,7 +133,7 @@ evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter 
   costModel =
       CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
 
-  machineParameters :: DefaultMachineParameters
+  machineParameters :: DefaultMachineParameters DefaultFun
   machineParameters =
       -- TODO: proper semantic variant. What should def be?
       MachineParameters def $ mkMachineVariantParameters def costModel
