@@ -97,6 +97,7 @@ data Tag : Set → Set where
 {-# FOREIGN GHC pattern TagBool                 = DefaultUniBool #-}
 {-# FOREIGN GHC pattern TagUnit                 = DefaultUniUnit #-}
 {-# FOREIGN GHC pattern TagData                 = DefaultUniData #-}
+{-# FOREIGN GHC pattern TagValue                = DefaultUniValue #-}
 {-# FOREIGN GHC pattern TagPair ta tb           = DefaultUniPair ta tb #-}
 {-# FOREIGN GHC pattern TagList ta              = DefaultUniList ta #-}
 {-# FOREIGN GHC pattern TagArray ta              = DefaultUniArray ta #-}
@@ -109,6 +110,7 @@ data Tag : Set → Set where
                                                            | TagBool
                                                            | TagUnit
                                                            | TagData
+                                                           | TagValue
                                                            | TagPair
                                                            | TagList
                                                            | TagArray

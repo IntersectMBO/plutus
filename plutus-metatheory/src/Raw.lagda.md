@@ -53,9 +53,8 @@ data RawTyCon where
   list       : RawTyCon
   array      : RawTyCon
   pair       : RawTyCon
-  value      : RawTyCon
 
-{-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConArray | RTyConPair | RTyConValue ) #-}
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConArray | RTyConPair ) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
@@ -83,7 +82,6 @@ decRTyCon (atomic t) (atomic t')  = does (decAtomicTyCon t t')
 decRTyCon pair       pair         = true
 decRTyCon array      array        = true
 decRTyCon list       list         = true
-decRTyCon value      value        = true
 decRTyCon _          _            = false
 
 decRKi : (K K' : Kind) → Bool

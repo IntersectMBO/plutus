@@ -36,7 +36,7 @@ open _⊢_
 open _∋_
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Builtin
-open import Utils hiding (List;length) renaming (_,_ to _,,_)
+open import Utils hiding (List;length;Value) renaming (_,_ to _,,_)
 
 open import Builtin.Constant.AtomicType
 open import Builtin.Constant.Type using (TyCon)

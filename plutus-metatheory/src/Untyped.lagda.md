@@ -29,7 +29,7 @@ open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
 open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon;⟦_⟧tag)
-open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;value;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
 open AtomicTyCon
@@ -86,6 +86,7 @@ uglyTmCon (tmCon string s)               = "(string " ++ s ++ ")"
 uglyTmCon (tmCon bool false)             = "(bool false)"
 uglyTmCon (tmCon bool true)              = "(bool true)"
 uglyTmCon (tmCon pdata d)                = uglyDATA d
+uglyTmCon (tmCon value v)                = "(value ???)"
 uglyTmCon (tmCon bls12-381-g1-element e) = "(bls12-381-g1-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-g2-element e) = "(bls12-381-g2-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-mlresult r)   = "(bls12-381-mlresult ???)"      -- FIXME
