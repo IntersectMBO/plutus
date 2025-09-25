@@ -32,6 +32,7 @@ import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 import Raw
 import qualified Data.ByteString as BS
+import qualified PlutusCore.Value as V
 import qualified Data.Vector.Strict as Strict
 import PlutusCore.Data as D
 import qualified PlutusCore.Crypto.BLS12_381.G1 as G1
@@ -401,121 +402,128 @@ d_mkByteString_358
 -- Utils.eqByteString
 d_eqByteString_360 :: T_ByteString_356 -> T_ByteString_356 -> Bool
 d_eqByteString_360 = (==)
+-- Utils.Value
+type T_Value_362 = V.Value
+d_Value_362
+  = error "MAlonzo Runtime Error: postulate evaluated: Utils.Value"
+-- Utils.eqValue
+d_eqValue_364 :: T_Value_362 -> T_Value_362 -> Bool
+d_eqValue_364 = (==)
 -- Utils._×_
-d__'215'__366 a0 a1 = ()
-type T__'215'__366 a0 a1 = Pair a0 a1
-pattern C__'44'__380 a0 a1 = (,) a0 a1
-check__'44'__380 ::
-  forall xA. forall xB. xA -> xB -> T__'215'__366 xA xB
-check__'44'__380 = (,)
-cover__'215'__366 :: Pair a1 a2 -> ()
-cover__'215'__366 x
+d__'215'__370 a0 a1 = ()
+type T__'215'__370 a0 a1 = Pair a0 a1
+pattern C__'44'__384 a0 a1 = (,) a0 a1
+check__'44'__384 ::
+  forall xA. forall xB. xA -> xB -> T__'215'__370 xA xB
+check__'44'__384 = (,)
+cover__'215'__370 :: Pair a1 a2 -> ()
+cover__'215'__370 x
   = case x of
       (,) _ _ -> ()
 -- Utils._×_.proj₁
-d_proj'8321'_376 :: T__'215'__366 AgdaAny AgdaAny -> AgdaAny
-d_proj'8321'_376 v0
+d_proj'8321'_380 :: T__'215'__370 AgdaAny AgdaAny -> AgdaAny
+d_proj'8321'_380 v0
   = case coe v0 of
-      C__'44'__380 v1 v2 -> coe v1
+      C__'44'__384 v1 v2 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils._×_.proj₂
-d_proj'8322'_378 :: T__'215'__366 AgdaAny AgdaAny -> AgdaAny
-d_proj'8322'_378 v0
+d_proj'8322'_382 :: T__'215'__370 AgdaAny AgdaAny -> AgdaAny
+d_proj'8322'_382 v0
   = case coe v0 of
-      C__'44'__380 v1 v2 -> coe v2
+      C__'44'__384 v1 v2 -> coe v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.List
-d_List_384 a0 = ()
-type T_List_384 a0 = [] a0
-pattern C_'91''93'_388 = []
-pattern C__'8759'__390 a0 a1 = (:) a0 a1
-check_'91''93'_388 :: forall xA. T_List_384 xA
-check_'91''93'_388 = []
-check__'8759'__390 ::
-  forall xA. xA -> T_List_384 xA -> T_List_384 xA
-check__'8759'__390 = (:)
-cover_List_384 :: [] a1 -> ()
-cover_List_384 x
+d_List_388 a0 = ()
+type T_List_388 a0 = [] a0
+pattern C_'91''93'_392 = []
+pattern C__'8759'__394 a0 a1 = (:) a0 a1
+check_'91''93'_392 :: forall xA. T_List_388 xA
+check_'91''93'_392 = []
+check__'8759'__394 ::
+  forall xA. xA -> T_List_388 xA -> T_List_388 xA
+check__'8759'__394 = (:)
+cover_List_388 :: [] a1 -> ()
+cover_List_388 x
   = case x of
       [] -> ()
       (:) _ _ -> ()
 -- Utils.length
-d_length_394 :: () -> T_List_384 AgdaAny -> Integer
-d_length_394 ~v0 v1 = du_length_394 v1
-du_length_394 :: T_List_384 AgdaAny -> Integer
-du_length_394 v0
+d_length_398 :: () -> T_List_388 AgdaAny -> Integer
+d_length_398 ~v0 v1 = du_length_398 v1
+du_length_398 :: T_List_388 AgdaAny -> Integer
+du_length_398 v0
   = case coe v0 of
-      C_'91''93'_388 -> coe (0 :: Integer)
-      C__'8759'__390 v1 v2
-        -> coe addInt (coe (1 :: Integer)) (coe du_length_394 (coe v2))
+      C_'91''93'_392 -> coe (0 :: Integer)
+      C__'8759'__394 v1 v2
+        -> coe addInt (coe (1 :: Integer)) (coe du_length_398 (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.map
-d_map_404 ::
+d_map_408 ::
   () ->
   () ->
-  (AgdaAny -> AgdaAny) -> T_List_384 AgdaAny -> T_List_384 AgdaAny
-d_map_404 ~v0 ~v1 v2 v3 = du_map_404 v2 v3
-du_map_404 ::
-  (AgdaAny -> AgdaAny) -> T_List_384 AgdaAny -> T_List_384 AgdaAny
-du_map_404 v0 v1
+  (AgdaAny -> AgdaAny) -> T_List_388 AgdaAny -> T_List_388 AgdaAny
+d_map_408 ~v0 ~v1 v2 v3 = du_map_408 v2 v3
+du_map_408 ::
+  (AgdaAny -> AgdaAny) -> T_List_388 AgdaAny -> T_List_388 AgdaAny
+du_map_408 v0 v1
   = case coe v1 of
-      C_'91''93'_388 -> coe v1
-      C__'8759'__390 v2 v3
+      C_'91''93'_392 -> coe v1
+      C__'8759'__394 v2 v3
         -> coe
-             C__'8759'__390 (coe v0 v2) (coe du_map_404 (coe v0) (coe v3))
+             C__'8759'__394 (coe v0 v2) (coe du_map_408 (coe v0) (coe v3))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.toList
-d_toList_416 :: () -> T_List_384 AgdaAny -> [AgdaAny]
-d_toList_416 ~v0 v1 = du_toList_416 v1
-du_toList_416 :: T_List_384 AgdaAny -> [AgdaAny]
-du_toList_416 v0
+d_toList_420 :: () -> T_List_388 AgdaAny -> [AgdaAny]
+d_toList_420 ~v0 v1 = du_toList_420 v1
+du_toList_420 :: T_List_388 AgdaAny -> [AgdaAny]
+du_toList_420 v0
   = case coe v0 of
-      C_'91''93'_388 -> coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16
-      C__'8759'__390 v1 v2
+      C_'91''93'_392 -> coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16
+      C__'8759'__394 v1 v2
         -> coe
              MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v1)
-             (coe du_toList_416 (coe v2))
+             (coe du_toList_420 (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.fromList
-d_fromList_424 :: () -> [AgdaAny] -> T_List_384 AgdaAny
-d_fromList_424 ~v0 v1 = du_fromList_424 v1
-du_fromList_424 :: [AgdaAny] -> T_List_384 AgdaAny
-du_fromList_424 v0
+d_fromList_428 :: () -> [AgdaAny] -> T_List_388 AgdaAny
+d_fromList_428 ~v0 v1 = du_fromList_428 v1
+du_fromList_428 :: [AgdaAny] -> T_List_388 AgdaAny
+du_fromList_428 v0
   = case coe v0 of
-      [] -> coe C_'91''93'_388
+      [] -> coe C_'91''93'_392
       (:) v1 v2
-        -> coe C__'8759'__390 (coe v1) (coe du_fromList_424 (coe v2))
+        -> coe C__'8759'__394 (coe v1) (coe du_fromList_428 (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.dropLIST
-d_dropLIST_432 ::
-  () -> Integer -> T_List_384 AgdaAny -> T_List_384 AgdaAny
-d_dropLIST_432 ~v0 v1 v2 = du_dropLIST_432 v1 v2
-du_dropLIST_432 ::
-  Integer -> T_List_384 AgdaAny -> T_List_384 AgdaAny
-du_dropLIST_432 v0 v1
+d_dropLIST_436 ::
+  () -> Integer -> T_List_388 AgdaAny -> T_List_388 AgdaAny
+d_dropLIST_436 ~v0 v1 v2 = du_dropLIST_436 v1 v2
+du_dropLIST_436 ::
+  Integer -> T_List_388 AgdaAny -> T_List_388 AgdaAny
+du_dropLIST_436 v0 v1
   = case coe v0 of
       _ | coe geqInt (coe v0) (coe (0 :: Integer)) ->
-          coe du_drop_444 (coe v0) (coe v1)
+          coe du_drop_448 (coe v0) (coe v1)
       _ -> coe v1
 -- Utils._.drop
-d_drop_444 ::
+d_drop_448 ::
   () ->
   Integer ->
-  T_List_384 AgdaAny ->
-  () -> Integer -> T_List_384 AgdaAny -> T_List_384 AgdaAny
-d_drop_444 ~v0 ~v1 ~v2 ~v3 v4 v5 = du_drop_444 v4 v5
-du_drop_444 :: Integer -> T_List_384 AgdaAny -> T_List_384 AgdaAny
-du_drop_444 v0 v1
+  T_List_388 AgdaAny ->
+  () -> Integer -> T_List_388 AgdaAny -> T_List_388 AgdaAny
+d_drop_448 ~v0 ~v1 ~v2 ~v3 v4 v5 = du_drop_448 v4 v5
+du_drop_448 :: Integer -> T_List_388 AgdaAny -> T_List_388 AgdaAny
+du_drop_448 v0 v1
   = case coe v0 of
       0 -> coe v1
       _ -> let v2 = subInt (coe v0) (coe (1 :: Integer)) in
            coe
              (case coe v1 of
-                C_'91''93'_388 -> coe v1
-                C__'8759'__390 v3 v4 -> coe du_drop_444 (coe v2) (coe v4)
+                C_'91''93'_392 -> coe v1
+                C__'8759'__394 v3 v4 -> coe du_drop_448 (coe v2) (coe v4)
                 _ -> MAlonzo.RTE.mazUnreachableError)
 -- Utils.map-cong
-d_map'45'cong_468 ::
+d_map'45'cong_472 ::
   () ->
   () ->
   [AgdaAny] ->
@@ -523,48 +531,48 @@ d_map'45'cong_468 ::
   (AgdaAny -> AgdaAny) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_map'45'cong_468 = erased
+d_map'45'cong_472 = erased
 -- Utils.Array
-type T_Array_478 a0 = Strict.Vector a0
-d_Array_478
+type T_Array_482 a0 = Strict.Vector a0
+d_Array_482
   = error "MAlonzo Runtime Error: postulate evaluated: Utils.Array"
 -- Utils.HSlengthOfArray
-d_HSlengthOfArray_482 :: forall xA. () -> T_Array_478 xA -> Integer
-d_HSlengthOfArray_482 = \() -> \as -> toInteger (Strict.length as)
+d_HSlengthOfArray_486 :: forall xA. () -> T_Array_482 xA -> Integer
+d_HSlengthOfArray_486 = \() -> \as -> toInteger (Strict.length as)
 -- Utils.HSlistToArray
-d_HSlistToArray_486 ::
-  forall xA. () -> T_List_384 xA -> T_Array_478 xA
-d_HSlistToArray_486 = \() -> Strict.fromList
+d_HSlistToArray_490 ::
+  forall xA. () -> T_List_388 xA -> T_Array_482 xA
+d_HSlistToArray_490 = \() -> Strict.fromList
 -- Utils.HSindexArray
-d_HSindexArray_488 ::
-  forall xA. () -> T_Array_478 xA -> Integer -> xA
-d_HSindexArray_488
+d_HSindexArray_492 ::
+  forall xA. () -> T_Array_482 xA -> Integer -> xA
+d_HSindexArray_492
   = \() -> \as -> \i -> as Strict.! (fromInteger i)
 -- Utils.mkArray
-d_mkArray_492
+d_mkArray_496
   = error "MAlonzo Runtime Error: postulate evaluated: Utils.mkArray"
 -- Utils.DATA
-d_DATA_494 = ()
-type T_DATA_494 = Data
-pattern C_ConstrDATA_496 a0 a1 = D.Constr a0 a1
-pattern C_MapDATA_498 a0 = D.Map a0
-pattern C_ListDATA_500 a0 = D.List a0
-pattern C_iDATA_502 a0 = D.I a0
-pattern C_bDATA_504 a0 = D.B a0
-check_ConstrDATA_496 ::
-  Integer -> T_List_384 T_DATA_494 -> T_DATA_494
-check_ConstrDATA_496 = D.Constr
-check_MapDATA_498 ::
-  T_List_384 (T__'215'__366 T_DATA_494 T_DATA_494) -> T_DATA_494
-check_MapDATA_498 = D.Map
-check_ListDATA_500 :: T_List_384 T_DATA_494 -> T_DATA_494
-check_ListDATA_500 = D.List
-check_iDATA_502 :: Integer -> T_DATA_494
-check_iDATA_502 = D.I
-check_bDATA_504 :: T_ByteString_356 -> T_DATA_494
-check_bDATA_504 = D.B
-cover_DATA_494 :: Data -> ()
-cover_DATA_494 x
+d_DATA_498 = ()
+type T_DATA_498 = Data
+pattern C_ConstrDATA_500 a0 a1 = D.Constr a0 a1
+pattern C_MapDATA_502 a0 = D.Map a0
+pattern C_ListDATA_504 a0 = D.List a0
+pattern C_iDATA_506 a0 = D.I a0
+pattern C_bDATA_508 a0 = D.B a0
+check_ConstrDATA_500 ::
+  Integer -> T_List_388 T_DATA_498 -> T_DATA_498
+check_ConstrDATA_500 = D.Constr
+check_MapDATA_502 ::
+  T_List_388 (T__'215'__370 T_DATA_498 T_DATA_498) -> T_DATA_498
+check_MapDATA_502 = D.Map
+check_ListDATA_504 :: T_List_388 T_DATA_498 -> T_DATA_498
+check_ListDATA_504 = D.List
+check_iDATA_506 :: Integer -> T_DATA_498
+check_iDATA_506 = D.I
+check_bDATA_508 :: T_ByteString_356 -> T_DATA_498
+check_bDATA_508 = D.B
+cover_DATA_498 :: Data -> ()
+cover_DATA_498 x
   = case x of
       D.Constr _ _ -> ()
       D.Map _ -> ()
@@ -572,52 +580,52 @@ cover_DATA_494 x
       D.I _ -> ()
       D.B _ -> ()
 -- Utils.eqDATA
-d_eqDATA_506 :: T_DATA_494 -> T_DATA_494 -> Bool
-d_eqDATA_506 = (==)
+d_eqDATA_510 :: T_DATA_498 -> T_DATA_498 -> Bool
+d_eqDATA_510 = (==)
 -- Utils.Bls12-381-G1-Element
-type T_Bls12'45'381'45'G1'45'Element_640 = G1.Element
-d_Bls12'45'381'45'G1'45'Element_640
+type T_Bls12'45'381'45'G1'45'Element_644 = G1.Element
+d_Bls12'45'381'45'G1'45'Element_644
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-G1-Element"
 -- Utils.eqBls12-381-G1-Element
-d_eqBls12'45'381'45'G1'45'Element_642 ::
-  T_Bls12'45'381'45'G1'45'Element_640 ->
-  T_Bls12'45'381'45'G1'45'Element_640 -> Bool
-d_eqBls12'45'381'45'G1'45'Element_642 = (==)
+d_eqBls12'45'381'45'G1'45'Element_646 ::
+  T_Bls12'45'381'45'G1'45'Element_644 ->
+  T_Bls12'45'381'45'G1'45'Element_644 -> Bool
+d_eqBls12'45'381'45'G1'45'Element_646 = (==)
 -- Utils.Bls12-381-G2-Element
-type T_Bls12'45'381'45'G2'45'Element_644 = G2.Element
-d_Bls12'45'381'45'G2'45'Element_644
+type T_Bls12'45'381'45'G2'45'Element_648 = G2.Element
+d_Bls12'45'381'45'G2'45'Element_648
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-G2-Element"
 -- Utils.eqBls12-381-G2-Element
-d_eqBls12'45'381'45'G2'45'Element_646 ::
-  T_Bls12'45'381'45'G2'45'Element_644 ->
-  T_Bls12'45'381'45'G2'45'Element_644 -> Bool
-d_eqBls12'45'381'45'G2'45'Element_646 = (==)
+d_eqBls12'45'381'45'G2'45'Element_650 ::
+  T_Bls12'45'381'45'G2'45'Element_648 ->
+  T_Bls12'45'381'45'G2'45'Element_648 -> Bool
+d_eqBls12'45'381'45'G2'45'Element_650 = (==)
 -- Utils.Bls12-381-MlResult
-type T_Bls12'45'381'45'MlResult_648 = Pairing.MlResult
-d_Bls12'45'381'45'MlResult_648
+type T_Bls12'45'381'45'MlResult_652 = Pairing.MlResult
+d_Bls12'45'381'45'MlResult_652
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-MlResult"
 -- Utils.eqBls12-381-MlResult
-d_eqBls12'45'381'45'MlResult_650 ::
-  T_Bls12'45'381'45'MlResult_648 ->
-  T_Bls12'45'381'45'MlResult_648 -> Bool
-d_eqBls12'45'381'45'MlResult_650 = (==)
+d_eqBls12'45'381'45'MlResult_654 ::
+  T_Bls12'45'381'45'MlResult_652 ->
+  T_Bls12'45'381'45'MlResult_652 -> Bool
+d_eqBls12'45'381'45'MlResult_654 = (==)
 -- Utils.Kind
-d_Kind_652 = ()
-type T_Kind_652 = KIND
-pattern C_'42'_654 = Star
-pattern C_'9839'_656 = Sharp
-pattern C__'8658'__658 a0 a1 = Arrow a0 a1
-check_'42'_654 :: T_Kind_652
-check_'42'_654 = Star
-check_'9839'_656 :: T_Kind_652
-check_'9839'_656 = Sharp
-check__'8658'__658 :: T_Kind_652 -> T_Kind_652 -> T_Kind_652
-check__'8658'__658 = Arrow
-cover_Kind_652 :: KIND -> ()
-cover_Kind_652 x
+d_Kind_656 = ()
+type T_Kind_656 = KIND
+pattern C_'42'_658 = Star
+pattern C_'9839'_660 = Sharp
+pattern C__'8658'__662 a0 a1 = Arrow a0 a1
+check_'42'_658 :: T_Kind_656
+check_'42'_658 = Star
+check_'9839'_660 :: T_Kind_656
+check_'9839'_660 = Sharp
+check__'8658'__662 :: T_Kind_656 -> T_Kind_656 -> T_Kind_656
+check__'8658'__662 = Arrow
+cover_Kind_656 :: KIND -> ()
+cover_Kind_656 x
   = case x of
       Star -> ()
       Sharp -> ()

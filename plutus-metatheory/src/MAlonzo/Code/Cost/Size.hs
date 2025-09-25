@@ -41,18 +41,18 @@ d_byteStringSize_6 ::
 d_byteStringSize_6 = size
 -- Cost.Size.g1ElementSize
 d_g1ElementSize_8 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_640 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_644 -> Integer
 d_g1ElementSize_8 = size
 -- Cost.Size.g2ElementSize
 d_g2ElementSize_10 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_644 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_648 -> Integer
 d_g2ElementSize_10 = size
 -- Cost.Size.mlResultElementSize
 d_mlResultElementSize_12 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_648 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_652 -> Integer
 d_mlResultElementSize_12 = size
 -- Cost.Size.dataSize
-d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_494 -> Integer
+d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_498 -> Integer
 d_dataSize_14 = size
 -- Cost.Size.boolSize
 d_boolSize_16 :: Bool -> Integer
@@ -65,12 +65,15 @@ d_unitSize_18 = size
 d_stringSize_20 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> Integer
 d_stringSize_20 = size
+-- Cost.Size.valueSize
+d_valueSize_22 :: MAlonzo.Code.Utils.T_Value_362 -> Integer
+d_valueSize_22 = size
 -- Cost.Size.defaultConstantMeasure
-d_defaultConstantMeasure_22 ::
-  MAlonzo.Code.RawU.T_TmCon_202 -> Integer
-d_defaultConstantMeasure_22 v0
+d_defaultConstantMeasure_24 ::
+  MAlonzo.Code.RawU.T_TmCon_204 -> Integer
+d_defaultConstantMeasure_24 v0
   = case coe v0 of
-      MAlonzo.Code.RawU.C_tmCon_206 v1 v2
+      MAlonzo.Code.RawU.C_tmCon_208 v1 v2
         -> case coe v1 of
              MAlonzo.Code.Builtin.Signature.C_atomic_12 v4
                -> case coe v4 of
@@ -86,22 +89,24 @@ d_defaultConstantMeasure_22 v0
                       -> coe d_boolSize_16 v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                       -> coe d_dataSize_14 v2
-                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                      -> coe d_valueSize_22 v2
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22
                       -> coe d_g1ElementSize_8 v2
-                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_22
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24
                       -> coe d_g2ElementSize_10 v2
-                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_24
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_26
                       -> coe d_mlResultElementSize_12 v2
                     _ -> MAlonzo.RTE.mazUnreachableError
              MAlonzo.Code.Builtin.Signature.C_list_16 v4
-               -> let v5 = coe MAlonzo.Code.Utils.du_length_394 (coe v2) in
+               -> let v5 = coe MAlonzo.Code.Utils.du_length_398 (coe v2) in
                   coe
                     (case coe v2 of
-                       MAlonzo.Code.Utils.C_'91''93'_388 -> coe (1 :: Integer)
+                       MAlonzo.Code.Utils.C_'91''93'_392 -> coe (1 :: Integer)
                        _ -> coe v5)
              MAlonzo.Code.Builtin.Signature.C_array_20 v4
                -> let v5
-                        = coe MAlonzo.Code.Utils.d_HSlengthOfArray_482 erased v2 in
+                        = coe MAlonzo.Code.Utils.d_HSlengthOfArray_486 erased v2 in
                   coe
                     (case coe v5 of
                        0 -> coe (1 :: Integer)
@@ -112,14 +117,14 @@ d_defaultConstantMeasure_22 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Size.defaultValueMeasure
-d_defaultValueMeasure_80 ::
+d_defaultValueMeasure_84 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_defaultValueMeasure_80 v0
+d_defaultValueMeasure_84 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
          MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
            -> coe
-                d_defaultConstantMeasure_22
-                (coe MAlonzo.Code.RawU.C_tmCon_206 (coe v2) (coe v3))
+                d_defaultConstantMeasure_24
+                (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v2) (coe v3))
          _ -> coe v1)
