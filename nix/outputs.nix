@@ -97,9 +97,20 @@ let
     ghc910 = mkShell project.projectVariants.ghc910;
   };
 
+  # The default shell contains the agda-with-stdlib-and-metatheory package which will
+  # break on `nix develop` if the .lagda files are broken. In order to escape this
+  # situation we introduce a shell that doesn't contain that executable.
+  metatheory-jailbreak-shell = non-profiled-shells.default.overrideAttrs (attrs: {
+    buildInputs =
+      lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.buildInputs;
+    nativeBuildInputs =
+      lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
+  });
+
   devShells =
     (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.ghc96-profiled; };
+    { profiled = mkShell project.projectVariants.ghc96-profiled; } //
+    { metatheory-jailbreak = metatheory-jailbreak-shell; };
 
   nested-ci-jobs = {
     "x86_64-linux" =
