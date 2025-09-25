@@ -115,3 +115,4 @@ plutus-pab/test-node/alonzo-purple/db
 .nvimrc
 release-*
 TestCert.*
+worktrees

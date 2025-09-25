@@ -19,5 +19,5 @@ import GHC.Generics
 -- A definition with the same name of a definition in Test.Data, used to test for name clashes.a
 data List a = Cons2 a (List a)
             | Nil2
-  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic ,Generic1)
+  deriving (Eq, Ord, Read, Show, Data, Generic ,Generic1)
 

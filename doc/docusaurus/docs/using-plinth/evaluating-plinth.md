@@ -8,6 +8,10 @@ sidebar_position: 12
 
 However, it is also possible to evaluate `CompiledCode` without running a node. The Plutus evaluator, called the CEK Machine, can be used independently of the Cardano node for testing and troubleshooting. By evaluating Plinth programs locally, developers can not only obtain the immediate result of the code but also access the traces emitted during evaluation and the consumed execution budget.
 
+:::info Version Information
+This functionality was released in version 1.47.
+:::
+
 Let's consider the following example Plinth program:
 <LiteralInclude 
   file="Example/Evaluation/Main.hs" 
@@ -27,9 +31,12 @@ To compile it, use the `compile` function as described earlier in the [Compiling
   start="-- BEGIN CompiledCode" 
   end="-- END CompiledCode" />
 
-To evaluate `compiledCode`, add the `plutus-tx` and `plutus-ledger-api` dependencies to your cabal file:
+To evaluate `compiledCode`, add the following dependencies to your cabal file:
 ```cabal
-build-depends: plutus-tx, plutus-ledger-api
+build-depends: 
+  plutus-tx, 
+  plutus-tx:plutus-tx-testlib, 
+  plutus-ledger-api 
 ```
 
 This allows you to import the necessary functionality:

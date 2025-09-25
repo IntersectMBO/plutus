@@ -1,4 +1,21 @@
 
+<a id='changelog-1.54.0.0'></a>
+# 1.54.0.0 — 2025-09-18
+
+## Added
+
+- Built-in type `Value`, and the implementations of `insertCoin` and `unionValue`.
+
+- Added the bls MSM built-in to plutus-core in #4255
+
+- Implementations of `LookupCoin` and `ValueContains` primitives.
+
+- Implementations of `ValueData` and `UnValueData` primitives.
+
+## Changed
+
+- Change default compiler option `datatypes` from `BuiltinCasing` back to `SumsOfProducts`
+
 <a id='changelog-1.53.0.0'></a>
 # 1.53.0.0 — 2025-09-04
 
