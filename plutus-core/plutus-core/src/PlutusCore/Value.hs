@@ -85,7 +85,7 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' (normalize -> v) = Value v sizes size
+pack' v = Value v sizes size
  where
   (sizes, size) = Map.foldl' alg (mempty, 0) v
   alg (ss, s) inner =
