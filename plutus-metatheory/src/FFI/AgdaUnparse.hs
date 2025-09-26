@@ -15,7 +15,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Data qualified as Data
-import PlutusCore.Value (Value)
+import PlutusCore.Value (Value, valueData)
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
@@ -102,9 +102,8 @@ instance AgdaUnparse Data where
   agdaUnparse (Data.B b) =
     "(bDATA " ++ agdaUnparse b ++ ")"
 
--- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
 instance AgdaUnparse Value where
-  agdaUnparse _ = "Not Implemented: AgdaUnprase Value"
+  agdaUnparse v = "(valueData " <> agdaUnparse (valueData v) <> ")"
 
 instance AgdaUnparse BLS12_381.G1.Element where
   agdaUnparse = show
