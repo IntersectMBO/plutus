@@ -33,7 +33,7 @@ open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
 open import Utils hiding (List;length;Value)
 open import Builtin
 open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
-            using (integer;bool;bytestring;string;pdata;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+            using (integer;bool;bytestring;string;pdata;value;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open Sig
 open import RawU using (TmCon;tmCon;TyTag;decTyTag;⟦_⟧tag)
@@ -322,6 +322,25 @@ BUILTIN unBData = λ
 BUILTIN serialiseData = λ
   { (app base (V-con pdata d)) -> inj₂ (V-con bytestring (serialiseDATA d))
   ; _ -> inj₁ userError
+  }
+BUILTIN insertCoin = λ
+  { (app (app (app (app base (V-con bytestring b)) (V-con bytestring b')) (V-con integer n)) (V-con value v)) -> inj₂ (V-con value (insertCOIN b b' n v))
+  ; _ -> inj₁ userError
+  }
+BUILTIN lookupCoin = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN unionValue = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN valueContains = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN Builtin.valueData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN unValueData = λ
+  { _ -> inj₁ userError
   }
 BUILTIN chooseUnit = λ
   { (app (app (app⋆ base) (V-con unit tt)) v) -> inj₂ v
