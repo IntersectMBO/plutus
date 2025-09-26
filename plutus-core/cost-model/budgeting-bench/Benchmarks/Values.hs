@@ -8,10 +8,8 @@ import Prelude
 
 import Common
 import Control.Monad (replicateM)
-import Control.Monad.State.Strict (State)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
-import Data.ByteString qualified as BS
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueOuterOrMaxInner (..), ValueTotalSize (..))
 import PlutusCore.Value (Value)
@@ -41,108 +39,17 @@ lookupCoinBenchmark gen =
     (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
 
 lookupCoinArgs :: StdGen -> [(ByteString, ByteString, Value)]
-lookupCoinArgs gen = runStateGen_ gen $ \(g :: g) -> do
-  let
-    -- Use common test values and add search keys
-    testValues = generateTestValues gen
+lookupCoinArgs gen = runStateGen_ gen $ \g -> do
+  let testValues = generateTestValues gen
 
-    -- Also include additional random tests specific to lookupCoin
-    additionalTests = runStateGen_ gen $ \g' -> do
-      let keySizes = [0, 1, 30, 100, 1_000, 10_000, 20_000]
-      sequence $
-        concat
-          [ -- Key size impact tests with large keys
-            [ generateLookupTest g' policySize tokenSize 100 10
-            | policySize <- keySizes
-            , tokenSize <- [0, 30, 1_000, 20_000]
-            ]
-          , -- Budget-constrained tests (at 30KB limit)
-            [ generateBudgetTest g' policySize tokenSize 30_000
-            | (policySize, tokenSize) <-
-                [ (20_000, 1) -- Huge policy, tiny token
-                , (1, 20_000) -- Tiny policy, huge token
-                , (10_000, 10_000) -- Both large
-                , (1, 1) -- Both tiny (max entries)
-                , (0, 0) -- Empty keys (pathological)
-                ]
-            ]
-          , -- Additional random tests for parameter spread
-            replicate 50 (generateRandomLookupTest g')
-          ]
-
-    -- Add search keys to common test values
-
-    -- Add search keys to a value for lookup testing
-    -- Generates random keys that may or may not exist in the value
-    addSearchKeysToValue :: Value -> State StdGen (ByteString, ByteString, Value)
-    addSearchKeysToValue value = do
-      -- Generate search keys with varying sizes (mostly 30 bytes for consistency)
-      let keySize = 30 -- Standard key size used in most tests
-      searchPolicyId <- generatePolicyId keySize g
-      searchTokenName <- generateTokenName keySize g
-      pure (searchPolicyId, searchTokenName, value)
-
-  commonWithKeys <- sequence [addSearchKeysToValue value | value <- testValues]
-
-  pure $ commonWithKeys ++ additionalTests
-
--- | Generate lookup test with specified parameters
-generateLookupTest
-  :: (StatefulGen g m)
-  => g
-  -> Int -- Policy ID byte size
-  -> Int -- Token name byte size
-  -> Int -- Number of policies
-  -> Int -- Tokens per policy
-  -> m (ByteString, ByteString, Value)
-generateLookupTest
-  g
-  policyIdBytes
-  tokenNameBytes
-  numPolicies
-  tokensPerPolicy = do
-    value <-
-      generateConstrainedValue
-        numPolicies
-        tokensPerPolicy
-        policyIdBytes
-        tokenNameBytes
-        g
-    -- Generate lookup keys (may or may not exist in value)
-    searchPolicyId <- generatePolicyId policyIdBytes g
-    searchTokenName <- generateTokenName tokenNameBytes g
-    pure (searchPolicyId, searchTokenName, value)
-
--- | Generate budget-constrained test
-generateBudgetTest
-  :: (StatefulGen g m)
-  => g
-  -> Int -- Policy ID byte size
-  -> Int -- Token name byte size
-  -> Int -- Total budget
-  -> m (ByteString, ByteString, Value)
-generateBudgetTest g policyIdBytes tokenNameBytes budget = do
-  value <- generateValueWithBudget policyIdBytes tokenNameBytes budget g
-  searchPolicyId <- generatePolicyId policyIdBytes g
-  searchTokenName <- generateTokenName tokenNameBytes g
-  pure (searchPolicyId, searchTokenName, value)
-
--- | Generate random lookup test with varied parameters for better spread
-generateRandomLookupTest :: (StatefulGen g m) => g -> m (ByteString, ByteString, Value)
-generateRandomLookupTest g = do
-  policyIdBytes <- uniformRM (0, 20_000) g -- 0-20KB policy ID
-  tokenNameBytes <- uniformRM (0, 20_000) g -- 0-20KB token name
-  numPolicies <- uniformRM (1, 2_000) g -- 1-2000 policies
-  tokensPerPolicy <- uniformRM (1, 1_000) g -- 1-1000 tokens per policy
-
-  -- Generate value with random parameters
-  value <- generateConstrainedValue numPolicies tokensPerPolicy policyIdBytes tokenNameBytes g
-
-  -- Generate search keys
-  searchPolicyId <- uniformByteStringM policyIdBytes g
-  searchTokenName <- uniformByteStringM tokenNameBytes g
-
-  pure (searchPolicyId, searchTokenName, value)
+  -- Add random search keys to each test value
+  sequence
+    [ do
+        searchPolicyId <- generatePolicyId 28 g
+        searchTokenName <- generateTokenName 32 g
+        pure (searchPolicyId, searchTokenName, value)
+    | value <- testValues
+    ]
 
 ----------------------------------------------------------------------------------------------------
 -- ValueContains -----------------------------------------------------------------------------------
@@ -157,113 +64,36 @@ valueContainsBenchmark gen =
     (valueContainsArgs gen) -- the argument combos to generate benchmarks for
 
 valueContainsArgs :: StdGen -> [(Value, Value)]
-valueContainsArgs gen = runStateGen_ gen \g -> do
-  let
-    baseKeySizes = [0, 30, 1_000, 10_000]
-    baseValueSizes = [1, 10, 100, 1_000]
-
+valueContainsArgs gen = runStateGen_ gen \g ->
   sequence $
-    concat
-      [ -- Standard key tests with varying value sizes (original Size-based tests)
-        [ generateContainsTest g containerSize containedSize 30
-        | containerSize <- baseValueSizes
-        , containedSize <- baseValueSizes
-        , containedSize <= containerSize
-        ]
-      , -- Key size impact tests
-        [ generateContainsTest g 100 10 keySize
-        | keySize <- baseKeySizes
-        ]
-      , -- Budget-constrained tests
-        [ generateContainsBudgetTest g 30_000 keySize
-        | keySize <- [0, 30, 3_000, 20_000]
-        ]
-      , -- Edge cases
-        [ generateEmptyContainedTest g containerSize 30
-        | containerSize <- [0, 10, 100, 1_000]
-        ]
-      , -- Random tests for parameter spread (100 combinations)
-        replicate 100 (generateRandomContainsTest g)
-      ]
+    -- Use test values as containers with empty contained value (edge case)
+    [pure (container, Value.empty) | container <- generateTestValues gen]
+      ++
+      -- Random contains tests with varied entry counts
+      replicate 100 do
+        containerEntries <- uniformRM (1, 1000) g
+        containedEntries <- uniformRM (0, containerEntries) g
 
--- | Generate valueContains test with specified parameters
-generateContainsTest
-  :: (StatefulGen g m)
-  => g
-  -> Int -- Container value size
-  -> Int -- Contained value size
-  -> Int -- Key byte size (for both policy and token)
-  -> m (Value, Value)
-generateContainsTest g containerSize containedSize keySize = do
-  -- Generate container value
-  container <- generateConstrainedValue containerSize 10 keySize keySize g
+        -- Generate container
+        container <- generateRandomValueForContains containerEntries g
 
-  -- Generate contained as subset of container (for true contains relationship)
-  let containerList = Value.toList container
-      containedEntries = take containedSize containerList
+        -- Generate contained as subset
+        let containerList = Value.toList container
+            containedList = take containedEntries containerList
+            contained = Value.fromList containedList
 
-  let contained =
-        Value.fromList $
-          [ (policyId, take (containedSize `div` max 1 (length containerList)) tokens)
-          | (policyId, tokens) <- containedEntries
-          ]
-
-  pure (container, contained)
-
--- | Generate budget-constrained contains test
-generateContainsBudgetTest
-  :: (StatefulGen g m)
-  => g
-  -> Int -- Total budget
-  -> Int -- Key size
-  -> m (Value, Value)
-generateContainsBudgetTest g budget keySize = do
-  container <- generateValueWithBudget keySize keySize budget g
-  -- Generate smaller contained value (subset)
-  let containerList = Value.toList container
-      containedEntries = take (length containerList `div` 2) containerList
-  pure (container, Value.fromList containedEntries)
-
--- | Generate test with empty contained value
-generateEmptyContainedTest
-  :: (StatefulGen g m)
-  => g
-  -> Int -- Container size
-  -> Int -- Key size
-  -> m (Value, Value)
-generateEmptyContainedTest g containerSize keySize = do
-  container <- generateConstrainedValue containerSize 10 keySize keySize g
-  pure (container, Value.empty)
-
--- | Generate random valueContains test with varied parameters for better spread
-generateRandomContainsTest :: (StatefulGen g m) => g -> m (Value, Value)
-generateRandomContainsTest g = do
-  -- Generate random parameters with good spread
-  containerEntries <- uniformRM (1, 5_000) g -- 1-5000 container entries
-  containedEntries <- uniformRM (1, containerEntries) g -- 1-container count
-  keyBytes <- uniformRM (1, 5_000) g -- 1-5000 byte keys
-
-  -- Generate container value with exact entry count
-  container <- generateRandomValueForContains containerEntries keyBytes g
-
-  -- Generate contained as subset of container entries
-  let containerList = Value.toList container
-      containedList = take containedEntries containerList
-      contained = Value.fromList containedList
-
-  pure (container, contained)
+        pure (container, contained)
 
 -- | Generate Value for contains tests with exact entry count
 generateRandomValueForContains
   :: (StatefulGen g m)
   => Int -- Entry count
-  -> Int -- Key byte size
   -> g
   -> m Value
-generateRandomValueForContains entryCount keyBytes g = do
-  -- Generate policies and tokens with exact entry count
-  policyIds <- replicateM entryCount (uniformByteStringM keyBytes g)
-  tokenNames <- replicateM entryCount (uniformByteStringM keyBytes g)
+generateRandomValueForContains entryCount g = do
+  -- Generate policies and tokens with exact entry count (realistic sizes)
+  policyIds <- replicateM entryCount (generatePolicyId 28 g)
+  tokenNames <- replicateM entryCount (generateTokenName 32 g)
 
   let
     -- Create amounts (1 to 1000000)
@@ -280,11 +110,7 @@ generateRandomValueForContains entryCount keyBytes g = do
 
 valueDataBenchmark :: StdGen -> Benchmark
 valueDataBenchmark gen =
-  createOneTermBuiltinBenchWithWrapper
-    ValueTotalSize
-    ValueData
-    []
-    (generateTestValues gen)
+  createOneTermBuiltinBenchWithWrapper ValueTotalSize ValueData [] (generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
@@ -299,106 +125,70 @@ unValueDataBenchmark gen =
 -- | Generate common test values for benchmarking
 generateTestValues :: StdGen -> [Value]
 generateTestValues gen = runStateGen_ gen \g -> do
-  let
-    baseValueSizes = [1, 10, 50, 100, 500, 1_000]
-    keySizes = [0, 30, 100, 1_000, 10_000]
-
   sequence $
-    concat
-      [ -- Empty value as edge case (first test cbase)
-        [pure Value.empty]
-      , -- Standard value sizes with varying key sizes
-        [ generateConstrainedValue valueSize 10 keySize keySize g
-        | valueSize <- baseValueSizes
-        , keySize <- [30, 1_000]
-        ]
-      , -- Key size impact tests (fixed value structure, varying key sizes)
-        [ generateConstrainedValue 100 10 keySize keySize g
-        | keySize <- keySizes
-        ]
-      , -- Budget-constrained tests
-        [ generateValueWithBudget keySize keySize budget g
-        | keySize <- [0, 30, 1_000, 10_000]
-        , budget <- [1_000, 10_000, 30_000]
-        ]
-      , -- Random tests for parameter spread (50 combinations)
-        replicate 50 $ do
-          numPolicies <- uniformRM (1, 1_000) g
-          tokensPerPolicy <- uniformRM (1, 500) g
-          policyIdBytes <- uniformRM (0, 10_000) g
-          tokenNameBytes <- uniformRM (0, 10_000) g
-          generateConstrainedValue numPolicies tokensPerPolicy policyIdBytes tokenNameBytes g
-      ]
+    -- Specific cases of interest
+    [ generateConstrainedValue 1 2000 g -- 1 policy with 2000 tokens
+    , generateConstrainedValue 2000 1 g -- 2000 policies with 1 token each
+    , pure Value.empty -- Empty value as edge case
+    ]
+      ++
+      -- Random test values (~100 combinations)
+      replicate
+        100
+        ( do
+            numPolicies <- uniformRM (0, 2000) g -- 0-2000 policies
+            let maxTokens = if numPolicies == 0 then 2000 else 10_000 `div` numPolicies
+            tokensPerPolicy <- uniformRM (1, min 2000 maxTokens) g -- Cap at 10,000 total entries
+            generateConstrainedValue numPolicies tokensPerPolicy g
+        )
 
--- | Generate constrained Value with total size budget
+-- | Generate constrained Value
 generateConstrainedValue
   :: (StatefulGen g m)
   => Int -- Number of policies
   -> Int -- Number of tokens per policy
-  -> Int -- Policy ID byte length
-  -> Int -- Token name byte length
   -> g
   -> m Value
-generateConstrainedValue numPolicies tokensPerPolicy policyIdBytes tokenNameBytes g = do
-  policyIds <- -- Generate policy IDs of specified size
-    replicateM numPolicies (generatePolicyId policyIdBytes g)
+generateConstrainedValue numPolicies tokensPerPolicy g = do
+  -- Handle edge case: no policies means empty value
+  if numPolicies <= 0
+    then pure Value.empty
+    else do
+      policyIds <- -- Generate policy IDs (always 28 bytes)
+        replicateM numPolicies (generatePolicyId 0 g)
 
-  tokenNames <- -- Generate token names of specified size
-    replicateM tokensPerPolicy (generateTokenName tokenNameBytes g)
+      tokenNames <- -- Generate token names (random 0-32 bytes)
+        replicateM tokensPerPolicy (generateTokenName 0 g)
 
-  -- Generate positive quantities (1 to 1000000)
-  let quantity :: Int -> Int -> Integer
-      quantity policyIndex tokenIndex =
-        fromIntegral (1 + (policyIndex * 1_000 + tokenIndex) `mod` 1_000_000)
+      -- Generate positive quantities (1 to 1000000)
+      let quantity :: Int -> Int -> Integer
+          quantity policyIndex tokenIndex =
+            fromIntegral (1 + (policyIndex * 1_000 + tokenIndex) `mod` 1_000_000)
 
-      nestedMap :: [(ByteString, [(ByteString, Integer)])]
-      nestedMap =
-        [ ( policyId
-          , [ (tokenName, quantity policyIndex tokenIndex)
-            | (tokenIndex, tokenName) <- zip [0 ..] tokenNames
+          nestedMap :: [(ByteString, [(ByteString, Integer)])]
+          nestedMap =
+            [ ( policyId
+              , [ (tokenName, quantity policyIndex tokenIndex)
+                | (tokenIndex, tokenName) <- zip [0 ..] tokenNames
+                ]
+              )
+            | (policyIndex, policyId) <- zip [0 ..] policyIds
             ]
-          )
-        | (policyIndex, policyId) <- zip [0 ..] policyIds
-        ]
-  pure $ Value.fromList nestedMap
-
--- | Generate Value within total size budget
-generateValueWithBudget
-  :: (StatefulGen g m)
-  => Int -- Policy ID byte length
-  -> Int -- Token name byte length
-  -> Int -- Target total size budget
-  -> g
-  -> m Value
-generateValueWithBudget policyIdBytes tokenNameBytes budget g = do
-  let
-    overhead = 8 -- bytes per amount
-
-    -- Calculate maximum possible entries
-    bytesPerEntry = policyIdBytes + tokenNameBytes + overhead
-    maxEntries =
-      if bytesPerEntry > 0
-        then min (budget `div` bytesPerEntry) budget
-        else budget -- Handle 0 case
-
-    -- Simple distribution: try to balance policies and tokens
-    numPolicies = max 1 (floor (sqrt (fromIntegral maxEntries :: Double)))
-    tokensPerPolicy = if numPolicies > 0 then maxEntries `div` numPolicies else 0
-
-  generateConstrainedValue numPolicies tokensPerPolicy policyIdBytes tokenNameBytes g
+      pure $ Value.fromList nestedMap
 
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
 
--- | Generate policy ID of specified size
+{-| Generate policy ID of exactly 28 bytes (MintingPolicyHash size)
+Size parameter ignored - always generates 28 bytes
+-}
 generatePolicyId :: (StatefulGen g m) => Int -> g -> m ByteString
-generatePolicyId = generateByteString
+generatePolicyId _size = uniformByteStringM 28
 
--- | Generate token name of specified size
+{-| Generate token name of random size (0-32 bytes)
+Size parameter ignored - generates random size 0-32 bytes
+-}
 generateTokenName :: (StatefulGen g m) => Int -> g -> m ByteString
-generateTokenName = generateByteString
-
--- | Generate ByteString of specified size
-generateByteString :: (StatefulGen g m) => Int -> g -> m ByteString
-generateByteString 0 _ = pure BS.empty
-generateByteString l g = uniformByteStringM l g
+generateTokenName _size g = do
+  tokenSize <- uniformRM (0, 32) g
+  uniformByteStringM tokenSize g
