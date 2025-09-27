@@ -55,6 +55,7 @@ The @val@ type will be 'CekValue' when we're using this with the CEK machine.
 data MachineParameters machineCosts fun val =
     MachineParameters {
       machineCaserBuiltin      :: CaserBuiltin (UniOf val)
+    , machineLeterBuiltin      :: LeterBuiltin (UniOf val)
     , machineVariantParameters :: MachineVariantParameters machineCosts fun val
     }
     deriving stock Generic
@@ -67,8 +68,8 @@ instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineVari
       allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
 
 instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
-  wNoThunks ctx (MachineParameters caser varPars) =
-      allNoThunks [ noThunks ctx caser, noThunks ctx varPars ]
+  wNoThunks ctx (MachineParameters caser leter varPars) =
+      allNoThunks [ noThunks ctx caser, noThunks ctx leter, noThunks ctx varPars ]
 
 {- Note [The CostingPart constraint in mkMachineVariantParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC

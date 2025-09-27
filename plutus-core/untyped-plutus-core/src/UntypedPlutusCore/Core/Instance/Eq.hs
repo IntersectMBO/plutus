@@ -108,6 +108,18 @@ eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
     case zipExact (toList cs1) (toList cs2) of
         Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
         Nothing -> empty
+eqTermM (Let ann1 names1 body1) (Let ann2 names2 body2) = do
+    eqM ann1 ann2
+    case zipExact names1 names2 of
+      Just ps -> for_ ps $ \(t1, t2) -> eqNameM t1 t2
+      Nothing -> empty
+    eqTermM body1 body2
+eqTermM (Bind ann1 body1 binds1) (Bind ann2 body2 binds2) = do
+    eqM ann1 ann2
+    eqTermM body1 body2
+    case zipExact binds1 binds2 of
+      Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
+      Nothing -> empty
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
 eqTermM Var{}      _ = empty
@@ -118,3 +130,5 @@ eqTermM Force{}    _ = empty
 eqTermM Error{}    _ = empty
 eqTermM Constr{}    _ = empty
 eqTermM Case{}    _ = empty
+eqTermM Let{}    _ = empty
+eqTermM Bind{}    _ = empty

@@ -9,6 +9,7 @@ import PlutusCore.Builtin.HasConstant as Export
 import PlutusCore.Builtin.KnownKind as Export
 import PlutusCore.Builtin.KnownType as Export
 import PlutusCore.Builtin.KnownTypeAst as Export
+import PlutusCore.Builtin.Let as Export
 import PlutusCore.Builtin.Meaning as Export
 import PlutusCore.Builtin.Polymorphism as Export
 import PlutusCore.Builtin.Result as Export
