@@ -459,6 +459,7 @@ they don't actually take the context as an argument even at the source level.
 -- | Implicit parameter for the builtin runtime.
 type GivenCekRuntime uni fun ann = (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun ann))
 type GivenCekCaserBuiltin uni = (?cekCaserBuiltin :: CaserBuiltin uni)
+type GivenCekLeterBuiltin uni = (?cekLeterBuiltin :: LeterBuiltin uni)
 -- | Implicit parameter for the log emitter reference.
 type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
@@ -471,6 +472,7 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun ann s =
     ( GivenCekRuntime uni fun ann
     , GivenCekCaserBuiltin uni
+    , GivenCekLeterBuiltin uni
     , GivenCekEmitter uni fun s
     , GivenCekSpender uni fun s
     , GivenCekSlippage
@@ -713,8 +715,8 @@ data Context uni fun ann
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
-    | FrameAwaitLetBinds !(CekValEnv uni fun ann) !(NTerm uni fun ann) ![NTerm uni fun ann] ![CekValue uni fun ann] !(Context uni fun ann)
-    | FrameAwaitLet ![CekValue uni fun ann] !(Context uni fun ann)
+    | FrameAwaitLetBinds !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 !(NTerm uni fun ann) ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+    | FrameAwaitLet {-# UNPACK #-} !Word64 !(ArgStack uni fun ann) !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -754,7 +756,7 @@ runCekM
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s (DischargeResult uni fun))
     -> CekReport cost NamedDeBruijn uni fun
 runCekM
-        (MachineParameters caser (MachineVariantParameters costs runtime))
+        (MachineParameters caser leter (MachineVariantParameters costs runtime))
         (ExBudgetMode getExBudgetInfo)
         (EmitterMode getEmitterMode)
         a = runST $ do
@@ -763,6 +765,7 @@ runCekM
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekCaserBuiltin = caser
+        ?cekLeterBuiltin = leter
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
@@ -851,7 +854,7 @@ enterComputeCek = computeCek
         --stepAndMaybeSpend BApply
         -- computeCek (FrameAwaitLetBinds env t bs ctx) env t
         case bs of
-          (t : rest) -> computeCek (FrameAwaitLetBinds env body rest [] ctx) env t
+          (t : rest) -> computeCek (FrameAwaitLetBinds env 0 body rest NilStack ctx) env t
           []         -> computeCek ctx env body
 
     {- | The returning phase of the CEK machine.
@@ -892,11 +895,16 @@ enterComputeCek = computeCek
         SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
         SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-    returnCek (FrameAwaitLet args ctx) l =
-      case l of
-        VLet names body env
-          | length names == length args -> computeCek ctx (foldr Env.cons env args) body
-        _               -> error "no"
+    returnCek (FrameAwaitLet cnt args ctx) l =
+      let
+        -- this can probably be done in FrameAwaitLetBinds for better performance.
+        go acc NilStack         = acc
+        go acc (ConsStack x xs) = Env.cons x (go acc xs)
+      in case l of
+           VLet names body env
+             | length names == fromIntegral cnt -> computeCek ctx (go env args) body
+             | otherwise -> error $ show (length names) <> " " <> show cnt
+           _               -> error "no"
 
     returnCek (FrameAwaitFunValueN args ctx) fun =
         case args of
@@ -930,16 +938,20 @@ enterComputeCek = computeCek
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
             Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
             Right (HeadOnly fX) -> computeCek ctx env fX
-            Right (HeadSpine f xs) -> computeCek (FrameAwaitFunConN xs ctx) env f
+            Right (HeadSpine f xs) ->
+              let
+                -- we reverse and reverse again, this is bad, just POC
+                go acc (SpineLast x)      = (ConsStack (VCon x) acc, 1)
+                go acc (SpineCons x rest) = (+1) <$> go (ConsStack (VCon x) acc) rest
+
+                (xs', cnt) = go NilStack xs
+              in computeCek (FrameAwaitLet cnt xs' ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
-    -- returnCek (FrameAwaitLetTerm env bs ctx) e =
-    --   case bs of
-    --     (next : todo) -> computeCek (FrameAwaitLetBinds env e todo [] ctx) env next
-        -- [] -> returnCek ctx e -- no bindings
-    returnCek (FrameAwaitLetBinds env l todo done ctx) e =
+    returnCek (FrameAwaitLetBinds env cnt l todo done ctx) e =
       case todo of
-        (next : todo') -> computeCek (FrameAwaitLetBinds env l todo' (e : done) ctx) env next
-        []             -> computeCek (FrameAwaitLet (e : done) ctx) env l
+        (next : todo') ->
+          computeCek (FrameAwaitLetBinds env (cnt + 1) l todo' (ConsStack e done) ctx) env next
+        []             -> computeCek (FrameAwaitLet (cnt + 1) (ConsStack e done) ctx) env l
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -996,6 +1008,15 @@ enterComputeCek = computeCek
                 evalBuiltinApp ctx fun term' $ f arg
             _ ->
                 throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
+    applyEvaluate !ctx (VLet names body env) (VCon v) =
+      case unLeterBuiltin ?cekLeterBuiltin v of
+        Right binds
+          | length binds == length names ->
+            computeCek ctx (foldl (flip (Env.cons . VCon)) env binds) body
+          | otherwise -> error "aa"
+        Left e -> error $ show e
+
+      -- computeCek (FrameAwaitLet cnt xs' ctx) env body
     applyEvaluate !_ val _ =
         throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
