@@ -93,6 +93,15 @@ deBruijnTermWithM h = go
        Constant ann con -> pure $ Constant ann con
        Builtin ann bn -> pure $ Builtin ann bn
        Error ann -> pure $ Error ann
+       Let ann names body -> do
+         let
+           goNames acc [] = Let ann (acc []) <$> go body
+           goNames acc (n:ns) = declareUnique n $ do
+             n' <- nameToDeBruijn h n
+             withScope $ do
+               goNames (acc . (n':)) ns
+         goNames id names
+       Bind ann t binds -> Bind ann <$> go t <*> traverse go binds
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM
@@ -121,3 +130,12 @@ unDeBruijnTermWithM h = go
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn
         Error ann -> pure $ Error ann
+        Let ann names body -> do
+          let
+            goNames acc [] = Let ann (acc []) <$> go body
+            goNames acc (n:ns) = declareBinder $ do
+              n' <- deBruijnToName h $ set index deBruijnInitIndex n
+              withScope $ do
+                goNames (acc . (n':)) ns
+          goNames id names
+        Bind ann t binds -> Bind ann <$> go t <*> traverse go binds
