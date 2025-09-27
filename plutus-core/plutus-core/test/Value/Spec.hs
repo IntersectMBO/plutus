@@ -1,12 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Value.Spec (tests) where
 
+import Data.ByteString (ByteString)
+import Data.ByteString qualified as B
+import Data.Either
 import Data.Foldable qualified as F
 import Data.Map.Strict qualified as Map
 import Data.Maybe
+import PlutusCore.Builtin (BuiltinResult (..))
+import PlutusCore.Flat qualified as Flat
 import PlutusCore.Generators.QuickCheck.Builtin (ValueAmount (..), genShortHex)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as V
@@ -33,7 +40,7 @@ prop_insertCoinBookkeeping :: Value -> ValueAmount -> Property
 prop_insertCoinBookkeeping v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let v' = V.insertCoin currency token amt v
+      let BuiltinSuccess v' = V.insertCoin (V.unK currency) (V.unK token) amt v
        in checkSizes v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
@@ -41,7 +48,7 @@ prop_insertCoinPreservesInvariants :: Value -> ValueAmount -> Property
 prop_insertCoinPreservesInvariants v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let v' = V.insertCoin currency token amt v
+      let BuiltinSuccess v' = V.insertCoin (V.unK currency) (V.unK token) amt v
        in checkInvariants v'
 
 prop_unionCommutative :: Value -> Value -> Property
@@ -52,31 +59,34 @@ prop_unionAssociative v1 v2 v3 =
   V.unionValue v1 (V.unionValue v2 v3) === V.unionValue (V.unionValue v1 v2) v3
 
 prop_insertCoinIdempotent :: Value -> Property
-prop_insertCoinIdempotent v = v === F.foldl' (\acc (c, t, a) -> V.insertCoin c t a acc) v fm
- where
-  fm = V.toFlatList v
+prop_insertCoinIdempotent v =
+  v
+    === F.foldl'
+      (\acc (c, t, a) -> let BuiltinSuccess v' = V.insertCoin (V.unK c) (V.unK t) a acc in v')
+      v
+      (V.toFlatList v)
 
 prop_lookupAfterInsertion :: Value -> ValueAmount -> Property
 prop_lookupAfterInsertion v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let v' = V.insertCoin currency token amt v
-       in V.lookupCoin currency token v' === amt
+      let BuiltinSuccess v' = V.insertCoin (V.unK currency) (V.unK token) amt v
+       in V.lookupCoin (V.unK currency) (V.unK token) v' === amt
 
 prop_lookupAfterDeletion :: Value -> Property
 prop_lookupAfterDeletion v =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let v' = V.deleteCoin currency token v
-       in V.lookupCoin currency token v' === 0
+      let v' = V.deleteCoin (V.unK currency) (V.unK token) v
+       in V.lookupCoin (V.unK currency) (V.unK token) v' === 0
 
 prop_deleteCoinIdempotent :: Value -> Property
 prop_deleteCoinIdempotent v0 =
-  forAll (elements fl) $ \(c, t, _) ->
+  forAll (elements fl) $ \(V.unK -> c, V.unK -> t, _) ->
     let v' = V.deleteCoin c t v
      in v' === V.deleteCoin c t v'
  where
-  v = if V.totalSize v0 > 0 then v0 else V.insertCoin "c" "t" 1 v0
+  BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
   fl = V.toFlatList v
 
 prop_containsReflexive :: Value -> Property
@@ -87,7 +97,40 @@ prop_containsAfterDeletion v =
   conjoin [property (V.valueContains v v') | v' <- vs]
  where
   fl = V.toFlatList v
-  vs = scanr (\(c, t, _) -> V.deleteCoin c t) v fl
+  vs = scanr (\(c, t, _) -> V.deleteCoin (V.unK c) (V.unK t)) v fl
+
+prop_flatRoundtrip :: Value -> Property
+prop_flatRoundtrip v = Flat.unflat (Flat.flat v) === Right v
+
+gen32BytesOrFewer :: Gen ByteString
+gen32BytesOrFewer = do
+  len <- chooseInt (0, 32)
+  B.pack <$> vectorOf len arbitrary
+
+gen33Bytes :: Gen ByteString
+gen33Bytes = B.pack <$> vectorOf 33 arbitrary
+
+prop_flatDecodeSuccess :: Property
+prop_flatDecodeSuccess = forAll (arbitrary `suchThat` (/= 0)) $ \amt ->
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let flat = Flat.flat $ Map.singleton c (Map.singleton t amt)
+          BuiltinSuccess v = V.insertCoin c t amt V.empty
+       in Flat.unflat flat === Right v
+
+prop_flatDecodeInvalidCurrency :: Property
+prop_flatDecodeInvalidCurrency =
+  forAll gen33Bytes $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let flat = Flat.flat $ Map.singleton c (Map.singleton t (100 :: Integer))
+       in property . isLeft $ Flat.unflat @Value flat
+
+prop_flatDecodeInvalidToken :: Property
+prop_flatDecodeInvalidToken =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen33Bytes $ \t ->
+      let flat = Flat.flat $ Map.singleton c (Map.singleton t (100 :: Integer))
+       in property . isLeft $ Flat.unflat @Value flat
 
 checkSizes :: Value -> Property
 checkSizes v =
@@ -147,4 +190,16 @@ tests =
     , testProperty
         "containsAfterDeletion"
         prop_containsAfterDeletion
+    , testProperty
+        "flatRoundtrip"
+        prop_flatRoundtrip
+    , testProperty
+        "flatDecodeSuccess"
+        prop_flatDecodeSuccess
+    , testProperty
+        "flatDecodeInvalidCurrency"
+        prop_flatDecodeInvalidCurrency
+    , testProperty
+        "flatDecodeInvalidToken"
+        prop_flatDecodeInvalidToken
     ]
