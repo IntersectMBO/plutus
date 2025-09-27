@@ -62,7 +62,7 @@ conference:
     breakpoint: md
     links:
       - name: Home
-        absolute_url: https://services.iohk.io/uplc?hs_preview=CxXNrOOn-196054468379
+        absolute_url: https://services.iohk.io/uplc
       - name: Location
         relative_url: /location/
 
@@ -116,7 +116,7 @@ conference:
     # display it.
     map:
       # Initial map center point
-      home_coord: 55.94480115682893, -3.1891769282389166
+      home_coord: 55.945183965325086, -3.187070915279134
       # Alternative map providers can be found on https://leaflet-extras.github.io/leaflet-providers/preview/
       # The following do match the Bootstrap design not too badly:
       #   - Thunderforest.Neighbourhood
