@@ -1,0 +1,558 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.QuickCheck.Split</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.QuickCheck.Split.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.QuickCheck.Split</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:smallLength"
+	      >smallLength</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sublistN"
+	      >sublistN</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:toMaxChunkNumber"
+	      >toMaxChunkNumber</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toChunkNumber"
+	      >toChunkNumber</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toChunkFrequencies"
+	      >toChunkFrequencies</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; [(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:toChunks"
+	      >toChunks</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >] &#8594; [a] &#8594; [[a]]</li
+	    ><li class="src short"
+	    ><a href="#v:multiSplit1In"
+	      >multiSplit1In</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [NonEmptyList a]</li
+	    ><li class="src short"
+	    ><a href="#v:multiSplit1"
+	      >multiSplit1</a
+	      > &#8759; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [NonEmptyList a]</li
+	    ><li class="src short"
+	    ><a href="#v:halve"
+	      >halve</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; [a] &#8594; ([a], [a])</li
+	    ><li class="src short"
+	    ><a href="#v:insertManyPreferRight"
+	      >insertManyPreferRight</a
+	      > &#8759; &#8704; a. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; a &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:insertManyPreferLeft"
+	      >insertManyPreferLeft</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; a &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:insertManyPreferEnds"
+	      >insertManyPreferEnds</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; a &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:multiSplit0"
+	      >multiSplit0</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [[a]]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:smallLength" class="def"
+	    >smallLength</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Split.html#smallLength" class="link"
+	    >Source</a
+	    > <a href="#v:smallLength" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Up to what length a list is considered &quot;short&quot;.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sublistN" class="def"
+	    >sublistN</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [a] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#sublistN" class="link"
+	    >Source</a
+	    > <a href="#v:sublistN" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a sublist of the given size of the given list. Preserves the order of elements.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toMaxChunkNumber" class="def"
+	    >toMaxChunkNumber</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Split.html#toMaxChunkNumber" class="link"
+	    >Source</a
+	    > <a href="#v:toMaxChunkNumber" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Calculate the maximum number of chunks to split a list of the given list into.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toChunkNumber" class="def"
+	    >toChunkNumber</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Split.html#toChunkNumber" class="link"
+	    >Source</a
+	    > <a href="#v:toChunkNumber" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Calculate the number of ways to divide a list of length <code
+	      >len</code
+	      > into <code
+	      >chunkNum</code
+	      > chunks.
+ Equals to <code
+	      >C(len - 1, chunksNum - 1)</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toChunkFrequencies" class="def"
+	    >toChunkFrequencies</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; [(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >)] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#toChunkFrequencies" class="link"
+	    >Source</a
+	    > <a href="#v:toChunkFrequencies" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return a list of pairs, each of which consists of</p
+	    ><ol
+	    ><li value="1"
+	      >the frequency at which a chunk length needs to be picked by the generation machinery</li
+	      ><li value="2"
+	      >the chunk length itself</li
+	      ></ol
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toChunkFrequencies (-1)
+</code
+		></strong
+	      >[]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toChunkFrequencies 0
+</code
+		></strong
+	      >[]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toChunkFrequencies 1
+</code
+		></strong
+	      >[(1,1)]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toChunkFrequencies 5
+</code
+		></strong
+	      >[(1,1),(4,2),(6,3),(4,4),(1,5)]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toChunkFrequencies 10
+</code
+		></strong
+	      >[(3,1),(6,2),(9,3),(12,4),(15,5),(18,6),(21,7)]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toChunkFrequencies 50
+</code
+		></strong
+	      >[(3,1),(4,2),(5,3),(6,4),(7,5),(8,6),(9,7),(10,8),(11,9),(12,10),(13,11),(14,12),(15,13)]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toChunks" class="def"
+	    >toChunks</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >] &#8594; [a] &#8594; [[a]] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#toChunks" class="link"
+	    >Source</a
+	    > <a href="#v:toChunks" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split the given list in chunks. The length of each chunk, apart from the final one, is taken
+ from the first argument.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toChunks [3, 1] &quot;abcdef&quot;
+</code
+		></strong
+	      >[&quot;abc&quot;,&quot;d&quot;,&quot;ef&quot;]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:multiSplit1In" class="def"
+	    >multiSplit1In</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [NonEmptyList a] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#multiSplit1In" class="link"
+	    >Source</a
+	    > <a href="#v:multiSplit1In" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a list into the given number of chunks. Concatenating the resulting lists gives back the
+ original one. Doesn't generate empty chunks.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:multiSplit1" class="def"
+	    >multiSplit1</a
+	    > &#8759; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [NonEmptyList a] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#multiSplit1" class="link"
+	    >Source</a
+	    > <a href="#v:multiSplit1" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a list into chunks at random. Concatenating the resulting lists gives back the original
+ one. Doesn't generate empty chunks.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:halve" class="def"
+	    >halve</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; [a] &#8594; ([a], [a]) <a href="src/PlutusCore.Generators.QuickCheck.Split.html#halve" class="link"
+	    >Source</a
+	    > <a href="#v:halve" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the left and the right halves of the given list. The first argument controls whether
+ the middle element of a list having an odd length goes into the left half or the right one.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>halve True [1 :: Int]
+</code
+		></strong
+	      >([1],[])
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>halve True [1, 2 :: Int]
+</code
+		></strong
+	      >([1],[2])
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>halve True [1, 2, 3 :: Int]
+</code
+		></strong
+	      >([1,2],[3])
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>halve False [1 :: Int]
+</code
+		></strong
+	      >([],[1])
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>halve False [1, 2 :: Int]
+</code
+		></strong
+	      >([1],[2])
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>halve False [1, 2, 3 :: Int]
+</code
+		></strong
+	      >([1],[2,3])
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:insertManyPreferRight" class="def"
+	    >insertManyPreferRight</a
+	    > &#8759; &#8704; a. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; a &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [a] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#insertManyPreferRight" class="link"
+	    >Source</a
+	    > <a href="#v:insertManyPreferRight" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert a value into a list an arbitrary number of times. The first argument controls whether
+ to allow inserting at the beginning of the list, the second argument is the probability of
+ inserting an element at the end of the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:insertManyPreferLeft" class="def"
+	    >insertManyPreferLeft</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; a &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [a] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#insertManyPreferLeft" class="link"
+	    >Source</a
+	    > <a href="#v:insertManyPreferLeft" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert a value into a list an arbitrary number of times. The first argument controls whether
+ to allow inserting at the end of the list, the second argument is the probability of
+ inserting an element at the beginning of the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:insertManyPreferEnds" class="def"
+	    >insertManyPreferEnds</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; a &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [a] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#insertManyPreferEnds" class="link"
+	    >Source</a
+	    > <a href="#v:insertManyPreferEnds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert a value into a list an arbitrary number of times. The first argument is the probability
+ of inserting an element at an end of the list (i.e. either the beginning or the end, not
+ combined). See <code
+	      ><a href="PlutusCore-Generators-QuickCheck-Split.html#v:multiSplit1" title="PlutusCore.Generators.QuickCheck.Split"
+		>multiSplit1</a
+		></code
+	      > for what this function allows us to do.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:multiSplit0" class="def"
+	    >multiSplit0</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; [a] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [[a]] <a href="src/PlutusCore.Generators.QuickCheck.Split.html#multiSplit0" class="link"
+	    >Source</a
+	    > <a href="#v:multiSplit0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a list into chunks at random. Concatenating the resulting lists gives back the original
+ one. Generates empty chunks. The first argument is the probability of generating at least one
+ empty chunk as the first element of the resulting list. It is also the probability of generating
+ an empty chunk as the last element of the resulting list. The probability of generating empty
+ chunks decreases as we go from either of the ends of the resulting list (this is so that we are
+ more likely to hit a corner case related to handling elements at the beginning or the end of a
+ list).</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

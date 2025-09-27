@@ -1,0 +1,2547 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.ExBudgetStream</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStream"
+	><span class="hs-identifier"
+	  >sumExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStream"
+	><span class="hs-identifier"
+	  >zipCostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExMemory</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Coerce.html"
+	><span class="hs-identifier"
+	  >Data.Coerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-comment"
+      >-- | A lazy stream of 'ExBudget's. Basically @NonEmpty ExBudget@, except the elements are</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >-- stored strictly.</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-comment"
+      >-- The semantics of a stream are those of the 'fold' of its elements. I.e. a stream that is a</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-comment"
+      >-- reordered version of another stream is considered equal to that stream.</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >-- An 'ExBudgetStream' is what one gets by zipping two 'CostStream's (one for CPU, one for memory),</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- which is why the two data types are so similar. The only reason why we don't express both the</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- concepts in terms of a single data type is efficiency, in particular unboxing is crucial for</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- 'CostStream' and we don't care about it in 'ExBudgetStream', because we can't get the spender</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- in the CEK machine to get inlined and so unboxing 'ExBudget' here would only result in boxing it</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- back once it's about to be spent.</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ExBudgetStream"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	  ><span class="hs-identifier hs-var"
+	    >ExBudgetStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ExBudgetLast"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetLast"
+	  ><span class="hs-identifier hs-var"
+	    >ExBudgetLast</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ExBudgetCons"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetCons"
+	  ><span class="hs-identifier hs-var"
+	    >ExBudgetCons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681840107"
+      ><span id="local-6989586621681840117"
+	><span id="local-6989586621681840120"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ExBudgetStream -&gt; ShowS
+[ExBudgetStream] -&gt; ShowS
+ExBudgetStream -&gt; String
+(Int -&gt; ExBudgetStream -&gt; ShowS)
+-&gt; (ExBudgetStream -&gt; String)
+-&gt; ([ExBudgetStream] -&gt; ShowS)
+-&gt; Show ExBudgetStream
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ExBudgetStream -&gt; ShowS
+showsPrec :: Int -&gt; ExBudgetStream -&gt; ShowS
+$cshow :: ExBudgetStream -&gt; String
+show :: ExBudgetStream -&gt; String
+$cshowList :: [ExBudgetStream] -&gt; ShowS
+showList :: [ExBudgetStream] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Global local functions].</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStreamGo"
+	><span class="hs-identifier hs-type"
+	  >sumExBudgetStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="sumExBudgetStreamGo"
+      ><span class="annot"
+	><span class="annottext"
+	  >sumExBudgetStreamGo :: ExBudget -&gt; ExBudgetStream -&gt; ExBudget
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStreamGo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sumExBudgetStreamGo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681840124"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudget
+</span
+	  ><a href="#local-6989586621681840124"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetLast"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840125"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudget
+</span
+	  ><a href="#local-6989586621681840125"
+	  ><span class="hs-identifier hs-var"
+	    >budget</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+</span
+	><a href="#local-6989586621681840124"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudget -&gt; ExBudget
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+</span
+	><a href="#local-6989586621681840125"
+	><span class="hs-identifier hs-var"
+	  >budget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStreamGo"
+	><span class="hs-identifier hs-var"
+	  >sumExBudgetStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681840126"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudget
+</span
+	  ><a href="#local-6989586621681840126"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetCons"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840127"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudget
+</span
+	  ><a href="#local-6989586621681840127"
+	  ><span class="hs-identifier hs-var"
+	    >budget</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840128"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudgetStream
+</span
+	  ><a href="#local-6989586621681840128"
+	  ><span class="hs-identifier hs-var"
+	    >budgets</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStreamGo"
+	><span class="hs-identifier hs-var"
+	  >sumExBudgetStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+</span
+	><a href="#local-6989586621681840126"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudget -&gt; ExBudget
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+</span
+	><a href="#local-6989586621681840127"
+	><span class="hs-identifier hs-var"
+	  >budget</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetStream
+</span
+	><a href="#local-6989586621681840128"
+	><span class="hs-identifier hs-var"
+	  >budgets</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Add up all the budgets in a 'ExBudgetStream'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >sumExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="sumExBudgetStream"
+      ><span class="annot"
+	><span class="annottext"
+	  >sumExBudgetStream :: ExBudgetStream -&gt; ExBudget
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStream"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sumExBudgetStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetLast"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840129"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudget
+</span
+	  ><a href="#local-6989586621681840129"
+	  ><span class="hs-identifier hs-var"
+	    >budget0</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+</span
+	><a href="#local-6989586621681840129"
+	><span class="hs-identifier hs-var"
+	  >budget0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStream"
+	><span class="hs-identifier hs-var"
+	  >sumExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetCons"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840130"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudget
+</span
+	  ><a href="#local-6989586621681840130"
+	  ><span class="hs-identifier hs-var"
+	    >budget0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840131"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudgetStream
+</span
+	  ><a href="#local-6989586621681840131"
+	  ><span class="hs-identifier hs-var"
+	    >budgets0</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStreamGo"
+	><span class="hs-identifier hs-var"
+	  >sumExBudgetStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+</span
+	><a href="#local-6989586621681840130"
+	><span class="hs-identifier hs-var"
+	  >budget0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetStream
+</span
+	><a href="#local-6989586621681840131"
+	><span class="hs-identifier hs-var"
+	  >budgets0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStream"
+	><span class="hs-pragma hs-type"
+	  >sumExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'CostStream' to an 'ExBudgetStream' by applying a function to each element.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#costToExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >costToExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="costToExBudgetStream"
+      ><span class="annot"
+	><span class="annottext"
+	  >costToExBudgetStream :: (CostingInteger -&gt; ExBudget) -&gt; CostStream -&gt; ExBudgetStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#costToExBudgetStream"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >costToExBudgetStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840133"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger -&gt; ExBudget
+</span
+	  ><a href="#local-6989586621681840133"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; ExBudgetStream
+</span
+	><a href="#local-6989586621681840134"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681840134"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: CostStream -&gt; ExBudgetStream
+</span
+	  ><a href="#local-6989586621681840134"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840136"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840136"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetLast"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; ExBudget
+</span
+	><a href="#local-6989586621681840133"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840136"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621681840134"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840138"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840138"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840139"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681840139"
+	  ><span class="hs-identifier hs-var"
+	    >costs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetCons"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; ExBudget
+</span
+	><a href="#local-6989586621681840133"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840138"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudgetStream -&gt; ExBudgetStream)
+-&gt; ExBudgetStream -&gt; ExBudgetStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; ExBudgetStream
+</span
+	><a href="#local-6989586621681840134"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840139"
+	><span class="hs-identifier hs-var"
+	  >costs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#costToExBudgetStream"
+	><span class="hs-pragma hs-type"
+	  >costToExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- | Convert a 'CostingInteger' representing a CPU cost and a 'CostingInteger' representing a memory</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- cost to an 'ExBudget'.</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-type"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="toExBudget"
+      ><span class="annot"
+	><span class="annottext"
+	  >toExBudget :: CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toExBudget</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExCPU -&gt; ExMemory -&gt; ExBudget)
+-&gt; CostingInteger -&gt; CostingInteger -&gt; ExBudget
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU -&gt; ExMemory -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-var"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-pragma hs-type"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Global local functions].</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStreamGo"
+	><span class="hs-identifier hs-type"
+	  >zipCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="zipCostStreamGo"
+      ><span class="annot"
+	><span class="annottext"
+	  >zipCostStreamGo :: CostStream -&gt; CostStream -&gt; ExBudgetStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStreamGo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >zipCostStreamGo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840142"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840142"
+	  ><span class="hs-identifier hs-var"
+	    >cpu</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840143"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840143"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetLast"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudget -&gt; ExBudgetStream) -&gt; ExBudget -&gt; ExBudgetStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-var"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840142"
+	><span class="hs-identifier hs-var"
+	  >cpu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840143"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >zipCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840144"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840144"
+	  ><span class="hs-identifier hs-var"
+	    >cpu</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840145"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840145"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840146"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681840146"
+	  ><span class="hs-identifier hs-var"
+	    >mems</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetCons"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-var"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840144"
+	><span class="hs-identifier hs-var"
+	  >cpu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840145"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudgetStream -&gt; ExBudgetStream)
+-&gt; ExBudgetStream -&gt; ExBudgetStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; ExBudget) -&gt; CostStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#costToExBudgetStream"
+	><span class="hs-identifier hs-var"
+	  >costToExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681840147"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840147"
+	  ><span class="hs-identifier hs-var"
+	    >mem'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-var"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840147"
+	><span class="hs-identifier hs-var"
+	  >mem'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840146"
+	><span class="hs-identifier hs-var"
+	  >mems</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >zipCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840148"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840148"
+	  ><span class="hs-identifier hs-var"
+	    >cpu</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840149"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681840149"
+	  ><span class="hs-identifier hs-var"
+	    >cpus</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840150"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840150"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetCons"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-var"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840148"
+	><span class="hs-identifier hs-var"
+	  >cpu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840150"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudgetStream -&gt; ExBudgetStream)
+-&gt; ExBudgetStream -&gt; ExBudgetStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; ExBudget) -&gt; CostStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#costToExBudgetStream"
+	><span class="hs-identifier hs-var"
+	  >costToExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681840151"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840151"
+	  ><span class="hs-identifier hs-var"
+	    >cpu'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-var"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840151"
+	><span class="hs-identifier hs-var"
+	  >cpu'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840149"
+	><span class="hs-identifier hs-var"
+	  >cpus</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >zipCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840152"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840152"
+	  ><span class="hs-identifier hs-var"
+	    >cpu</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840153"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681840153"
+	  ><span class="hs-identifier hs-var"
+	    >cpus</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840154"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840154"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840155"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681840155"
+	  ><span class="hs-identifier hs-var"
+	    >mems</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetCons"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-var"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840152"
+	><span class="hs-identifier hs-var"
+	  >cpu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840154"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudgetStream -&gt; ExBudgetStream)
+-&gt; ExBudgetStream -&gt; ExBudgetStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >zipCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840153"
+	><span class="hs-identifier hs-var"
+	  >cpus</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840155"
+	><span class="hs-identifier hs-var"
+	  >mems</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-comment"
+      >-- | Zip two 'CostStream' together (one with CPU costs and the other one with memory costs,</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-comment"
+      >-- respectively) to get an 'ExBudgetStream'. If one is longer than the other, then it's assumed to</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-comment"
+      >-- contain the required amount of zeros for two streams to have the same length (all those zeros</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- \&quot;appear\&quot; in the tail of the stream).</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStream"
+	><span class="hs-identifier hs-type"
+	  >zipCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="zipCostStream"
+      ><span class="annot"
+	><span class="annottext"
+	  >zipCostStream :: CostStream -&gt; CostStream -&gt; ExBudgetStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStream"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >zipCostStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840156"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681840156"
+	  ><span class="hs-identifier hs-var"
+	    >cpus0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840157"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681840157"
+	  ><span class="hs-identifier hs-var"
+	    >mems0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840156"
+	><span class="hs-identifier hs-var"
+	  >cpus0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840157"
+	><span class="hs-identifier hs-var"
+	  >mems0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Single-element streams].</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840158"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840158"
+	  ><span class="hs-identifier hs-var"
+	    >cpu</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681840159"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681840159"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetLast"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudget -&gt; ExBudgetStream) -&gt; ExBudget -&gt; ExBudgetStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#toExBudget"
+	><span class="hs-identifier hs-var"
+	  >toExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840158"
+	><span class="hs-identifier hs-var"
+	  >cpu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681840159"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream, CostStream)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                            </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >zipCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840156"
+	><span class="hs-identifier hs-var"
+	  >cpus0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681840157"
+	><span class="hs-identifier hs-var"
+	  >mems0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStream"
+	><span class="hs-pragma hs-type"
+	  >zipCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

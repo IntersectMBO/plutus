@@ -1,0 +1,733 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.Hedgehog.Denotation</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.Hedgehog.Denotation.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.Hedgehog.Denotation</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >This module defines tools for associating PLC terms with their corresponding
+ Haskell values.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:KnownType"
+	      >KnownType</a
+	      > val a = (<a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	      >KnownTypeAst</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > val) a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	      >MakeKnown</a
+	      > val a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Denotation"
+	      >Denotation</a
+	      > term object res = &#8704; args.<a href="#v:Denotation"
+	      >Denotation</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_denotationObject"
+		  >_denotationObject</a
+		  > &#8759; object</li
+		><li
+		><a href="#v:_denotationToTerm"
+		  >_denotationToTerm</a
+		  > &#8759; object &#8594; term</li
+		><li
+		><a href="#v:_denotationItself"
+		  >_denotationItself</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > args res</li
+		><li
+		><a href="#v:_denotationScheme"
+		  >_denotationScheme</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		  >TypeScheme</a
+		  > term args res</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DenotationContextMember"
+	      >DenotationContextMember</a
+	      > term res = &#8704; object. <a href="#v:DenotationContextMember"
+	      >DenotationContextMember</a
+	      > (<a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >Denotation</a
+	      > term object res)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:DenotationContext"
+	      >DenotationContext</a
+	      > term = <a href="#v:DenotationContext"
+	      >DenotationContext</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unDenotationContext"
+		  >unDenotationContext</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/Data-Dependent-Map-Internal.html#t:DMap" title="Data.Dependent.Map.Internal"
+		  >DMap</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+		  >TypeRep</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Compose.html#t:Compose" title="Data.Functor.Compose"
+		  >Compose</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+		  >List</a
+		  > (<a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContextMember" title="PlutusCore.Generators.Hedgehog.Denotation"
+		  >DenotationContextMember</a
+		  > term))</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:lookupInContext"
+	      >lookupInContext</a
+	      > &#8759; &#8704; a term. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	      >TypeRep</a
+	      > a &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContext</a
+	      > term &#8594; [<a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContextMember" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContextMember</a
+	      > term a]</li
+	    ><li class="src short"
+	    ><a href="#v:denoteVariable"
+	      >denoteVariable</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >KnownType</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) res &#8658; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	      >TypeRep</a
+	      > res &#8594; res &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >Denotation</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > res</li
+	    ><li class="src short"
+	    ><a href="#v:insertVariable"
+	      >insertVariable</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >KnownType</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) a &#8658; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	      >TypeRep</a
+	      > a &#8594; a &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContext</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContext</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:insertBuiltin"
+	      >insertBuiltin</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContext</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()) &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContext</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:typedBuiltins"
+	      >typedBuiltins</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >DenotationContext</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:KnownType" class="def"
+	    >KnownType</a
+	    > val a = (<a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	    >KnownTypeAst</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	    >UniOf</a
+	    > val) a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	    >MakeKnown</a
+	    > val a) <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#KnownType" class="link"
+	    >Source</a
+	    > <a href="#t:KnownType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Denotation" class="def"
+	    >Denotation</a
+	    > term object res <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#Denotation" class="link"
+	    >Source</a
+	    > <a href="#t:Denotation" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Haskell denotation of a PLC object. An object can be a <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+		>Builtin</a
+		></code
+	      > or a variable for example.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8704; args. <a id="v:Denotation" class="def"
+		  >Denotation</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_denotationObject" class="def"
+			  >_denotationObject</a
+			  > &#8759; object</dfn
+			><div class="doc"
+			><p
+			  >A PLC object.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_denotationToTerm" class="def"
+			  >_denotationToTerm</a
+			  > &#8759; object &#8594; term</dfn
+			><div class="doc"
+			><p
+			  >How to embed the object into a term.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_denotationItself" class="def"
+			  >_denotationItself</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > args res</dfn
+			><div class="doc"
+			><p
+			  >The denotation of the object. E.g. the denotation of <code
+			    ><a href="../plutus-core/PlutusCore-Default-Builtins.html#v:AddInteger" title="PlutusCore.Default.Builtins"
+			      >AddInteger</a
+			      ></code
+			    > is <code
+			    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#v:-43-" title="Prelude"
+			      >(+)</a
+			      ></code
+			    >.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_denotationScheme" class="def"
+			  >_denotationScheme</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+			  >TypeScheme</a
+			  > term args res</dfn
+			><div class="doc"
+			><p
+			  >The <code
+			    ><a href="../plutus-core/PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+			      >TypeScheme</a
+			      ></code
+			    > of the object.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DenotationContextMember" class="def"
+	    >DenotationContextMember</a
+	    > term res <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContextMember" class="link"
+	    >Source</a
+	    > <a href="#t:DenotationContextMember" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A member of a <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>DenotationContext</a
+		></code
+	      >.
+ <code
+	      >object</code
+	      > is existentially quantified, so the only thing that can be done with it,
+ is turning it into a <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > using <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#v:_denotationToTerm" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>_denotationToTerm</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8704; object. <a id="v:DenotationContextMember" class="def"
+		  >DenotationContextMember</a
+		  > (<a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+		  >Denotation</a
+		  > term object res)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:DenotationContext" class="def"
+	    >DenotationContext</a
+	    > term <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext" class="link"
+	    >Source</a
+	    > <a href="#t:DenotationContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A context of <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContextMember" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>DenotationContextMember</a
+		></code
+	      >s.
+ Each row is a mapping from a type to a list of things that can return that type.
+ For example it can contain a mapping from <code
+	      >integer</code
+	      > to
+   1. a bound variable of type <code
+	      >integer</code
+	      >
+   2. a bound variable of functional type with the result being <code
+	      >integer</code
+	      >
+   3. the <code
+	      ><a href="../plutus-core/PlutusCore-Default-Builtins.html#v:AddInteger" title="PlutusCore.Default.Builtins"
+		>AddInteger</a
+		></code
+	      > <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+		>Builtin</a
+		></code
+	      > or any other <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+		>Builtin</a
+		></code
+	      > which returns an <code
+	      >integer</code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:DenotationContext" class="def"
+		  >DenotationContext</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unDenotationContext" class="def"
+			  >unDenotationContext</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/Data-Dependent-Map-Internal.html#t:DMap" title="Data.Dependent.Map.Internal"
+			  >DMap</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+			  >TypeRep</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Compose.html#t:Compose" title="Data.Functor.Compose"
+			  >Compose</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+			  >List</a
+			  > (<a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContextMember" title="PlutusCore.Generators.Hedgehog.Denotation"
+			  >DenotationContextMember</a
+			  > term))</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupInContext" class="def"
+	    >lookupInContext</a
+	    > &#8759; &#8704; a term. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	    >TypeRep</a
+	    > a &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >DenotationContext</a
+	    > term &#8594; [<a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContextMember" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >DenotationContextMember</a
+	    > term a] <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#lookupInContext" class="link"
+	    >Source</a
+	    > <a href="#v:lookupInContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Look up a list of <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>Denotation</a
+		></code
+	      >s from <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>DenotationContext</a
+		></code
+	      > each of which has a type that ends in
+ the same type as the one that the <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+		>TypeRep</a
+		></code
+	      > argument represents.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:denoteVariable" class="def"
+	    >denoteVariable</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >KnownType</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) res &#8658; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	    >TypeRep</a
+	    > res &#8594; res &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >Denotation</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > res <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#denoteVariable" class="link"
+	    >Source</a
+	    > <a href="#v:denoteVariable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:Denotation" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>Denotation</a
+		></code
+	      > of a variable.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:insertVariable" class="def"
+	    >insertVariable</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >KnownType</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) a &#8658; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	    >TypeRep</a
+	    > a &#8594; a &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >DenotationContext</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >DenotationContext</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#insertVariable" class="link"
+	    >Source</a
+	    > <a href="#v:insertVariable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert a variable into a <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>DenotationContext</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:insertBuiltin" class="def"
+	    >insertBuiltin</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >DenotationContext</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) &#8594; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >DenotationContext</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:insertBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert a builtin into a <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>DenotationContext</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typedBuiltins" class="def"
+	    >typedBuiltins</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >DenotationContext</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusCore.Generators.Hedgehog.Denotation.html#typedBuiltins" class="link"
+	    >Source</a
+	    > <a href="#v:typedBuiltins" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:DenotationContext" title="PlutusCore.Generators.Hedgehog.Denotation"
+		>DenotationContext</a
+		></code
+	      > that consists of <code
+	      ><a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		>DefaultFun</a
+		></code
+	      >s.</p
+	    ><p
+	    >DEPRECATED: No need to update for a new builtin.
+ Outdated, since we moved to quickcheck generators.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

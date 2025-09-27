@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Type level constants</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Type level constants</h1>
+    <section>
+      <p>This module contains the type level constants and also postulated
+operations for builtins that are imported from Haskell libraries.</p>
+
+<p>The postulated operations are in this module because it is not
+parameterised. They could also be placed elsewhere.</p>
+
+<pre class="Agda"><a id="304" class="Keyword">module</a> <a id="311" href="Builtin.Constant.Type.html" class="Module">Builtin.Constant.Type</a> <a id="333" class="Keyword">where</a>
+</pre>
+<h2 id="imports">Imports</h2>
+
+<pre class="Agda"><a id="360" class="Keyword">open</a> <a id="365" class="Keyword">import</a> <a id="372" href="Utils.html" class="Module">Utils</a> <a id="378" class="Keyword">using</a> <a id="384" class="Symbol">(</a><a id="385" href="Utils.html#10849" class="Datatype">Kind</a><a id="389" class="Symbol">;</a><a id="390" href="Utils.html#10903" class="InductiveConstructor">♯</a><a id="391" class="Symbol">;</a><a id="392" href="Utils.html#10941" class="InductiveConstructor Operator">_⇒_</a><a id="395" class="Symbol">)</a>
+<a id="397" class="Keyword">open</a> <a id="402" class="Keyword">import</a> <a id="409" href="Builtin.Constant.AtomicType.html" class="Module">Builtin.Constant.AtomicType</a> <a id="437" class="Keyword">public</a>
+</pre>
+<p>Type constants are either atomic, or pair, or lists.
+They are indexed by Kind.</p>
+
+<p>The use of higher-order constants like list and pair,
+means that we do not have to define renaming and substitution
+for type constants, since the construction of a list applied to
+some type uses the ordinary type application machinery.</p>
+
+<p>The use of kind ♯ limits the types for which we can construct lists and pairs.</p>
+
+<pre class="Agda"><a id="850" class="Keyword">data</a> <a id="TyCon"></a><a id="855" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a> <a id="861" class="Symbol">:</a> <a id="863" href="Utils.html#10849" class="Datatype">Kind</a> <a id="868" class="Symbol">→</a> <a id="870" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="874" class="Keyword">where</a>
+  <a id="TyCon.atomic"></a><a id="882" href="Builtin.Constant.Type.html#882" class="InductiveConstructor">atomic</a>     <a id="893" class="Symbol">:</a> <a id="895" href="Builtin.Constant.AtomicType.html#570" class="Datatype">AtomicTyCon</a> <a id="907" class="Symbol">→</a> <a id="909" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a> <a id="915" href="Utils.html#10903" class="InductiveConstructor">♯</a>
+  <a id="TyCon.list"></a><a id="919" href="Builtin.Constant.Type.html#919" class="InductiveConstructor">list</a>       <a id="930" class="Symbol">:</a> <a id="932" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a> <a id="938" class="Symbol">(</a><a id="939" href="Utils.html#10903" class="InductiveConstructor">♯</a> <a id="941" href="Utils.html#10941" class="InductiveConstructor Operator">⇒</a> <a id="943" href="Utils.html#10903" class="InductiveConstructor">♯</a><a id="944" class="Symbol">)</a>
+  <a id="TyCon.array"></a><a id="948" href="Builtin.Constant.Type.html#948" class="InductiveConstructor">array</a>       <a id="960" class="Symbol">:</a> <a id="962" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a> <a id="968" class="Symbol">(</a><a id="969" href="Utils.html#10903" class="InductiveConstructor">♯</a> <a id="971" href="Utils.html#10941" class="InductiveConstructor Operator">⇒</a> <a id="973" href="Utils.html#10903" class="InductiveConstructor">♯</a><a id="974" class="Symbol">)</a>
+  <a id="TyCon.pair"></a><a id="978" href="Builtin.Constant.Type.html#978" class="InductiveConstructor">pair</a>       <a id="989" class="Symbol">:</a> <a id="991" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a> <a id="997" class="Symbol">(</a><a id="998" href="Utils.html#10903" class="InductiveConstructor">♯</a> <a id="1000" href="Utils.html#10941" class="InductiveConstructor Operator">⇒</a> <a id="1002" class="Symbol">(</a><a id="1003" href="Utils.html#10903" class="InductiveConstructor">♯</a> <a id="1005" href="Utils.html#10941" class="InductiveConstructor Operator">⇒</a> <a id="1007" href="Utils.html#10903" class="InductiveConstructor">♯</a><a id="1008" class="Symbol">))</a>
+</pre>
+
+    </section>
+  </body>
+</html>

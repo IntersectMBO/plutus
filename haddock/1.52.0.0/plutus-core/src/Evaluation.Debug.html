@@ -1,0 +1,4064 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs                 #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeSynonymInstances  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Debug</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#test_debug"
+	><span class="hs-identifier"
+	  >test_debug</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.ST.html"
+	><span class="hs-identifier"
+	  >Control.Monad.ST</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Writer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Char8.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Lazy.Char8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Void.html"
+	><span class="hs-identifier"
+	  >Data.Void</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-golden-2.3.5/docs/src/Test.Tasty.Golden.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.Golden</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#test_debug"
+	><span class="hs-identifier hs-type"
+	  >test_debug</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="test_debug"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_debug :: TestTree
+</span
+	  ><a href="Evaluation.Debug.html#test_debug"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_debug</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;debug&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([TestTree] -&gt; TestTree) -&gt; [TestTree] -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(([Char], [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)
+ -&gt; TestTree)
+-&gt; [([Char], [Cmd Breakpoints],
+     NTerm DefaultUni DefaultFun EmptyAnn)]
+-&gt; [TestTree]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Char], [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)
+-&gt; TestTree
+</span
+	><a href="Evaluation.Debug.html#goldenVsDebug"
+	><span class="hs-identifier hs-var"
+	  >goldenVsDebug</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[([Char], [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)]
+</span
+	><a href="Evaluation.Debug.html#examples"
+	><span class="hs-identifier hs-var"
+	  >examples</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- i am not testing breakpoint functionality at the moment</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Breakpoints"
+      ><span class="annot"
+	><a href="Evaluation.Debug.html#Breakpoints"
+	  ><span class="hs-identifier hs-var"
+	    >Breakpoints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Void"
+	><span class="hs-identifier hs-type"
+	  >Void</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="EmptyAnn"
+      ><span class="annot"
+	><a href="Evaluation.Debug.html#EmptyAnn"
+	  ><span class="hs-identifier hs-var"
+	    >EmptyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="EmptyAnn"
+      ><span class="annot"
+	><a href="Evaluation.Debug.html#EmptyAnn"
+	  ><span class="hs-identifier hs-var"
+	    >EmptyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679270995"
+      ><span id="local-6989586621679271000"
+	><span id="local-6989586621679271006"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty EmptyAnn -&gt; EmptyAnn
+EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn
+(EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn)
+-&gt; (NonEmpty EmptyAnn -&gt; EmptyAnn)
+-&gt; (forall b. Integral b =&gt; b -&gt; EmptyAnn -&gt; EmptyAnn)
+-&gt; Semigroup EmptyAnn
+forall b. Integral b =&gt; b -&gt; EmptyAnn -&gt; EmptyAnn
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+$c&lt;&gt; :: EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn
+&lt;&gt; :: EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn
+$csconcat :: NonEmpty EmptyAnn -&gt; EmptyAnn
+sconcat :: NonEmpty EmptyAnn -&gt; EmptyAnn
+$cstimes :: forall b. Integral b =&gt; b -&gt; EmptyAnn -&gt; EmptyAnn
+stimes :: forall b. Integral b =&gt; b -&gt; EmptyAnn -&gt; EmptyAnn
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679271016"
+      ><span id="local-6989586621679271021"
+	><span id="local-6989586621679271025"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup EmptyAnn
+EmptyAnn
+Semigroup EmptyAnn =&gt;
+EmptyAnn
+-&gt; (EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn)
+-&gt; ([EmptyAnn] -&gt; EmptyAnn)
+-&gt; Monoid EmptyAnn
+[EmptyAnn] -&gt; EmptyAnn
+EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+$cmempty :: EmptyAnn
+mempty :: EmptyAnn
+$cmappend :: EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn
+mappend :: EmptyAnn -&gt; EmptyAnn -&gt; EmptyAnn
+$cmconcat :: [EmptyAnn] -&gt; EmptyAnn
+mconcat :: [EmptyAnn] -&gt; EmptyAnn
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Breakpointable"
+	><span class="hs-identifier hs-type"
+	  >Breakpointable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#EmptyAnn"
+	><span class="hs-identifier hs-type"
+	  >EmptyAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#Breakpoints"
+	><span class="hs-identifier hs-type"
+	  >Breakpoints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679271032"
+      ><span class="annot"
+	><span class="annottext"
+	  >hasBreakpoints :: EmptyAnn -&gt; Breakpoints -&gt; Bool
+</span
+	  ><a href="#local-6989586621679271032"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >hasBreakpoints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Breakpoints -&gt; Bool
+forall a. Breakpoints -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#absurd"
+	><span class="hs-identifier hs-var"
+	  >absurd</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#examples"
+	><span class="hs-identifier hs-type"
+	  >examples</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	><span class="hs-identifier hs-type"
+	  >Cmd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#Breakpoints"
+	><span class="hs-identifier hs-type"
+	  >Breakpoints</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#NTerm"
+	><span class="hs-identifier hs-type"
+	  >NTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#EmptyAnn"
+	><span class="hs-identifier hs-type"
+	  >EmptyAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="examples"
+      ><span class="annot"
+	><span class="annottext"
+	  >examples :: [([Char], [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)]
+</span
+	  ><a href="Evaluation.Debug.html#examples"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >examples</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;ex1&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints -&gt; [Cmd Breakpoints]
+forall a. a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#repeat"
+	><span class="hs-identifier hs-var"
+	  >repeat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints
+forall bps. Cmd bps
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Step"
+	><span class="hs-identifier hs-var"
+	  >Step</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-var"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NTerm DefaultUni DefaultFun EmptyAnn
+ -&gt; NTerm DefaultUni DefaultFun EmptyAnn)
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn -&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann. ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-var"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;ex2&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Cmd Breakpoints -&gt; [Cmd Breakpoints]
+forall a. Int -&gt; a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#replicate"
+	><span class="hs-identifier hs-var"
+	  >replicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>4</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints
+forall bps. Cmd bps
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Step"
+	><span class="hs-identifier hs-var"
+	  >Step</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Force"
+	><span class="hs-identifier hs-var"
+	  >Force</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NTerm DefaultUni DefaultFun EmptyAnn
+ -&gt; NTerm DefaultUni DefaultFun EmptyAnn)
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-var"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NTerm DefaultUni DefaultFun EmptyAnn
+ -&gt; NTerm DefaultUni DefaultFun EmptyAnn)
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn -&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann. ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-var"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;ex3&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Cmd Breakpoints -&gt; [Cmd Breakpoints]
+forall a. Int -&gt; a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#replicate"
+	><span class="hs-identifier hs-var"
+	  >replicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>5</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints
+forall bps. Cmd bps
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Step"
+	><span class="hs-identifier hs-var"
+	  >Step</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Force"
+	><span class="hs-identifier hs-var"
+	  >Force</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NTerm DefaultUni DefaultFun EmptyAnn
+ -&gt; NTerm DefaultUni DefaultFun EmptyAnn)
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-var"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NTerm DefaultUni DefaultFun EmptyAnn
+ -&gt; NTerm DefaultUni DefaultFun EmptyAnn)
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn -&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann. ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-var"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;ex4&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints -&gt; [Cmd Breakpoints]
+forall a. a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#repeat"
+	><span class="hs-identifier hs-var"
+	  >repeat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints
+forall bps. Cmd bps
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Step"
+	><span class="hs-identifier hs-var"
+	  >Step</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn -&gt; NTerm DefaultUni DefaultFun EmptyAnn
+forall name (uni :: * -&gt; *) fun ann. ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-var"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmptyAnn
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#goldenVsDebug"
+	><span class="hs-identifier hs-type"
+	  >goldenVsDebug</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestName"
+	><span class="hs-identifier hs-type"
+	  >TestName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	><span class="hs-identifier hs-type"
+	  >Cmd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#Breakpoints"
+	><span class="hs-identifier hs-type"
+	  >Breakpoints</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#NTerm"
+	><span class="hs-identifier hs-type"
+	  >NTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#EmptyAnn"
+	><span class="hs-identifier hs-type"
+	  >EmptyAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="goldenVsDebug"
+      ><span class="annot"
+	><span class="annottext"
+	  >goldenVsDebug :: ([Char], [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)
+-&gt; TestTree
+</span
+	  ><a href="Evaluation.Debug.html#goldenVsDebug"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goldenVsDebug</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679271042"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Char]
+</span
+	  ><a href="#local-6989586621679271042"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679271043"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Cmd Breakpoints]
+</span
+	  ><a href="#local-6989586621679271043"
+	  ><span class="hs-identifier hs-var"
+	    >cmds</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679271044"
+      ><span class="annot"
+	><span class="annottext"
+	  >NTerm DefaultUni DefaultFun EmptyAnn
+</span
+	  ><a href="#local-6989586621679271044"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; [Char] -&gt; IO ByteString -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-golden-2.3.5/docs/src/Test.Tasty.Golden.html#goldenVsString"
+	><span class="hs-identifier hs-var"
+	  >goldenVsString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><a href="#local-6989586621679271042"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;untyped-plutus-core/test/Evaluation/Debug/&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; [Char] -&gt; [Char]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><a href="#local-6989586621679271042"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; [Char] -&gt; [Char]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;.golden&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; IO ByteString
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; IO ByteString) -&gt; ByteString -&gt; IO ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Char8.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Char] -&gt; ByteString) -&gt; [Char] -&gt; ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Char]] -&gt; [Char]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#unlines"
+	><span class="hs-identifier hs-var"
+	  >unlines</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([[Char]] -&gt; [Char]) -&gt; [[Char]] -&gt; [Char]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Cmd Breakpoints]
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn -&gt; [[Char]]
+</span
+	><a href="Evaluation.Debug.html#mock"
+	><span class="hs-identifier hs-var"
+	  >mock</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Cmd Breakpoints]
+</span
+	><a href="#local-6989586621679271043"
+	><span class="hs-identifier hs-var"
+	  >cmds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NTerm DefaultUni DefaultFun EmptyAnn
+</span
+	><a href="#local-6989586621679271044"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- A Mocking interpreter</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#mock"
+	><span class="hs-identifier hs-type"
+	  >mock</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	><span class="hs-identifier hs-type"
+	  >Cmd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#Breakpoints"
+	><span class="hs-identifier hs-type"
+	  >Breakpoints</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ commands to feed</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#NTerm"
+	><span class="hs-identifier hs-type"
+	  >NTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#EmptyAnn"
+	><span class="hs-identifier hs-type"
+	  >EmptyAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ term to debug</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ mocking output</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="mock"
+      ><span class="annot"
+	><span class="annottext"
+	  >mock :: [Cmd Breakpoints]
+-&gt; NTerm DefaultUni DefaultFun EmptyAnn -&gt; [[Char]]
+</span
+	  ><a href="Evaluation.Debug.html#mock"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mock</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271049"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Cmd Breakpoints]
+</span
+	  ><a href="#local-6989586621679271049"
+	  ><span class="hs-identifier hs-var"
+	    >cmds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271050"
+      ><span class="annot"
+	><span class="annottext"
+	  >NTerm DefaultUni DefaultFun EmptyAnn
+</span
+	  ><a href="#local-6989586621679271050"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s [[Char]]) -&gt; [[Char]]
+forall a. (forall s. ST s a) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#runST"
+	><span class="hs-identifier hs-var"
+	  >runST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall s. ST s [[Char]]) -&gt; [[Char]])
+-&gt; (forall s. ST s [[Char]]) -&gt; [[Char]]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekM Any Any s [[Char]] -&gt; ST s [[Char]]
+forall (uni :: * -&gt; *) fun s a. CekM uni fun s a -&gt; ST s a
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#unCekM"
+	><span class="hs-identifier hs-var"
+	  >unCekM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekM Any Any s [[Char]] -&gt; ST s [[Char]])
+-&gt; CekM Any Any s [[Char]] -&gt; ST s [[Char]]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679271161"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekTrans DefaultUni DefaultFun EmptyAnn s
+</span
+	  ><a href="#local-6989586621679271161"
+	  ><span class="hs-identifier hs-var"
+	    >cekTrans</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetInfo RestrictingSt DefaultUni DefaultFun s
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts
+  DefaultFun
+  (CekValue DefaultUni DefaultFun EmptyAnn)
+-&gt; ExBudgetMode RestrictingSt DefaultUni DefaultFun
+-&gt; EmitterMode DefaultUni DefaultFun
+-&gt; Slippage
+-&gt; CekM
+     Any
+     Any
+     s
+     (CekTrans DefaultUni DefaultFun EmptyAnn s,
+      ExBudgetInfo RestrictingSt DefaultUni DefaultFun s)
+forall cost (uni :: * -&gt; *) fun ann (m :: * -&gt; *) s.
+(ThrowableBuiltins uni fun, PrimMonad m, s ~ PrimState m) =&gt;
+MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+-&gt; ExBudgetMode cost uni fun
+-&gt; EmitterMode uni fun
+-&gt; Slippage
+-&gt; m (CekTrans uni fun ann s, ExBudgetInfo cost uni fun s)
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#mkCekTrans"
+	><span class="hs-identifier hs-var"
+	  >mkCekTrans</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts
+  DefaultFun
+  (CekValue DefaultUni DefaultFun EmptyAnn)
+forall ann.
+Typeable ann =&gt;
+MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekParametersForTesting"
+	><span class="hs-identifier hs-var"
+	  >defaultCekParametersForTesting</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetMode RestrictingSt DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+ThrowableBuiltins uni fun =&gt;
+ExBudgetMode RestrictingSt uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode.html#restrictingEnormous"
+	><span class="hs-identifier hs-var"
+	  >restrictingEnormous</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmitterMode DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#noEmitter"
+	><span class="hs-identifier hs-var"
+	  >noEmitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Slippage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#defaultSlippage"
+	><span class="hs-identifier hs-var"
+	  >defaultSlippage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WriterT [[Char]] (CekM Any Any s) () -&gt; CekM Any Any s [[Char]]
+forall (m :: * -&gt; *) w a. Monad m =&gt; WriterT w m a -&gt; m w
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Writer.Lazy.html#execWriterT"
+	><span class="hs-identifier hs-var"
+	  >execWriterT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(WriterT [[Char]] (CekM Any Any s) () -&gt; CekM Any Any s [[Char]])
+-&gt; WriterT [[Char]] (CekM Any Any s) () -&gt; CekM Any Any s [[Char]]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+ -&gt; [Cmd Breakpoints] -&gt; WriterT [[Char]] (CekM Any Any s) ())
+-&gt; [Cmd Breakpoints]
+-&gt; ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+-&gt; WriterT [[Char]] (CekM Any Any s) ()
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+-&gt; [Cmd Breakpoints] -&gt; WriterT [[Char]] (CekM Any Any s) ()
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReaderT"
+	><span class="hs-identifier hs-var"
+	  >runReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Cmd Breakpoints]
+</span
+	><a href="#local-6989586621679271049"
+	><span class="hs-identifier hs-var"
+	  >cmds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+ -&gt; WriterT [[Char]] (CekM Any Any s) ())
+-&gt; ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+-&gt; WriterT [[Char]] (CekM Any Any s) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- MAYBE: use cutoff or partialIterT to prevent runaway</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DebugF
+   DefaultUni
+   DefaultFun
+   EmptyAnn
+   Breakpoints
+   (ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ())
+ -&gt; ReaderT
+      [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ())
+-&gt; Free (DebugF DefaultUni DefaultFun EmptyAnn Breakpoints) ()
+-&gt; ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+forall (f :: * -&gt; *) (m :: * -&gt; *) a.
+(Functor f, Monad m) =&gt;
+(f (m a) -&gt; m a) -&gt; Free f a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/free-5.2/docs/src/Control.Monad.Trans.Free.html#iterM"
+	><span class="hs-identifier hs-var"
+	  >iterM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekTrans DefaultUni DefaultFun EmptyAnn s
+-&gt; DebugF
+     DefaultUni
+     DefaultFun
+     EmptyAnn
+     Breakpoints
+     (ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ())
+-&gt; ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+forall (uni :: * -&gt; *) fun s (m :: * -&gt; *).
+(ThrowableBuiltins uni fun, MonadWriter [[Char]] m,
+ MonadReader [Cmd Breakpoints] m, PrimMonad m, PrimState m ~ s) =&gt;
+CekTrans uni fun EmptyAnn s
+-&gt; DebugF uni fun EmptyAnn Breakpoints (m ()) -&gt; m ()
+</span
+	><a href="Evaluation.Debug.html#handle"
+	><span class="hs-identifier hs-var"
+	  >handle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekTrans DefaultUni DefaultFun EmptyAnn s
+</span
+	><a href="#local-6989586621679271161"
+	><span class="hs-identifier hs-var"
+	  >cekTrans</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Free (DebugF DefaultUni DefaultFun EmptyAnn Breakpoints) ()
+ -&gt; ReaderT
+      [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ())
+-&gt; Free (DebugF DefaultUni DefaultFun EmptyAnn Breakpoints) ()
+-&gt; ReaderT [Cmd Breakpoints] (WriterT [[Char]] (CekM Any Any s)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NTerm DefaultUni DefaultFun EmptyAnn
+-&gt; Free (DebugF DefaultUni DefaultFun EmptyAnn Breakpoints) ()
+forall (uni :: * -&gt; *) fun ann bps (m :: * -&gt; *).
+(Breakpointable ann bps, MonadFree (DebugF uni fun ann bps) m) =&gt;
+NTerm uni fun ann -&gt; m ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#runDriverT"
+	><span class="hs-identifier hs-var"
+	  >runDriverT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NTerm DefaultUni DefaultFun EmptyAnn
+</span
+	><a href="#local-6989586621679271050"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-comment"
+      >-- Interpretation of the mocker</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-comment"
+      >-------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#handle"
+	><span class="hs-identifier hs-type"
+	  >handle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270878"
+      ><span class="annot"
+	><a href="#local-6989586621679270878"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679270879"
+      ><span class="annot"
+	><a href="#local-6989586621679270879"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679270881"
+      ><span class="annot"
+	><a href="#local-6989586621679270881"
+	  ><span class="hs-identifier hs-type"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679270880"
+      ><span class="annot"
+	><a href="#local-6989586621679270880"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#ThrowableBuiltins"
+	><span class="hs-identifier hs-type"
+	  >ThrowableBuiltins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270878"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270879"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+	><span class="hs-identifier hs-type"
+	  >MonadWriter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	><span class="hs-identifier hs-type"
+	  >MonadReader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	><span class="hs-identifier hs-type"
+	  >Cmd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#Breakpoints"
+	><span class="hs-identifier hs-type"
+	  >Breakpoints</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	><span class="hs-identifier hs-type"
+	  >PrimMonad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270881"
+	><span class="hs-identifier hs-type"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#CekTrans"
+	><span class="hs-identifier hs-type"
+	  >CekTrans</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270878"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270879"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#EmptyAnn"
+	><span class="hs-identifier hs-type"
+	  >EmptyAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270881"
+	><span class="hs-identifier hs-type"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DebugF"
+	><span class="hs-identifier hs-type"
+	  >DebugF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270878"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270879"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#EmptyAnn"
+	><span class="hs-identifier hs-type"
+	  >EmptyAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#Breakpoints"
+	><span class="hs-identifier hs-type"
+	  >Breakpoints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="handle"
+      ><span class="annot"
+	><span class="annottext"
+	  >handle :: forall (uni :: * -&gt; *) fun s (m :: * -&gt; *).
+(ThrowableBuiltins uni fun, MonadWriter [[Char]] m,
+ MonadReader [Cmd Breakpoints] m, PrimMonad m, PrimState m ~ s) =&gt;
+CekTrans uni fun EmptyAnn s
+-&gt; DebugF uni fun EmptyAnn Breakpoints (m ()) -&gt; m ()
+</span
+	  ><a href="Evaluation.Debug.html#handle"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >handle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271247"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekTrans uni fun EmptyAnn s
+</span
+	  ><a href="#local-6989586621679271247"
+	  ><span class="hs-identifier hs-var"
+	    >cekTrans</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#StepF"
+	><span class="hs-identifier hs-type"
+	  >StepF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271249"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun EmptyAnn
+</span
+	  ><a href="#local-6989586621679271249"
+	  ><span class="hs-identifier hs-var"
+	    >prevState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271250"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun EmptyAnn -&gt; m ()
+</span
+	  ><a href="#local-6989586621679271250"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679271251"
+      ><span class="annot"
+	><span class="annottext"
+	  >Either
+  (CekEvaluationException NamedDeBruijn uni fun)
+  (CekState uni fun EmptyAnn)
+</span
+	  ><a href="#local-6989586621679271251"
+	  ><span class="hs-identifier hs-var"
+	    >eNewState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekM
+  uni
+  fun
+  s
+  (Either
+     (CekEvaluationException NamedDeBruijn uni fun)
+     (CekState uni fun EmptyAnn))
+-&gt; m (Either
+        (CekEvaluationException NamedDeBruijn uni fun)
+        (CekState uni fun EmptyAnn))
+forall (m :: * -&gt; *) s (uni :: * -&gt; *) fun a.
+(PrimMonad m, PrimState m ~ s) =&gt;
+CekM uni fun s a -&gt; m a
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal.html#liftCek"
+	><span class="hs-identifier hs-var"
+	  >liftCek</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekM
+   uni
+   fun
+   s
+   (Either
+      (CekEvaluationException NamedDeBruijn uni fun)
+      (CekState uni fun EmptyAnn))
+ -&gt; m (Either
+         (CekEvaluationException NamedDeBruijn uni fun)
+         (CekState uni fun EmptyAnn)))
+-&gt; CekM
+     uni
+     fun
+     s
+     (Either
+        (CekEvaluationException NamedDeBruijn uni fun)
+        (CekState uni fun EmptyAnn))
+-&gt; m (Either
+        (CekEvaluationException NamedDeBruijn uni fun)
+        (CekState uni fun EmptyAnn))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekM uni fun s (CekState uni fun EmptyAnn)
+-&gt; CekM
+     uni
+     fun
+     s
+     (Either
+        (CekEvaluationException NamedDeBruijn uni fun)
+        (CekState uni fun EmptyAnn))
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; m a -&gt; m (Either e a)
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#tryError"
+	><span class="hs-identifier hs-var"
+	  >tryError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekM uni fun s (CekState uni fun EmptyAnn)
+ -&gt; CekM
+      uni
+      fun
+      s
+      (Either
+         (CekEvaluationException NamedDeBruijn uni fun)
+         (CekState uni fun EmptyAnn)))
+-&gt; CekM uni fun s (CekState uni fun EmptyAnn)
+-&gt; CekM
+     uni
+     fun
+     s
+     (Either
+        (CekEvaluationException NamedDeBruijn uni fun)
+        (CekState uni fun EmptyAnn))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekTrans uni fun EmptyAnn s
+</span
+	><a href="#local-6989586621679271247"
+	><span class="hs-identifier hs-var"
+	  >cekTrans</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn
+</span
+	><a href="#local-6989586621679271249"
+	><span class="hs-identifier hs-var"
+	  >prevState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (CekEvaluationException NamedDeBruijn uni fun)
+  (CekState uni fun EmptyAnn)
+</span
+	><a href="#local-6989586621679271251"
+	><span class="hs-identifier hs-var"
+	  >eNewState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271254"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekState uni fun EmptyAnn
+</span
+	  ><a href="#local-6989586621679271254"
+	  ><span class="hs-identifier hs-var"
+	    >newState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Char]] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; [Char]) -&gt; Doc Any -&gt; [Char]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any
+</span
+	><span class="hs-string"
+	>&quot;OldState:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Doc Any -&gt; Doc Any
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn -&gt; Doc Any
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. CekState uni fun EmptyAnn -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn
+</span
+	><a href="#local-6989586621679271249"
+	><span class="hs-identifier hs-var"
+	  >prevState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >                           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Doc Any -&gt; Doc Any
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any
+</span
+	><span class="hs-string"
+	>&quot;NewState:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Doc Any -&gt; Doc Any
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn -&gt; Doc Any
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. CekState uni fun EmptyAnn -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn
+</span
+	><a href="#local-6989586621679271254"
+	><span class="hs-identifier hs-var"
+	  >newState</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn -&gt; m ()
+</span
+	><a href="#local-6989586621679271250"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn
+</span
+	><a href="#local-6989586621679271254"
+	><span class="hs-identifier hs-var"
+	  >newState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271259"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekEvaluationException NamedDeBruijn uni fun
+</span
+	  ><a href="#local-6989586621679271259"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Char]] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; [Char]) -&gt; Doc Any -&gt; [Char]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any
+</span
+	><span class="hs-string"
+	>&quot;OldState:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Doc Any -&gt; Doc Any
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn -&gt; Doc Any
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. CekState uni fun EmptyAnn -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn
+</span
+	><a href="#local-6989586621679271249"
+	><span class="hs-identifier hs-var"
+	  >prevState</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Doc Any -&gt; Doc Any
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any
+</span
+	><span class="hs-string"
+	>&quot;NewState is Error:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Doc Any -&gt; Doc Any
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEvaluationException NamedDeBruijn uni fun -&gt; Doc Any
+forall a ann. Show a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#viaShow"
+	><span class="hs-identifier hs-var"
+	  >viaShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEvaluationException NamedDeBruijn uni fun
+</span
+	><a href="#local-6989586621679271259"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >                     </span
+      ><span class="hs-comment"
+      >-- no kontinuation, exit</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#InputF"
+	><span class="hs-identifier hs-type"
+	  >InputF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271262"
+      ><span class="annot"
+	><span class="annottext"
+	  >Cmd Breakpoints -&gt; m ()
+</span
+	  ><a href="#local-6989586621679271262"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Cmd Breakpoints -&gt; m ()) -&gt; m ()
+</span
+	><a href="#local-6989586621679271263"
+	><span class="hs-identifier hs-var"
+	  >handleInput</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints -&gt; m ()
+</span
+	><a href="#local-6989586621679271262"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#DriverLogF"
+	><span class="hs-identifier hs-type"
+	  >DriverLogF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271265"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621679271265"
+	  ><span class="hs-identifier hs-var"
+	    >text</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271266"
+      ><span class="annot"
+	><span class="annottext"
+	  >m ()
+</span
+	  ><a href="#local-6989586621679271266"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; m ()
+</span
+	><a href="#local-6989586621679271267"
+	><span class="hs-identifier hs-var"
+	  >handleLog</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; [Char]
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Show.html#unpack"
+	><span class="hs-identifier hs-var"
+	  >T.unpack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621679271265"
+	><span class="hs-identifier hs-var"
+	  >text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m () -&gt; m () -&gt; m ()
+forall a b. m a -&gt; m b -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m ()
+</span
+	><a href="#local-6989586621679271266"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#UpdateClientF"
+	><span class="hs-identifier hs-type"
+	  >UpdateClientF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekState uni fun EmptyAnn
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271270"
+      ><span class="annot"
+	><span class="annottext"
+	  >m ()
+</span
+	  ><a href="#local-6989586621679271270"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m ()
+</span
+	><a href="#local-6989586621679271270"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- ignore</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679271263"
+	><span class="hs-identifier hs-type"
+	  >handleInput</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver.html#Cmd"
+	><span class="hs-identifier hs-type"
+	  >Cmd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Debug.html#Breakpoints"
+	><span class="hs-identifier hs-type"
+	  >Breakpoints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679271263"
+      ><span class="annot"
+	><span class="annottext"
+	  >handleInput :: (Cmd Breakpoints -&gt; m ()) -&gt; m ()
+</span
+	  ><a href="#local-6989586621679271263"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >handleInput</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679271271"
+      ><span class="annot"
+	><span class="annottext"
+	  >Cmd Breakpoints -&gt; m ()
+</span
+	  ><a href="#local-6989586621679271271"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679271272"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Cmd Breakpoints]
+</span
+	  ><a href="#local-6989586621679271272"
+	  ><span class="hs-identifier hs-var"
+	    >cmds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m [Cmd Breakpoints]
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Cmd Breakpoints]
+</span
+	><a href="#local-6989586621679271272"
+	><span class="hs-identifier hs-var"
+	  >cmds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Char]] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;Early run out of commands&quot;</span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679271274"
+      ><span class="annot"
+	><span class="annottext"
+	  >Cmd Breakpoints
+</span
+	  ><a href="#local-6989586621679271274"
+	  ><span class="hs-identifier hs-var"
+	    >cmd</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621679271275"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Cmd Breakpoints]
+</span
+	  ><a href="#local-6989586621679271275"
+	  ><span class="hs-identifier hs-var"
+	    >cmds'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Cmd Breakpoints] -&gt; [Cmd Breakpoints]) -&gt; m () -&gt; m ()
+forall a. ([Cmd Breakpoints] -&gt; [Cmd Breakpoints]) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Cmd Breakpoints] -&gt; [Cmd Breakpoints] -&gt; [Cmd Breakpoints]
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Cmd Breakpoints]
+</span
+	><a href="#local-6989586621679271275"
+	><span class="hs-identifier hs-var"
+	  >cmds'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m () -&gt; m ()) -&gt; m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-comment"
+      >-- continue by feeding the next command to continuation</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints -&gt; m ()
+</span
+	><a href="#local-6989586621679271271"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Cmd Breakpoints
+</span
+	><a href="#local-6989586621679271274"
+	><span class="hs-identifier hs-var"
+	  >cmd</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679271267"
+	><span class="hs-identifier hs-type"
+	  >handleLog</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679270880"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679271267"
+      ><span class="annot"
+	><span class="annottext"
+	  >handleLog :: [Char] -&gt; m ()
+</span
+	  ><a href="#local-6989586621679271267"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >handleLog</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Char]] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([[Char]] -&gt; m ()) -&gt; ([Char] -&gt; [[Char]]) -&gt; [Char] -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; [[Char]]
+forall a. a -&gt; [a]
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
