@@ -176,5 +176,6 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost 10
   , paramListToArray                     = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 7 1
   , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost 32
+  , paramInsertCoin                      = Id $ ModelFourArgumentsConstantCost 1
   }
   where identityFunction = OneVariableLinearFunction 0 1
