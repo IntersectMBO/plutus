@@ -94,11 +94,7 @@ d_defaultConstantMeasure_22 v0
                       -> coe d_mlResultElementSize_12 v2
                     _ -> MAlonzo.RTE.mazUnreachableError
              MAlonzo.Code.Builtin.Signature.C_list_16 v4
-               -> let v5 = coe MAlonzo.Code.Utils.du_length_394 (coe v2) in
-                  coe
-                    (case coe v2 of
-                       MAlonzo.Code.Utils.C_'91''93'_388 -> coe (1 :: Integer)
-                       _ -> coe v5)
+               -> coe MAlonzo.Code.Utils.du_length_394 (coe v2)
              MAlonzo.Code.Builtin.Signature.C_array_20 v4
                -> let v5
                         = coe MAlonzo.Code.Utils.d_HSlengthOfArray_482 erased v2 in
@@ -112,9 +108,9 @@ d_defaultConstantMeasure_22 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Size.defaultValueMeasure
-d_defaultValueMeasure_80 ::
+d_defaultValueMeasure_78 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_defaultValueMeasure_80 v0
+d_defaultValueMeasure_78 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
