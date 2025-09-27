@@ -15,7 +15,7 @@ on:
 
 jobs:
   run:
-    name: Run
+    name: Run Cost Model Benchmark
     runs-on: [self-hosted, plutus-benchmark]
     timeout-minutes: 1800 # (30 hours) These benchmarks take over 10 hours to run.
     steps:
