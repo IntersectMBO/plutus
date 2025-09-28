@@ -159,6 +159,9 @@ instance PrettyBy ConstConfig Data where
         I i         ->  ("I" <+> prettyArg i) :| []
         B b         ->  ("B" <+> prettyArg b) :| []
 
+instance PrettyBy ConstConfig Value.K where
+    prettyBy config = prettyBy config . Value.unK
+
 instance PrettyBy ConstConfig Value where
     prettyBy config = prettyBy config . Value.toList
 

@@ -267,14 +267,16 @@ hence to make name clashing more likely we pick from a predetermined set of
 'ByteString's. Otherwise the chance of generating the same 'ByteString' for two
 different 'Value's would be virtually zero.
 -}
-genShortHex :: Int -> Gen ByteString
+genShortHex :: Int -> Gen Value.K
 genShortHex i =
-  Base16.encode . BC.pack . show <$> elements [0 .. toCellCandidatesNumber i]
+  (Base16.encode . BC.pack . show <$> elements [0 .. toCellCandidatesNumber i])
+    `suchThatMap`
+    Value.k
 
 {-| Annotate each element of the give list with a @name@, given a function turning
 'ByteString' into names.
 -}
-uniqueNames :: (Eq name) => (ByteString -> name) -> [b] -> Gen [(name, b)]
+uniqueNames :: (Eq name) => (Value.K -> name) -> [b] -> Gen [(name, b)]
 uniqueNames wrap ys = do
   let len = length ys
   -- We always generate unique 'CurrencySymbol's within a single 'Value' and 'TokenName' within a
@@ -283,6 +285,9 @@ uniqueNames wrap ys = do
   -- same 'Value'.
   xs <- uniqueVectorOf len $ wrap <$> genShortHex len
   pure $ zip xs ys
+
+instance Arbitrary Value.K where
+  arbitrary = arbitrary `suchThatMap` Value.k
 
 newtype ValueAmount = ValueAmount {unValueAmount :: Integer}
   deriving newtype (Num, Show)
@@ -313,7 +318,7 @@ instance ArbitraryBuiltin Value where
 
   shrinkBuiltin =
     map Value.fromList
-      . coerce (shrink @[(NoArbitrary ByteString, [(NoArbitrary ByteString, Integer)])])
+      . coerce (shrink @[(NoArbitrary Value.K, [(NoArbitrary Value.K, Integer)])])
       . Value.toList
 
 instance Arbitrary Value where
