@@ -103,15 +103,14 @@ use \texttt{constr} or \texttt{case} in any program with a version prior to
 1.1.0: a parser, deserialiser, or evaluator should fail immediately if
 \texttt{constr} or \texttt{case} is encountered when processing such a program.
 
-\paragraph{Scoping.} For simplicity, \textbf{we assume throughout that the body of a
-Plutus Core program is a closed term}, ie, that it contains no free variables.
-Thus \texttt{(program 1.0.0 (lam x x))} is a valid program but \texttt{(program
-  1.0.0 (lam x y))} is not, since the variable \texttt{y} is free. This
-condition should be checked before execution of any program commences, and the
-program should be rejected if its body is not closed.  The assumption implies
-that any variable $x$ occurring in the body of a program must be bound by an
-occurrence of \texttt{lam} in some enclosing term; in this case, we always
-assume that $x$ refers to the \textit{most recent} (ie, innermost) such binding.
+\paragraph{Scoping.} We do not require the body of a Plutus Core program to be
+closed or well scoped; terms may contain free variables and may contain
+unresolvable variable occurrences. Name resolution is lexical: a variable
+occurrence refers to the \textit{most recent} (ie, innermost) suitable binding
+introduced by an enclosing \texttt{lam}. If evaluation encounters a variable for
+which no binding is available in the current environment, it halts with an
+error (see Figure~\ref{fig:untyped-cek-transitions}). No pre-execution scope
+checking is mandated by this specification.
 
 \paragraph{Iterated applications.}
 An application of a term $M$ to a term $N$ is represented by

@@ -781,20 +781,16 @@ $$
 
 \paragraph{Other types of name.}
 One can serialise code involving other types of name by providing suitable
-encoders and decoders for name.  For example, for textual names one could use
-$\Ebinder = \Ename = \E_{\U^*}$ and $\Dbinder = \Dname = \D_{\U^*}$.  Depending
-on the method used to represent variable names it may also be necessary to check
-during deserialisation the more general requirement that variables are
-well-scoped, but this problem will not arise if de Bruijn indices are used.
+encoders and decoders for names. For example, for textual names one could use
+$\Ebinder = \Ename = \E_{\U^*}$ and $\Dbinder = \Dname = \D_{\U^*}$.
 
 \section{Cardano-specific serialisation issues}
 \label{sec:cardano-issues}
 \subsection{Scope checking}
-To execute a Plutus Core program on the blockchain it will be necessary to
-deserialise it to some in-memory representation, and during or immediately after
-deserialisation it should be checked that the body of the program is a closed
-term (see the requirement in Section~\ref{sec:grammar-notes}); if this is not
-the case then evaluation should fail immediately.
+No scope checking is required prior to evaluation. Programs need not be
+well-scoped; evaluation proceeds according to the CEK semantics, and an
+unbound variable encountered at run time causes an immediate error
+(Figure~\ref{fig:untyped-cek-transitions}).
 
 \subsection{CBOR wrapping}
 Plutus Core programs are not stored on the Cardano chain directly as

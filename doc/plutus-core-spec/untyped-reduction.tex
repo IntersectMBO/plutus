@@ -173,10 +173,10 @@ $\lamU{x}{N}$.%
 \end{figure}
 
 \bigskip
-\noindent It can be shown that any closed Plutus Core term whose evaluation
-terminates yields either \texttt{(error)} or a value. Recall from
-Section~\ref{sec:grammar-notes} that we require the body of every Plutus Core
-program to be closed.
+\noindent For any Plutus Core term $M$, if evaluation according to these rules
+terminates, the result is either \texttt{(error)} or a value. This holds without
+any closedness or well-scopedness requirement; unbound variables simply cause an
+error during evaluation.
 
 \kwxm{I was worried because we only have rules for eg application of a builtin
   $b$ to a final argument, and when we're applying $b$ to other arguments we

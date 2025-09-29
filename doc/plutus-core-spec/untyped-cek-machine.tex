@@ -120,7 +120,10 @@ state.
 %\hspace{-1cm}
     \begin{minipage}{\linewidth}
 \begin{alignat*}{2}
- s;\rho & \compute x                                 &~\mapsto~& s \return  \rho[x] \enskip \text{if $x$ is bound in $\rho$}\\
+ s;\rho & \compute x                                 &~\mapsto~& \begin{cases}
+                                                        s \return \rho[x] & \text{if $x$ \text{ is bound in } \rho}\\
+                                                        \cekerror          & \text{otherwise}
+                                                      \end{cases}\\
  s;\rho & \compute \con{\tn}{c}                       &~\mapsto~& s \return \VCon{\tn}{c}\\
  s;\rho & \compute \lamU{x}{M}                       &~\mapsto~& s \return \VLamAbs{x}{M}{\rho}\\
  s;\rho & \compute \delay{M}                         &~\mapsto~& s\return \VDelay{M}{\rho}\\
@@ -245,8 +248,3 @@ rightmost (ie, the most recent) bindings in the environment first.
 \end{figure}%
 \nomenclature[Gc1]{$\unload{V}$}{Discharge a CEK value $V$ to obtain a Plutus Core term}%
 \nomenclature[Gc2]{$\Unload{\rho}{M}$}{Discharge all variables bound by $\rho$ in the term $M$}
-
-\noindent We can prove that if we evaluate a closed Plutus Core term in the CEK
-machine and then convert the result back to a term using the above procedure
-then we get the result that we should get according to the semantics in
-Figure~\ref{fig:untyped-term-reduction}.
