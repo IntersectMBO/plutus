@@ -74,7 +74,6 @@ defaultConstantMeasure (tmCon (atomic aData) d) = dataSize d
 defaultConstantMeasure (tmCon (atomic aBls12-381-g1-element) x) = g1ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementSize x
-defaultConstantMeasure (tmCon (list t) []) = 1
 defaultConstantMeasure (tmCon (list t) l) = Utils.length l
 defaultConstantMeasure (tmCon (array t) a) with Utils.HSlengthOfArray a
 ... | ℤ.pos ℕ.zero = 1
