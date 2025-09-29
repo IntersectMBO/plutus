@@ -9,6 +9,7 @@ module PlutusLedgerApi.Test.V3.MintValue where
 import Data.Coerce (coerce)
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0)
+import PlutusCore.Value qualified as Value
 import PlutusLedgerApi.V3
 import PlutusLedgerApi.V3.MintValue (MintValue (..))
 import PlutusTx.AssocMap qualified as Map
@@ -22,8 +23,8 @@ instance Arbitrary MintValue where
     faceValues <- multiSplit0 0.2 . map unQuantity =<< arbitrary
     -- Generate 'TokenName's and 'CurrencySymbol's.
     currencies <-
-      uniqueNames (CurrencySymbol . toBuiltin)
-        =<< traverse (uniqueNames (TokenName . toBuiltin)) faceValues
+      uniqueNames (CurrencySymbol . toBuiltin . Value.unK)
+        =<< traverse (uniqueNames (TokenName . toBuiltin . Value.unK)) faceValues
     pure $ listsToMintValue currencies
 
   shrink =
