@@ -1,6 +1,7 @@
 {-# LANGUAGE BlockArguments      #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE NumericUnderscores  #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Benchmarks.Values (makeBenchmarks) where
 
@@ -39,15 +40,12 @@ lookupCoinBenchmark gen =
     (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
 
 lookupCoinArgs :: StdGen -> [(ByteString, ByteString, Value)]
-lookupCoinArgs gen = runStateGen_ gen $ \g -> do
+lookupCoinArgs gen = runStateGen_ gen \g -> do
   let testValues = generateTestValues gen
 
   -- Add random search keys to each test value
   sequence
-    [ do
-        searchPolicyId <- generatePolicyId 28 g
-        searchTokenName <- generateTokenName 32 g
-        pure (searchPolicyId, searchTokenName, value)
+    [ (,,value) <$> generatePolicyId g <*> generateTokenName g
     | value <- testValues
     ]
 
@@ -92,8 +90,8 @@ generateRandomValueForContains
   -> m Value
 generateRandomValueForContains entryCount g = do
   -- Generate policies and tokens with exact entry count (realistic sizes)
-  policyIds <- replicateM entryCount (generatePolicyId 28 g)
-  tokenNames <- replicateM entryCount (generateTokenName 32 g)
+  policyIds <- replicateM entryCount (generatePolicyId g)
+  tokenNames <- replicateM entryCount (generateTokenName g)
 
   let
     -- Create amounts (1 to 1000000)
@@ -155,10 +153,10 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
     then pure Value.empty
     else do
       policyIds <- -- Generate policy IDs (always 28 bytes)
-        replicateM numPolicies (generatePolicyId 0 g)
+        replicateM numPolicies (generatePolicyId g)
 
       tokenNames <- -- Generate token names (random 0-32 bytes)
-        replicateM tokensPerPolicy (generateTokenName 0 g)
+        replicateM tokensPerPolicy (generateTokenName g)
 
       -- Generate positive quantities (1 to 1000000)
       let quantity :: Int -> Int -> Integer
@@ -179,16 +177,12 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
 
-{-| Generate policy ID of exactly 28 bytes (MintingPolicyHash size)
-Size parameter ignored - always generates 28 bytes
--}
-generatePolicyId :: (StatefulGen g m) => Int -> g -> m ByteString
-generatePolicyId _size = uniformByteStringM 28
+-- | Generate policy ID of exactly 28 bytes (MintingPolicyHash size)
+generatePolicyId :: (StatefulGen g m) => g -> m ByteString
+generatePolicyId = uniformByteStringM 28
 
-{-| Generate token name of random size (0-32 bytes)
-Size parameter ignored - generates random size 0-32 bytes
--}
-generateTokenName :: (StatefulGen g m) => Int -> g -> m ByteString
-generateTokenName _size g = do
+-- | Generate token name of random size (0-32 bytes)
+generateTokenName :: (StatefulGen g m) => g -> m ByteString
+generateTokenName g = do
   tokenSize <- uniformRM (0, 32) g
   uniformByteStringM tokenSize g
