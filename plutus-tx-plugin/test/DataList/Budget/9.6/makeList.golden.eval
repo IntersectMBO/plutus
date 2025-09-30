@@ -1,6 +1,6 @@
 CPU:                 1_671_083
 Memory:                  9_092
-Term Size:                  68
+AST Size:                   68
 Flat Size:                  68
 
 (con (list data) [I 1, I 2, I 3])
