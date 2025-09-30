@@ -188,28 +188,31 @@ instance Pretty Value where
 {-| \(O(\log \max(m, k))\), where \(m\) is the size of the outer map, and \(k\) is
 the size of the largest inner map.
 -}
-insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
+insertCoin :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
 insertCoin currency token amt v@(Value outer sizes size)
-  | amt == 0 = deleteCoin currency token v
-  | otherwise =
-      let (mold, outer') = Map.alterF f (UnsafeK currency) outer
-          (sizes', size') = case mold of
-            Just old -> (updateSizes old (old + 1) sizes, size + 1)
-            Nothing  -> (sizes, size)
-       in Value outer' sizes' size'
- where
-  f
-    :: Maybe (Map K Integer)
-    -> ( -- Just (old size of inner map) if the total size grows by 1, otherwise Nothing
-         Maybe Int
-       , Maybe (Map K Integer)
-       )
-  f = \case
-    Nothing -> (Just 0, Just (Map.singleton (UnsafeK token) amt))
-    Just inner ->
-      let (isJust -> exists, inner') =
-            Map.insertLookupWithKey (\_ _ _ -> amt) (UnsafeK token) amt inner
-       in (if exists then Nothing else Just (Map.size inner), Just inner')
+  | amt == 0 = pure $ deleteCoin currency token v
+  | otherwise = case (k currency, k token) of
+      (Nothing, _) -> fail $ "insertCoin: invalid currency: " <> show (B.unpack currency)
+      (_, Nothing) -> fail $ "insertCoin: invalid token: " <> show (B.unpack token)
+      (Just ck, Just tk) ->
+        let f
+              :: Maybe (Map K Integer)
+              -> ( -- Just (old size of inner map) if the total size grows by 1,
+                   -- otherwise Nothing
+                   Maybe Int
+                 , Maybe (Map K Integer)
+                 )
+            f = \case
+              Nothing -> (Just 0, Just (Map.singleton tk amt))
+              Just inner ->
+                let (isJust -> exists, inner') =
+                      Map.insertLookupWithKey (\_ _ _ -> amt) tk amt inner
+                 in (if exists then Nothing else Just (Map.size inner), Just inner')
+            (mold, outer') = Map.alterF f ck outer
+            (sizes', size') = case mold of
+              Just old -> (updateSizes old (old + 1) sizes, size + 1)
+              Nothing  -> (sizes, size)
+         in pure $ Value outer' sizes' size'
 {-# INLINEABLE insertCoin #-}
 
 -- | \(O(\log \max(m, k))\)
@@ -312,7 +315,7 @@ unValueData =
  where
   unB :: Data -> BuiltinResult K
   unB = \case
-    B b -> pure (UnsafeK b)
+    B b -> maybe (fail $ "unValueData: invalid key: " <> show (B.unpack b)) pure (k b)
     _ -> fail "unValueData: non-B constructor"
 
   unI :: Data -> BuiltinResult Integer

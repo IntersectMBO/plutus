@@ -1084,8 +1084,13 @@ insertCoin
   -> BuiltinInteger
   -> BuiltinValue
   -> BuiltinValue
-insertCoin (BuiltinByteString c) (BuiltinByteString t) amt (BuiltinValue v) =
-  BuiltinValue $ Value.insertCoin c t amt v
+insertCoin (BuiltinByteString c) (BuiltinByteString t) amt (BuiltinValue v0) =
+  case Value.insertCoin c t amt v0 of
+    BuiltinSuccess v -> BuiltinValue v
+    BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $
+        Haskell.error "insertCoin errored."
 {-# OPAQUE insertCoin #-}
 
 lookupCoin
