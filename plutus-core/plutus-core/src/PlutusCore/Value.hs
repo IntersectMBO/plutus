@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 module PlutusCore.Value (
@@ -9,6 +10,7 @@ module PlutusCore.Value (
   k,
   unK,
   maxKeyLen,
+  negativeAmounts,
   NestedMap,
   unpack,
   pack,
@@ -34,14 +36,13 @@ import Data.Bitraversable
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 import Data.ByteString.Base64 qualified as Base64
-import Data.Functor
-import Data.Hashable (Hashable)
+import Data.Hashable (Hashable (..))
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.Maybe
+import Data.Monoid (All (..))
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 
@@ -103,17 +104,25 @@ data Value
       {- ^ Total size, i.e., sum total of inner map sizes. This avoids recomputing
       the total size during the costing of operations like `unionValue`.
       -}
+      {-# UNPACK #-} !Int
+      -- ^ The number of negative amounts it contains.
   deriving stock (Eq, Show, Generic)
-  deriving anyclass (Hashable, NFData)
+  deriving anyclass (NFData)
+
+instance Hashable Value where
+  hash = hash . unpack
+  {-# INLINE hash #-}
+  hashWithSalt salt = hashWithSalt salt . unpack
+  {-# INLINE hashWithSalt #-}
 
 instance CBOR.Serialise Value where
-  encode (Value v _ _) = CBOR.encode v
+  encode (Value v _ _ _) = CBOR.encode v
   {-# INLINE encode #-}
   decode = pack <$> CBOR.decode
   {-# INLINE decode #-}
 
 instance Flat.Flat Value where
-  encode (Value v _ _) = Flat.encode v
+  encode (Value v _ _ _) = Flat.encode v
   {-# INLINE encode #-}
   decode = pack <$> Flat.decode
   {-# INLINE decode #-}
@@ -123,7 +132,7 @@ instance Flat.Flat Value where
 The map is guaranteed to not contain empty inner map or zero amount.
 -}
 unpack :: Value -> NestedMap
-unpack (Value v _ _) = v
+unpack (Value v _ _ _) = v
 {-# INLINE unpack #-}
 
 {-| Pack a map from (currency symbol, token name) to amount into a `Value`.
@@ -136,12 +145,13 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' v = Value v sizes size
+pack' v = Value v sizes size neg
  where
-  (sizes, size) = Map.foldl' alg (mempty, 0) v
-  alg (ss, s) inner =
+  (sizes, size, neg) = Map.foldl' alg (mempty, 0, 0) v
+  alg (ss, s, n) inner =
     ( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss
     , s + Map.size inner
+    , n + Map.size (Map.filter (< 0) inner)
     )
 {-# INLINEABLE pack' #-}
 
@@ -149,16 +159,20 @@ pack' v = Value v sizes size
 contained in the `Value`.
 -}
 totalSize :: Value -> Int
-totalSize (Value _ _ size) = size
+totalSize (Value _ _ size _) = size
 {-# INLINE totalSize #-}
 
 -- | Size of the largest inner map.
 maxInnerSize :: Value -> Int
-maxInnerSize (Value _ sizes _) = maybe 0 fst (IntMap.lookupMax sizes)
+maxInnerSize (Value _ sizes _ _) = maybe 0 fst (IntMap.lookupMax sizes)
 {-# INLINE maxInnerSize #-}
 
+negativeAmounts :: Value -> Int
+negativeAmounts (Value _ _ _ neg) = neg
+{-# INLINE negativeAmounts #-}
+
 empty :: Value
-empty = Value mempty mempty 0
+empty = Value mempty mempty 0 0
 {-# INLINE empty #-}
 
 toList :: Value -> [(K, [(K, Integer)])]
@@ -189,7 +203,7 @@ instance Pretty Value where
 the size of the largest inner map.
 -}
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
-insertCoin currency token amt v@(Value outer sizes size)
+insertCoin currency token amt v@(Value outer sizes size neg)
   | amt == 0 = pure $ deleteCoin currency token v
   | otherwise = case (k currency, k token) of
       (Nothing, _) -> fail $ "insertCoin: invalid currency: " <> show (B.unpack currency)
@@ -197,44 +211,62 @@ insertCoin currency token amt v@(Value outer sizes size)
       (Just ck, Just tk) ->
         let f
               :: Maybe (Map K Integer)
-              -> ( -- Just (old size of inner map) if the total size grows by 1,
-                   -- otherwise Nothing
-                   Maybe Int
+              -> ( -- Left (old size of inner map) if the total size grows by 1,
+                   -- otherwise, Right (old amount)
+                   Either Int Integer
                  , Maybe (Map K Integer)
                  )
             f = \case
-              Nothing -> (Just 0, Just (Map.singleton tk amt))
+              Nothing -> (Left 0, Just (Map.singleton tk amt))
               Just inner ->
-                let (isJust -> exists, inner') =
+                let (moldAmt, inner') =
                       Map.insertLookupWithKey (\_ _ _ -> amt) tk amt inner
-                 in (if exists then Nothing else Just (Map.size inner), Just inner')
-            (mold, outer') = Map.alterF f ck outer
-            (sizes', size') = case mold of
-              Just old -> (updateSizes old (old + 1) sizes, size + 1)
-              Nothing  -> (sizes, size)
-         in pure $ Value outer' sizes' size'
+                 in (maybe (Left (Map.size inner)) Right moldAmt, Just inner')
+            (res, outer') = Map.alterF f ck outer
+            (sizes', size', neg') = case res of
+              Left oldSize ->
+                ( updateSizes oldSize (oldSize + 1) sizes
+                , size + 1
+                , if amt < 0 then neg + 1 else neg
+                )
+              Right oldAmt ->
+                ( sizes
+                , size
+                , if oldAmt < 0 && amt > 0
+                    then neg - 1
+                    else
+                      if oldAmt > 0 && amt < 0
+                        then neg + 1
+                        else neg
+                )
+         in pure $ Value outer' sizes' size' neg'
 {-# INLINEABLE insertCoin #-}
 
 -- | \(O(\log \max(m, k))\)
 deleteCoin :: ByteString -> ByteString -> Value -> Value
-deleteCoin (UnsafeK -> currency) (UnsafeK -> token) (Value outer sizes size) =
-  Value outer' sizes' size'
+deleteCoin (UnsafeK -> currency) (UnsafeK -> token) (Value outer sizes size neg) =
+  Value outer' sizes' size' neg'
  where
   (mold, outer') = Map.alterF f currency outer
-  (sizes', size') = case mold of
-    Just old -> (updateSizes old (old - 1) sizes, size - 1)
-    Nothing  -> (sizes, size)
+  (sizes', size', neg') = case mold of
+    Just (oldSize, oldAmt) ->
+      ( updateSizes oldSize (oldSize - 1) sizes
+      , size - 1
+      , if oldAmt < 0 then neg - 1 else neg
+      )
+    Nothing -> (sizes, size, neg)
   f
     :: Maybe (Map K Integer)
-    -> ( -- Just (old size of inner map) if the total size shrinks by 1, otherwise Nothing
-         Maybe Int
+    -> ( -- Just (old size of inner map, old amount) if the total size shrinks by 1,
+         -- otherwise Nothing
+         Maybe (Int, Integer)
        , Maybe (Map K Integer)
        )
   f = \case
     Nothing -> (Nothing, Nothing)
     Just inner ->
       let (amt, inner') = Map.updateLookupWithKey (\_ _ -> Nothing) token inner
-       in (amt $> Map.size inner, if Map.null inner' then Nothing else Just inner')
+       in ((Map.size inner,) <$> amt, if Map.null inner' then Nothing else Just inner')
 
 -- | \(O(\log \max(m, k))\)
 lookupCoin :: ByteString -> ByteString -> Value -> Integer
@@ -251,18 +283,16 @@ the size of the largest inner map in the first `Value`.
 @lookup currency token a >= amount@, and if @amount < 0@, then
 @lookup currency token a == amount@.
 -}
-valueContains :: Value -> Value -> Bool
-valueContains v = Map.foldrWithKey' go True . unpack
+valueContains :: Value -> Value -> BuiltinResult Bool
+valueContains v1 v2
+  | negativeAmounts v1 > 0 = fail "valueContains: first value contains negative amounts"
+  | negativeAmounts v2 > 0 = fail "valueContains: second value contains negative amounts"
+  | otherwise = BuiltinSuccess . getAll $ Map.foldrWithKey' go mempty (unpack v2)
  where
-  go c inner = (&&) (Map.foldrWithKey' goInner True inner)
+  go c inner = (<>) (Map.foldrWithKey' goInner mempty inner)
    where
-    goInner t a2 =
-      (&&)
-        ( let a1 = lookupCoin (unK c) (unK t) v
-           in if a2 > 0
-                then a1 >= a2
-                else a1 == a2
-        )
+    goInner t a2 = (<>) (All $ lookupCoin (unK c) (unK t) v1 >= a2)
+{-# INLINEABLE valueContains #-}
 
 {-| The precise complexity is complicated, but an upper bound
 is \(O(n_{1} \log n_{2}) + O(m)\), where \(n_{1}\) is the total size of the smaller

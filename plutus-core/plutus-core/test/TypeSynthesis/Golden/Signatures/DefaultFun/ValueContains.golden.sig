@@ -1,1 +1,1 @@
-Value -> Value -> Bool
+Value -> Value -> BuiltinResult Bool
