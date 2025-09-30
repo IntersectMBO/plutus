@@ -4,6 +4,7 @@ module UntypedPlutusCore.Transform.Simplifier (
     SimplifierT (..),
     SimplifierTrace (..),
     SimplifierStage (..),
+    SimplifierAnn (..),
     Simplification (..),
     runSimplifierT,
     evalSimplifierT,
@@ -14,6 +15,9 @@ module UntypedPlutusCore.Transform.Simplifier (
     execSimplifier,
     initSimplifierTrace,
     recordSimplification,
+    SimplifierTerm,
+    initSimplifierTerm,
+    eraseSimplifierAnn,
 ) where
 
 import Control.Monad.State (MonadTrans, StateT)
@@ -21,7 +25,7 @@ import Control.Monad.State qualified as State
 
 import Control.Monad.Identity (Identity, runIdentity)
 import PlutusCore.Quote (MonadQuote)
-import UntypedPlutusCore.Core.Type (Term)
+import UntypedPlutusCore.Core.Type (Term, mapAnn)
 
 newtype SimplifierT name uni fun ann m a =
   SimplifierT
@@ -64,11 +68,26 @@ data SimplifierStage
   | Inline
   | CSE
 
+data SimplifierAnn a =
+  SimplifierAnn
+    { inlineCounter :: Integer
+    , otherAnn      :: a
+    }
+
+type SimplifierTerm name uni fun a =
+  Term name uni fun (SimplifierAnn a)
+
+initSimplifierTerm :: Term name uni fun a -> SimplifierTerm name uni fun a
+initSimplifierTerm = mapAnn (\otherAnn -> SimplifierAnn { inlineCounter = 0, otherAnn })
+
+eraseSimplifierAnn :: SimplifierTerm name uni fun a -> Term name uni fun a
+eraseSimplifierAnn = mapAnn (\SimplifierAnn { otherAnn } -> otherAnn)
+
 data Simplification name uni fun a =
   Simplification
-    { beforeAST :: Term name uni fun a
+    { beforeAST :: SimplifierTerm name uni fun a
     , stage     :: SimplifierStage
-    , afterAST  :: Term name uni fun a
+    , afterAST  :: SimplifierTerm name uni fun a
     }
 
 -- TODO2: we probably don't want this in memory so after MVP
@@ -84,9 +103,9 @@ initSimplifierTrace = SimplifierTrace []
 
 recordSimplification
   :: Monad m
-  => Term name uni fun a
+  => SimplifierTerm name uni fun a
   -> SimplifierStage
-  -> Term name uni fun a
+  -> SimplifierTerm name uni fun a
   -> SimplifierT name uni fun a m ()
 recordSimplification beforeAST stage afterAST =
   let simplification = Simplification { beforeAST, stage, afterAST }

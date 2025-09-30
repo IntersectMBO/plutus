@@ -16,6 +16,7 @@ import PlutusCore.Quote (runQuote)
 import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, testCase)
+import UntypedPlutusCore (SimplifierTerm, initSimplifierTerm)
 import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Size (Size (..))
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), InlineInfo (..), InlineM, S (..),
@@ -57,7 +58,7 @@ testVarBeforeAfterEffects = do
   assertBool "c is not evaluated before effects" $ not do
     isFirstVarBeforeEffects def c term
  where
-  term :: Term Name DefaultUni DefaultFun ()
+  term :: SimplifierTerm Name DefaultUni DefaultFun ()
   term =
     {- Evaluation order:
 
@@ -67,7 +68,8 @@ testVarBeforeAfterEffects = do
       4. pure work-free: c
       5. impure? maybe work?: addInteger (addInteger a b) c
     -}
-    addInteger (addInteger (var a) (var b)) (var c)
+    initSimplifierTerm
+    $ addInteger (addInteger (var a) (var b)) (var c)
   (a, b, c, _) = makeUniqueNames
 
 testVarIsEventuallyEvaluatedDelay :: Assertion
@@ -79,8 +81,10 @@ testVarIsEventuallyEvaluatedDelay = do
   assertBool "it's not known if var 'c' is eventually evaluated" $
     not (isStrictIn c term)
  where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = delay (var a `addInteger` var b) `addInteger` var b
+  term :: SimplifierTerm Name DefaultUni DefaultFun ()
+  term =
+    initSimplifierTerm
+    $ delay (var a `addInteger` var b) `addInteger` var b
 
   (a, b, c, _) = makeUniqueNames
 
@@ -93,8 +97,10 @@ testVarIsEventuallyEvaluatedLambda = do
   assertBool "it's not known if var 'd' is eventually evaluated" $
     not (isStrictIn d term)
  where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = lam b (var a `addInteger` var c) `app` var c
+  term :: SimplifierTerm Name DefaultUni DefaultFun ()
+  term =
+    initSimplifierTerm
+    $ lam b (var a `addInteger` var c) `app` var c
 
   (a, b, c, d) = makeUniqueNames
 
@@ -107,8 +113,10 @@ testVarIsEventuallyEvaluatedCaseBranch = do
   assertBool "it is not known if var 'd' is eventually evaluated" $
     not (isStrictIn d term)
  where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = case_ (var b) [var a, var b, var c]
+  term :: SimplifierTerm Name DefaultUni DefaultFun ()
+  term =
+    initSimplifierTerm
+    $ case_ (var b) [var a, var b, var c]
 
   (a, b, c, d) = makeUniqueNames
 
@@ -119,8 +127,10 @@ testEffectSafePreservedLogs = do
   assertBool "a var before effects is \"effect safe\"" $
     runInlineWithLogging (effectSafe term a False)
  where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = (var a `addInteger` var b) `addInteger` var c
+  term :: SimplifierTerm Name DefaultUni DefaultFun ()
+  term =
+    initSimplifierTerm
+    $ (var a `addInteger` var b) `addInteger` var c
 
   (a, b, c, _) = makeUniqueNames
 
@@ -131,8 +141,10 @@ testEffectSafeWithoutPreservedLogs = do
   assertBool "a var before effects is \"effect safe\"" $
     runInlineWithoutLogging (effectSafe term a False)
  where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = (var a `addInteger` var b) `addInteger` var c
+  term :: SimplifierTerm Name DefaultUni DefaultFun ()
+  term =
+    initSimplifierTerm
+    $ (var a `addInteger` var b) `addInteger` var c
 
   (a, b, c, _) = makeUniqueNames
 

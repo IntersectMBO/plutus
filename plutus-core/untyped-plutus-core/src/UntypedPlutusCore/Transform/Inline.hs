@@ -59,8 +59,9 @@ import UntypedPlutusCore.Purity (EvalTerm (EvalTerm, Unknown), Purity (MaybeImpu
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Size (Size, termSize)
 import UntypedPlutusCore.Subst (termSubstNamesM)
-import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (Inline), SimplifierT,
-                                               recordSimplification)
+import UntypedPlutusCore.Transform.Simplifier (SimplifierAnn (..), SimplifierStage (Inline),
+                                               SimplifierT, SimplifierTerm, eraseSimplifierAnn,
+                                               initSimplifierTerm, recordSimplification)
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
@@ -77,7 +78,9 @@ the PIR inliner.
 -}
 
 -- | Substitution range, 'SubstRng' in the paper.
-newtype InlineTerm name uni fun a = Done (Dupable (Term name uni fun a))
+newtype InlineTerm name uni fun a = Done (Dupable (SimplifierTerm name uni fun a))
+
+type IUTermDef name uni fun a = UTermDef name uni fun (SimplifierAnn a)
 
 {-| Term substitution, 'Subst' in the paper.
 A map of unprocessed variable and its substitution range.
@@ -99,7 +102,7 @@ makeLenses ''Subst
 data VarInfo name uni fun ann = VarInfo
   { _varBinders :: [name]
   -- ^ Lambda binders in the RHS (definition) of the variable.
-  , _varRhs     :: Term name uni fun ann
+  , _varRhs     :: SimplifierTerm name uni fun ann
   -- ^ The RHS (definition) of the variable.
   , _varRhsBody :: InlineTerm name uni fun ann
   {- ^ The body of the RHS of the variable (i.e., RHS minus the binders).
@@ -214,21 +217,23 @@ inline
   hints
   builtinSemanticsVariant
   t = do
+    let simplTerm :: SimplifierTerm name uni fun a
+        simplTerm = initSimplifierTerm t
     result <-
       liftQuote $
         flip evalStateT mempty $
           runReaderT
-            (processTerm t)
+            (processTerm simplTerm)
             InlineInfo
-              { _iiUsages = Usages.termUsages t
+              { _iiUsages = Usages.termUsages simplTerm
               , _iiHints = hints
               , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
               , _iiInlineConstants = inlineConstants
               , _iiInlineCallsiteGrowth = callsiteGrowth
               , _iiPreserveLogging = preserveLogging
               }
-    recordSimplification t Inline result
-    return result
+    recordSimplification simplTerm Inline result
+    return (eraseSimplifierAnn result)
 
 -- See Note [Differences from PIR inliner] 3
 
@@ -243,12 +248,22 @@ Some examples will help:
 [[(\x . t) a] b] -> Nothing
 -}
 extractApps
-  :: Term name uni fun a
-  -> Maybe ([UTermDef name uni fun a], Term name uni fun a)
+  :: SimplifierTerm name uni fun a
+  -> Maybe ([IUTermDef name uni fun a], SimplifierTerm name uni fun a)
 extractApps = go []
  where
+  go
+    :: [SimplifierTerm name uni fun a]
+    -> SimplifierTerm name uni fun a
+    -> Maybe ([IUTermDef name uni fun a], SimplifierTerm name uni fun a)
   go argStack (Apply _ f arg) = go (arg : argStack) f
   go argStack t               = matchArgs argStack [] t
+
+  matchArgs
+    :: [SimplifierTerm name uni fun a]
+    -> [IUTermDef name uni fun a]
+    -> SimplifierTerm name uni fun a
+    -> Maybe ([IUTermDef name uni fun a], SimplifierTerm name uni fun a)
   matchArgs (arg : rest) acc (LamAbs a n body) =
     matchArgs rest (Def (UVarDecl a n) arg : acc) body
   matchArgs [] acc t =
@@ -257,9 +272,9 @@ extractApps = go []
 
 -- | The inverse of 'extractApps'.
 restoreApps
-  :: [UTermDef name uni fun a]
-  -> Term name uni fun a
-  -> Term name uni fun a
+  :: [IUTermDef name uni fun a]
+  -> SimplifierTerm name uni fun a
+  -> SimplifierTerm name uni fun a
 restoreApps defs t = makeLams [] t (reverse defs)
  where
   makeLams args acc (Def (UVarDecl a n) rhs : rest) =
@@ -275,13 +290,13 @@ restoreApps defs t = makeLams [] t (reverse defs)
 processTerm
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => Term name uni fun a
-  -> InlineM name uni fun a (Term name uni fun a)
+  => SimplifierTerm name uni fun a
+  -> InlineM name uni fun a (SimplifierTerm name uni fun a)
 processTerm = handleTerm
  where
   handleTerm
-    :: Term name uni fun a
-    -> InlineM name uni fun a (Term name uni fun a)
+    :: SimplifierTerm name uni fun a
+    -> InlineM name uni fun a (SimplifierTerm name uni fun a)
   handleTerm = \case
     v@(Var _ n) -> fromMaybe v <$> substName n
     -- See Note [Differences from PIR inliner] 3
@@ -292,13 +307,13 @@ processTerm = handleTerm
     t -> inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
   -- See Note [Renaming strategy]
-  substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun a))
+  substName :: name -> InlineM name uni fun a (Maybe (SimplifierTerm name uni fun a))
   substName name = gets (lookupTerm name) >>= traverse renameTerm
 
   -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
   renameTerm
     :: InlineTerm name uni fun a
-    -> InlineM name uni fun a (Term name uni fun a)
+    -> InlineM name uni fun a (SimplifierTerm name uni fun a)
   renameTerm = \case
     -- Already processed term, just rename and put it in, don't do any
     -- further optimization here.
@@ -306,9 +321,9 @@ processTerm = handleTerm
 
 processSingleBinding
   :: (InliningConstraints name uni fun)
-  => Term name uni fun a
-  -> UTermDef name uni fun a
-  -> InlineM name uni fun a (Maybe (UTermDef name uni fun a))
+  => SimplifierTerm name uni fun a
+  -> IUTermDef name uni fun a
+  -> InlineM name uni fun a (Maybe (IUTermDef name uni fun a))
 processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
   maybeAddSubst body a n rhs0 >>= \case
     Just rhs -> do
@@ -332,17 +347,17 @@ Nothing means that we are inlining the term:
 maybeAddSubst
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => Term name uni fun a
-  -> a
+  => SimplifierTerm name uni fun a
+  -> SimplifierAnn a
   -> name
-  -> Term name uni fun a
-  -> InlineM name uni fun a (Maybe (Term name uni fun a))
+  -> SimplifierTerm name uni fun a
+  -> InlineM name uni fun a (Maybe (SimplifierTerm name uni fun a))
 maybeAddSubst body a n rhs0 = do
   rhs <- processTerm rhs0
 
   -- Check whether we've been told specifically to inline this
   hints <- view iiHints
-  case shouldInline hints a n of
+  case shouldInline hints (otherAnn a) n of
     AlwaysInline ->
       -- if we've been told specifically, then do it right away
       extendAndDrop (Done $ dupable rhs)
@@ -366,8 +381,8 @@ shouldUnconditionallyInline
   If so, bypass the purity check.
   -}
   -> name
-  -> Term name uni fun a
-  -> Term name uni fun a
+  -> SimplifierTerm name uni fun a
+  -> SimplifierTerm name uni fun a
   -> InlineM name uni fun a Bool
 shouldUnconditionallyInline safe n rhs body = do
   isTermPure <- checkPurity rhs
@@ -391,7 +406,7 @@ shouldUnconditionallyInline safe n rhs body = do
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
   :: (PLC.ToBuiltinMeaning uni fun)
-  => Term name uni fun a
+  => SimplifierTerm name uni fun a
   -> InlineM name uni fun a Bool
 checkPurity t = do
   builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
@@ -413,7 +428,7 @@ isFirstVarBeforeEffects
    . (InliningConstraints name uni fun)
   => BuiltinSemanticsVariant fun
   -> name
-  -> Term name uni fun ann
+  -> SimplifierTerm name uni fun ann
   -> Bool
 isFirstVarBeforeEffects builtinSemanticsVariant n t =
   -- This can in the worst case traverse a lot of the term, which could lead to
@@ -442,11 +457,11 @@ isStrictIn
   :: forall name uni fun a
    . (Eq name)
   => name
-  -> Term name uni fun a
+  -> SimplifierTerm name uni fun a
   -> Bool
 isStrictIn name = go
  where
-  go :: Term name uni fun a -> Bool
+  go :: SimplifierTerm name uni fun a -> Bool
   go = \case
     Var _ann name' -> name == name'
     LamAbs _ann _paramName _body -> False
@@ -462,7 +477,7 @@ isStrictIn name = go
 effectSafe
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => Term name uni fun a
+  => SimplifierTerm name uni fun a
   -> name
   -> Bool
   -- ^ is it pure? See Note [Inlining and purity]
@@ -481,7 +496,7 @@ or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner']
 acceptable
   :: Bool
   -- ^ inline constants
-  -> Term name uni fun a
+  -> SimplifierTerm name uni fun a
   -> InlineM name uni fun a Bool
 acceptable inlineConstants t =
   -- See Note [Inlining criteria]
@@ -518,7 +533,7 @@ the given term acceptable?
 sizeIsAcceptable
   :: Bool
   -- ^ inline constants
-  -> Term name uni fun a
+  -> SimplifierTerm name uni fun a
   -> Bool
 sizeIsAcceptable inlineConstants = \case
   Builtin{} -> True
@@ -545,15 +560,15 @@ fullyApplyAndBetaReduce
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
   => VarInfo name uni fun a
-  -> [(a, Term name uni fun a)]
-  -> InlineM name uni fun a (Maybe (Term name uni fun a))
+  -> [(SimplifierAnn a, SimplifierTerm name uni fun a)]
+  -> InlineM name uni fun a (Maybe (SimplifierTerm name uni fun a))
 fullyApplyAndBetaReduce info args0 = do
   rhsBody <- liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)
   let go
-        :: Term name uni fun a
+        :: SimplifierTerm name uni fun a
         -> [name]
-        -> [(a, Term name uni fun a)]
-        -> InlineM name uni fun a (Maybe (Term name uni fun a))
+        -> [(SimplifierAnn a, SimplifierTerm name uni fun a)]
+        -> InlineM name uni fun a (Maybe (SimplifierTerm name uni fun a))
       go acc bs args = case (bs, args) of
         ([], _) -> pure . Just $ mkIterApp acc args
         (param : params, (_ann, arg) : args') -> do
@@ -577,7 +592,7 @@ fullyApplyAndBetaReduce info args0 = do
       -- inlining `a`, since inlining is the same as beta reduction.
       safeToBetaReduce
         :: name
-        -> Term name uni fun a
+        -> SimplifierTerm name uni fun a
         -> InlineM name uni fun a Bool
       safeToBetaReduce a arg = shouldUnconditionallyInline False a arg rhsBody
   go rhsBody (info ^. varBinders) args0
@@ -589,8 +604,8 @@ See Note [Inlining and beta reduction of functions].
 inlineSaturatedApp
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
-  => Term name uni fun a
-  -> InlineM name uni fun a (Term name uni fun a)
+  => SimplifierTerm name uni fun a
+  -> InlineM name uni fun a (SimplifierTerm name uni fun a)
 inlineSaturatedApp t
   | (Var _ann name, args) <- UPLC.splitApplication t =
       gets (lookupVarInfo name) >>= \case
