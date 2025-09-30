@@ -147,7 +147,6 @@ let
     "aarch64-linux" =
       { };
     "aarch64-darwin" =
-      { ghc96 = project-variants-hydra-jobs.ghc96; } //
       { devShells.default = non-profiled-shells.default; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { required = hydra-required-job; };
