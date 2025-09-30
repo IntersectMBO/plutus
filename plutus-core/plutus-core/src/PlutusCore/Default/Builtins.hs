@@ -2052,7 +2052,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE insertCoinDenotation #-}
        in makeBuiltinMeaning
             insertCoinDenotation
-            (runCostingFunFourArguments . unimplementedCostingFun)
+              ((\f _ _ amt value -> runCostingFunTwoArguments f amt value) . paramRotateByteString)
 
     toBuiltinMeaning _semvar LookupCoin =
       let lookupCoinDenotation :: ByteString -> ByteString -> Value -> Integer
