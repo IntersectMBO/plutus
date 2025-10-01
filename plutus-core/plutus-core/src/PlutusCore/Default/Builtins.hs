@@ -2052,7 +2052,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE insertCoinDenotation #-}
        in makeBuiltinMeaning
             insertCoinDenotation
-            (runCostingFunFourArguments . unimplementedCostingFun)
+            (runCostingFunFourArguments . paramInsertCoin)
 
     toBuiltinMeaning _semvar LookupCoin =
       let lookupCoinDenotation :: ByteString -> ByteString -> Value -> Integer
@@ -2060,7 +2060,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE lookupCoinDenotation #-}
        in makeBuiltinMeaning
             lookupCoinDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . paramLookupCoin)
 
     toBuiltinMeaning _semvar UnionValue =
       let unionValueDenotation :: Value -> Value -> Value
@@ -2068,7 +2068,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE unionValueDenotation #-}
        in makeBuiltinMeaning
             unionValueDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramUnionValue)
 
     toBuiltinMeaning _semvar ValueContains =
       let valueContainsDenotation :: Value -> Value -> Bool
@@ -2076,7 +2076,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning
             valueContainsDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramValueContains)
 
     toBuiltinMeaning _semvar ValueData =
         let valueDataDenotation :: Value -> Data
@@ -2084,7 +2084,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE valueDataDenotation #-}
         in makeBuiltinMeaning
             valueDataDenotation
-            (runCostingFunOneArgument . unimplementedCostingFun)
+            (runCostingFunOneArgument . paramValueData)
 
     toBuiltinMeaning _semvar UnValueData =
         let unValueDataDenotation :: Data -> BuiltinResult Value
@@ -2092,7 +2092,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE unValueDataDenotation #-}
         in makeBuiltinMeaning
             unValueDataDenotation
-            (runCostingFunOneArgument . unimplementedCostingFun)
+            (runCostingFunOneArgument . paramUnValueData)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
