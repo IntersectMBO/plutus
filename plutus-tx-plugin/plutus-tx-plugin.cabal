@@ -225,7 +225,7 @@ test-suite size
   ghc-options:        -Wno-unused-packages
   type:               exitcode-stdio-1.0
   main-is:            Main.hs
-  hs-source-dirs:     test/size
+  hs-source-dirs:     test/AstSize
   build-depends:
     , base                             >=4.9   && <5.0
     , plutus-core                      ^>=1.54

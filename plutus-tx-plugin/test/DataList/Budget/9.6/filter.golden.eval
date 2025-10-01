@@ -1,6 +1,6 @@
 CPU:                 5_051_423
 Memory:                 26_422
-Term Size:                  51
+AST Size:                   51
 Flat Size:                  96
 
 (con (list data) [I 8, I 9, I 10])

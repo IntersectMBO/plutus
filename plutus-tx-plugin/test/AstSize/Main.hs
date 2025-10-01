@@ -23,60 +23,60 @@ main :: IO ()
 main =
   defaultMain $
     testGroup
-      "Size regression tests"
+      "AST Size regression tests"
       [ runTestNested
-          ["test", "size", "Golden"]
+          ["test", "AstSize", "Golden"]
           [ testNested
               "Rational"
               [ testNested
                   "Eq"
-                  [ goldenSize "equal" ratEq
-                  , goldenSize "not-equal" ratNeq
+                  [ goldenAstSize "equal" ratEq
+                  , goldenAstSize "not-equal" ratNeq
                   ]
               , testNested
                   "Ord"
-                  [ goldenSize "compare" ratCompare
-                  , goldenSize "less-than-equal" ratLe
-                  , goldenSize "greater-than-equal" ratGe
-                  , goldenSize "less-than" ratLt
-                  , goldenSize "greater-than" ratGt
-                  , goldenSize "max" ratMax
-                  , goldenSize "min" ratMin
+                  [ goldenAstSize "compare" ratCompare
+                  , goldenAstSize "less-than-equal" ratLe
+                  , goldenAstSize "greater-than-equal" ratGe
+                  , goldenAstSize "less-than" ratLt
+                  , goldenAstSize "greater-than" ratGt
+                  , goldenAstSize "max" ratMax
+                  , goldenAstSize "min" ratMin
                   ]
               , testNested
                   "Additive"
-                  [ goldenSize "plus" ratPlus
-                  , goldenSize "zero" ratZero
-                  , goldenSize "minus" ratMinus
-                  , goldenSize "negate-specialized" ratNegate
+                  [ goldenAstSize "plus" ratPlus
+                  , goldenAstSize "zero" ratZero
+                  , goldenAstSize "minus" ratMinus
+                  , goldenAstSize "negate-specialized" ratNegate
                   ]
               , testNested
                   "Multiplicative"
-                  [ goldenSize "times" ratTimes
-                  , goldenSize "one" ratOne
-                  , goldenSize "scale" ratScale
+                  [ goldenAstSize "times" ratTimes
+                  , goldenAstSize "one" ratOne
+                  , goldenAstSize "scale" ratScale
                   ]
               , testNested
                   "Serialization"
-                  [ goldenSize "toBuiltinData" ratToBuiltin
-                  , goldenSize "fromBuiltinData" ratFromBuiltin
-                  , goldenSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
+                  [ goldenAstSize "toBuiltinData" ratToBuiltin
+                  , goldenAstSize "fromBuiltinData" ratFromBuiltin
+                  , goldenAstSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
                   ]
               , testNested
                   "Construction"
-                  [ goldenSize "unsafeRatio" ratMkUnsafe
-                  , goldenSize "ratio" ratMkSafe
-                  , goldenSize "fromInteger" ratFromInteger
+                  [ goldenAstSize "unsafeRatio" ratMkUnsafe
+                  , goldenAstSize "ratio" ratMkSafe
+                  , goldenAstSize "fromInteger" ratFromInteger
                   ]
               , testNested
                   "Other"
-                  [ goldenSize "numerator" ratNumerator
-                  , goldenSize "denominator" ratDenominator
-                  , goldenSize "round" ratRound
-                  , goldenSize "truncate" ratTruncate
-                  , goldenSize "properFraction" ratProperFraction
-                  , goldenSize "recip" ratRecip
-                  , goldenSize "abs-specialized" ratAbs
+                  [ goldenAstSize "numerator" ratNumerator
+                  , goldenAstSize "denominator" ratDenominator
+                  , goldenAstSize "round" ratRound
+                  , goldenAstSize "truncate" ratTruncate
+                  , goldenAstSize "properFraction" ratProperFraction
+                  , goldenAstSize "recip" ratRecip
+                  , goldenAstSize "abs-specialized" ratAbs
                   ]
               ]
           ]
@@ -190,13 +190,13 @@ fitsUnder
   -> (TestName, CompiledCode a)
   -> (TestName, CompiledCode a)
   -> TestTree
-fitsUnder name test target = singleTest name $ SizeComparisonTest test target
+fitsUnder name test target = singleTest name $ AstSizeComparisonTest test target
 
-data SizeComparisonTest (a :: Type)
-  = SizeComparisonTest (TestName, CompiledCode a) (TestName, CompiledCode a)
+data AstSizeComparisonTest (a :: Type)
+  = AstSizeComparisonTest (TestName, CompiledCode a) (TestName, CompiledCode a)
 
-instance (Typeable a) => IsTest (SizeComparisonTest a) where
-  run _ (SizeComparisonTest (mName, mCode) (tName, tCode)) _ = do
+instance (Typeable a) => IsTest (AstSizeComparisonTest a) where
+  run _ (AstSizeComparisonTest (mName, mCode) (tName, tCode)) _ = do
     let tEstimate = countAstNodes tCode
     let mEstimate = countAstNodes mCode
     let diff = tEstimate - mEstimate

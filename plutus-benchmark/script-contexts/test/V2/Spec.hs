@@ -31,7 +31,7 @@ testCheckSOPSc1 = testGroup "checkScriptContext1"
         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
     , testCase "fails on 5" . assertEvaluatesWithError $
         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 5)
-    , runTestGhcSOP [ Tx.goldenSize "checkScriptContext1" $
+    , runTestGhcSOP [ Tx.goldenAstSize "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
@@ -48,7 +48,7 @@ testCheckDataSc1 = testGroup "checkScriptContext1"
         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)
     , testCase "fails on 5" . assertEvaluatesWithError $
         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 5)
-    , runTestGhcData [ Tx.goldenSize "checkScriptContext1" $
+    , runTestGhcData [ Tx.goldenAstSize "checkScriptContext1" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 1)
@@ -65,7 +65,7 @@ testCheckSOPSc2 = testGroup "checkScriptContext2"
           SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
     , testCase "succeed on 5" . assertEvaluatesSuccessfully $
           SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 5)
-    , runTestGhcSOP [ Tx.goldenSize "checkScriptContext2" $
+    , runTestGhcSOP [ Tx.goldenAstSize "checkScriptContext2" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
@@ -82,7 +82,7 @@ testCheckDataSc2 = testGroup "checkScriptContext2"
           Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)
     , testCase "succeed on 5" . assertEvaluatesSuccessfully $
           Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 5)
-    , runTestGhcData [ Tx.goldenSize "checkScriptContext2" $
+    , runTestGhcData [ Tx.goldenAstSize "checkScriptContext2" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 1)
