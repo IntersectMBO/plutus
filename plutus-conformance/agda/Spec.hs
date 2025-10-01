@@ -124,23 +124,10 @@ agdaEvalUplcProg WithoutCosting =
 -}
 failingEvaluationTests :: [FilePath]
 failingEvaluationTests =
-  [ -- These "array" tests fail because the Agda code doesn't know about arrays yet
-    -- TODO: remove these tests once "Add new array type and builtins to Agda
-    -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465
-    "test-cases/uplc/evaluation/builtin/constant/array/emptyArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/simpleArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
-  -- These "constant casing" tests fail because Agda metatheory does not yet
-  -- implement casing on constant values.
-  -- TODO: remove these tests once casing on constant is added to Agda metatheory.
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
+  [ -- These "constant casing" tests fail because Agda metatheory does not yet
+    -- implement casing on constant values.
+    -- TODO: remove these tests once casing on constant is added to Agda metatheory.
+    "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-02"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-03"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-04"
@@ -196,21 +183,6 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  , -- These "array" tests fail because the Agda code doesn't know about arrays yet
-    -- TODO: remove these tests once "Add new array type and builtins to Agda
-    -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465
-    "test-cases/uplc/evaluation/builtin/constant/array/emptyArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/simpleArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-01"
-  , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
   -- These "constant casing" tests fail because Agda metatheory does not yet
   -- implement casing on constant values.
   -- TODO: remove these tests once casing on constant is added to Agda metatheory.
