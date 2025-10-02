@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2025-09-21T21:31:06Z
+  , hackage.haskell.org 2025-10-01T19:08:20Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2025-09-18T12:21:32Z
+  , cardano-haskell-packages 2025-10-01T14:54:47Z
 
 packages: cardano-constitution
           plutus-benchmark
@@ -75,15 +75,10 @@ source-repository-package
   tag: e814b9171398cbdfecdc6823067156a7e9fc76a3
 
 allow-newer:
-  -- https://github.com/tweag/HaskellR/pull/420
-  , inline-r:singletons-th
-  , inline-r:aeson
-  , inline-r:text
-  , inline-r:template-haskell
-  , inline-r:deepseq
-  , inline-r:bytestring
-  , inline-r:containers
-  , inline-r:primitive
+  -- https://github.com/phadej/vec/issues/121
+  ral:QuickCheck,
+  fin:QuickCheck,
+  bin:QuickCheck,
 
 -- https://github.com/IntersectMBO/plutus/pull/7236
 constraints: setup.optparse-applicative >=0.19.0.0
