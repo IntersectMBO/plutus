@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Common
+import System.Environment.IgnoreAccept
 import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
@@ -76,7 +77,7 @@ kInyzInxStackVals = [
     ]
 
 main :: IO ()
-main = defaultMain $ testGroup "getStacks tests" [
+main = ignoreAcceptOption $ defaultMain $ testGroup "getStacks tests" [
     testCase "x only" (getStacks xEvent @?= xStackVal),
     testCase "x calls y calling z" (getStacks zInyInxEvent @?= zInyInxStackVals),
     testCase "x calls y and z" (getStacks yzInxEvent @?= yzInxStackVals),

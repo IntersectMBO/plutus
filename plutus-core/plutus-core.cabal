@@ -811,6 +811,7 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.ShrinkTerms
     PlutusIR.Pass.Test
     PlutusIR.Test
+    System.Environment.IgnoreAccept
     Test.Tasty.Extras
     UntypedPlutusCore.Generators.Hedgehog.AST
     UntypedPlutusCore.Test.DeBruijn.Bad
@@ -905,6 +906,7 @@ test-suite traceToStacks-test
     , base         >=4.9 && <5
     , bytestring
     , cassava
+    , plutus-core:plutus-core-testlib
     , tasty
     , tasty-hunit
     , text
@@ -1080,6 +1082,7 @@ test-suite satint-test
     , base                        >=4.9 && <5
     , HUnit
     , QuickCheck
+    , plutus-core:plutus-core-testlib
     , satint
     , test-framework
     , test-framework-hunit
@@ -1136,9 +1139,10 @@ test-suite index-envs-test
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , base                  >=4.9 && <5
+    , QuickCheck
     , index-envs
     , nonempty-vector
-    , QuickCheck
+    , plutus-core:plutus-core-testlib
     , quickcheck-instances
     , tasty
     , tasty-quickcheck
@@ -1241,11 +1245,12 @@ test-suite flat-test
 
   build-depends:
     , base
+    , QuickCheck
     , bytestring
     , containers
     , deepseq
     , plutus-core:flat
-    , QuickCheck
+    , plutus-core:plutus-core-testlib
     , quickcheck-text
     , tasty
     , tasty-hunit
@@ -1268,4 +1273,5 @@ test-suite flat-big-test
     , bytestring
     , list-t
     , plutus-core:flat
+    , plutus-core:plutus-core-testlib
     , timeit
