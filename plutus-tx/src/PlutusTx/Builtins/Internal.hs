@@ -1107,7 +1107,12 @@ unionValue (BuiltinValue v1) (BuiltinValue v2) = BuiltinValue $ Value.unionValue
 {-# OPAQUE unionValue #-}
 
 valueContains :: BuiltinValue -> BuiltinValue -> Bool
-valueContains (BuiltinValue v1) (BuiltinValue v2) = Value.valueContains v1 v2
+valueContains (BuiltinValue v1) (BuiltinValue v2) = case Value.valueContains v1 v2 of
+  BuiltinSuccess r -> r
+  BuiltinSuccessWithLogs logs r -> traceAll logs r
+  BuiltinFailure logs err ->
+    traceAll (logs <> pure (display err)) $
+      Haskell.error "valueContains errored."
 {-# OPAQUE valueContains #-}
 
 mkValue :: BuiltinValue -> BuiltinData

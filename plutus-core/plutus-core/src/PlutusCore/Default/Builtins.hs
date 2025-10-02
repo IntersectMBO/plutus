@@ -2071,7 +2071,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ValueContains =
-      let valueContainsDenotation :: Value -> Value -> Bool
+      let valueContainsDenotation :: Value -> Value -> BuiltinResult Bool
           valueContainsDenotation = Value.valueContains
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning

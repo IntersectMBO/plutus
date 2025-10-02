@@ -29,7 +29,7 @@ prop_packUnpackRoundtrip v = v === V.pack (V.unpack v)
 
 -- | Verifies that @pack@ correctly updates the sizes
 prop_packBookkeeping :: V.NestedMap -> Property
-prop_packBookkeeping = checkSizes . V.pack
+prop_packBookkeeping = checkBookkeeping . V.pack
 
 {-| Verifies that @pack@ preserves @Value@ invariants, i.e.,
 no empty inner map or zero amount.
@@ -43,7 +43,7 @@ prop_insertCoinBookkeeping v (ValueAmount amt) =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
       let BuiltinSuccess v' = V.insertCoin (V.unK currency) (V.unK token) amt v
-       in checkSizes v'
+       in checkBookkeeping v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
 prop_insertCoinPreservesInvariants :: Value -> ValueAmount -> Property
@@ -109,15 +109,44 @@ prop_deleteCoinIdempotent v0 =
   BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
   fl = V.toFlatList v
 
-prop_containsReflexive :: Value -> Property
-prop_containsReflexive v = property $ V.valueContains v v
-
-prop_containsAfterDeletion :: Value -> Property
-prop_containsAfterDeletion v =
-  conjoin [property (V.valueContains v v') | v' <- vs]
+prop_deleteCoinBookkeeping :: Value -> Property
+prop_deleteCoinBookkeeping v =
+  conjoin [property (checkBookkeeping v') | v' <- vs]
  where
   fl = V.toFlatList v
   vs = scanr (\(c, t, _) -> V.deleteCoin (V.unK c) (V.unK t)) v fl
+
+prop_deleteCoinPreservesInvariants :: Value -> Property
+prop_deleteCoinPreservesInvariants v =
+  conjoin [property (checkInvariants v') | v' <- vs]
+ where
+  fl = V.toFlatList v
+  vs = scanr (\(c, t, _) -> V.deleteCoin (V.unK c) (V.unK t)) v fl
+
+toPositiveValue :: Value -> Value
+toPositiveValue = V.pack . fmap (fmap abs) . V.unpack
+
+prop_containsReflexive :: Value -> Property
+prop_containsReflexive (toPositiveValue -> v) =
+  property $ case V.valueContains v v of
+    BuiltinSuccess r -> r
+    _                -> False
+
+prop_containsAfterDeletion :: Value -> Property
+prop_containsAfterDeletion (toPositiveValue -> v) =
+  conjoin [property (case V.valueContains v v' of BuiltinSuccess r -> r; _ -> False) | v' <- vs]
+ where
+  fl = V.toFlatList v
+  vs = scanr (\(c, t, _) -> V.deleteCoin (V.unK c) (V.unK t)) v fl
+
+prop_containsEnforcesPositivity :: Value -> Property
+prop_containsEnforcesPositivity v
+  | V.negativeAmounts v == 0 = case (V.valueContains v V.empty, V.valueContains V.empty v) of
+      (BuiltinSuccess{}, BuiltinSuccess{}) -> property True
+      _                                    -> property False
+  | otherwise = case (V.valueContains v V.empty, V.valueContains V.empty v) of
+      (BuiltinFailure{}, BuiltinFailure{}) -> property True
+      _                                    -> property False
 
 prop_flatRoundtrip :: Value -> Property
 prop_flatRoundtrip v = Flat.unflat (Flat.flat v) === Right v
@@ -152,15 +181,18 @@ prop_flatDecodeInvalidToken =
       let flat = Flat.flat $ Map.singleton c (Map.singleton t (100 :: Integer))
        in property . isLeft $ Flat.unflat @Value flat
 
-checkSizes :: Value -> Property
-checkSizes v =
+checkBookkeeping :: Value -> Property
+checkBookkeeping v =
   (expectedMaxInnerSize === actualMaxInnerSize)
     .&&. (expectedSize === actualSize)
+    .&&. (expectedNeg === actualNeg)
  where
   expectedMaxInnerSize = fromMaybe 0 . maximumMay $ Map.map Map.size (V.unpack v)
   actualMaxInnerSize = V.maxInnerSize v
   expectedSize = sum $ Map.map Map.size (V.unpack v)
   actualSize = V.totalSize v
+  expectedNeg = length [amt | inner <- Map.elems (V.unpack v), amt <- Map.elems inner, amt < 0]
+  actualNeg = V.negativeAmounts v
 
 checkInvariants :: Value -> Property
 checkInvariants (V.unpack -> v) =
@@ -229,11 +261,20 @@ tests =
         "deleteCoinIdempotent"
         prop_deleteCoinIdempotent
     , testProperty
+        "deleteCoinBookkeeping"
+        prop_deleteCoinBookkeeping
+    , testProperty
+        "deleteCoinPreservesInvariants"
+        prop_deleteCoinPreservesInvariants
+    , testProperty
         "containsReflexive"
         prop_containsReflexive
     , testProperty
         "containsAfterDeletion"
         prop_containsAfterDeletion
+    , testProperty
+        "containsEnforcesPositivity"
+        prop_containsEnforcesPositivity
     , testProperty
         "unValueDataValidatesCurrency"
         prop_unValueDataValidatesCurrency
