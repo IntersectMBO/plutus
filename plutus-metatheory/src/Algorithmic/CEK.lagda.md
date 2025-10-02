@@ -267,6 +267,7 @@ BUILTIN unMapData (base $ V-con _) =  inj₁ (con (ne (^ (atomic aData))))
 BUILTIN unListData (base $ V-con (ListDATA x)) = inj₂ (V-con x)
 BUILTIN unListData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
 BUILTIN serialiseData (base $ V-con d) = inj₂ (V-con (serialiseDATA d))
+BUILTIN unionValue (base $ V-con v1 $ V-con v2) = inj₂ (V-con (unionVALUE v1 v2))
 BUILTIN mkNilData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN mkNilPairData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN chooseUnit (Λ̂ A $ x $ V-con _) = inj₂ x

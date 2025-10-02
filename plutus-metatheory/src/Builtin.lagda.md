@@ -32,10 +32,10 @@ open import Relation.Binary using (DecidableEquality)
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
-open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
+open import Utils using (ByteString;Maybe;DATA;Value;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
-                 using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+                 using (integer;string;bytestring;unit;bool;pdata;value;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯ renaming (pair to bpair; list to blist; array to barray)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType
@@ -114,6 +114,7 @@ data Builtin : Set where
   unBData                         : Builtin
   equalsData                      : Builtin
   serialiseData                   : Builtin
+  unionValue                      : Builtin
   -- Misc constructors
   mkPairData                      : Builtin
   mkNilData                       : Builtin
@@ -315,6 +316,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature unBData                         = ∙ [ pdata ↑ ]⟶ bytestring ↑
     signature equalsData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ bool ↑
     signature serialiseData                   = ∙ [ pdata ↑ ]⟶ bytestring ↑
+    signature unionValue                      = ∙ [ value ↑ , value ↑ ]⟶ value ↑
     signature mkPairData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ pair pdata pdata
     signature mkNilData                       = ∙ [ unit ↑ ]⟶ list pdata
     signature mkNilPairData                   = ∙ [ unit ↑ ]⟶ list (bpair pdata pdata)
@@ -424,6 +426,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | UnBData
                                           | EqualsData
                                           | SerialiseData
+                                          | UnionValue
                                           | MkPairData
                                           | MkNilData
                                           | MkNilPairData
@@ -496,6 +499,7 @@ postulate
   ENCODEUTF8                : String → ByteString
   DECODEUTF8                : ByteString → Maybe String
   serialiseDATA             : DATA → ByteString
+  unionVALUE : Value -> Value -> Value
   BLS12-381-G1-add          : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-neg          : Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-scalarMul    : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
@@ -671,20 +675,20 @@ The following function is used for testing, when
 comparing expected with actual results.
 
 ```
-decBuiltin : DecidableEquality Builtin
-unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
+postulate decBuiltin : DecidableEquality Builtin
+-- unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
 ```
 
 We define a show function for Builtins
 
 ```
-showBuiltin : Builtin → String
-unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin
+postulate showBuiltin : Builtin → String
+-- unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin
 ```
 
 `builtinList` is a list with all builtins.
 
 ```
-builtinList : List Builtin
-unquoteDef builtinList = defListConstructors (quote Builtin) builtinList
+postulate builtinList : List Builtin
+-- unquoteDef builtinList = defListConstructors (quote Builtin) builtinList
 ```
