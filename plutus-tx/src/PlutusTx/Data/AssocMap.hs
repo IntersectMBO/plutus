@@ -23,6 +23,7 @@ module PlutusTx.Data.AssocMap (
   unsafeFromBuiltinList,
   noDuplicateKeys,
   all,
+  all',
   any,
   union,
   unionWith,
@@ -35,6 +36,7 @@ module PlutusTx.Data.AssocMap (
   mapWithKey,
   mapMaybe,
   mapMaybeWithKey,
+  foldrWithKey
 ) where
 
 import Data.Coerce (coerce)
@@ -326,6 +328,21 @@ all p = coerce go
       )
 {-# INLINEABLE all #-}
 
+--- | Check if all values in the `Map` satisfy the predicate.
+all' :: forall k a. (P.UnsafeFromData k, P.UnsafeFromData a) => (k -> a -> Bool) -> Map k a -> Bool
+all' p = coerce go
+ where
+  go :: BuiltinList (BuiltinPair BuiltinData BuiltinData) -> Bool
+  go =
+    P.caseList'
+      True
+      ( \hd ->
+          if p (P.unsafeFromBuiltinData (BI.fst hd)) (P.unsafeFromBuiltinData (BI.snd hd))
+            then go
+            else \_ -> False
+      )
+{-# INLINEABLE all' #-}
+
 -- | Check if any value in the `Map` satisfies the predicate.
 any :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> Map k a -> Bool
 any p = coerce go
@@ -547,6 +564,22 @@ foldr f z = coerce go
           f (P.unsafeFromBuiltinData (BI.snd hd)) . go
       )
 {-# INLINEABLE foldr #-}
+
+
+foldrWithKey
+  :: forall a b k
+   . (P.UnsafeFromData k, P.UnsafeFromData a)
+  => (k -> a -> b -> b) -> b -> Map k a -> b
+foldrWithKey f z = coerce go
+ where
+  go :: BuiltinList (BuiltinPair BuiltinData BuiltinData) -> b
+  go =
+    P.caseList'
+      z
+      ( \hd ->
+          f (P.unsafeFromBuiltinData (BI.fst hd)) (P.unsafeFromBuiltinData (BI.snd hd)) . go
+      )
+{-# INLINEABLE foldrWithKey #-}
 
 filter
   :: forall k a

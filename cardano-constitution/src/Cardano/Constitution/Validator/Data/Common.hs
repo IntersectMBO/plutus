@@ -20,12 +20,12 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.List as List
 import PlutusTx.NonCanonicalRational as NCRatio
 import PlutusTx.Prelude as Tx
+import PlutusTx.Data.AssocMap as DM
 
 type ConstitutionValidator = ScriptContext -- ^ Deep inside is the changed-parameters proposal
                            -> BuiltinUnit -- ^ No-error means the proposal conforms to the constitution
 
--- OPTIMIZE: operate on BuiltinList<BuiltinPair> directly, needs major refactoring of sorted&unsorted Validators
-type ChangedParams = [(BuiltinData, BuiltinData)]
+type ChangedParams = DM.Map Integer BuiltinData
 
 {- HLINT ignore "Redundant lambda" -} -- I like to see until where it supposed to be first applied.
 {- HLINT ignore "Collapse lambdas" -} -- I like to see and comment on each arg
@@ -86,7 +86,7 @@ scriptContextToValidGovAction =
     governanceActionToValidGovAction :: GovernanceAction -> Maybe ChangedParams
     governanceActionToValidGovAction govAction =
         case govAction of
-            (ParameterChange _ cparams _) -> Just . B.unsafeDataAsMap . toBuiltinData $ cparams
+            (ParameterChange _ cparams _) -> Just . unsafeFromBuiltinData . getChangedParameters $ cparams
             (TreasuryWithdrawals _ _) -> Nothing
             _ -> traceError "Not a ChangedParams. This should not ever happen, because ledger should guard before, against it."
 {-# INLINABLE scriptContextToValidGovAction #-}

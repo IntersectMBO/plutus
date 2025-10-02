@@ -23,16 +23,16 @@ import Cardano.Constitution.Validator.Data.Common as Common
 import PlutusCore.Version (plcVersion110)
 import PlutusTx as Tx
 import PlutusTx.Builtins as B
-import PlutusTx.List
 import PlutusTx.Prelude as Tx
+import PlutusTx.Data.AssocMap as DM
 
 -- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode
 constitutionValidator :: ConstitutionConfig -> ConstitutionValidator
 constitutionValidator cfg = Common.withChangedParams
-                            (all (validateParam cfg))
+                            (DM.all' (validateParam cfg))
 
-validateParam :: ConstitutionConfig -> (BuiltinData, BuiltinData) -> Bool
-validateParam (ConstitutionConfig cfg) (B.unsafeDataAsI -> actualPid, actualValueData) =
+validateParam :: ConstitutionConfig -> Integer -> BuiltinData -> Bool
+validateParam (ConstitutionConfig cfg) actualPid actualValueData =
     Common.validateParamValue
       -- If param not found, it will error
       (lookupUnsafe actualPid cfg)
