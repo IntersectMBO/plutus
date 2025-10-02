@@ -238,7 +238,7 @@ evaluateScriptCounting
   -- ^ Which major protocol version to run the operation in
   -> VerboseMode
   -- ^ Whether to produce log output
-  -> EvaluationContext
+  -> EvaluationContext DefaultFun
   -- ^ Includes the cost model to use for tallying up the execution costs
   -> ScriptForEvaluation
   -- ^ The script to evaluate
@@ -259,7 +259,7 @@ evaluateScriptRestricting
   -- ^ Which major protocol version to run the operation in
   -> VerboseMode
   -- ^ Whether to produce log output
-  -> EvaluationContext
+  -> EvaluationContext DefaultFun
   -- ^ Includes the cost model to use for tallying up the execution costs
   -> ExBudget
   -- ^ The resource budget which must not be exceeded during evaluation

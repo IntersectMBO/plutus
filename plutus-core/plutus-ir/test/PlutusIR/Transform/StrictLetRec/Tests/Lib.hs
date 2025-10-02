@@ -92,7 +92,7 @@ evaluateUplcProgramWithTraces uplcProg =
   costModel =
       CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
 
-  machineParameters :: DefaultMachineParameters
+  machineParameters :: DefaultMachineParameters DefaultFun
   machineParameters =
       MachineParameters def $ mkMachineVariantParameters def costModel
 

@@ -282,7 +282,7 @@ executeBenchmark serialisedValidator Benchmark{..} =
               [bDatum, bRedeemer, toData bScriptContext]
 
 -- | The execution context for benchmarking.
-evaluationContext :: Either String EvaluationContext
+evaluationContext :: Either String (EvaluationContext PLC.DefaultFun)
 evaluationContext =
   bimap show fst . runExcept . runWriterT . mkEvaluationContext $
     snd <$> testCostModel

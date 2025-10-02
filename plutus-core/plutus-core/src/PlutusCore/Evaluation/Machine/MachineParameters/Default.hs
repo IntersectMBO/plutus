@@ -17,14 +17,14 @@ import Control.Monad.Except
 import GHC.Exts (inline)
 
 -- | The semantics-variant-dependent part of 'MachineParameters'.
-type DefaultMachineVariantParameters =
-    MachineVariantParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+type DefaultMachineVariantParameters fun =
+    MachineVariantParameters CekMachineCosts fun (CekValue DefaultUni fun ())
 
 -- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
 -- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
 -- machine.
-type DefaultMachineParameters =
-    MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+type DefaultMachineParameters fun =
+    MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
@@ -67,7 +67,7 @@ mkMachineVariantParametersFor
     :: MonadError CostModelApplyError m
     => [BuiltinSemanticsVariant DefaultFun]
     -> CostModelParams
-    -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineVariantParameters)]
+    -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineVariantParameters DefaultFun)]
 mkMachineVariantParametersFor semVars newCMP = do
     res <- for semVars $ \semVar ->
         -- See Note [Inlining meanings of builtins].
