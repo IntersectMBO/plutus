@@ -215,10 +215,14 @@ batch5 =
   , Ripemd_160
   ]
 
+-- Add new builtins for release in PV11 here.  Once PV11 has happened (by which
+-- time we should have replaced pv11PV by the real name), mark this as not to be
+-- changed and open a new batch.
 batch6 :: [DefaultFun]
 batch6 =
   [ ExpModInteger, DropList
   , LengthOfArray, ListToArray, IndexArray
+  , Bls12_381_G1_multiScalarMul, Bls12_381_G2_multiScalarMul
   ]
 
 {-| Given a ledger language, return a map indicating which builtin functions were
