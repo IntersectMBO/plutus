@@ -16,7 +16,7 @@ on:
 
 jobs:
   run:
-    name: Run
+    name: Run Manual Benchmark
     runs-on: [self-hosted, plutus-benchmark]
     permissions:
       pull-requests: write
