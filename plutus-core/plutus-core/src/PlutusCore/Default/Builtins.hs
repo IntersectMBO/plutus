@@ -26,6 +26,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
+import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (PrettyConfigPlc)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
@@ -844,12 +845,12 @@ Our final example is this:
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
-              (SomeConstant (Some (ValueOf uniListA xs))) = do
+              (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
-                        Just Refl ->                                       -- [2]
-                            pure . fromValueOf uniListA $ x : xs           -- [3]
-                        _ -> throwError $ structuralUnliftingError
+                    DefaultUniList uniA' -> case uniA `geqLDefaultUni` uniA' of  -- [1]
+                        EvaluationSuccess Refl ->                                -- [2]
+                            pure . fromValueOf uniListA $ x : xs                 -- [3]
+                        EvaluationFailure      -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
@@ -1423,9 +1424,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               (SomeConstant (Some (ValueOf uniListA xs))) =
                 -- See Note [Structural vs operational errors within builtins].
                 case uniListA of
-                    DefaultUniList uniA' -> case uniA `geq` uniA' of
-                        Just Refl -> pure . fromValueOf uniListA $ x : xs
-                        _         -> throwError $ structuralUnliftingError
+                    DefaultUniList uniA' -> case uniA `geqLDefaultUni` uniA' of
+                        EvaluationSuccess Refl -> pure . fromValueOf uniListA $ x : xs
+                        EvaluationFailure      -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}

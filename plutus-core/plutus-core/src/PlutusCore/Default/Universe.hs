@@ -40,6 +40,7 @@ module PlutusCore.Default.Universe
     , pattern DefaultUniArray
     , pattern DefaultUniPair
     , noMoreTypeFunctions
+    , geqLDefaultUni
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
@@ -53,12 +54,14 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
+import PlutusCore.Evaluation.Result (EvaluationResult)
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 import PlutusCore.Value (Value)
 
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.Int (Int16, Int32, Int64, Int8)
+import Data.Kind qualified as GHC
 import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -131,6 +134,9 @@ pattern DefaultUniArray uniA =
 pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 
+-- Removing 'LoopBreaker' didn't change anything at the time this comment was written, but we kept
+-- it, because it hopefully provides some additional assurance that 'geqL' will not get elaborated
+-- as a recursive definition.
 instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a where
     geqL DefaultUniInteger a2 = do
         DefaultUniInteger <- pure a2
@@ -179,65 +185,95 @@ instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a wher
         pure Refl
     {-# INLINE geqL #-}
 
-instance GEq DefaultUni where
-    -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
-    -- recursive definition and we want two instead. The reason why we want two is because this
-    -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
-    -- is hidden in the other function that is marked as @OPAQUE@ and is chosen by GHC as a
-    -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
-    -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
-    -- very much and we've failed to settle on any other approach).
-    geq = geqStep where
-        geqStep :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
-        geqStep DefaultUniInteger a2 = do
-            DefaultUniInteger <- Just a2
-            Just Refl
-        geqStep DefaultUniByteString a2 = do
-            DefaultUniByteString <- Just a2
-            Just Refl
-        geqStep DefaultUniString a2 = do
-            DefaultUniString <- Just a2
-            Just Refl
-        geqStep DefaultUniUnit a2 = do
-            DefaultUniUnit <- Just a2
-            Just Refl
-        geqStep DefaultUniBool a2 = do
-            DefaultUniBool <- Just a2
-            Just Refl
-        geqStep DefaultUniProtoList a2 = do
-            DefaultUniProtoList <- Just a2
-            Just Refl
-        geqStep DefaultUniProtoArray a2 = do
-            DefaultUniProtoArray <- Just a2
-            Just Refl
-        geqStep DefaultUniProtoPair a2 = do
-            DefaultUniProtoPair <- Just a2
-            Just Refl
-        geqStep (DefaultUniApply f1 x1) a2 = do
-            DefaultUniApply f2 x2 <- Just a2
-            Refl <- geqRec f1 f2
-            Refl <- geqRec x1 x2
-            Just Refl
-        geqStep DefaultUniData a2 = do
-            DefaultUniData <- Just a2
-            Just Refl
-        geqStep DefaultUniBLS12_381_G1_Element a2 = do
-            DefaultUniBLS12_381_G1_Element <- Just a2
-            Just Refl
-        geqStep DefaultUniBLS12_381_G2_Element a2 = do
-            DefaultUniBLS12_381_G2_Element <- Just a2
-            Just Refl
-        geqStep DefaultUniBLS12_381_MlResult a2 = do
-            DefaultUniBLS12_381_MlResult <- Just a2
-            Just Refl
-        geqStep DefaultUniValue a2 = do
-            DefaultUniValue <- Just a2
-            Just Refl
-        {-# INLINE geqStep #-}
+-- | 'geqL' for 'DefaultUni' without requiring any constraints.
+--
+-- This is useful if you want to efficiently check equality of two arbitrary runtime type tags, for
+-- example we use this function in the implementation of the 'MkCons' builtin.
+--
+-- It's the same thing as just calling 'GEq.geq', except is slightly more efficient, because one
+-- step of recursion gets inlined and a strict 'EvaluationResult' result gets returned instead of a
+-- lazy 'Maybe'.
+geqLDefaultUni
+    :: forall (a :: GHC.Type) (b :: GHC.Type).
+       DefaultUni (Esc a)
+    -> DefaultUni (Esc b)
+    -> EvaluationResult (a :~: b)
+-- It's not clear why GHC decides to inline 'bring' and how exactly that happens given that it's a
+-- recursive function. So that can easily break in future, however it would introduce a very small
+-- slowdown and only for builtins that do runtime type tag equality checks, of which at the time
+-- this comment was written we had only 'MkCons'.
+geqLDefaultUni uniA uniB = bring (Proxy @(GEqL DefaultUni)) uniA $ geqL uniA uniB
+{-# INLINE geqLDefaultUni #-}
 
-        geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
-        geqRec = geqStep
-        {-# OPAQUE geqRec #-}
+-- | For checking equality of two 'DefaultUni' values representing arbitrarily-kinded built-in types
+-- (i.e. works for an unapplied 'DefaultUniProtoList' for example). Don't use it for checking
+-- equality of runtime type tags, for that we have the more efficient 'geqL' and 'geqLDefaultUni'.
+instance GEq DefaultUni where
+    geq = goStep where
+        -- Even though performance of this definition isn't particularly important, we still define
+        -- 'geq' manually instead of using 'deriveGEq', because the latter not only requires a
+        -- dependency on the 'dependent-sum-template' library that caused multiple problems, it also
+        -- creates a single recursive definition and having two instead is faster while not being
+        -- very annoying to implement and maintain.
+        --
+        -- Splitting the definition in two allows GHC to inline the initial step that appears
+        -- non-recursive to GHC, because recursion is hidden in the other function that is marked as
+        -- @NOINLINE@ and is chosen by GHC as a loop-breaker, see
+        -- https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker (we're not
+        -- really sure if this is a reliable solution, but if it stops working, we won't miss very
+        -- much and we've failed to settle on any other approach).
+        --
+        -- We use @NOINLINE@ instead of @OPAQUE@, because we don't actually care about the recursive
+        -- definition not being inlined, we just want it to be chosen as a loop breaker.
+        goStep, goRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
+        goStep DefaultUniInteger a2 = do
+            DefaultUniInteger <- pure a2
+            pure Refl
+        goStep DefaultUniByteString a2 = do
+            DefaultUniByteString <- pure a2
+            pure Refl
+        goStep DefaultUniString a2 = do
+            DefaultUniString <- pure a2
+            pure Refl
+        goStep DefaultUniUnit a2 = do
+            DefaultUniUnit <- pure a2
+            pure Refl
+        goStep DefaultUniBool a2 = do
+            DefaultUniBool <- pure a2
+            pure Refl
+        goStep DefaultUniProtoList a2 = do
+            DefaultUniProtoList <- pure a2
+            pure Refl
+        goStep DefaultUniProtoArray a2 = do
+            DefaultUniProtoArray <- pure a2
+            pure Refl
+        goStep DefaultUniProtoPair a2 = do
+            DefaultUniProtoPair <- pure a2
+            pure Refl
+        goStep (DefaultUniApply f1 x1) a2 = do
+            DefaultUniApply f2 x2 <- pure a2
+            Refl <- oneShot goRec f1 f2
+            Refl <- oneShot goRec x1 x2
+            pure Refl
+        goStep DefaultUniData a2 = do
+            DefaultUniData <- pure a2
+            pure Refl
+        goStep DefaultUniBLS12_381_G1_Element a2 = do
+            DefaultUniBLS12_381_G1_Element <- pure a2
+            pure Refl
+        goStep DefaultUniBLS12_381_G2_Element a2 = do
+            DefaultUniBLS12_381_G2_Element <- pure a2
+            pure Refl
+        goStep DefaultUniBLS12_381_MlResult a2 = do
+            DefaultUniBLS12_381_MlResult <- pure a2
+            pure Refl
+        goStep DefaultUniValue a2 = do
+            DefaultUniValue <- pure a2
+            pure Refl
+        {-# INLINE goStep #-}
+
+        goRec = goStep
+        {-# NOINLINE goRec #-}
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any

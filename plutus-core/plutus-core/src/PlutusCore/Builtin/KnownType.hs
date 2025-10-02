@@ -59,10 +59,34 @@ import Prettyprinter
 import Text.PrettyBy.Internal
 import Universe
 
+-- | A version of 'GEq' that fixes @a@ in place, which allows us to create an inlinable recursive
+-- implementation of 'geqL'.
+--
+-- The way it works is that whenever there's recursion, we look up the recursive case in the current
+-- context (i.e. the dictionary) instead of actually calling 'geqL' recursively (even though it's
+-- gonna look like we do exactly that, because there's no way to distinguish between a recursive
+-- call and a dictionary lookup as the two share the same name, although to help GHC choose a lookup
+-- we sprinkle the perhaps unreliable 'LoopBreaker' in the 'DefaultUni' instance of this class).
+--
+-- Alligning things this way allows us to inline arbitrarily deep recursion for as long as types
+-- keep being monomorphic.
+--
+-- For example, the 'MapData' builtin accepts a @[(Data, Data)]@ and with 'geqL' matching on all of
+-- 'DefaultUniProtoList', 'DefaultUniProtoPair' and 'DefaultUniData' gets inlined in the denotation
+-- of the builtin. For the 'Constr' builtin that resulted in a 4.3% speedup at the time this comment
+-- was written.
 type GEqL :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class GEqL f a where
     geqL :: f (Esc a) -> f (Esc b) -> EvaluationResult (a :~: b)
 
+-- | In @f = ... f ...@ where @f@ is a class method, how do you know if @f@ is going to be a
+-- recursive call or a type class method call? If both type check, then you don't really know how
+-- GHC is going to play it. So we add this data type to make sure that the RHS @f@ will have to
+-- become a type class method call.
+--
+-- Can GHC turn that method call into a recursive one once type classes are resolved? Dunno, but at
+-- least we've introduced an obstacle preventing GHC from immediately creating a non-inlinable
+-- recursive definition.
 newtype LoopBreaker uni a = LoopBreaker (uni a)
 
 instance GEqL uni a => GEqL (LoopBreaker uni) a where
