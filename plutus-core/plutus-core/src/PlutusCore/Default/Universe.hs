@@ -40,7 +40,6 @@ module PlutusCore.Default.Universe
     , pattern DefaultUniArray
     , pattern DefaultUniPair
     , noMoreTypeFunctions
-    , geqLDefaultUni
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
@@ -54,14 +53,12 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
-import PlutusCore.Evaluation.Result (EvaluationResult)
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 import PlutusCore.Value (Value)
 
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.Int (Int16, Int32, Int64, Int8)
-import Data.Kind qualified as GHC
 import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -185,46 +182,23 @@ instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a wher
         pure Refl
     {-# INLINE geqL #-}
 
--- | 'geqL' for 'DefaultUni' without requiring any constraints.
---
--- This is useful if you want to efficiently check equality of two arbitrary runtime type tags, for
--- example we use this function in the implementation of the 'MkCons' builtin.
---
--- It's the same thing as just calling 'GEq.geq', except is slightly more efficient, because one
--- step of recursion gets inlined and a strict 'EvaluationResult' result gets returned instead of a
--- lazy 'Maybe'.
-geqLDefaultUni
-    :: forall (a :: GHC.Type) (b :: GHC.Type).
-       DefaultUni (Esc a)
-    -> DefaultUni (Esc b)
-    -> EvaluationResult (a :~: b)
--- It's not clear why GHC decides to inline 'bring' and how exactly that happens given that it's a
--- recursive function. So that can easily break in future, however it would introduce a very small
--- slowdown and only for builtins that do runtime type tag equality checks, of which at the time
--- this comment was written we had only 'MkCons'.
-geqLDefaultUni uniA uniB = bring (Proxy @(GEqL DefaultUni)) uniA $ geqL uniA uniB
-{-# INLINE geqLDefaultUni #-}
-
--- | For checking equality of two 'DefaultUni' values representing arbitrarily-kinded built-in types
--- (i.e. works for an unapplied 'DefaultUniProtoList' for example). Don't use it for checking
--- equality of runtime type tags, for that we have the more efficient 'geqL' and 'geqLDefaultUni'.
 instance GEq DefaultUni where
+    -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
+    -- recursive definition and we want two instead. The reason why we want two is because this
+    -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
+    -- is hidden in the other function that is marked as @OPAQUE@ and is chosen by GHC as a
+    -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
+    -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
+    -- very much and we've failed to settle on any other approach).
+    --
+    -- On the critical path this definition should only be used for builtins that perform equality
+    -- checking of statically unknown runtime type tags ('MkCons' is one such builtin for
+    -- example). All other builtins should use 'geqL' (the latter is internal to 'readKnownConstant'
+    -- and is therefore hidden from the person adding a new builtin).
+    --
+    -- We use @NOINLINE@ instead of @OPAQUE@, because we don't actually care about the recursive
+    -- definition not being inlined, we just want it to be chosen as the loop breaker.
     geq = goStep where
-        -- Even though performance of this definition isn't particularly important, we still define
-        -- 'geq' manually instead of using 'deriveGEq', because the latter not only requires a
-        -- dependency on the 'dependent-sum-template' library that caused multiple problems, it also
-        -- creates a single recursive definition and having two instead is faster while not being
-        -- very annoying to implement and maintain.
-        --
-        -- Splitting the definition in two allows GHC to inline the initial step that appears
-        -- non-recursive to GHC, because recursion is hidden in the other function that is marked as
-        -- @NOINLINE@ and is chosen by GHC as a loop-breaker, see
-        -- https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker (we're not
-        -- really sure if this is a reliable solution, but if it stops working, we won't miss very
-        -- much and we've failed to settle on any other approach).
-        --
-        -- We use @NOINLINE@ instead of @OPAQUE@, because we don't actually care about the recursive
-        -- definition not being inlined, we just want it to be chosen as a loop breaker.
         goStep, goRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
         goStep DefaultUniInteger a2 = do
             DefaultUniInteger <- pure a2

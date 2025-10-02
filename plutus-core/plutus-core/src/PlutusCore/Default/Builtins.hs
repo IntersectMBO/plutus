@@ -847,10 +847,10 @@ Our final example is this:
               (SomeConstant (Some (ValueOf uniA x)))
               (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList uniA' -> case uniA `geqLDefaultUni` uniA' of  -- [1]
-                        EvaluationSuccess Refl ->                                -- [2]
-                            pure . fromValueOf uniListA $ x : xs                 -- [3]
-                        EvaluationFailure      -> throwError $ structuralUnliftingError
+                    DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
+                        Just Refl ->                                       -- [2]
+                            pure . fromValueOf uniListA $ x : xs           -- [3]
+                        Nothing -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
@@ -1424,9 +1424,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               (SomeConstant (Some (ValueOf uniListA xs))) =
                 -- See Note [Structural vs operational errors within builtins].
                 case uniListA of
-                    DefaultUniList uniA' -> case uniA `geqLDefaultUni` uniA' of
-                        EvaluationSuccess Refl -> pure . fromValueOf uniListA $ x : xs
-                        EvaluationFailure      -> throwError $ structuralUnliftingError
+                    DefaultUniList uniA' -> case uniA `geq` uniA' of
+                        Just Refl -> pure . fromValueOf uniListA $ x : xs
+                        Nothing   -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
