@@ -1223,5 +1223,54 @@
             "arguments": 4,
             "type": "constant_cost"
         }
+    },
+    "lookupCoin": {
+        "cpu": {
+            "arguments": {
+                "intercept": 284421,
+                "slope": 1
+            },
+            "type": "linear_in_z"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "valueContains": {
+        "cpu": {
+            "arguments": {
+                "intercept": 42125119,
+                "slope": 30
+            },
+            "type": "added_sizes"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "valueData": {
+        "cpu": {
+            "arguments": 205465,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "unValueData": {
+        "cpu": {
+            "arguments": {
+                "intercept": 10532326261,
+                "slope": 431
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
     }
 }
