@@ -14,6 +14,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , IntegerCostedLiterally(..)
     , ValueTotalSize(..)
     , ValueOuterOrMaxInner(..)
+    , Logarithmic(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -390,6 +391,29 @@ instance ExMemoryUsage ValueOuterOrMaxInner where
     memoryUsage (ValueOuterOrMaxInner v) = singletonRose (fromIntegral size)
       where
         size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
+
+{-| A wrapper that applies a logarithmic transformation to another size measure.
+This is useful for modeling operations with logarithmic complexity, where the cost
+depends on log(n) where n is the size measure from the wrapped newtype.
+
+For example, @Logarithmic ValueOuterOrMaxInner@ can be used to model operations
+that are O(log max(m, k)) where m is the number of policies and k is the max tokens
+per policy.
+
+The memory usage is calculated as: @max 1 (floor (log2 size + 1))@ where size comes
+from the wrapped newtype's ExMemoryUsage instance.
+-}
+newtype Logarithmic n = Logarithmic { unLogarithmic :: n }
+
+instance ExMemoryUsage n => ExMemoryUsage (Logarithmic n) where
+    memoryUsage (Logarithmic wrapped) =
+      case memoryUsage wrapped of
+        CostRose size _ ->
+          let sizeInteger :: Integer
+              sizeInteger = fromSatInt size
+              logSize = I# (integerLog2# sizeInteger)
+          in singletonRose $ max 1 (fromIntegral (logSize + 1))
+    {-# INLINE memoryUsage #-}
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
