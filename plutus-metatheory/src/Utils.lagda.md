@@ -369,6 +369,11 @@ eqValue : Value → Value → Bool
 eqValue _ _ = Bool.true
 {-# COMPILE GHC eqValue = (==) #-}
 
+-- This does not exist as total function (there is unValueData, which is
+-- partial), but while Value is postulated it is a convenient way to implement
+-- agdaUnparse
+postulate dataToValue : DATA → Value
+
 ```
 
 ## Kinds

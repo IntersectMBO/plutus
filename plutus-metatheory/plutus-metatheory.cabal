@@ -70,6 +70,7 @@ library
     , base
     , bytestring
     , composition-prelude
+    , containers
     , directory
     , extra
     , filepath

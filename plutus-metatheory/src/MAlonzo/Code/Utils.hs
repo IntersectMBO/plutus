@@ -612,9 +612,10 @@ d_Value_652
 -- Utils.eqValue
 d_eqValue_654 :: T_Value_652 -> T_Value_652 -> Bool
 d_eqValue_654 = (==)
--- Utils.valueData
-d_valueData_656 :: T_DATA_494 -> T_Value_652
-d_valueData_656 = valueData
+-- Utils.dataToValue
+d_dataToValue_656
+  = error
+      "MAlonzo Runtime Error: postulate evaluated: Utils.dataToValue"
 -- Utils.Kind
 d_Kind_658 = ()
 type T_Kind_658 = KIND

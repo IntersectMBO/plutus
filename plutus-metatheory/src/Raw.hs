@@ -35,6 +35,7 @@ data AtomicTyCon = ATyConInt
                  | ATyConUnit
                  | ATyConBool
                  | ATyConData
+                 | ATyConValue
                  | ATyConBLS12_381_G1_Element
                  | ATyConBLS12_381_G2_Element
                  | ATyConBLS12_381_MlResult
@@ -44,7 +45,6 @@ data RTyCon = RTyConAtom AtomicTyCon
             | RTyConList
             | RTyConArray
             | RTyConPair
-            | RTyConValue
             deriving Show
 
 
@@ -92,13 +92,13 @@ convTyCon (SomeTypeIn DefaultUniString)               = RTyCon (RTyConAtom ATyCo
 convTyCon (SomeTypeIn DefaultUniBool)                 = RTyCon (RTyConAtom ATyConBool)
 convTyCon (SomeTypeIn DefaultUniUnit)                 = RTyCon (RTyConAtom ATyConUnit)
 convTyCon (SomeTypeIn DefaultUniData)                 = RTyCon (RTyConAtom ATyConData)
+convTyCon (SomeTypeIn DefaultUniValue)                = RTyCon (RTyConAtom ATyConValue)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
 convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
 convTyCon (SomeTypeIn DefaultUniProtoArray)           = RTyCon RTyConArray
 convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
-convTyCon (SomeTypeIn DefaultUniValue)                = RTyCon RTyConValue
 convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
@@ -146,6 +146,7 @@ unconvTyCon (RTyConAtom ATyConStr)  = SomeTypeIn DefaultUniString
 unconvTyCon (RTyConAtom ATyConBool) = SomeTypeIn DefaultUniBool
 unconvTyCon (RTyConAtom ATyConUnit) = SomeTypeIn DefaultUniUnit
 unconvTyCon (RTyConAtom ATyConData) = SomeTypeIn DefaultUniData
+unconvTyCon (RTyConAtom ATyConValue) = SomeTypeIn DefaultUniValue
 unconvTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
                                     = SomeTypeIn DefaultUniBLS12_381_G1_Element
 unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
@@ -155,7 +156,6 @@ unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult)
 unconvTyCon RTyConList              = SomeTypeIn DefaultUniProtoList
 unconvTyCon RTyConArray             = SomeTypeIn DefaultUniProtoArray
 unconvTyCon RTyConPair              = SomeTypeIn DefaultUniProtoPair
-unconvTyCon RTyConValue             = SomeTypeIn DefaultUniValue
 
 
 tmnames, tynames :: String

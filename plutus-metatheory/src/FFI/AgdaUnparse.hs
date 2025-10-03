@@ -4,6 +4,7 @@
 module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
+import Data.Map.Strict qualified as Map (Map, toList)
 import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -102,8 +103,11 @@ instance AgdaUnparse Data where
   agdaUnparse (Data.B b) =
     "(bDATA " ++ agdaUnparse b ++ ")"
 
+instance (AgdaUnparse k, AgdaUnparse v) => AgdaUnparse (Map.Map k v) where
+  agdaUnparse = agdaUnparse . Map.toList
+
 instance AgdaUnparse Value where
-  agdaUnparse v = "(valueData " <> agdaUnparse (valueData v) <> ")"
+  agdaUnparse v = "(dataToValue " <> agdaUnparse (valueData v) <> ")"
 
 instance AgdaUnparse BLS12_381.G1.Element where
   agdaUnparse = show
