@@ -1,0 +1,1114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP                       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- |Encoder and encoding primitives</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Encoder</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	><span class="hs-identifier"
+	  >Encoding</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator"
+	  >(&lt;&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Types.html#NumBits"
+	><span class="hs-identifier"
+	  >NumBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#encodersS"
+	><span class="hs-identifier"
+	  >encodersS</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#strictEncoder"
+	><span class="hs-identifier"
+	  >strictEncoder</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Prim.html#eTrueF"
+	><span class="hs-identifier"
+	  >eTrueF</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Prim.html#eFalseF"
+	><span class="hs-identifier"
+	  >eFalseF</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eFloat"
+	><span class="hs-identifier"
+	  >eFloat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eDouble"
+	><span class="hs-identifier"
+	  >eDouble</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eInteger"
+	><span class="hs-identifier"
+	  >eInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eNatural"
+	><span class="hs-identifier"
+	  >eNatural</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eWord16"
+	><span class="hs-identifier"
+	  >eWord16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eWord32"
+	><span class="hs-identifier"
+	  >eWord32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eWord64"
+	><span class="hs-identifier"
+	  >eWord64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eWord8"
+	><span class="hs-identifier"
+	  >eWord8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eBits"
+	><span class="hs-identifier"
+	  >eBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eBits16"
+	><span class="hs-identifier"
+	  >eBits16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eFiller"
+	><span class="hs-identifier"
+	  >eFiller</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eBool"
+	><span class="hs-identifier"
+	  >eBool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eTrue"
+	><span class="hs-identifier"
+	  >eTrue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eFalse"
+	><span class="hs-identifier"
+	  >eFalse</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eBytes"
+	><span class="hs-identifier"
+	  >eBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-cpp"
+      >
+#if ! defined (ETA_VERSION)
+</span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eUTF16"
+	><span class="hs-identifier"
+	  >eUTF16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eLazyBytes"
+	><span class="hs-identifier"
+	  >eLazyBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eShortBytes"
+	><span class="hs-identifier"
+	  >eShortBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eInt"
+	><span class="hs-identifier"
+	  >eInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eInt8"
+	><span class="hs-identifier"
+	  >eInt8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eInt16"
+	><span class="hs-identifier"
+	  >eInt16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eInt32"
+	><span class="hs-identifier"
+	  >eInt32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eInt64"
+	><span class="hs-identifier"
+	  >eInt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eWord"
+	><span class="hs-identifier"
+	  >eWord</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eChar"
+	><span class="hs-identifier"
+	  >eChar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#encodeArrayWith"
+	><span class="hs-identifier"
+	  >encodeArrayWith</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#encodeListWith"
+	><span class="hs-identifier"
+	  >encodeListWith</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Types.html#Size"
+	><span class="hs-identifier"
+	  >Size</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Size.html#arrayBits"
+	><span class="hs-identifier"
+	  >arrayBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sWord"
+	><span class="hs-identifier"
+	  >sWord</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sWord8"
+	><span class="hs-identifier"
+	  >sWord8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sWord16"
+	><span class="hs-identifier"
+	  >sWord16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sWord32"
+	><span class="hs-identifier"
+	  >sWord32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sWord64"
+	><span class="hs-identifier"
+	  >sWord64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sInt"
+	><span class="hs-identifier"
+	  >sInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sInt8"
+	><span class="hs-identifier"
+	  >sInt8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sInt16"
+	><span class="hs-identifier"
+	  >sInt16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sInt32"
+	><span class="hs-identifier"
+	  >sInt32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sInt64"
+	><span class="hs-identifier"
+	  >sInt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sNatural"
+	><span class="hs-identifier"
+	  >sNatural</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sInteger"
+	><span class="hs-identifier"
+	  >sInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sFloat"
+	><span class="hs-identifier"
+	  >sFloat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sDouble"
+	><span class="hs-identifier"
+	  >sDouble</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sChar"
+	><span class="hs-identifier"
+	  >sChar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sBytes"
+	><span class="hs-identifier"
+	  >sBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sLazyBytes"
+	><span class="hs-identifier"
+	  >sLazyBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sShortBytes"
+	><span class="hs-identifier"
+	  >sShortBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sUTF16"
+	><span class="hs-identifier"
+	  >sUTF16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sFillerMax"
+	><span class="hs-identifier"
+	  >sFillerMax</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sBool"
+	><span class="hs-identifier"
+	  >sBool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sUTF8Max"
+	><span class="hs-identifier"
+	  >sUTF8Max</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eUTF8"
+	><span class="hs-identifier"
+	  >eUTF8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-cpp"
+      >
+#ifdef ETA_VERSION
+</span
+      ><span
+      >    </span
+      ><span class="hs-identifier"
+      >trampolineEncoding</span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Prim.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder.Prim</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Prim.html#eFalseF"
+	><span class="hs-identifier"
+	  >eFalseF</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Prim.html#eTrueF"
+	><span class="hs-identifier"
+	  >eTrueF</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Size.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder.Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Size.html#arrayBits"
+	><span class="hs-identifier"
+	  >arrayBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder.Strict</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Types.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder.Types</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Types.html#NumBits"
+	><span class="hs-identifier"
+	  >NumBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Types.html#Size"
+	><span class="hs-identifier"
+	  >Size</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+
+#if ! MIN_VERSION_base(4,11,0)
+</span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Data.Semigroup</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-operator"
+      >&lt;&gt;</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ></pre
+    ></body
+  ></html
+>

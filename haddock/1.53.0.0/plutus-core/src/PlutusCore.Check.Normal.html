@@ -1,0 +1,4417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DuplicateRecordFields #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | This module makes sure types are normalized inside programs.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Check.Normal</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#checkProgram"
+	><span class="hs-identifier"
+	  >checkProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#checkTerm"
+	><span class="hs-identifier"
+	  >checkTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#isNormalType"
+	><span class="hs-identifier"
+	  >isNormalType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html#NormCheckError"
+	><span class="hs-identifier"
+	  >NormCheckError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.MkPlc.html#mkTyBuiltinOf"
+	><span class="hs-identifier"
+	  >mkTyBuiltinOf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.Core.html"
+	><span class="hs-identifier"
+	  >Universe.Core</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Universe.Core.html#HasUniApply"
+	><span class="hs-identifier"
+	  >HasUniApply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Universe.Core.html#matchUniApply"
+	><span class="hs-identifier"
+	  >matchUniApply</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.Core.html#SomeTypeIn"
+	><span class="hs-identifier"
+	  >SomeTypeIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Ensure that all types in the 'Program' are normalized.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span id="local-6989586621681950296"
+      ><span id="local-6989586621681950298"
+	><span id="local-6989586621681950299"
+	  ><span id="local-6989586621681950300"
+	    ><span id="local-6989586621681950301"
+	      ><span id="local-6989586621681950303"
+		><span class="annot"
+		  ><a href="PlutusCore.Check.Normal.html#checkProgram"
+		    ><span class="hs-identifier hs-type"
+		      >checkProgram</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-25"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="Universe.Core.html#HasUniApply"
+		    ><span class="hs-identifier hs-type"
+		      >HasUniApply</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950296"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		    ><span class="hs-identifier hs-type"
+		      >MonadError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Error.html#NormCheckError"
+		    ><span class="hs-identifier hs-type"
+		      >NormCheckError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950298"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950299"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950296"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950300"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950301"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950303"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-26"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950298"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950299"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950296"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950300"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950301"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950303"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="checkProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkProgram :: forall (uni :: * -&gt; *) tyname name fun ann (m :: * -&gt; *).
+(HasUniApply uni,
+ MonadError (NormCheckError tyname name uni fun ann) m) =&gt;
+Program tyname name uni fun ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Check.Normal.html#checkProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950432"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950432"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m ()
+forall (uni :: * -&gt; *) tyname name fun ann (m :: * -&gt; *).
+(HasUniApply uni,
+ MonadError (NormCheckError tyname name uni fun ann) m) =&gt;
+Term tyname name uni fun ann -&gt; m ()
+</span
+	><a href="PlutusCore.Check.Normal.html#checkTerm"
+	><span class="hs-identifier hs-var"
+	  >checkTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950432"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Ensure that all types in the 'Term' are normalized.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="local-6989586621681950314"
+      ><span id="local-6989586621681950315"
+	><span id="local-6989586621681950316"
+	  ><span id="local-6989586621681950317"
+	    ><span id="local-6989586621681950318"
+	      ><span id="local-6989586621681950319"
+		><span class="annot"
+		  ><a href="PlutusCore.Check.Normal.html#checkTerm"
+		    ><span class="hs-identifier hs-type"
+		      >checkTerm</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-31"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="Universe.Core.html#HasUniApply"
+		    ><span class="hs-identifier hs-type"
+		      >HasUniApply</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950314"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		    ><span class="hs-identifier hs-type"
+		      >MonadError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Error.html#NormCheckError"
+		    ><span class="hs-identifier hs-type"
+		      >NormCheckError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950315"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950316"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950314"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950317"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950318"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950319"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-32"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950315"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950316"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950314"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950317"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950318"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681950319"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="checkTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkTerm :: forall (uni :: * -&gt; *) tyname name fun ann (m :: * -&gt; *).
+(HasUniApply uni,
+ MonadError (NormCheckError tyname name uni fun ann) m) =&gt;
+Term tyname name uni fun ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Check.Normal.html#checkTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950437"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950437"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) () -&gt; m ()
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; Either e a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#liftEither"
+	><span class="hs-identifier hs-var"
+	  >liftEither</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either (NormCheckError tyname name uni fun ann) () -&gt; m ())
+-&gt; Either (NormCheckError tyname name uni fun ann) () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950437"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621681950332"
+      ><span id="local-6989586621681950333"
+	><span id="local-6989586621681950334"
+	  ><span id="local-6989586621681950335"
+	    ><span id="local-6989586621681950336"
+	      ><span class="annot"
+		><a href="PlutusCore.Check.Normal.html#check"
+		  ><span class="hs-identifier hs-type"
+		    >check</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-36"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Universe.Core.html#HasUniApply"
+		  ><span class="hs-identifier hs-type"
+		    >HasUniApply</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950332"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-37"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950333"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950334"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950332"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950335"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950336"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+		  ><span class="hs-identifier hs-type"
+		    >Either</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#NormCheckError"
+		  ><span class="hs-identifier hs-type"
+		    >NormCheckError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950333"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950334"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950332"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950335"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950336"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="check"
+      ><span class="annot"
+	><span class="annottext"
+	  >check :: forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	  ><a href="PlutusCore.Check.Normal.html#check"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-type"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950477"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950477"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950477"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyInst"
+	><span class="hs-identifier hs-type"
+	  >TyInst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950480"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950480"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950481"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950481"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950480"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950481"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#IWrap"
+	><span class="hs-identifier hs-type"
+	  >IWrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950483"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950483"
+	  ><span class="hs-identifier hs-var"
+	    >pat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950484"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950484"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950485"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950485"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950483"
+	><span class="hs-identifier hs-var"
+	  >pat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950484"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950485"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Unwrap"
+	><span class="hs-identifier hs-type"
+	  >Unwrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950487"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950487"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950487"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950489"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950489"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950490"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950490"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950489"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950490"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-type"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950492"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950492"
+	  ><span class="hs-identifier hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950493"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950493"
+	  ><span class="hs-identifier hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950492"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950493"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyAbs"
+	><span class="hs-identifier hs-type"
+	  >TyAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950495"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950495"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950495"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-type"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950497"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950497"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950498"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Term tyname name uni fun ann]
+</span
+	  ><a href="#local-6989586621681950498"
+	  ><span class="hs-identifier hs-var"
+	    >es</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950497"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Either (NormCheckError tyname name uni fun ann) ())
+-&gt; [Term tyname name uni fun ann]
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#traverse_"
+	><span class="hs-identifier hs-var"
+	  >traverse_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term tyname name uni fun ann]
+</span
+	><a href="#local-6989586621681950498"
+	><span class="hs-identifier hs-var"
+	  >es</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950501"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950501"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950502"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681950502"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950503"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Term tyname name uni fun ann]
+</span
+	  ><a href="#local-6989586621681950503"
+	  ><span class="hs-identifier hs-var"
+	    >cs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950501"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681950502"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Either (NormCheckError tyname name uni fun ann) ())
+-&gt; [Term tyname name uni fun ann]
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#traverse_"
+	><span class="hs-identifier hs-var"
+	  >traverse_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname name fun ann.
+HasUniApply uni =&gt;
+Term tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term tyname name uni fun ann]
+</span
+	><a href="#local-6989586621681950503"
+	><span class="hs-identifier hs-var"
+	  >cs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a. a -&gt; Either (NormCheckError tyname name uni fun ann) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >Constant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a. a -&gt; Either (NormCheckError tyname name uni fun ann) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#check"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-type"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a. a -&gt; Either (NormCheckError tyname name uni fun ann) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="local-6989586621681950360"
+      ><span id="local-6989586621681950361"
+	><span id="local-6989586621681950362"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Check.Normal.html#isNormalType"
+	      ><span class="hs-identifier hs-type"
+		>isNormalType</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="Universe.Core.html#HasUniApply"
+	      ><span class="hs-identifier hs-type"
+		>HasUniApply</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681950360"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Core.Type.html#Type"
+	      ><span class="hs-identifier hs-type"
+		>Type</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681950361"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681950360"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681950362"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	      ><span class="hs-identifier hs-type"
+		>Bool</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="isNormalType"
+      ><span class="annot"
+	><span class="annottext"
+	  >isNormalType :: forall (uni :: * -&gt; *) tyname ann.
+HasUniApply uni =&gt;
+Type tyname uni ann -&gt; Bool
+</span
+	  ><a href="PlutusCore.Check.Normal.html#isNormalType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isNormalType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname Any uni Any ann) () -&gt; Bool
+forall a b. Either a b -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#isRight"
+	><span class="hs-identifier hs-var"
+	  >isRight</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either (NormCheckError tyname Any uni Any ann) () -&gt; Bool)
+-&gt; (Type tyname uni ann
+    -&gt; Either (NormCheckError tyname Any uni Any ann) ())
+-&gt; Type tyname uni ann
+-&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname Any uni Any ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span id="local-6989586621681950345"
+      ><span id="local-6989586621681950346"
+	><span id="local-6989586621681950347"
+	  ><span id="local-6989586621681950348"
+	    ><span id="local-6989586621681950349"
+	      ><span class="annot"
+		><a href="PlutusCore.Check.Normal.html#normalType"
+		  ><span class="hs-identifier hs-type"
+		    >normalType</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-55"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Universe.Core.html#HasUniApply"
+		  ><span class="hs-identifier hs-type"
+		    >HasUniApply</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950345"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-56"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Type"
+		  ><span class="hs-identifier hs-type"
+		    >Type</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950346"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950345"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950347"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+		  ><span class="hs-identifier hs-type"
+		    >Either</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#NormCheckError"
+		  ><span class="hs-identifier hs-type"
+		    >NormCheckError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950346"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950348"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950345"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950349"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950347"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="normalType"
+      ><span class="annot"
+	><span class="annottext"
+	  >normalType :: forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	  ><a href="PlutusCore.Check.Normal.html#normalType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >normalType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyFun"
+	><span class="hs-identifier hs-type"
+	  >TyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950527"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950527"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950528"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950528"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950527"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950528"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier hs-type"
+	  >TyForall</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950530"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950530"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950530"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyIFix"
+	><span class="hs-identifier hs-type"
+	  >TyIFix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950532"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950532"
+	  ><span class="hs-identifier hs-var"
+	    >pat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950533"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950533"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950532"
+	><span class="hs-identifier hs-var"
+	  >pat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950533"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TySOP"
+	><span class="hs-identifier hs-type"
+	  >TySOP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950535"
+      ><span class="annot"
+	><span class="annottext"
+	  >[[Type tyname uni ann]]
+</span
+	  ><a href="#local-6989586621681950535"
+	  ><span class="hs-identifier hs-var"
+	    >tyls</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Type tyname uni ann]
+ -&gt; Either (NormCheckError tyname name uni fun ann) ())
+-&gt; [[Type tyname uni ann]]
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#traverse_"
+	><span class="hs-identifier hs-var"
+	  >traverse_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann
+ -&gt; Either (NormCheckError tyname name uni fun ann) ())
+-&gt; [Type tyname uni ann]
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#traverse_"
+	><span class="hs-identifier hs-var"
+	  >traverse_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Type tyname uni ann]]
+</span
+	><a href="#local-6989586621681950535"
+	><span class="hs-identifier hs-var"
+	  >tyls</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier hs-type"
+	  >TyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950537"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950537"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950537"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950538"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950538"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#neutralType"
+	><span class="hs-identifier hs-var"
+	  >neutralType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950538"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="local-6989586621681950540"
+      ><span id="local-6989586621681950541"
+	><span id="local-6989586621681950542"
+	  ><span id="local-6989586621681950543"
+	    ><span id="local-6989586621681950544"
+	      ><span class="annot"
+		><a href="PlutusCore.Check.Normal.html#neutralType"
+		  ><span class="hs-identifier hs-type"
+		    >neutralType</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-65"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Universe.Core.html#HasUniApply"
+		  ><span class="hs-identifier hs-type"
+		    >HasUniApply</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950540"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-66"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Type"
+		  ><span class="hs-identifier hs-type"
+		    >Type</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950541"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950540"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950542"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+		  ><span class="hs-identifier hs-type"
+		    >Either</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#NormCheckError"
+		  ><span class="hs-identifier hs-type"
+		    >NormCheckError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950541"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950543"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950540"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950544"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950542"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="neutralType"
+      ><span class="annot"
+	><span class="annottext"
+	  >neutralType :: forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	  ><a href="PlutusCore.Check.Normal.html#neutralType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >neutralType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier hs-type"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a. a -&gt; Either (NormCheckError tyname name uni fun ann) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#neutralType"
+	><span class="hs-identifier hs-var"
+	  >neutralType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyBuiltin"
+	><span class="hs-identifier hs-type"
+	  >TyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950555"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681950555"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950556"
+      ><span class="annot"
+	><span class="annottext"
+	  >SomeTypeIn uni
+</span
+	  ><a href="#local-6989586621681950556"
+	  ><span class="hs-identifier hs-var"
+	    >someUni</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; SomeTypeIn uni
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) ann tyname name fun.
+HasUniApply uni =&gt;
+ann
+-&gt; SomeTypeIn uni
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#neutralUni"
+	><span class="hs-identifier hs-var"
+	  >neutralUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681950555"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SomeTypeIn uni
+</span
+	><a href="#local-6989586621681950556"
+	><span class="hs-identifier hs-var"
+	  >someUni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#neutralType"
+	><span class="hs-identifier hs-var"
+	  >neutralType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyApp"
+	><span class="hs-identifier hs-type"
+	  >TyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950559"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950559"
+	  ><span class="hs-identifier hs-var"
+	    >ty1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950560"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950560"
+	  ><span class="hs-identifier hs-var"
+	    >ty2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#neutralType"
+	><span class="hs-identifier hs-var"
+	  >neutralType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950559"
+	><span class="hs-identifier hs-var"
+	  >ty1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b.
+Either (NormCheckError tyname name uni fun ann) a
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+-&gt; Either (NormCheckError tyname name uni fun ann) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall (uni :: * -&gt; *) tyname ann name fun.
+HasUniApply uni =&gt;
+Type tyname uni ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	><a href="PlutusCore.Check.Normal.html#normalType"
+	><span class="hs-identifier hs-var"
+	  >normalType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950560"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Check.Normal.html#neutralType"
+	><span class="hs-identifier hs-var"
+	  >neutralType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950561"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681950561"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NormCheckError tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Text
+-&gt; NormCheckError tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Text
+-&gt; NormCheckError tyname name uni fun ann
+</span
+	><a href="PlutusCore.Error.html#BadType"
+	><span class="hs-identifier hs-var"
+	  >BadType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; ann
+forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; ann
+</span
+	><a href="PlutusCore.Core.Type.html#typeAnn"
+	><span class="hs-identifier hs-var"
+	  >typeAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950561"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681950561"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;neutral type&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Normalization of built-in types].</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="local-6989586621681950383"
+      ><span id="local-6989586621681950384"
+	><span id="local-6989586621681950385"
+	  ><span id="local-6989586621681950386"
+	    ><span id="local-6989586621681950387"
+	      ><span class="annot"
+		><a href="PlutusCore.Check.Normal.html#neutralUni"
+		  ><span class="hs-identifier hs-type"
+		    >neutralUni</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-74"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Universe.Core.html#HasUniApply"
+		  ><span class="hs-identifier hs-type"
+		    >HasUniApply</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950383"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-75"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950384"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Universe.Core.html#SomeTypeIn"
+		  ><span class="hs-identifier hs-type"
+		    >SomeTypeIn</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950383"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+		  ><span class="hs-identifier hs-type"
+		    >Either</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#NormCheckError"
+		  ><span class="hs-identifier hs-type"
+		    >NormCheckError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950385"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950386"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950383"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950387"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681950384"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="neutralUni"
+      ><span class="annot"
+	><span class="annottext"
+	  >neutralUni :: forall (uni :: * -&gt; *) ann tyname name fun.
+HasUniApply uni =&gt;
+ann
+-&gt; SomeTypeIn uni
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+</span
+	  ><a href="PlutusCore.Check.Normal.html#neutralUni"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >neutralUni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950565"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681950565"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Universe.Core.html#SomeTypeIn"
+	><span class="hs-identifier hs-type"
+	  >SomeTypeIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950568"
+      ><span class="annot"
+	><span class="annottext"
+	  >uni (Esc a)
+</span
+	  ><a href="#local-6989586621681950568"
+	  ><span class="hs-identifier hs-var"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>uni (Esc a)
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+-&gt; (forall k l (f :: k -&gt; l) (a :: k).
+    (Esc a ~ Esc (f a)) =&gt;
+    uni (Esc f)
+    -&gt; uni (Esc a)
+    -&gt; Either (NormCheckError tyname name uni fun ann) ())
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall tb r.
+uni tb
+-&gt; r
+-&gt; (forall k l (f :: k -&gt; l) (a :: k).
+    (tb ~ Esc (f a)) =&gt;
+    uni (Esc f) -&gt; uni (Esc a) -&gt; r)
+-&gt; r
+forall (uni :: * -&gt; *) tb r.
+HasUniApply uni =&gt;
+uni tb
+-&gt; r
+-&gt; (forall k l (f :: k -&gt; l) (a :: k).
+    (tb ~ Esc (f a)) =&gt;
+    uni (Esc f) -&gt; uni (Esc a) -&gt; r)
+-&gt; r
+</span
+	><a href="Universe.Core.html#matchUniApply"
+	><span class="hs-identifier hs-var"
+	  >matchUniApply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>uni (Esc a)
+</span
+	><a href="#local-6989586621681950568"
+	><span class="hs-identifier hs-var"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- If @uni@ is not an intra-universe application, then it's neutral.</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- If it is, then it's not neutral and we throw an error.</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>uni (Esc f)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>uni (Esc a)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NormCheckError tyname name uni fun ann
+-&gt; Either (NormCheckError tyname name uni fun ann) ()
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Text
+-&gt; NormCheckError tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Text
+-&gt; NormCheckError tyname name uni fun ann
+</span
+	><a href="PlutusCore.Error.html#BadType"
+	><span class="hs-identifier hs-var"
+	  >BadType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681950565"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; uni (Esc a) -&gt; Type tyname uni ann
+forall k (a :: k) (uni :: * -&gt; *) tyname ann.
+ann -&gt; uni (Esc a) -&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.MkPlc.html#mkTyBuiltinOf"
+	><span class="hs-identifier hs-var"
+	  >mkTyBuiltinOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681950565"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>uni (Esc a)
+</span
+	><a href="#local-6989586621681950568"
+	><span class="hs-identifier hs-var"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;neutral type&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

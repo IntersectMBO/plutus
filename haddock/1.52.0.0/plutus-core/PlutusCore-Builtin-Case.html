@@ -1,0 +1,716 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Builtin.Case</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Builtin.Case.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Builtin.Case</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:AnnotateCaseBuiltin"
+	      >AnnotateCaseBuiltin</a
+	      > uni <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:annotateCaseBuiltin"
+		  >annotateCaseBuiltin</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > uni &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ann &#8594; [term] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > [(term, [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ann])]</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:CaseBuiltin"
+	      >CaseBuiltin</a
+	      > uni <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:caseBuiltin"
+		  >caseBuiltin</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > uni &#8658; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni) &#8594; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector.html#t:Vector" title="Data.Vector"
+		  >Vector</a
+		  > term &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > (<a href="PlutusCore-Builtin-KnownType.html#t:HeadSpine" title="PlutusCore.Builtin.KnownType"
+		  >HeadSpine</a
+		  > term (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni)))</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CaserBuiltin"
+	      >CaserBuiltin</a
+	      > uni = <a href="#v:CaserBuiltin"
+	      >CaserBuiltin</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unCaserBuiltin"
+		  >unCaserBuiltin</a
+		  > &#8759; !(&#8704; term. <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > uni &#8658; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni) &#8594; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector.html#t:Vector" title="Data.Vector"
+		  >Vector</a
+		  > term &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > (<a href="PlutusCore-Builtin-KnownType.html#t:HeadSpine" title="PlutusCore.Builtin.KnownType"
+		  >HeadSpine</a
+		  > term (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni))))</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:unavailableCaserBuiltin"
+	      >unavailableCaserBuiltin</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaserBuiltin</a
+	      > uni</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:AnnotateCaseBuiltin" class="def"
+	    >AnnotateCaseBuiltin</a
+	    > uni <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.Case.html#AnnotateCaseBuiltin" class="link"
+	    >Source</a
+	    > <a href="#t:AnnotateCaseBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:annotateCaseBuiltin" class="def"
+	      >annotateCaseBuiltin</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > uni &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ann &#8594; [term] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > [(term, [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ann])] <a href="src/PlutusCore.Builtin.Case.html#annotateCaseBuiltin" class="link"
+	      >Source</a
+	      > <a href="#v:annotateCaseBuiltin" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Given a tag for a built-in type and a list of branches, annotate each of the branches with
+ its expected argument types or fail if casing on values of the built-in type isn't supported.
+ Note: you don't need to include the resulting type of the whole case matching in the
+ returning list here.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AnnotateCaseBuiltin"
+	    >Instances</h4
+	    ><details id="i:AnnotateCaseBuiltin" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AnnotateCaseBuiltin:AnnotateCaseBuiltin:1"
+		      ></span
+		      > <a href="PlutusCore-Builtin-Case.html#t:AnnotateCaseBuiltin" title="PlutusCore.Builtin.Case"
+		      >AnnotateCaseBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-533" class="link"
+		    >Source</a
+		    > <a href="#t:AnnotateCaseBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AnnotateCaseBuiltin:AnnotateCaseBuiltin:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:annotateCaseBuiltin"
+			  >annotateCaseBuiltin</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+			  >~</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ann &#8594; [term] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > [(term, [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ann])] <a href="src/PlutusCore.Builtin.Case.html#annotateCaseBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:annotateCaseBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:CaseBuiltin" class="def"
+	    >CaseBuiltin</a
+	    > uni <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.Case.html#CaseBuiltin" class="link"
+	    >Source</a
+	    > <a href="#t:CaseBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:caseBuiltin" class="def"
+	      >caseBuiltin</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > uni &#8658; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector.html#t:Vector" title="Data.Vector"
+	      >Vector</a
+	      > term &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > (<a href="PlutusCore-Builtin-KnownType.html#t:HeadSpine" title="PlutusCore.Builtin.KnownType"
+	      >HeadSpine</a
+	      > term (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni))) <a href="src/PlutusCore.Builtin.Case.html#caseBuiltin" class="link"
+	      >Source</a
+	      > <a href="#v:caseBuiltin" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Given a constant with its type tag and a vector of branches, choose the appropriate branch
+ or fail if the constant doesn't correspond to any of the branches (or casing on constants of
+ this type isn't supported at all).</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CaseBuiltin"
+	    >Instances</h4
+	    ><details id="i:CaseBuiltin" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:CaseBuiltin:CaseBuiltin:1"
+		      ></span
+		      > <a href="PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaseBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-549" class="link"
+		    >Source</a
+		    > <a href="#t:CaseBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:CaseBuiltin:CaseBuiltin:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:caseBuiltin"
+			  >caseBuiltin</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+			  >~</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > &#8658; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  >) &#8594; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector.html#t:Vector" title="Data.Vector"
+			  >Vector</a
+			  > term &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > (<a href="PlutusCore-Builtin-KnownType.html#t:HeadSpine" title="PlutusCore.Builtin.KnownType"
+			  >HeadSpine</a
+			  > term (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  >))) <a href="src/PlutusCore.Builtin.Case.html#caseBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:caseBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CaserBuiltin" class="def"
+	    >CaserBuiltin</a
+	    > uni <a href="src/PlutusCore.Builtin.Case.html#CaserBuiltin" class="link"
+	    >Source</a
+	    > <a href="#t:CaserBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      >data</code
+	      > version of <code
+	      ><a href="PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		>CaseBuiltin</a
+		></code
+	      >. we parameterize the evaluator by a <code
+	      ><a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		>CaserBuiltin</a
+		></code
+	      > so that
+ the caller can choose whether to use the <code
+	      ><a href="PlutusCore-Builtin-Case.html#v:caseBuiltin" title="PlutusCore.Builtin.Case"
+		>caseBuiltin</a
+		></code
+	      > method or the always failing caser (the
+ latter is required for earlier protocol versions when we didn't support casing on builtins).</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CaserBuiltin" class="def"
+		  >CaserBuiltin</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unCaserBuiltin" class="def"
+			  >unCaserBuiltin</a
+			  > &#8759; !(&#8704; term. <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+			  >~</a
+			  > uni &#8658; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni) &#8594; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector.html#t:Vector" title="Data.Vector"
+			  >Vector</a
+			  > term &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > (<a href="PlutusCore-Builtin-KnownType.html#t:HeadSpine" title="PlutusCore.Builtin.KnownType"
+			  >HeadSpine</a
+			  > term (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni))))</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CaserBuiltin"
+	    >Instances</h4
+	    ><details id="i:CaserBuiltin" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CaserBuiltin:Default:1"
+		      ></span
+		      > <a href="PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaseBuiltin</a
+		      > uni &#8658; <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		      >Default</a
+		      > (<a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaserBuiltin</a
+		      > uni)</span
+		    > <a href="src/PlutusCore.Builtin.Case.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:CaserBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CaserBuiltin:Default:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Case.html"
+			>PlutusCore.Builtin.Case</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:def"
+			  >def</a
+			  > &#8759; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			  >CaserBuiltin</a
+			  > uni <a href="#v:def" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CaserBuiltin:NFData:2"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaserBuiltin</a
+		      > uni)</span
+		    > <a href="src/PlutusCore.Builtin.Case.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:CaserBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CaserBuiltin:NFData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Case.html"
+			>PlutusCore.Builtin.Case</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			  >CaserBuiltin</a
+			  > uni &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CaserBuiltin:NoThunks:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > (<a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaserBuiltin</a
+		      > uni)</span
+		    > <a href="src/PlutusCore.Builtin.Case.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:CaserBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CaserBuiltin:NoThunks:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Case.html"
+			>PlutusCore.Builtin.Case</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			  >CaserBuiltin</a
+			  > uni &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			  >CaserBuiltin</a
+			  > uni &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (<a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			  >CaserBuiltin</a
+			  > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unavailableCaserBuiltin" class="def"
+	    >unavailableCaserBuiltin</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaserBuiltin</a
+	    > uni <a href="src/PlutusCore.Builtin.Case.html#unavailableCaserBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:unavailableCaserBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

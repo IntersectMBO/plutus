@@ -1,0 +1,3918 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.NEAT.Term</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.NEAT.Term.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.NEAT.Term</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >This file contains
+1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
+2. A kind checker and a type checker
+3. Reduction semantics for types</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TypeBuiltinG"
+	      >TypeBuiltinG</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:TyByteStringG"
+		  >TyByteStringG</a
+		  ></li
+		><li
+		>| <a href="#v:TyIntegerG"
+		  >TyIntegerG</a
+		  ></li
+		><li
+		>| <a href="#v:TyBoolG"
+		  >TyBoolG</a
+		  ></li
+		><li
+		>| <a href="#v:TyUnitG"
+		  >TyUnitG</a
+		  ></li
+		><li
+		>| <a href="#v:TyStringG"
+		  >TyStringG</a
+		  ></li
+		><li
+		>| <a href="#v:TyListG"
+		  >TyListG</a
+		  > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeBuiltinG</a
+		  ></li
+		><li
+		>| <a href="#v:TyDataG"
+		  >TyDataG</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TermConstantG"
+	      >TermConstantG</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:TmIntegerG"
+		  >TmIntegerG</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		>| <a href="#v:TmByteStringG"
+		  >TmByteStringG</a
+		  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		  >ByteString</a
+		  ></li
+		><li
+		>| <a href="#v:TmStringG"
+		  >TmStringG</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		>| <a href="#v:TmBoolG"
+		  >TmBoolG</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		>| <a href="#v:TmUnitG"
+		  >TmUnitG</a
+		  > ()</li
+		><li
+		>| <a href="#v:TmDataG"
+		  >TmDataG</a
+		  > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		  >Data</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TypeG"
+	      >TypeG</a
+	      > n<ul class="subs"
+	      ><li
+		>= <a href="#v:TyVarG"
+		  >TyVarG</a
+		  > n</li
+		><li
+		>| <a href="#v:TyFunG"
+		  >TyFunG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n)</li
+		><li
+		>| <a href="#v:TyIFixG"
+		  >TyIFixG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n)</li
+		><li
+		>| <a href="#v:TyForallG"
+		  >TyForallG</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > n))</li
+		><li
+		>| <a href="#v:TyBuiltinG"
+		  >TyBuiltinG</a
+		  > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeBuiltinG</a
+		  ></li
+		><li
+		>| <a href="#v:TyLamG"
+		  >TyLamG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > n))</li
+		><li
+		>| <a href="#v:TyAppG"
+		  >TyAppG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:ClosedTypeG"
+	      >ClosedTypeG</a
+	      > = <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	      >TypeG</a
+	      > <a href="PlutusCore-Generators-NEAT-Common.html#t:Z" title="PlutusCore.Generators.NEAT.Common"
+	      >Z</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:convertClosedType"
+	      >convertClosedType</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+	      >GenError</a
+	      > m) &#8658; <a href="https://hackage.haskell.org/package/Stream-0.4.7.2/docs/Data-Stream.html#t:Stream" title="Data.Stream"
+	      >Stream</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+	      >ClosedTypeG</a
+	      > &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TermG"
+	      >TermG</a
+	      > tyname name<ul class="subs"
+	      ><li
+		>= <a href="#v:VarG"
+		  >VarG</a
+		  > name</li
+		><li
+		>| <a href="#v:LamAbsG"
+		  >LamAbsG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > name))</li
+		><li
+		>| <a href="#v:ApplyG"
+		  >ApplyG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname)</li
+		><li
+		>| <a href="#v:TyAbsG"
+		  >TyAbsG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > tyname) name)</li
+		><li
+		>| <a href="#v:TyInstG"
+		  >TyInstG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > tyname)) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ())</li
+		><li
+		>| <a href="#v:ConstantG"
+		  >ConstantG</a
+		  > <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermConstantG</a
+		  ></li
+		><li
+		>| <a href="#v:BuiltinG"
+		  >BuiltinG</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  ></li
+		><li
+		>| <a href="#v:WrapG"
+		  >WrapG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name)</li
+		><li
+		>| <a href="#v:UnWrapG"
+		  >UnWrapG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name)</li
+		><li
+		>| <a href="#v:ErrorG"
+		  >ErrorG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:ClosedTermG"
+	      >ClosedTermG</a
+	      > = <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+	      >TermG</a
+	      > <a href="PlutusCore-Generators-NEAT-Common.html#t:Z" title="PlutusCore.Generators.NEAT.Common"
+	      >Z</a
+	      > <a href="PlutusCore-Generators-NEAT-Common.html#t:Z" title="PlutusCore.Generators.NEAT.Common"
+	      >Z</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:convertClosedTerm"
+	      >convertClosedTerm</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+	      >GenError</a
+	      > m) &#8658; <a href="https://hackage.haskell.org/package/Stream-0.4.7.2/docs/Data-Stream.html#t:Stream" title="Data.Stream"
+	      >Stream</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/Stream-0.4.7.2/docs/Data-Stream.html#t:Stream" title="Data.Stream"
+	      >Stream</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+	      >ClosedTypeG</a
+	      > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+	      >ClosedTermG</a
+	      > &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Check"
+	      >Check</a
+	      > t a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:check"
+		  >check</a
+		  > &#8759; t &#8594; a &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+		  >Cool</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stepTypeG"
+	      >stepTypeG</a
+	      > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	      >TypeG</a
+	      > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	      >TypeG</a
+	      > n)</li
+	    ><li class="src short"
+	    ><a href="#v:normalizeTypeG"
+	      >normalizeTypeG</a
+	      > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	      >TypeG</a
+	      > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	      >TypeG</a
+	      > n</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:GenError"
+	      >GenError</a
+	      ><ul class="subs"
+	      ><li
+		>= &#8704; tyname.<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > tyname &#8658;  <a href="#v:BadTypeG"
+		  >BadTypeG</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname)</li
+		><li
+		>| &#8704; tyname name.(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > tyname, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > name) &#8658;  <a href="#v:BadTermG"
+		  >BadTermG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Neutral"
+	      >Neutral</a
+	      > a = <a href="#v:Neutral"
+	      >Neutral</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unNeutral"
+		  >unNeutral</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TypeBuiltinG" class="def"
+	    >TypeBuiltinG</a
+	    > <a href="src/PlutusCore.Generators.NEAT.Type.html#TypeBuiltinG" class="link"
+	    >Source</a
+	    > <a href="#t:TypeBuiltinG" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TyByteStringG" class="def"
+		  >TyByteStringG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyIntegerG" class="def"
+		  >TyIntegerG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyBoolG" class="def"
+		  >TyBoolG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyUnitG" class="def"
+		  >TyUnitG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyStringG" class="def"
+		  >TyStringG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyListG" class="def"
+		  >TyListG</a
+		  > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeBuiltinG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyDataG" class="def"
+		  >TyDataG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TypeBuiltinG"
+	    >Instances</h4
+	    ><details id="i:TypeBuiltinG" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeBuiltinG:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeBuiltinG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:TypeBuiltinG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeBuiltinG:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeBuiltinG:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeBuiltinG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:TypeBuiltinG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeBuiltinG:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeBuiltinG:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeBuiltinG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:TypeBuiltinG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeBuiltinG:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeBuiltinG:Enumerable:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeBuiltinG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:TypeBuiltinG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeBuiltinG:Enumerable:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:enumerate"
+			  >enumerate</a
+			  > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+			  >Sized</a
+			  > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+			  >Shared</a
+			  > f <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumerate" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeBuiltinG:Check:5"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		      >Kind</a
+		      > ()) <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeBuiltinG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-296" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Kind check builtin types.</p
+		    ><p
+		    >NOTE: If we make |checkTypeBuiltinG| non-strict in its second argument,
+       lazy-search will only ever return one of the various builtin types.
+       Perhaps this is preferable?</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeBuiltinG:Check:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > () &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TermConstantG" class="def"
+	    >TermConstantG</a
+	    > <a href="src/PlutusCore.Generators.NEAT.Term.html#TermConstantG" class="link"
+	    >Source</a
+	    > <a href="#t:TermConstantG" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TmIntegerG" class="def"
+		  >TmIntegerG</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TmByteStringG" class="def"
+		  >TmByteStringG</a
+		  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		  >ByteString</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TmStringG" class="def"
+		  >TmStringG</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TmBoolG" class="def"
+		  >TmBoolG</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TmUnitG" class="def"
+		  >TmUnitG</a
+		  > ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TmDataG" class="def"
+		  >TmDataG</a
+		  > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		  >Data</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TermConstantG"
+	    >Instances</h4
+	    ><details id="i:TermConstantG" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermConstantG:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermConstantG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-116" class="link"
+		    >Source</a
+		    > <a href="#t:TermConstantG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermConstantG:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermConstantG:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermConstantG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-116" class="link"
+		    >Source</a
+		    > <a href="#t:TermConstantG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermConstantG:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermConstantG:Enumerable:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermConstantG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-120" class="link"
+		    >Source</a
+		    > <a href="#t:TermConstantG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermConstantG:Enumerable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:enumerate"
+			  >enumerate</a
+			  > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+			  >Sized</a
+			  > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+			  >Shared</a
+			  > f <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumerate" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermConstantG:Check:4"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > n) <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermConstantG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-376" class="link"
+		    >Source</a
+		    > <a href="#t:TermConstantG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermConstantG:Check:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TypeG" class="def"
+	    >TypeG</a
+	    > n <a href="src/PlutusCore.Generators.NEAT.Type.html#TypeG" class="link"
+	    >Source</a
+	    > <a href="#t:TypeG" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TyVarG" class="def"
+		  >TyVarG</a
+		  > n</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyFunG" class="def"
+		  >TyFunG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyIFixG" class="def"
+		  >TyIFixG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyForallG" class="def"
+		  >TyForallG</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > n))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyBuiltinG" class="def"
+		  >TyBuiltinG</a
+		  > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeBuiltinG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyLamG" class="def"
+		  >TyLamG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > n))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyAppG" class="def"
+		  >TyAppG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > n) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TypeG"
+	    >Instances</h4
+	    ><details id="i:TypeG" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Applicative:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:TypeG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Applicative:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > (a &#8594; b) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Functor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:TypeG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Functor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Monad:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:TypeG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Monad:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a &#8594; (a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Check:4"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTypeG</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTermG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-493" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Check:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTypeG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTermG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Show:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > n &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > n)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:TypeG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Show:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Eq:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > n &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > n)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:TypeG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Ord:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > n &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > n)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:TypeG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Ord:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Enumerable:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > tyname &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		      >Normalized</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > tyname))</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-85" class="link"
+		    >Source</a
+		    > <a href="#t:Enumerable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Enumerable:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:enumerate"
+			  >enumerate</a
+			  > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+			  >Sized</a
+			  > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+			  >Shared</a
+			  > f (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+			  >Normalized</a
+			  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > tyname)) <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumerate" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Enumerable:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > tyname &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:Neutral" title="PlutusCore.Generators.NEAT.Term"
+		      >Neutral</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > tyname))</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:Enumerable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Enumerable:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:enumerate"
+			  >enumerate</a
+			  > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+			  >Sized</a
+			  > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+			  >Shared</a
+			  > f (<a href="PlutusCore-Generators-NEAT-Term.html#t:Neutral" title="PlutusCore.Generators.NEAT.Term"
+			  >Neutral</a
+			  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > tyname)) <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumerate" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Enumerable:10"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > n &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > n)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Type.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:TypeG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Enumerable:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Type.html"
+			>PlutusCore.Generators.NEAT.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:enumerate"
+			  >enumerate</a
+			  > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+			  >Sized</a
+			  > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+			  >Shared</a
+			  > f (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n) <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumerate" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Check:11"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		      >Kind</a
+		      > ()) <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTypeG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-351" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Check:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > () &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTypeG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Check:12"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > n) <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermConstantG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-376" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Check:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Check:13"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > tyname &#8658; <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > tyname) <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-431" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Check:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > tyname &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeG:Check:14"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		      >Kind</a
+		      > ()) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		      >Normalized</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTypeG</a
+		      >)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-355" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeG:Check:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+			  >Normalized</a
+			  > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTypeG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:ClosedTypeG" class="def"
+	    >ClosedTypeG</a
+	    > = <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	    >TypeG</a
+	    > <a href="PlutusCore-Generators-NEAT-Common.html#t:Z" title="PlutusCore.Generators.NEAT.Common"
+	    >Z</a
+	    > <a href="src/PlutusCore.Generators.NEAT.Type.html#ClosedTypeG" class="link"
+	    >Source</a
+	    > <a href="#t:ClosedTypeG" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:convertClosedType" class="def"
+	    >convertClosedType</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+	    >GenError</a
+	    > m) &#8658; <a href="https://hackage.haskell.org/package/Stream-0.4.7.2/docs/Data-Stream.html#t:Stream" title="Data.Stream"
+	    >Stream</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+	    >ClosedTypeG</a
+	    > &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.NEAT.Term.html#convertClosedType" class="link"
+	    >Source</a
+	    > <a href="#v:convertClosedType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert generated closed types to Plutus types.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TermG" class="def"
+	    >TermG</a
+	    > tyname name <a href="src/PlutusCore.Generators.NEAT.Term.html#TermG" class="link"
+	    >Source</a
+	    > <a href="#t:TermG" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:VarG" class="def"
+		  >VarG</a
+		  > name</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LamAbsG" class="def"
+		  >LamAbsG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > name))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ApplyG" class="def"
+		  >ApplyG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyAbsG" class="def"
+		  >TyAbsG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > tyname) name)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TyInstG" class="def"
+		  >TyInstG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Common.html#t:S" title="PlutusCore.Generators.NEAT.Common"
+		  >S</a
+		  > tyname)) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ConstantG" class="def"
+		  >ConstantG</a
+		  > <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermConstantG</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinG" class="def"
+		  >BuiltinG</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:WrapG" class="def"
+		  >WrapG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnWrapG" class="def"
+		  >UnWrapG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ErrorG" class="def"
+		  >ErrorG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TermG"
+	    >Instances</h4
+	    ><details id="i:TermG" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermG:Bifunctor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bifunctor.html#t:Bifunctor" title="Data.Bifunctor"
+		      >Bifunctor</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-147" class="link"
+		    >Source</a
+		    > <a href="#t:TermG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermG:Bifunctor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bimap"
+			  >bimap</a
+			  > &#8759; (a &#8594; b) &#8594; (c &#8594; d) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > a c &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > b d <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bimap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:first"
+			  >first</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > a c &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > b c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:first" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:second"
+			  >second</a
+			  > &#8759; (b &#8594; c) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > a b &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > a c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:second" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermG:Check:2"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTypeG</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTermG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-493" class="link"
+		    >Source</a
+		    > <a href="#t:TermG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermG:Check:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTypeG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTermG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermG:Functor:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermG</a
+		      > tyname)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TermG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermG:Functor:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname b &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermG:Show:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > tyname) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermG</a
+		      > tyname name)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TermG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermG:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermG:Eq:5"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > tyname) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermG</a
+		      > tyname name)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TermG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermG:Eq:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermG:Enumerable:6"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > tyname, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > name) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermG</a
+		      > tyname name)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-148" class="link"
+		    >Source</a
+		    > <a href="#t:TermG" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermG:Enumerable:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:enumerate"
+			  >enumerate</a
+			  > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+			  >Sized</a
+			  > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+			  >Shared</a
+			  > f (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermG</a
+			  > tyname name) <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumerate" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:ClosedTermG" class="def"
+	    >ClosedTermG</a
+	    > = <a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+	    >TermG</a
+	    > <a href="PlutusCore-Generators-NEAT-Common.html#t:Z" title="PlutusCore.Generators.NEAT.Common"
+	    >Z</a
+	    > <a href="PlutusCore-Generators-NEAT-Common.html#t:Z" title="PlutusCore.Generators.NEAT.Common"
+	    >Z</a
+	    > <a href="src/PlutusCore.Generators.NEAT.Term.html#ClosedTermG" class="link"
+	    >Source</a
+	    > <a href="#t:ClosedTermG" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:convertClosedTerm" class="def"
+	    >convertClosedTerm</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+	    >GenError</a
+	    > m) &#8658; <a href="https://hackage.haskell.org/package/Stream-0.4.7.2/docs/Data-Stream.html#t:Stream" title="Data.Stream"
+	    >Stream</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/Stream-0.4.7.2/docs/Data-Stream.html#t:Stream" title="Data.Stream"
+	    >Stream</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+	    >ClosedTypeG</a
+	    > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+	    >ClosedTermG</a
+	    > &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusCore.Generators.NEAT.Term.html#convertClosedTerm" class="link"
+	    >Source</a
+	    > <a href="#v:convertClosedTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert generated closed terms to Plutus terms.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Check" class="def"
+	    >Check</a
+	    > t a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Generators.NEAT.Term.html#Check" class="link"
+	    >Source</a
+	    > <a href="#t:Check" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:check" class="def"
+	      >check</a
+	      > &#8759; t &#8594; a &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+	      >Cool</a
+	      > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+	      >Source</a
+	      > <a href="#v:check" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Check"
+	    >Instances</h4
+	    ><details id="i:Check" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Check:Check:1"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTypeG</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTermG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-493" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Check:Check:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTypeG</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTermG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTermG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Check:Check:2"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		      >Kind</a
+		      > ()) <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTypeG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-351" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Check:Check:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > () &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTypeG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Check:Check:3"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		      >Kind</a
+		      > ()) <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeBuiltinG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-296" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Kind check builtin types.</p
+		    ><p
+		    >NOTE: If we make |checkTypeBuiltinG| non-strict in its second argument,
+       lazy-search will only ever return one of the various builtin types.
+       Perhaps this is preferable?</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Check:Check:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > () &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeBuiltinG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeBuiltinG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Check:Check:4"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > n) <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+		      >TermConstantG</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-376" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Check:Check:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TermConstantG" title="PlutusCore.Generators.NEAT.Term"
+			  >TermConstantG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Check:Check:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > tyname &#8658; <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > tyname) <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-431" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Check:Check:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > tyname &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Check:Check:6"
+		      ></span
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:Check" title="PlutusCore.Generators.NEAT.Term"
+		      >Check</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		      >Kind</a
+		      > ()) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		      >Normalized</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >ClosedTypeG</a
+		      >)</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-355" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Check:Check:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:check"
+			  >check</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+			  >Normalized</a
+			  > <a href="PlutusCore-Generators-NEAT-Term.html#t:ClosedTypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >ClosedTypeG</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/lazy-search-0.1.3.0/docs/Data-Coolean.html#t:Cool" title="Data.Coolean"
+			  >Cool</a
+			  > <a href="src/PlutusCore.Generators.NEAT.Term.html#check" class="link"
+			  >Source</a
+			  > <a href="#v:check" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stepTypeG" class="def"
+	    >stepTypeG</a
+	    > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	    >TypeG</a
+	    > n &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	    >TypeG</a
+	    > n) <a href="src/PlutusCore.Generators.NEAT.Term.html#stepTypeG" class="link"
+	    >Source</a
+	    > <a href="#v:stepTypeG" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reduce a generated type by a single step, or fail.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normalizeTypeG" class="def"
+	    >normalizeTypeG</a
+	    > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	    >TypeG</a
+	    > n &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+	    >TypeG</a
+	    > n <a href="src/PlutusCore.Generators.NEAT.Term.html#normalizeTypeG" class="link"
+	    >Source</a
+	    > <a href="#v:normalizeTypeG" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Normalise a generated type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:GenError" class="def"
+	    >GenError</a
+	    > <a href="src/PlutusCore.Generators.NEAT.Term.html#GenError" class="link"
+	    >Source</a
+	    > <a href="#t:GenError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8704; tyname.<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > tyname &#8658;  <a id="v:BadTypeG" class="def"
+		  >BadTypeG</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ()) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8704; tyname name.(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > tyname, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > name) &#8658;  <a id="v:BadTermG" class="def"
+		  >BadTermG</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname) (<a href="PlutusCore-Generators-NEAT-Term.html#t:TermG" title="PlutusCore.Generators.NEAT.Term"
+		  >TermG</a
+		  > tyname name)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:GenError"
+	    >Instances</h4
+	    ><details id="i:GenError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GenError:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+		      >GenError</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-547" class="link"
+		    >Source</a
+		    > <a href="#t:GenError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GenError:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+			  >GenError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+			  >GenError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Generators-NEAT-Term.html#t:GenError" title="PlutusCore.Generators.NEAT.Term"
+			  >GenError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Neutral" class="def"
+	    >Neutral</a
+	    > a <a href="src/PlutusCore.Generators.NEAT.Type.html#Neutral" class="link"
+	    >Source</a
+	    > <a href="#t:Neutral" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Neutral" class="def"
+		  >Neutral</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unNeutral" class="def"
+			  >unNeutral</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Neutral"
+	    >Instances</h4
+	    ><details id="i:Neutral" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Neutral:Enumerable:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > tyname &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		      >Enumerable</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:Neutral" title="PlutusCore.Generators.NEAT.Term"
+		      >Neutral</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > tyname))</span
+		    > <a href="src/PlutusCore.Generators.NEAT.Term.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:Enumerable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Neutral:Enumerable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-NEAT-Term.html"
+			>PlutusCore.Generators.NEAT.Term</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:enumerate"
+			  >enumerate</a
+			  > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+			  >Sized</a
+			  > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+			  >Shared</a
+			  > f (<a href="PlutusCore-Generators-NEAT-Term.html#t:Neutral" title="PlutusCore.Generators.NEAT.Term"
+			  >Neutral</a
+			  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+			  >TypeG</a
+			  > tyname)) <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumerate" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Enumerable:Enumerable:1"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		  >ByteString</a
+		  ></span
+		> <a href="src/PlutusCore.Generators.NEAT.Term.html#line-104" class="link"
+		>Source</a
+		> <a href="#v:-36-fEnumerableByteString" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Enumerable:Enumerable:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:enumerate"
+		      >enumerate</a
+		      > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+		      >Sized</a
+		      > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+		      >Shared</a
+		      > f <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumerate" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Enumerable:Enumerable:2"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		  >Data</a
+		  ></span
+		> <a href="src/PlutusCore.Generators.NEAT.Term.html#line-118" class="link"
+		>Source</a
+		> <a href="#v:-36-fEnumerableData" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Enumerable:Enumerable:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:enumerate"
+		      >enumerate</a
+		      > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+		      >Sized</a
+		      > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+		      >Shared</a
+		      > f <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumerate" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Enumerable:Enumerable:3"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  ></span
+		> <a href="src/PlutusCore.Generators.NEAT.Term.html#line-122" class="link"
+		>Source</a
+		> <a href="#v:-36-fEnumerableDefaultFun" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Enumerable:Enumerable:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:enumerate"
+		      >enumerate</a
+		      > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+		      >Sized</a
+		      > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+		      >Shared</a
+		      > f <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumerate" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Enumerable:Enumerable:4"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></span
+		> <a href="src/PlutusCore.Generators.NEAT.Term.html#line-107" class="link"
+		>Source</a
+		> <a href="#v:-36-fEnumerableText" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Enumerable:Enumerable:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:enumerate"
+		      >enumerate</a
+		      > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+		      >Sized</a
+		      > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+		      >Shared</a
+		      > f <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		      >Text</a
+		      > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumerate" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Enumerable:Enumerable:5"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > tyname &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname))</span
+		> <a href="src/PlutusCore.Generators.NEAT.Term.html#line-85" class="link"
+		>Source</a
+		> <a href="#v:-36-fEnumerableNormalized" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Enumerable:Enumerable:5"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:enumerate"
+		      >enumerate</a
+		      > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+		      >Sized</a
+		      > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+		      >Shared</a
+		      > f (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		      >Normalized</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > tyname)) <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumerate" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Enumerable:Enumerable:6"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > tyname &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Enumerable" title="Control.Enumerable"
+		  >Enumerable</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:Neutral" title="PlutusCore.Generators.NEAT.Term"
+		  >Neutral</a
+		  > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		  >TypeG</a
+		  > tyname))</span
+		> <a href="src/PlutusCore.Generators.NEAT.Term.html#line-95" class="link"
+		>Source</a
+		> <a href="#v:-36-fEnumerableNeutral" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Enumerable:Enumerable:6"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:enumerate"
+		      >enumerate</a
+		      > &#8759; &#8704; (f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >). (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > f, <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Sized.html#t:Sized" title="Control.Sized"
+		      >Sized</a
+		      > f) &#8658; <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/Control-Enumerable.html#t:Shared" title="Control.Enumerable"
+		      >Shared</a
+		      > f (<a href="PlutusCore-Generators-NEAT-Term.html#t:Neutral" title="PlutusCore.Generators.NEAT.Term"
+		      >Neutral</a
+		      > (<a href="PlutusCore-Generators-NEAT-Term.html#t:TypeG" title="PlutusCore.Generators.NEAT.Term"
+		      >TypeG</a
+		      > tyname)) <a href="https://hackage.haskell.org/package/size-based-0.1.3.3/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumerate" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

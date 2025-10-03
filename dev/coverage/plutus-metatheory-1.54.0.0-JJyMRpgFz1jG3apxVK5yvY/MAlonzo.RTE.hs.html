@@ -1,0 +1,144 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE PolyKinds #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module MAlonzo.RTE where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Prelude
+<span class="lineno">    6 </span>  ( Bool, Char, Double, Integer, String
+<span class="lineno">    7 </span>  , Enum(..), Eq(..), Ord(..), Integral(..), Num(..)
+<span class="lineno">    8 </span>  , ($), error, otherwise
+<span class="lineno">    9 </span>  , (++), fromIntegral
+<span class="lineno">   10 </span>  )
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Data.Char ( GeneralCategory(Surrogate), generalCategory )
+<span class="lineno">   13 </span>import Data.Kind ( Type)
+<span class="lineno">   14 </span>import qualified Data.Word
+<span class="lineno">   15 </span>import qualified GHC.Exts as GHC ( Any )
+<span class="lineno">   16 </span>import Unsafe.Coerce ( unsafeCoerce )
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>type AgdaAny = GHC.Any
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>-- Special version of coerce that plays well with rules.
+<span class="lineno">   21 </span>{-# INLINE [1] coe #-}
+<span class="lineno">   22 </span>coe :: a -&gt; b
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">coe = unsafeCoerce</span></span>
+<span class="lineno">   24 </span>{-# RULES &quot;coerce-id&quot; forall (x :: a) . coe x = x #-}
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- Builtin QNames.
+<span class="lineno">   27 </span>data QName = QName { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">nameId</span></span></span>, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">moduleId</span></span></span> :: Integer, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">qnameString</span></span></span> :: String, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">qnameFixity</span></span></span> :: Fixity }
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>data Assoc      = NonAssoc | LeftAssoc | RightAssoc
+<span class="lineno">   30 </span>data Precedence = Unrelated | Related PrecedenceLevel
+<span class="lineno">   31 </span>data Fixity     = Fixity Assoc Precedence
+<span class="lineno">   32 </span>type PrecedenceLevel = Double
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>instance <span class="decl"><span class="nottickedoff">Eq QName</span></span> where
+<span class="lineno">   35 </span>  <span class="decl"><span class="nottickedoff">QName a b _ _ == QName c d _ _ = (a, b) == (c, d)</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord QName</span></span></span></span></span></span></span></span></span></span></span></span> where
+<span class="lineno">   38 </span>  <span class="decl"><span class="nottickedoff">compare (QName a b _ _) (QName c d _ _) = compare (a, b) (c, d)</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>erased :: a
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">erased = coe (\ _ -&gt; erased)</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>mazUnreachableError :: a
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">mazUnreachableError = error (&quot;Agda: unreachable code reached.&quot;)</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>mazHole :: String -&gt; a
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">mazHole s = error (&quot;Agda: reached hole: &quot; ++ s)</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>addInt :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">addInt = (+)</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>subInt :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">subInt = (-)</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>mulInt :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">mulInt = (*)</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>geqInt :: Integer -&gt; Integer -&gt; Bool
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">geqInt = (&gt;=)</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>ltInt :: Integer -&gt; Integer -&gt; Bool
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">ltInt = (&lt;)</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>eqInt :: Integer -&gt; Integer -&gt; Bool
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">eqInt = (==)</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>quotInt :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">quotInt = quot</span></span>
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>remInt :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">remInt = rem</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>-- #4999: Data.Text maps surrogate code points (\xD800 - \xDFFF) to the replacement character
+<span class="lineno">   74 </span>-- \xFFFD, so to keep strings isomorphic to list of characters we do the same for characters.
+<span class="lineno">   75 </span>natToChar :: Integer -&gt; Char
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">natToChar n | generalCategory c == Surrogate = '\xFFFD'</span>
+<span class="lineno">   77 </span><span class="spaces">            </span><span class="nottickedoff">| otherwise                      = c</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">where c = toEnum $ fromIntegral $ mod n 0x110000</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>-- Words --
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>type Word64 = Data.Word.Word64
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>word64ToNat :: Word64 -&gt; Integer
+<span class="lineno">   85 </span><span class="decl"><span class="nottickedoff">word64ToNat = fromIntegral</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>word64FromNat :: Integer -&gt; Word64
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">word64FromNat = fromIntegral</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>{-# INLINE add64 #-}
+<span class="lineno">   91 </span>add64 :: Word64 -&gt; Word64 -&gt; Word64
+<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">add64 = (+)</span></span>
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>{-# INLINE sub64 #-}
+<span class="lineno">   95 </span>sub64 :: Word64 -&gt; Word64 -&gt; Word64
+<span class="lineno">   96 </span><span class="decl"><span class="nottickedoff">sub64 = (-)</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>{-# INLINE mul64 #-}
+<span class="lineno">   99 </span>mul64 :: Word64 -&gt; Word64 -&gt; Word64
+<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">mul64 = (*)</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>{-# INLINE quot64 #-}
+<span class="lineno">  103 </span>quot64 :: Word64 -&gt; Word64 -&gt; Word64
+<span class="lineno">  104 </span><span class="decl"><span class="nottickedoff">quot64 = quot</span></span>
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>{-# INLINE rem64 #-}
+<span class="lineno">  107 </span>rem64 :: Word64 -&gt; Word64 -&gt; Word64
+<span class="lineno">  108 </span><span class="decl"><span class="nottickedoff">rem64 = rem</span></span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>{-# INLINE eq64 #-}
+<span class="lineno">  111 </span>eq64 :: Word64 -&gt; Word64 -&gt; Bool
+<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">eq64 = (==)</span></span>
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>{-# INLINE lt64 #-}
+<span class="lineno">  115 </span>lt64 :: Word64 -&gt; Word64 -&gt; Bool
+<span class="lineno">  116 </span><span class="decl"><span class="nottickedoff">lt64 = (&lt;)</span></span>
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>-- Support for musical coinduction.
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>data Inf                      a = Sharp { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">flat</span></span></span> :: a }
+<span class="lineno">  121 </span>type Infinity (level :: Type) a = Inf a
+
+</pre>
+</body>
+</html>

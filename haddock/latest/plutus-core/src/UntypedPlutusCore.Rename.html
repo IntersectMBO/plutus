@@ -1,0 +1,760 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- | The user-facing API of the untyped renamer.</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-comment"
+      >-- See PlutusCore.Rename for details.</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Rename</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.html#Rename"
+	><span class="hs-identifier"
+	  >Rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Mark.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Mark</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Rename.Internal.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Rename.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#HasUniques"
+	><span class="hs-identifier"
+	  >HasUniques</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.html#Rename"
+	><span class="hs-identifier"
+	  >Rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681968024"
+      ><span id="local-6989586621681968025"
+	><span id="local-6989586621681968026"
+	  ><span id="local-6989586621681968027"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#HasUniques"
+		><span class="hs-identifier hs-type"
+		  >HasUniques</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968024"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968025"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968026"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968027"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Rename.html#Rename"
+		><span class="hs-identifier hs-type"
+		  >Rename</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968024"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968025"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968026"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968027"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Marking].</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681968112"
+      ><span class="annot"
+	><span class="annottext"
+	  >rename :: forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Term name uni fun ann -&gt; m (Term name uni fun ann)
+</span
+	  ><a href="#local-6989586621681968112"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >rename</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term name uni fun ann -&gt; m ())
+-&gt; Term name uni fun ann -&gt; m (Term name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; f b) -&gt; a -&gt; f a
+</span
+	><a href="PlutusPrelude.html#through"
+	><span class="hs-identifier hs-var"
+	  >through</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann -&gt; m ()
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term name uni fun ann), MonadQuote m) =&gt;
+Term name uni fun ann -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Mark.html#markNonFreshTerm"
+	><span class="hs-identifier hs-var"
+	  >markNonFreshTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term name uni fun ann -&gt; m (Term name uni fun ann))
+-&gt; (Term name uni fun ann -&gt; m (Term name uni fun ann))
+-&gt; Term name uni fun ann
+-&gt; m (Term name uni fun ann)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RenameT (Renaming TermUnique) m (Term name uni fun ann)
+-&gt; m (Term name uni fun ann)
+forall ren (m :: * -&gt; *) a. Monoid ren =&gt; RenameT ren m a -&gt; m a
+</span
+	><a href="PlutusCore.Rename.Monad.html#runRenameT"
+	><span class="hs-identifier hs-var"
+	  >runRenameT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RenameT (Renaming TermUnique) m (Term name uni fun ann)
+ -&gt; m (Term name uni fun ann))
+-&gt; (Term name uni fun ann
+    -&gt; RenameT (Renaming TermUnique) m (Term name uni fun ann))
+-&gt; Term name uni fun ann
+-&gt; m (Term name uni fun ann)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; RenameT (Renaming TermUnique) m (Term name uni fun ann)
+forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun ann.
+(MonadRename m, HasUniques (Term name uni fun ann)) =&gt;
+Term name uni fun ann -&gt; m (Term name uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681968073"
+      ><span id="local-6989586621681968074"
+	><span id="local-6989586621681968075"
+	  ><span id="local-6989586621681968076"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#HasUniques"
+		><span class="hs-identifier hs-type"
+		  >HasUniques</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Program"
+		><span class="hs-identifier hs-type"
+		  >Program</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968073"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968074"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968075"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968076"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Rename.html#Rename"
+		><span class="hs-identifier hs-type"
+		  >Rename</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Program"
+		><span class="hs-identifier hs-type"
+		  >Program</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968073"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968074"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968075"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681968076"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Marking].</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681968137"
+      ><span class="annot"
+	><span class="annottext"
+	  >rename :: forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Program name uni fun ann -&gt; m (Program name uni fun ann)
+</span
+	  ><a href="PlutusCore.Rename.html#rename"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >rename</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program name uni fun ann -&gt; m ())
+-&gt; Program name uni fun ann -&gt; m (Program name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; f b) -&gt; a -&gt; f a
+</span
+	><a href="PlutusPrelude.html#through"
+	><span class="hs-identifier hs-var"
+	  >through</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program name uni fun ann -&gt; m ()
+forall name (m :: * -&gt; *) (uni :: * -&gt; *) fun ann.
+(HasUnique name TermUnique, MonadQuote m) =&gt;
+Program name uni fun ann -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Mark.html#markNonFreshProgram"
+	><span class="hs-identifier hs-var"
+	  >markNonFreshProgram</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program name uni fun ann -&gt; m (Program name uni fun ann))
+-&gt; (Program name uni fun ann -&gt; m (Program name uni fun ann))
+-&gt; Program name uni fun ann
+-&gt; m (Program name uni fun ann)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RenameT (Renaming TermUnique) m (Program name uni fun ann)
+-&gt; m (Program name uni fun ann)
+forall ren (m :: * -&gt; *) a. Monoid ren =&gt; RenameT ren m a -&gt; m a
+</span
+	><a href="PlutusCore.Rename.Monad.html#runRenameT"
+	><span class="hs-identifier hs-var"
+	  >runRenameT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RenameT (Renaming TermUnique) m (Program name uni fun ann)
+ -&gt; m (Program name uni fun ann))
+-&gt; (Program name uni fun ann
+    -&gt; RenameT (Renaming TermUnique) m (Program name uni fun ann))
+-&gt; Program name uni fun ann
+-&gt; m (Program name uni fun ann)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program name uni fun ann
+-&gt; RenameT (Renaming TermUnique) m (Program name uni fun ann)
+forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun ann.
+(MonadRename m, HasUniques (Program name uni fun ann)) =&gt;
+Program name uni fun ann -&gt; m (Program name uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Rename.Internal.html#renameProgramM"
+	><span class="hs-identifier hs-var"
+	  >renameProgramM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

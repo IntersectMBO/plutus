@@ -1,0 +1,8924 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE AllowAmbiguousTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Flat.Spec</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_flat"
+	><span class="hs-identifier"
+	  >test_flat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.html"
+	><span class="hs-identifier"
+	  >Codec.Serialise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.html#serialise"
+	><span class="hs-identifier"
+	  >serialise</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BSL</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Char.html"
+	><span class="hs-identifier"
+	  >Data.Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#ord"
+	><span class="hs-identifier"
+	  >ord</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.html"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Data</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	><span class="hs-identifier"
+	  >Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.html"
+	><span class="hs-identifier"
+	  >PlutusCore.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.QuickCheck.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.HUnit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.QuickCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_deBruijnIso"
+	><span class="hs-identifier hs-type"
+	  >test_deBruijnIso</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="test_deBruijnIso"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_deBruijnIso :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_deBruijnIso"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_deBruijnIso</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (DeBruijn -&gt; Property) -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;deBruijnIso&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((DeBruijn -&gt; Property) -&gt; TestTree)
+-&gt; (DeBruijn -&gt; Property) -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284746"
+      ><span class="annot"
+	><span class="annottext"
+	  >DeBruijn
+</span
+	  ><a href="#local-6989586621679284746"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn
+</span
+	><a href="#local-6989586621679284746"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; DeBruijn -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#fromFake"
+	><span class="hs-identifier hs-var"
+	  >fromFake</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; FakeNamedDeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#toFake"
+	><span class="hs-identifier hs-var"
+	  >toFake</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn
+</span
+	><a href="#local-6989586621679284746"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_fakeIso"
+	><span class="hs-identifier hs-type"
+	  >test_fakeIso</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="test_fakeIso"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_fakeIso :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_fakeIso"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_fakeIso</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (FakeNamedDeBruijn -&gt; Property) -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;fakeIso&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((FakeNamedDeBruijn -&gt; Property) -&gt; TestTree)
+-&gt; (FakeNamedDeBruijn -&gt; Property) -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284751"
+      ><span class="annot"
+	><span class="annottext"
+	  >FakeNamedDeBruijn
+</span
+	  ><a href="#local-6989586621679284751"
+	  ><span class="hs-identifier hs-var"
+	    >fnd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn
+</span
+	><a href="#local-6989586621679284751"
+	><span class="hs-identifier hs-var"
+	  >fnd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn -&gt; FakeNamedDeBruijn -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; FakeNamedDeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#toFake"
+	><span class="hs-identifier hs-var"
+	  >toFake</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#fromFake"
+	><span class="hs-identifier hs-var"
+	  >fromFake</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn
+</span
+	><a href="#local-6989586621679284751"
+	><span class="hs-identifier hs-var"
+	  >fnd</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_deBruijnTripping"
+	><span class="hs-identifier hs-type"
+	  >test_deBruijnTripping</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="test_deBruijnTripping"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_deBruijnTripping :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_deBruijnTripping"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_deBruijnTripping</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (DeBruijn -&gt; Property) -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;debruijnTripping&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((DeBruijn -&gt; Property) -&gt; TestTree)
+-&gt; (DeBruijn -&gt; Property) -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284753"
+      ><span class="annot"
+	><span class="annottext"
+	  >DeBruijn
+</span
+	  ><a href="#local-6989586621679284753"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; Either DecodeException DeBruijn
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn
+</span
+	><a href="#local-6989586621679284753"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either DecodeException DeBruijn
+-&gt; Either DecodeException DeBruijn -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException DeBruijn
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-type"
+	  >DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn
+</span
+	><a href="#local-6989586621679284753"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_fakeTripping"
+	><span class="hs-identifier hs-type"
+	  >test_fakeTripping</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="test_fakeTripping"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_fakeTripping :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_fakeTripping"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_fakeTripping</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (FakeNamedDeBruijn -&gt; Property) -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;fakeTripping&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((FakeNamedDeBruijn -&gt; Property) -&gt; TestTree)
+-&gt; (FakeNamedDeBruijn -&gt; Property) -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284757"
+      ><span class="annot"
+	><span class="annottext"
+	  >FakeNamedDeBruijn
+</span
+	  ><a href="#local-6989586621679284757"
+	  ><span class="hs-identifier hs-var"
+	    >fnd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn -&gt; Either DecodeException FakeNamedDeBruijn
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn
+</span
+	><a href="#local-6989586621679284757"
+	><span class="hs-identifier hs-var"
+	  >fnd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either DecodeException FakeNamedDeBruijn
+-&gt; Either DecodeException FakeNamedDeBruijn -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException FakeNamedDeBruijn
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#FakeNamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >FakeNamedDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FakeNamedDeBruijn
+</span
+	><a href="#local-6989586621679284757"
+	><span class="hs-identifier hs-var"
+	  >fnd</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_binderDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >test_binderDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="test_binderDeBruijn"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_binderDeBruijn :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_binderDeBruijn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_binderDeBruijn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (Binder DeBruijn -&gt; Property) -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;binderDeBruijn&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Binder DeBruijn -&gt; Property) -&gt; TestTree)
+-&gt; (Binder DeBruijn -&gt; Property) -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284759"
+      ><span class="annot"
+	><span class="annottext"
+	  >Binder DeBruijn
+</span
+	  ><a href="#local-6989586621679284759"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- binders should always decode as init binder</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binder DeBruijn -&gt; Either DecodeException (Binder DeBruijn)
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binder DeBruijn
+</span
+	><a href="Flat.Spec.html#initB"
+	><span class="hs-identifier hs-var"
+	  >initB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either DecodeException (Binder DeBruijn)
+-&gt; Either DecodeException (Binder DeBruijn) -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException (Binder DeBruijn)
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Binder"
+	><span class="hs-identifier hs-type"
+	  >Binder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-type"
+	  >DeBruijn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binder DeBruijn
+</span
+	><a href="#local-6989586621679284759"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_binderFake"
+	><span class="hs-identifier hs-type"
+	  >test_binderFake</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="test_binderFake"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_binderFake :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_binderFake"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_binderFake</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (Binder FakeNamedDeBruijn -&gt; Property) -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;binderFake&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Binder FakeNamedDeBruijn -&gt; Property) -&gt; TestTree)
+-&gt; (Binder FakeNamedDeBruijn -&gt; Property) -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284762"
+      ><span class="annot"
+	><span class="annottext"
+	  >Binder FakeNamedDeBruijn
+</span
+	  ><a href="#local-6989586621679284762"
+	  ><span class="hs-identifier hs-var"
+	    >bf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- binders should always decode as init binder</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binder FakeNamedDeBruijn
+-&gt; Either DecodeException (Binder FakeNamedDeBruijn)
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; FakeNamedDeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#toFake"
+	><span class="hs-identifier hs-var"
+	  >toFake</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeBruijn -&gt; FakeNamedDeBruijn)
+-&gt; Binder DeBruijn -&gt; Binder FakeNamedDeBruijn
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binder DeBruijn
+</span
+	><a href="Flat.Spec.html#initB"
+	><span class="hs-identifier hs-var"
+	  >initB</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either DecodeException (Binder FakeNamedDeBruijn)
+-&gt; Either DecodeException (Binder FakeNamedDeBruijn) -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException (Binder FakeNamedDeBruijn)
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Binder"
+	><span class="hs-identifier hs-type"
+	  >Binder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#FakeNamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >FakeNamedDeBruijn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binder FakeNamedDeBruijn
+</span
+	><a href="#local-6989586621679284762"
+	><span class="hs-identifier hs-var"
+	  >bf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >{- Check that a bytestring is the canonical flat encoding of another bytestring.
+A bytestring is encoded as sequence of chunks where each chunk is preceded by a
+single byte giving its length and the end of the bytestring is marked by a
+zero-length chunk.  The encoding is canonical if it consists of a (possibly
+empty) sequence of 255-byte chunks followed by an optional smaller block
+followed by an empty block.  See Note [Flat serialisation for strict and lazy
+bytestrings].  See Appendix C of the Plutus Core specification for details of
+the `flat` encoding, in particular Section C.2.5. -}</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#isCanonicalFlatEncodedByteString"
+	><span class="hs-identifier hs-type"
+	  >isCanonicalFlatEncodedByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="isCanonicalFlatEncodedByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >isCanonicalFlatEncodedByteString :: ByteString -&gt; Bool
+</span
+	  ><a href="Flat.Spec.html#isCanonicalFlatEncodedByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isCanonicalFlatEncodedByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679284765"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621679284765"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; [Word8]
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#unpack"
+	><span class="hs-identifier hs-var"
+	  >BS.unpack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284765"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="hs-comment"
+      >-- Should never happen.</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621679284767"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Word8]
+</span
+	  ><a href="#local-6989586621679284767"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; Bool
+forall {a}. Integral a =&gt; [a] -&gt; Bool
+</span
+	><a href="#local-6989586621679284768"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8]
+</span
+	><a href="#local-6989586621679284767"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- 0x01 is the tag for an encoded bytestring</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >                      </span
+      ><span class="hs-comment"
+      >--  (Plutus Core specification, Table C.2)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="hs-comment"
+      >-- Not the encoding of a bytestring.</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679284768"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: [a] -&gt; Bool
+</span
+	  ><a href="#local-6989586621679284768"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- We've fallen off the end, possibly due to having dropped too many bytes.</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679284768"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679284793"
+      ><span class="annot"
+	><span class="annottext"
+	  >l :: [a]
+</span
+	  ><a href="#local-6989586621679284793"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679284794"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679284794"
+	  ><span class="hs-identifier hs-var"
+	    >w</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621679284795"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621679284795"
+	  ><span class="hs-identifier hs-var"
+	    >ws</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- w is the purported size of the next chunk.</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679284794"
+	><span class="hs-identifier hs-var"
+	  >w</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-number"
+	>0xFF</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; Bool
+</span
+	><a href="#local-6989586621679284768"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; [a] -&gt; [a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#drop"
+	><span class="hs-identifier hs-var"
+	  >drop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>255</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679284795"
+	><span class="hs-identifier hs-var"
+	  >ws</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >   </span
+      ><span class="hs-comment"
+      >-- Throw away any initial 255-byte chunks.</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679284793"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; [a] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679284797"
+	><span class="hs-identifier hs-var"
+	  >end</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; [a] -&gt; [a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#drop"
+	><span class="hs-identifier hs-var"
+	  >drop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679284794"
+	><span class="hs-identifier hs-var"
+	  >w</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679284795"
+	><span class="hs-identifier hs-var"
+	  >ws</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; [a] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679284797"
+	><span class="hs-identifier hs-var"
+	  >end</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Either we've arrived exactly at the end or we have a single short chunk before the end.</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      > </span
+      ><span id="local-6989586621679284797"
+      ><span class="annot"
+	><span class="annottext"
+	  >end :: [a]
+</span
+	  ><a href="#local-6989586621679284797"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >end</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- An empty chunk followed by a padding byte.</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_canonicalEncoding"
+	><span class="hs-identifier hs-type"
+	  >test_canonicalEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679284596"
+      ><span class="annot"
+	><a href="#local-6989586621679284596"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679284596"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	><span class="hs-identifier hs-type"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679284596"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	><span class="hs-identifier hs-type"
+	  >Show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679284596"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="test_canonicalEncoding"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_canonicalEncoding :: forall a.
+(Arbitrary a, Flat a, Show a) =&gt;
+TestName -&gt; Int -&gt; TestTree
+</span
+	  ><a href="Flat.Spec.html#test_canonicalEncoding"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_canonicalEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679284812"
+      ><span class="annot"
+	><span class="annottext"
+	  >TestName
+</span
+	  ><a href="#local-6989586621679284812"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679284813"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679284813"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><a href="#local-6989586621679284812"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; TestTree) -&gt; Property -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Property -&gt; Property
+forall prop. Testable prop =&gt; Int -&gt; prop -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>withMaxSuccess</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679284813"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Property) -&gt; Property -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a -&gt; (a -&gt; Bool) -&gt; Property
+forall a prop.
+(Show a, Testable prop) =&gt;
+Gen a -&gt; (a -&gt; prop) -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>forAll</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679284596"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Bool
+</span
+	><a href="Flat.Spec.html#isCanonicalFlatEncodedByteString"
+	><span class="hs-identifier hs-var"
+	  >isCanonicalFlatEncodedByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Bool) -&gt; (a -&gt; ByteString) -&gt; a -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679284596"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-comment"
+      >-- Data objects are encoded by first being converted to a bytestring using CBOR.</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-comment"
+      >-- This is the case that we're really interested in, since we get a lazy</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-comment"
+      >-- bytestring from CBOR and it has to converted into a strict one to ensure that</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-comment"
+      >-- the encoding's canonical.</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_canonicalData"
+	><span class="hs-identifier hs-type"
+	  >test_canonicalData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="test_canonicalData"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_canonicalData :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_canonicalData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_canonicalData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a.
+(Arbitrary a, Flat a, Show a) =&gt;
+TestName -&gt; Int -&gt; TestTree
+</span
+	><a href="Flat.Spec.html#test_canonicalEncoding"
+	><span class="hs-identifier hs-var"
+	  >test_canonicalEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	><span class="hs-identifier hs-type"
+	  >Data</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;flat encodes Data canonically&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>5000</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-comment"
+      >-- We may as well check that it does the right thing for strict bytestrings</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-comment"
+      >-- while we're here.</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_canonicalByteString"
+	><span class="hs-identifier hs-type"
+	  >test_canonicalByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span id="test_canonicalByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_canonicalByteString :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_canonicalByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_canonicalByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a.
+(Arbitrary a, Flat a, Show a) =&gt;
+TestName -&gt; Int -&gt; TestTree
+</span
+	><a href="Flat.Spec.html#test_canonicalEncoding"
+	><span class="hs-identifier hs-var"
+	  >test_canonicalEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;flat encodes ByteStrings canonically&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1000</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-comment"
+      >{- Some tests that non-canonically encoded bytestrings decode correctly to strict
+bytestrings.  One strategy is to encode lazy bytestrings and decode the results
+to get strict bytestrings and then check that the result is the same as
+converting the original input into a strict bytestring, and we do this with
+arbitrary lazy bytestrings and also ones obtained by CBOR-serialising `Data`
+objects. However this will only test what we want when the lazy bytestring is
+encoded non-canonically, which in fact happens quite rarely. To make sure that
+we really do test some non-canonical inputs there are a few handwritten examples
+as well. -}</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_nonCanonicalByteStringDecoding"
+	><span class="hs-identifier hs-type"
+	  >test_nonCanonicalByteStringDecoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="test_nonCanonicalByteStringDecoding"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_nonCanonicalByteStringDecoding :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_nonCanonicalByteStringDecoding"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_nonCanonicalByteStringDecoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679284823"
+      ><span class="annot"
+	><span class="annottext"
+	  >target :: ByteString
+</span
+	  ><a href="#local-6989586621679284823"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >target</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><span class="hs-string"
+	>&quot;This is a test.&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-type"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Char"
+	><span class="hs-identifier hs-type"
+	  >Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284824"
+      ><span class="annot"
+	><span class="annottext"
+	  >ch :: Char -&gt; Word8
+</span
+	  ><a href="#local-6989586621679284824"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Word8
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Word8) -&gt; (Char -&gt; Int) -&gt; Char -&gt; Word8
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#ord"
+	><span class="hs-identifier hs-var"
+	  >ord</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284843"
+      ><span class="annot"
+	><span class="annottext"
+	  >input1 :: ByteString
+</span
+	  ><a href="#local-6989586621679284843"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- 0x01 is the tag for an encoded bytestring.</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284853"
+      ><span class="annot"
+	><span class="annottext"
+	  >input2 :: ByteString
+</span
+	  ><a href="#local-6989586621679284853"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284862"
+      ><span class="annot"
+	><span class="annottext"
+	  >input3 :: ByteString
+</span
+	  ><a href="#local-6989586621679284862"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x02</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x04</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x05</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284869"
+      ><span class="annot"
+	><span class="annottext"
+	  >input4 :: ByteString
+</span
+	  ><a href="#local-6989586621679284869"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x05</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x05</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x05</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284878"
+      ><span class="annot"
+	><span class="annottext"
+	  >input5 :: ByteString
+</span
+	  ><a href="#local-6989586621679284878"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x05</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x04</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x02</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284884"
+      ><span class="annot"
+	><span class="annottext"
+	  >input6 :: ByteString
+</span
+	  ><a href="#local-6989586621679284884"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x0e</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284891"
+      ><span class="annot"
+	><span class="annottext"
+	  >input7 :: ByteString
+</span
+	  ><a href="#local-6989586621679284891"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x0d</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284900"
+      ><span class="annot"
+	><span class="annottext"
+	  >input8 :: ByteString
+</span
+	  ><a href="#local-6989586621679284900"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >input8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word8] -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#pack"
+	><span class="hs-identifier hs-var"
+	  >BS.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x03</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'T'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'h'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x05</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'i'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'a'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x02</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>' '</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x04</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'e'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'s'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Word8
+</span
+	><a href="#local-6989586621679284824"
+	><span class="hs-identifier hs-var"
+	  >ch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'.'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x00</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x01</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679284909"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkTest :: b -&gt; Assertion
+</span
+	  ><a href="#local-6989586621679284909"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkTest</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679284910"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679284910"
+	  ><span class="hs-identifier hs-var"
+	    >input</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HasCallStack =&gt; TestName -&gt; Bool -&gt; Assertion
+TestName -&gt; Bool -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#assertBool"
+	><span class="hs-identifier hs-var"
+	  >assertBool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Input failed to decode successfully&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Assertion) -&gt; Bool -&gt; Assertion
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException ByteString
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284823"
+	><span class="hs-identifier hs-var"
+	  >target</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either DecodeException ByteString
+-&gt; Either DecodeException ByteString -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Either DecodeException ByteString
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679284910"
+	><span class="hs-identifier hs-var"
+	  >input</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Non-canonical bytestring encodings decode succesfully&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Data via lazy bytestrings&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; TestTree) -&gt; Property -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Property -&gt; Property
+forall prop. Testable prop =&gt; Int -&gt; prop -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>withMaxSuccess</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>5000</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Property) -&gt; Property -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Data -&gt; (Data -&gt; Property) -&gt; Property
+forall a prop.
+(Show a, Testable prop) =&gt;
+Gen a -&gt; (a -&gt; prop) -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>forAll</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	><span class="hs-identifier hs-type"
+	  >Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284913"
+      ><span class="annot"
+	><span class="annottext"
+	  >Data
+</span
+	  ><a href="#local-6989586621679284913"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; Either DecodeException Data
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data
+</span
+	><a href="#local-6989586621679284913"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either DecodeException Data
+-&gt; Either DecodeException Data -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException Data
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; ByteString) -&gt; ByteString -&gt; ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; ByteString
+forall a. Serialise a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.html#serialise"
+	><span class="hs-identifier hs-var"
+	  >serialise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data
+</span
+	><a href="#local-6989586621679284913"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Internal.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BSL.ByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+forall a. Testable a =&gt; TestName -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Arbitrary lazy bytestrings&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; TestTree) -&gt; Property -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Property -&gt; Property
+forall prop. Testable prop =&gt; Int -&gt; prop -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>withMaxSuccess</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>10000</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Property) -&gt; Property -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen ByteString -&gt; (ByteString -&gt; Property) -&gt; Property
+forall a prop.
+(Show a, Testable prop) =&gt;
+Gen a -&gt; (a -&gt; prop) -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>forAll</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Internal.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BSL.ByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679284914"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621679284914"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException ByteString
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Internal.html#toStrict"
+	><span class="hs-identifier hs-var"
+	  >BSL.toStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284914"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either DecodeException ByteString
+-&gt; Either DecodeException ByteString -&gt; Property
+forall a. (Eq a, Show a) =&gt; a -&gt; a -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>===</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Either DecodeException ByteString
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284914"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 1&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284843"
+	><span class="hs-identifier hs-var"
+	  >input1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 2&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284853"
+	><span class="hs-identifier hs-var"
+	  >input2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 3&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284862"
+	><span class="hs-identifier hs-var"
+	  >input3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 4&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284869"
+	><span class="hs-identifier hs-var"
+	  >input4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 5&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284878"
+	><span class="hs-identifier hs-var"
+	  >input5</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 6&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284884"
+	><span class="hs-identifier hs-var"
+	  >input6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 7&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284891"
+	><span class="hs-identifier hs-var"
+	  >input7</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Explicit input 8&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Assertion
+forall {b}. AsByteString b =&gt; b -&gt; Assertion
+</span
+	><a href="#local-6989586621679284909"
+	><span class="hs-identifier hs-var"
+	  >mkTest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679284900"
+	><span class="hs-identifier hs-var"
+	  >input8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#test_flat"
+	><span class="hs-identifier hs-type"
+	  >test_flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span id="test_flat"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_flat :: TestTree
+</span
+	  ><a href="Flat.Spec.html#test_flat"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_flat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;FlatProp&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_deBruijnIso"
+	><span class="hs-identifier hs-var"
+	  >test_deBruijnIso</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_fakeIso"
+	><span class="hs-identifier hs-var"
+	  >test_fakeIso</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_deBruijnTripping"
+	><span class="hs-identifier hs-var"
+	  >test_deBruijnTripping</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_fakeTripping"
+	><span class="hs-identifier hs-var"
+	  >test_fakeTripping</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_binderDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >test_binderDeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_binderFake"
+	><span class="hs-identifier hs-var"
+	  >test_binderFake</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_canonicalData"
+	><span class="hs-identifier hs-var"
+	  >test_canonicalData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_canonicalByteString"
+	><span class="hs-identifier hs-var"
+	  >test_canonicalByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree
+</span
+	><a href="Flat.Spec.html#test_nonCanonicalByteStringDecoding"
+	><span class="hs-identifier hs-var"
+	  >test_nonCanonicalByteStringDecoding</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span class="hs-comment"
+      >-- Helpers</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span class="annot"
+      ><a href="Flat.Spec.html#initB"
+	><span class="hs-identifier hs-type"
+	  >initB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Binder"
+	><span class="hs-identifier hs-type"
+	  >Binder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-type"
+	  >DeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span id="initB"
+      ><span class="annot"
+	><span class="annottext"
+	  >initB :: Binder DeBruijn
+</span
+	  ><a href="Flat.Spec.html#initB"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >initB</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; Binder DeBruijn
+forall name. name -&gt; Binder name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Binder"
+	><span class="hs-identifier hs-var"
+	  >Binder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeBruijn -&gt; Binder DeBruijn) -&gt; DeBruijn -&gt; Binder DeBruijn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#deBruijnInitIndex"
+	><span class="hs-identifier hs-var"
+	  >deBruijnInitIndex</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span class="hs-comment"
+      >-- orphans for QuickCheck generation</span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span id="local-6989586621679284921"
+      ><span id="local-6989586621679284926"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >via</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	    ><span class="hs-identifier hs-type"
+	      >Word64</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Arbitrary</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	    ><span class="hs-identifier hs-type"
+	      >DeBruijn</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679284932"
+      ><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Arbitrary</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#FakeNamedDeBruijn"
+	  ><span class="hs-identifier hs-type"
+	    >FakeNamedDeBruijn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679284937"
+      ><span class="annot"
+	><span class="annottext"
+	  >arbitrary :: Gen FakeNamedDeBruijn
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >arbitrary</span
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; FakeNamedDeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#toFake"
+	><span class="hs-identifier hs-var"
+	  >toFake</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeBruijn -&gt; FakeNamedDeBruijn)
+-&gt; Gen DeBruijn -&gt; Gen FakeNamedDeBruijn
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen DeBruijn
+forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- via debruijn</span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span id="local-6989586621679284939"
+      ><span id="local-6989586621679284943"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-keyword"
+	    >newtype</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Arbitrary</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Binder"
+	    ><span class="hs-identifier hs-type"
+	      >Binder</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	    ><span class="hs-identifier hs-type"
+	      >DeBruijn</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span id="local-6989586621679284947"
+      ><span id="local-6989586621679284951"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-keyword"
+	    >newtype</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Arbitrary</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Binder"
+	    ><span class="hs-identifier hs-type"
+	      >Binder</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#FakeNamedDeBruijn"
+	    ><span class="hs-identifier hs-type"
+	      >FakeNamedDeBruijn</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

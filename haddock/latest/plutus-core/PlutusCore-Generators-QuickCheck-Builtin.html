@@ -1,0 +1,2543 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.QuickCheck.Builtin</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.QuickCheck.Builtin.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.QuickCheck.Builtin</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:ArbitraryBuiltin"
+	      >ArbitraryBuiltin</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:arbitraryBuiltin"
+		  >arbitraryBuiltin</a
+		  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Gen</a
+		  > a</li
+		><li
+		><a href="#v:shrinkBuiltin"
+		  >shrinkBuiltin</a
+		  > &#8759; a &#8594; [a]</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nextInterestingBound"
+	      >nextInterestingBound</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:highInterestingBound"
+	      >highInterestingBound</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:magnitudesPositive"
+	      >magnitudesPositive</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; [(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:chooseIntegerPreferEnds"
+	      >chooseIntegerPreferEnds</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >) &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryPositive"
+	      >arbitraryPositive</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryNegative"
+	      >arbitraryNegative</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitrarySigned"
+	      >arbitrarySigned</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:shrinkIntegralFast"
+	      >shrinkIntegralFast</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	      >Integral</a
+	      > a &#8658; a &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:genConstrTag"
+	      >genConstrTag</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genDataFromSpine"
+	      >genDataFromSpine</a
+	      > &#8759; [()] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	      >Data</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pureIfNull"
+	      >pureIfNull</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+	      >Foldable</a
+	      > f, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f) &#8658; a &#8594; f a &#8594; f a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:AsArbitraryBuiltin"
+	      >AsArbitraryBuiltin</a
+	      > a = <a href="#v:AsArbitraryBuiltin"
+	      >AsArbitraryBuiltin</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unAsArbitraryBuiltin"
+		  >unAsArbitraryBuiltin</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:MaybeSomeTypeOf"
+	      >MaybeSomeTypeOf</a
+	      > k<ul class="subs"
+	      ><li
+		>= <a href="#v:NothingSomeType"
+		  >NothingSomeType</a
+		  ></li
+		><li
+		>| &#8704; (a &#8759; k). <a href="#v:JustSomeType"
+		  >JustSomeType</a
+		  > (<a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+		  >Esc</a
+		  > a))</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eraseMaybeSomeTypeOf"
+	      >eraseMaybeSomeTypeOf</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	      >MaybeSomeTypeOf</a
+	      > k &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:genDefaultUniApply"
+	      >genDefaultUniApply</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Builtin-KnownKind.html#t:KnownKind" title="PlutusCore.Builtin.KnownKind"
+	      >KnownKind</a
+	      > k &#8658; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	      >MaybeSomeTypeOf</a
+	      > k)</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkToStarArgs"
+	      >shrinkToStarArgs</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	      >MaybeSomeTypeOf</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkDropBuiltinSameKind"
+	      >shrinkDropBuiltinSameKind</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > (a &#8759; k)) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	      >MaybeSomeTypeOf</a
+	      > k]</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkDefaultUniApply"
+	      >shrinkDefaultUniApply</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > (a &#8759; k)) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	      >MaybeSomeTypeOf</a
+	      > k]</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkBuiltinSameKind"
+	      >shrinkBuiltinSameKind</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > (a &#8759; k)) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	      >MaybeSomeTypeOf</a
+	      > k]</li
+	    ><li class="src short"
+	    ><a href="#v:genBuiltinTypeOf"
+	      >genBuiltinTypeOf</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkDropBuiltin"
+	      >shrinkDropBuiltin</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > (a &#8759; k)) &#8594; [<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkBuiltinType"
+	      >shrinkBuiltinType</a
+	      > &#8759; <a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > &#8594; [<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:ArbitraryBuiltin" class="def"
+	    >ArbitraryBuiltin</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#ArbitraryBuiltin" class="link"
+	    >Source</a
+	    > <a href="#t:ArbitraryBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Same as <code
+	      ><a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		>Arbitrary</a
+		></code
+	      > but specifically for Plutus built-in types, so that we are not tied to
+ the default implementation of the methods for a built-in type.</p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    >Nothing</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:arbitraryBuiltin" class="def"
+	      >arbitraryBuiltin</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > a <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+	      >Source</a
+	      > <a href="#v:arbitraryBuiltin" class="selflink"
+	      >#</a
+	      ></p
+	    > <div class="subs default"
+	    ><p class="caption"
+	      ></p
+	      ><p class="src"
+	      ><span class="keyword"
+		>default</span
+		> <a id="v:arbitraryBuiltin" class="def"
+		>arbitraryBuiltin</a
+		> &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		>Arbitrary</a
+		> a &#8658; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		>Gen</a
+		> a <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+		>Source</a
+		> <a href="#v:arbitraryBuiltin" class="selflink"
+		>#</a
+		></p
+	      ></div
+	    ><p class="src"
+	    ><a id="v:shrinkBuiltin" class="def"
+	      >shrinkBuiltin</a
+	      > &#8759; a &#8594; [a] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+	      >Source</a
+	      > <a href="#v:shrinkBuiltin" class="selflink"
+	      >#</a
+	      ></p
+	    > <div class="subs default"
+	    ><p class="caption"
+	      ></p
+	      ><p class="src"
+	      ><span class="keyword"
+		>default</span
+		> <a id="v:shrinkBuiltin" class="def"
+		>shrinkBuiltin</a
+		> &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		>Arbitrary</a
+		> a &#8658; a &#8594; [a] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+		>Source</a
+		> <a href="#v:shrinkBuiltin" class="selflink"
+		>#</a
+		></p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ArbitraryBuiltin"
+	    >Instances</h4
+	    ><details id="i:ArbitraryBuiltin" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:1"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-159" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:2"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-245" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  > &#8594; [<a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:3"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-260" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  > &#8594; [<a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:4"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-270" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; [<a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:5"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-214" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  > &#8594; [<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:6"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		      >Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-155" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><pre class="screen"
+		    ><code class="prompt"
+		      >&gt;&gt;&gt; </code
+		      ><strong class="userinput"
+		      ><code
+			>shrinkBuiltin $ Text.pack &quot;abcd&quot;
+</code
+			></strong
+		      >[&quot;&quot;,&quot;cd&quot;,&quot;ab&quot;,&quot;bcd&quot;,&quot;acd&quot;,&quot;abd&quot;,&quot;abc&quot;,&quot;aacd&quot;,&quot;abad&quot;,&quot;abbd&quot;,&quot;abca&quot;,&quot;abcb&quot;,&quot;abcc&quot;]
+</pre
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:7"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-146" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:8"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > ()</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > () <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; () &#8594; [()] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:9"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:10"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > a &#8658; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+		      >Vector</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-299" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+			  >Vector</a
+			  > a) <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+			  >Vector</a
+			  > a &#8594; [<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+			  >Vector</a
+			  > a] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:11"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > a &#8658; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > [a]</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-289" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > [a] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; [a] &#8594; [[a]] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:12"
+		      ></span
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > a, <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > b) &#8658; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > (a, b)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-303" class="link"
+		    >Source</a
+		    > <a href="#t:ArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ArbitraryBuiltin:ArbitraryBuiltin:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitraryBuiltin"
+			  >arbitraryBuiltin</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > (a, b) <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:arbitraryBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrinkBuiltin"
+			  >shrinkBuiltin</a
+			  > &#8759; (a, b) &#8594; [(a, b)] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:shrinkBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nextInterestingBound" class="def"
+	    >nextInterestingBound</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#nextInterestingBound" class="link"
+	    >Source</a
+	    > <a href="#v:nextInterestingBound" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:highInterestingBound" class="def"
+	    >highInterestingBound</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#highInterestingBound" class="link"
+	    >Source</a
+	    > <a href="#v:highInterestingBound" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:magnitudesPositive" class="def"
+	    >magnitudesPositive</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; [(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >)] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#magnitudesPositive" class="link"
+	    >Source</a
+	    > <a href="#v:magnitudesPositive" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A list of ranges.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>import Data.Int
+</code
+		></strong
+	      ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>magnitudesPositive (* 10) (toInteger (maxBound :: Int16))
+</code
+		></strong
+	      >[(1,10),(11,100),(101,1000),(1001,10000),(10001,32767)]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>magnitudesPositive nextInterestingBound (toInteger (maxBound :: Int64))
+</code
+		></strong
+	      >[(1,127),(128,32767),(32768,2147483647),(2147483648,9223372036854775807)]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:chooseIntegerPreferEnds" class="def"
+	    >chooseIntegerPreferEnds</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#chooseIntegerPreferEnds" class="link"
+	    >Source</a
+	    > <a href="#v:chooseIntegerPreferEnds" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryPositive" class="def"
+	    >arbitraryPositive</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryPositive" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryPositive" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate asymptotically larger positive negative numbers (sans zero) with exponentially lower
+ chance, stop at the geometric mean of the range and start increasing the probability of
+ generating larger numbers, so that we generate we're most likely to generate numbers that are
+ either fairly small or really big. Numbers at the beginning of the range are more likely to get
+ generated than at the very end, but only by a fairly small factor. The size parameter is ignored,
+ which is perhaps wrong and should be fixed.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryNegative" class="def"
+	    >arbitraryNegative</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitraryNegative" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryNegative" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Same as <code
+	      ><a href="PlutusCore-Generators-QuickCheck-Builtin.html#v:arbitraryPositive" title="PlutusCore.Generators.QuickCheck.Builtin"
+		>arbitraryPositive</a
+		></code
+	      > except produces negative integers.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitrarySigned" class="def"
+	    >arbitrarySigned</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#arbitrarySigned" class="link"
+	    >Source</a
+	    > <a href="#v:arbitrarySigned" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkIntegralFast" class="def"
+	    >shrinkIntegralFast</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	    >Integral</a
+	    > a &#8658; a &#8594; [a] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkIntegralFast" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkIntegralFast" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Same as <code
+	      >shrinkIntegral</code
+	      > except includes the square root of the given number (or of its
+ negative if the number is negative, in which case the square root is negated too). We need the
+ former because <code
+	      >shrinkIntegral</code
+	      > at most divides the number by two, which makes the number smaller
+ way too slow, hence we add square root to speed up the process.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>shrinkIntegralFast (0 :: Integer)
+</code
+		></strong
+	      >[]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>shrinkIntegralFast (1 :: Integer)
+</code
+		></strong
+	      >[0]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>shrinkIntegralFast (9 :: Integer)
+</code
+		></strong
+	      >[0,3,5,7,8]
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>shrinkIntegralFast (-10000 :: Integer)
+</code
+		></strong
+	      >[0,10000,-100,-5000,-7500,-8750,-9375,-9688,-9844,-9922,-9961,-9981,-9991,-9996,-9998,-9999]
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genConstrTag" class="def"
+	    >genConstrTag</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#genConstrTag" class="link"
+	    >Source</a
+	    > <a href="#v:genConstrTag" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a tag for the <code
+	      ><a href="../plutus-core/PlutusCore-Data.html#v:Constr" title="PlutusCore.Data"
+		>Constr</a
+		></code
+	      > constructor.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genDataFromSpine" class="def"
+	    >genDataFromSpine</a
+	    > &#8759; [()] &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#genDataFromSpine" class="link"
+	    >Source</a
+	    > <a href="#v:genDataFromSpine" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		>Data</a
+		></code
+	      > object using a <code
+	      >spine :: [()]</code
+	      > as a hint. It's helpful to make the spine a
+ list of units rather than a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+		>Word</a
+		></code
+	      > or something, because we have useful functions for arbitrary
+ list splitting.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pureIfNull" class="def"
+	    >pureIfNull</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+	    >Foldable</a
+	    > f, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f) &#8658; a &#8594; f a &#8594; f a <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#pureIfNull" class="link"
+	    >Source</a
+	    > <a href="#v:pureIfNull" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:AsArbitraryBuiltin" class="def"
+	    >AsArbitraryBuiltin</a
+	    > a <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#AsArbitraryBuiltin" class="link"
+	    >Source</a
+	    > <a href="#t:AsArbitraryBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For providing an <code
+	      ><a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		>Arbitrary</a
+		></code
+	      > instance deferring to <code
+	      ><a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		>ArbitraryBuiltin</a
+		></code
+	      >. Useful for implementing
+ <code
+	      ><a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		>ArbitraryBuiltin</a
+		></code
+	      > for a polymorphic built-in type by taking the logic for handling spines from
+ the <code
+	      ><a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		>Arbitrary</a
+		></code
+	      > class and the logic for handling elements from <code
+	      ><a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		>ArbitraryBuiltin</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AsArbitraryBuiltin" class="def"
+		  >AsArbitraryBuiltin</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unAsArbitraryBuiltin" class="def"
+			  >unAsArbitraryBuiltin</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsArbitraryBuiltin"
+	    >Instances</h4
+	    ><details id="i:AsArbitraryBuiltin" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArbitraryBuiltin:Arbitrary:1"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >ArbitraryBuiltin</a
+		      > a &#8658; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Arbitrary</a
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >AsArbitraryBuiltin</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-283" class="link"
+		    >Source</a
+		    > <a href="#t:AsArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArbitraryBuiltin:Arbitrary:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitrary"
+			  >arbitrary</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a) <a href="#v:arbitrary" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrink"
+			  >shrink</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a] <a href="#v:shrink" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArbitraryBuiltin:Num:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >AsArbitraryBuiltin</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-281" class="link"
+		    >Source</a
+		    > <a href="#t:AsArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArbitraryBuiltin:Num:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negate"
+			  >negate</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:negate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:abs"
+			  >abs</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:abs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:signum"
+			  >signum</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:signum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromInteger"
+			  >fromInteger</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArbitraryBuiltin:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >AsArbitraryBuiltin</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-281" class="link"
+		    >Source</a
+		    > <a href="#t:AsArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArbitraryBuiltin:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArbitraryBuiltin:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >AsArbitraryBuiltin</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-281" class="link"
+		    >Source</a
+		    > <a href="#t:AsArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArbitraryBuiltin:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArbitraryBuiltin:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >AsArbitraryBuiltin</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-281" class="link"
+		    >Source</a
+		    > <a href="#t:AsArbitraryBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArbitraryBuiltin:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:AsArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >AsArbitraryBuiltin</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:MaybeSomeTypeOf" class="def"
+	    >MaybeSomeTypeOf</a
+	    > k <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#MaybeSomeTypeOf" class="link"
+	    >Source</a
+	    > <a href="#t:MaybeSomeTypeOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Either a fail to generate anything or a built-in type of a given kind.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NothingSomeType" class="def"
+		  >NothingSomeType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8704; (a &#8759; k). <a id="v:JustSomeType" class="def"
+		  >JustSomeType</a
+		  > (<a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+		  >Esc</a
+		  > a))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MaybeSomeTypeOf"
+	    >Instances</h4
+	    ><details id="i:MaybeSomeTypeOf" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MaybeSomeTypeOf:Arbitrary:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownKind.html#t:KnownKind" title="PlutusCore.Builtin.KnownKind"
+		      >KnownKind</a
+		      > k &#8658; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Arbitrary</a
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >MaybeSomeTypeOf</a
+		      > k)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-404" class="link"
+		    >Source</a
+		    > <a href="#t:MaybeSomeTypeOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MaybeSomeTypeOf:Arbitrary:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitrary"
+			  >arbitrary</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >MaybeSomeTypeOf</a
+			  > k) <a href="#v:arbitrary" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrink"
+			  >shrink</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >MaybeSomeTypeOf</a
+			  > k &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >MaybeSomeTypeOf</a
+			  > k] <a href="#v:shrink" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MaybeSomeTypeOf:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+		      >MaybeSomeTypeOf</a
+		      > k)</span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-315" class="link"
+		    >Source</a
+		    > <a href="#t:MaybeSomeTypeOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MaybeSomeTypeOf:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Builtin.html"
+			>PlutusCore.Generators.QuickCheck.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >MaybeSomeTypeOf</a
+			  > k &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >MaybeSomeTypeOf</a
+			  > k &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >MaybeSomeTypeOf</a
+			  > k &#8594; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+			  >MaybeSomeTypeOf</a
+			  > k &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eraseMaybeSomeTypeOf" class="def"
+	    >eraseMaybeSomeTypeOf</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	    >MaybeSomeTypeOf</a
+	    > k &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#eraseMaybeSomeTypeOf" class="link"
+	    >Source</a
+	    > <a href="#v:eraseMaybeSomeTypeOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Forget the reflected at the type level kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genDefaultUniApply" class="def"
+	    >genDefaultUniApply</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Builtin-KnownKind.html#t:KnownKind" title="PlutusCore.Builtin.KnownKind"
+	    >KnownKind</a
+	    > k &#8658; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	    >MaybeSomeTypeOf</a
+	    > k) <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#genDefaultUniApply" class="link"
+	    >Source</a
+	    > <a href="#v:genDefaultUniApply" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="../plutus-core/PlutusCore-Default-Universe.html#v:DefaultUniApply" title="PlutusCore.Default.Universe"
+		>DefaultUniApply</a
+		></code
+	      > if possible.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkToStarArgs" class="def"
+	    >shrinkToStarArgs</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	    >MaybeSomeTypeOf</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkToStarArgs" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkToStarArgs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shrink a <code
+	      ><a href="../plutus-core/PlutusCore-Default-Universe.html#v:DefaultUniApply" title="PlutusCore.Default.Universe"
+		>DefaultUniApply</a
+		></code
+	      > to one of the elements of the spine and throw away the head
+ (because the head of an application can't be of the same kind as the whole application).
+ We don't have higher-kinded built-in types, so we don't do this kind of shrinking for any kinds
+ other than *.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkDropBuiltinSameKind" class="def"
+	    >shrinkDropBuiltinSameKind</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (a &#8759; k)) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	    >MaybeSomeTypeOf</a
+	    > k] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkDropBuiltinSameKind" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkDropBuiltinSameKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shrink a built-in type while preserving its kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkDefaultUniApply" class="def"
+	    >shrinkDefaultUniApply</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (a &#8759; k)) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	    >MaybeSomeTypeOf</a
+	    > k] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkDefaultUniApply" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkDefaultUniApply" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shrink a function application by shrinking either the function or the argument.
+ The kind is preserved.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkBuiltinSameKind" class="def"
+	    >shrinkBuiltinSameKind</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (a &#8759; k)) &#8594; [<a href="PlutusCore-Generators-QuickCheck-Builtin.html#t:MaybeSomeTypeOf" title="PlutusCore.Generators.QuickCheck.Builtin"
+	    >MaybeSomeTypeOf</a
+	    > k] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltinSameKind" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkBuiltinSameKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Kind-preserving shrinking for <code
+	      ><a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		>DefaultUni</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genBuiltinTypeOf" class="def"
+	    >genBuiltinTypeOf</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >)) <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#genBuiltinTypeOf" class="link"
+	    >Source</a
+	    > <a href="#v:genBuiltinTypeOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a built-in type of a given kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkDropBuiltin" class="def"
+	    >shrinkDropBuiltin</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (a &#8759; k)) &#8594; [<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkDropBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkDropBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shrink a built-in type by dropping a part of it or dropping the whole built-in type in favor of
+ a some minimal one (see <code
+	      ><a href="PlutusCore-Generators-QuickCheck-Builtin.html#v:shrinkDropBuiltinSameKind" title="PlutusCore.Generators.QuickCheck.Builtin"
+		>shrinkDropBuiltinSameKind</a
+		></code
+	      >). The kind is not preserved in the general
+ case.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkBuiltinType" class="def"
+	    >shrinkBuiltinType</a
+	    > &#8759; <a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > &#8594; [<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >] <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#shrinkBuiltinType" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkBuiltinType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Non-kind-preserving shrinking for <code
+	      ><a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		>DefaultUni</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:1"
+		  ></span
+		  > <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		  >Data</a
+		  ></span
+		> <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-241" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitraryData" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      > <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      > &#8594; [<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:2"
+		  ></span
+		  > <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > (<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		  >SomeTypeIn</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  >)</span
+		> <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-506" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitrarySomeTypeIn" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		      >SomeTypeIn</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      >) <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		      >SomeTypeIn</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > &#8594; [<a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		      >SomeTypeIn</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:3"
+		  ></span
+		  > <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  >))</span
+		> <a href="src/PlutusCore.Generators.QuickCheck.Builtin.html#line-435" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitrarySome" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      >)) <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      >) &#8594; [<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      >)] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,874 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.MachineParameters</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Case.html#CaserBuiltin"
+	><span class="hs-identifier"
+	  >CaserBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Case.html#caseBuiltin"
+	><span class="hs-identifier"
+	  >caseBuiltin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Case.html#unavailableCaserBuiltin"
+	><span class="hs-identifier"
+	  >unavailableCaserBuiltin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier"
+	  >BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#cekCostModelForVariant"
+	><span class="hs-identifier"
+	  >cekCostModelForVariant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.MachineParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+	><span class="hs-identifier"
+	  >MachineParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >                                                        </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineVariantParameters"
+	><span class="hs-identifier"
+	  >mkMachineVariantParameters</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.MachineParameters.Default</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.Default.html#DefaultMachineParameters"
+	><span class="hs-identifier"
+	  >DefaultMachineParameters</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.MachineParameters.html#machineParametersFor"
+	><span class="hs-identifier hs-type"
+	  >machineParametersFor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.Default.html#DefaultMachineParameters"
+	><span class="hs-identifier hs-type"
+	  >DefaultMachineParameters</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span id="machineParametersFor"
+      ><span class="annot"
+	><span class="annottext"
+	  >machineParametersFor :: PlutusLedgerLanguage
+-&gt; MajorProtocolVersion -&gt; DefaultMachineParameters
+</span
+	  ><a href="PlutusLedgerApi.MachineParameters.html#machineParametersFor"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >machineParametersFor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681177581"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusLedgerLanguage
+</span
+	  ><a href="#local-6989586621681177581"
+	  ><span class="hs-identifier hs-var"
+	    >ledgerLang</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681177582"
+      ><span class="annot"
+	><span class="annottext"
+	  >MajorProtocolVersion
+</span
+	  ><a href="#local-6989586621681177582"
+	  ><span class="hs-identifier hs-var"
+	    >majorPV</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CaserBuiltin (UniOf (CekValue DefaultUni DefaultFun ()))
+-&gt; MachineVariantParameters
+     CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+-&gt; DefaultMachineParameters
+forall machineCosts fun val.
+CaserBuiltin (UniOf val)
+-&gt; MachineVariantParameters machineCosts fun val
+-&gt; MachineParameters machineCosts fun val
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+	><span class="hs-identifier hs-var"
+	  >MachineParameters</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="#local-6989586621681177582"
+	><span class="hs-identifier hs-var"
+	  >majorPV</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion -&gt; MajorProtocolVersion -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#pv11PV"
+	><span class="hs-identifier hs-var"
+	  >pv11PV</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CaserBuiltin (UniOf (CekValue DefaultUni DefaultFun ()))
+forall (uni :: * -&gt; *). Int -&gt; CaserBuiltin uni
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.Case.html#unavailableCaserBuiltin"
+	><span class="hs-identifier hs-var"
+	  >unavailableCaserBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CaserBuiltin (UniOf (CekValue DefaultUni DefaultFun ())))
+-&gt; Int -&gt; CaserBuiltin (UniOf (CekValue DefaultUni DefaultFun ()))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion -&gt; Int
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#getMajorProtocolVersion"
+	><span class="hs-identifier hs-var"
+	  >getMajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="#local-6989586621681177582"
+	><span class="hs-identifier hs-var"
+	  >majorPV</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall term.
+ (UniOf term ~ DefaultUni) =&gt;
+ Some (ValueOf DefaultUni)
+ -&gt; Vector term
+ -&gt; Either Text (HeadSpine term (Some (ValueOf DefaultUni))))
+-&gt; CaserBuiltin DefaultUni
+forall (uni :: * -&gt; *).
+(forall term.
+ (UniOf term ~ uni) =&gt;
+ Some (ValueOf uni)
+ -&gt; Vector term
+ -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+-&gt; CaserBuiltin uni
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.Case.html#CaserBuiltin"
+	><span class="hs-identifier hs-var"
+	  >CaserBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf DefaultUni)
+-&gt; Vector term
+-&gt; Either Text (HeadSpine term (Some (ValueOf DefaultUni)))
+forall term.
+(UniOf term ~ DefaultUni) =&gt;
+Some (ValueOf DefaultUni)
+-&gt; Vector term
+-&gt; Either Text (HeadSpine term (Some (ValueOf DefaultUni)))
+forall (uni :: * -&gt; *) term.
+(CaseBuiltin uni, UniOf term ~ uni) =&gt;
+Some (ValueOf uni)
+-&gt; Vector term -&gt; Either Text (HeadSpine term (Some (ValueOf uni)))
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.Case.html#caseBuiltin"
+	><span class="hs-identifier hs-var"
+	  >caseBuiltin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+-&gt; MachineVariantParameters
+     CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+forall (uni :: * -&gt; *) fun builtincosts val machineCosts.
+(CostingPart uni fun ~ builtincosts, HasMeaningIn uni val,
+ ToBuiltinMeaning uni fun) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; CostModel machineCosts builtincosts
+-&gt; MachineVariantParameters machineCosts fun val
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineVariantParameters"
+	><span class="hs-identifier hs-var"
+	  >mkMachineVariantParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="#local-6989586621681177594"
+	><span class="hs-identifier hs-var"
+	  >builtinSemVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostModel CekMachineCosts BuiltinCostModel
+ -&gt; MachineVariantParameters
+      CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()))
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+-&gt; MachineVariantParameters
+     CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#cekCostModelForVariant"
+	><span class="hs-identifier hs-var"
+	  >cekCostModelForVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="#local-6989586621681177594"
+	><span class="hs-identifier hs-var"
+	  >builtinSemVar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681177594"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinSemVar :: BuiltinSemanticsVariant DefaultFun
+</span
+	  ><a href="#local-6989586621681177594"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinSemVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="#local-6989586621681177581"
+	><span class="hs-identifier hs-var"
+	  >ledgerLang</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV1"
+	><span class="hs-identifier hs-var"
+	  >PlutusV1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="#local-6989586621681177596"
+	><span class="hs-identifier hs-var"
+	  >conwayDependentVariant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >PlutusV2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="#local-6989586621681177596"
+	><span class="hs-identifier hs-var"
+	  >conwayDependentVariant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFunSemanticsVariantC"
+	><span class="hs-identifier hs-var"
+	  >DefaultFunSemanticsVariantC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681177596"
+      ><span class="annot"
+	><span class="annottext"
+	  >conwayDependentVariant :: BuiltinSemanticsVariant DefaultFun
+</span
+	  ><a href="#local-6989586621681177596"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >conwayDependentVariant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="#local-6989586621681177582"
+	><span class="hs-identifier hs-var"
+	  >majorPV</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion -&gt; MajorProtocolVersion -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#changPV"
+	><span class="hs-identifier hs-var"
+	  >changPV</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFunSemanticsVariantA"
+	><span class="hs-identifier hs-var"
+	  >DefaultFunSemanticsVariantA</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFunSemanticsVariantB"
+	><span class="hs-identifier hs-var"
+	  >DefaultFunSemanticsVariantB</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

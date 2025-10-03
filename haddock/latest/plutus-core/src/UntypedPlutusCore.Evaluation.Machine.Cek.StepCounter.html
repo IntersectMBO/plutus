@@ -1,0 +1,4279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE AllowAmbiguousTypes      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds                #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE KindSignatures           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StandaloneKindSignatures #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Primitive</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Coerce.html"
+	><span class="hs-identifier"
+	  >Data.Coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier"
+	  >coerce</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.html"
+	><span class="hs-identifier"
+	  >Data.Primitive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>P</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html"
+	><span class="hs-identifier"
+	  >GHC.TypeNats</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#KnownNat"
+	><span class="hs-identifier"
+	  >KnownNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier"
+	  >Nat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#natVal"
+	><span class="hs-identifier"
+	  >natVal</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Step counter data structure]</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- You might think that since we can store whatever we like in here we might as well</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- use machine words (i.e. 'Word64'), but that is actually slower.</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- | A set of 'Word8' counters that is used in the CEK machine</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- to count steps.</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="StepCounter"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	  ><span class="hs-identifier hs-var"
+	    >StepCounter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681960300"
+      ><span class="annot"
+	><a href="#local-6989586621681960300"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960299"
+      ><span class="annot"
+	><a href="#local-6989586621681960299"
+	  ><span class="hs-identifier hs-type"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="StepCounter"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	  ><span class="hs-identifier hs-var"
+	    >StepCounter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#MutablePrimArray"
+	><span class="hs-identifier hs-type"
+	  >P.MutablePrimArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960299"
+	><span class="hs-identifier hs-type"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Make a new 'StepCounter' with the given number of counters.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="local-6989586621681960279"
+      ><span id="local-6989586621681960280"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#newCounter"
+	    ><span class="hs-identifier hs-type"
+	      >newCounter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#KnownNat"
+	    ><span class="hs-identifier hs-type"
+	      >KnownNat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960279"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	    ><span class="hs-identifier hs-type"
+	      >PrimMonad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960280"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	    ><span class="hs-identifier hs-type"
+	      >Proxy</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960279"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960280"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	    ><span class="hs-identifier hs-type"
+	      >StepCounter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960279"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	    ><span class="hs-identifier hs-type"
+	      >PrimState</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960280"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="newCounter"
+      ><span class="annot"
+	><span class="annottext"
+	  >newCounter :: forall (n :: Nat) (m :: * -&gt; *).
+(KnownNat n, PrimMonad m) =&gt;
+Proxy n -&gt; m (StepCounter n (PrimState m))
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#newCounter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >newCounter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960390"
+      ><span class="annot"
+	><span class="annottext"
+	  >Proxy n
+</span
+	  ><a href="#local-6989586621681960390"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960391"
+      ><span class="annot"
+	><span class="annottext"
+	  >sz :: Int
+</span
+	  ><a href="#local-6989586621681960391"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sz</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Nat -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Nat -&gt; Int) -&gt; Nat -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy n -&gt; Nat
+forall (n :: Nat) (proxy :: Nat -&gt; *). KnownNat n =&gt; proxy n -&gt; Nat
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#natVal"
+	><span class="hs-identifier hs-var"
+	  >natVal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy n
+</span
+	><a href="#local-6989586621681960390"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960392"
+      ><span class="annot"
+	><span class="annottext"
+	  >StepCounter n (PrimState m)
+</span
+	  ><a href="#local-6989586621681960392"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MutablePrimArray (PrimState m) Word8 -&gt; StepCounter n (PrimState m)
+forall (n :: Nat) s. MutablePrimArray s Word8 -&gt; StepCounter n s
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-var"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(MutablePrimArray (PrimState m) Word8
+ -&gt; StepCounter n (PrimState m))
+-&gt; m (MutablePrimArray (PrimState m) Word8)
+-&gt; m (StepCounter n (PrimState m))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; m (MutablePrimArray (PrimState m) Word8)
+forall (m :: * -&gt; *) a.
+(PrimMonad m, Prim a) =&gt;
+Int -&gt; m (MutablePrimArray (PrimState m) a)
+</span
+	><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#newPrimArray"
+	><span class="hs-identifier hs-var"
+	  >P.newPrimArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960391"
+	><span class="hs-identifier hs-var"
+	  >sz</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m) -&gt; m ()
+forall (n :: Nat) (m :: * -&gt; *).
+(KnownNat n, PrimMonad m) =&gt;
+StepCounter n (PrimState m) -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#resetCounter"
+	><span class="hs-identifier hs-var"
+	  >resetCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m)
+</span
+	><a href="#local-6989586621681960392"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m) -&gt; m (StepCounter n (PrimState m))
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m)
+</span
+	><a href="#local-6989586621681960392"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#newCounter"
+	><span class="hs-pragma hs-type"
+	  >newCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Reset all the counters in the given 'StepCounter' to zero.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#resetCounter"
+	><span class="hs-identifier hs-type"
+	  >resetCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960306"
+      ><span class="annot"
+	><a href="#local-6989586621681960306"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960307"
+      ><span class="annot"
+	><a href="#local-6989586621681960307"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#KnownNat"
+	><span class="hs-identifier hs-type"
+	  >KnownNat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960306"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	><span class="hs-identifier hs-type"
+	  >PrimMonad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960307"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960306"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960307"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960307"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="resetCounter"
+      ><span class="annot"
+	><span class="annottext"
+	  >resetCounter :: forall (n :: Nat) (m :: * -&gt; *).
+(KnownNat n, PrimMonad m) =&gt;
+StepCounter n (PrimState m) -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#resetCounter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >resetCounter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960405"
+      ><span class="annot"
+	><span class="annottext"
+	  >MutablePrimArray (PrimState m) Word8
+</span
+	  ><a href="#local-6989586621681960405"
+	  ><span class="hs-identifier hs-var"
+	    >arr</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960406"
+      ><span class="annot"
+	><span class="annottext"
+	  >sz :: Int
+</span
+	  ><a href="#local-6989586621681960406"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sz</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Nat -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Nat -&gt; Int) -&gt; Nat -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy n -&gt; Nat
+forall (n :: Nat) (proxy :: Nat -&gt; *). KnownNat n =&gt; proxy n -&gt; Nat
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#natVal"
+	><span class="hs-identifier hs-var"
+	  >natVal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (t :: Nat). Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681960306"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MutablePrimArray (PrimState m) Word8 -&gt; Int -&gt; Int -&gt; Word8 -&gt; m ()
+forall a (m :: * -&gt; *).
+(Prim a, PrimMonad m) =&gt;
+MutablePrimArray (PrimState m) a -&gt; Int -&gt; Int -&gt; a -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#setPrimArray"
+	><span class="hs-identifier hs-var"
+	  >P.setPrimArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MutablePrimArray (PrimState m) Word8
+</span
+	><a href="#local-6989586621681960405"
+	><span class="hs-identifier hs-var"
+	  >arr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960406"
+	><span class="hs-identifier hs-var"
+	  >sz</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#resetCounter"
+	><span class="hs-pragma hs-type"
+	  >resetCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Read the value of a counter.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#readCounter"
+	><span class="hs-identifier hs-type"
+	  >readCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960315"
+      ><span class="annot"
+	><a href="#local-6989586621681960315"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960316"
+      ><span class="annot"
+	><a href="#local-6989586621681960316"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	><span class="hs-identifier hs-type"
+	  >PrimMonad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960315"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960316"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960315"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960315"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="readCounter"
+      ><span class="annot"
+	><span class="annottext"
+	  >readCounter :: forall (m :: * -&gt; *) (n :: Nat).
+PrimMonad m =&gt;
+StepCounter n (PrimState m) -&gt; Int -&gt; m Word8
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#readCounter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >readCounter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a b. Coercible a b =&gt; a -&gt; b
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#MutablePrimArray"
+	><span class="hs-identifier hs-type"
+	  >P.MutablePrimArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960315"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960315"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960316"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960315"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960315"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MutablePrimArray (PrimState m) Word8 -&gt; Int -&gt; m Word8
+forall a (m :: * -&gt; *).
+(Prim a, PrimMonad m) =&gt;
+MutablePrimArray (PrimState m) a -&gt; Int -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#readPrimArray"
+	><span class="hs-identifier hs-var"
+	  >P.readPrimArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#readCounter"
+	><span class="hs-pragma hs-type"
+	  >readCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Write to a counter.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#writeCounter"
+	><span class="hs-identifier hs-type"
+	  >writeCounter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960324"
+      ><span class="annot"
+	><a href="#local-6989586621681960324"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960325"
+      ><span class="annot"
+	><a href="#local-6989586621681960325"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	><span class="hs-identifier hs-type"
+	  >PrimMonad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960324"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960325"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960324"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960324"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="writeCounter"
+      ><span class="annot"
+	><span class="annottext"
+	  >writeCounter :: forall (m :: * -&gt; *) (n :: Nat).
+PrimMonad m =&gt;
+StepCounter n (PrimState m) -&gt; Int -&gt; Word8 -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#writeCounter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >writeCounter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a b. Coercible a b =&gt; a -&gt; b
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#MutablePrimArray"
+	><span class="hs-identifier hs-type"
+	  >P.MutablePrimArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960324"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960324"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960325"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960324"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960324"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MutablePrimArray (PrimState m) Word8 -&gt; Int -&gt; Word8 -&gt; m ()
+forall a (m :: * -&gt; *).
+(Prim a, PrimMonad m) =&gt;
+MutablePrimArray (PrimState m) a -&gt; Int -&gt; a -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#writePrimArray"
+	><span class="hs-identifier hs-var"
+	  >P.writePrimArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#writeCounter"
+	><span class="hs-pragma hs-type"
+	  >writeCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Modify the value of a counter. Returns the modified value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="local-6989586621681960330"
+      ><span id="local-6989586621681960331"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#modifyCounter"
+	    ><span class="hs-identifier hs-type"
+	      >modifyCounter</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-71"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	    ><span class="hs-identifier hs-type"
+	      >PrimMonad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960330"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-72"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	    ><span class="hs-identifier hs-type"
+	      >Int</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-73"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	    ><span class="hs-identifier hs-type"
+	      >Word8</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	    ><span class="hs-identifier hs-type"
+	      >Word8</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-74"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	    ><span class="hs-identifier hs-type"
+	      >StepCounter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960331"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	    ><span class="hs-identifier hs-type"
+	      >PrimState</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960330"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-75"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960330"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	    ><span class="hs-identifier hs-type"
+	      >Word8</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="modifyCounter"
+      ><span class="annot"
+	><span class="annottext"
+	  >modifyCounter :: forall (m :: * -&gt; *) (n :: Nat).
+PrimMonad m =&gt;
+Int -&gt; (Word8 -&gt; Word8) -&gt; StepCounter n (PrimState m) -&gt; m Word8
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#modifyCounter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >modifyCounter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960430"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621681960430"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960431"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word8 -&gt; Word8
+</span
+	  ><a href="#local-6989586621681960431"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960432"
+      ><span class="annot"
+	><span class="annottext"
+	  >StepCounter n (PrimState m)
+</span
+	  ><a href="#local-6989586621681960432"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960433"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word8
+</span
+	  ><a href="#local-6989586621681960433"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m) -&gt; Int -&gt; m Word8
+forall (m :: * -&gt; *) (n :: Nat).
+PrimMonad m =&gt;
+StepCounter n (PrimState m) -&gt; Int -&gt; m Word8
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#readCounter"
+	><span class="hs-identifier hs-var"
+	  >readCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m)
+</span
+	><a href="#local-6989586621681960432"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960430"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960434"
+      ><span class="annot"
+	><span class="annottext"
+	  >modified :: Word8
+</span
+	  ><a href="#local-6989586621681960434"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >modified</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8 -&gt; Word8
+</span
+	><a href="#local-6989586621681960431"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><a href="#local-6989586621681960433"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m) -&gt; Int -&gt; Word8 -&gt; m ()
+forall (m :: * -&gt; *) (n :: Nat).
+PrimMonad m =&gt;
+StepCounter n (PrimState m) -&gt; Int -&gt; Word8 -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#writeCounter"
+	><span class="hs-identifier hs-var"
+	  >writeCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StepCounter n (PrimState m)
+</span
+	><a href="#local-6989586621681960432"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960430"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><a href="#local-6989586621681960434"
+	><span class="hs-identifier hs-var"
+	  >modified</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8 -&gt; m Word8
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><a href="#local-6989586621681960434"
+	><span class="hs-identifier hs-var"
+	  >modified</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#modifyCounter"
+	><span class="hs-pragma hs-type"
+	  >modifyCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The type of natural numbers in Peano form.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Peano"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Peano"
+	  ><span class="hs-identifier hs-var"
+	    >Peano</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Z"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Z"
+	  ><span class="hs-identifier hs-var"
+	    >Z</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="S"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#S"
+	  ><span class="hs-identifier hs-var"
+	    >S</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Peano"
+	><span class="hs-identifier hs-type"
+	  >Peano</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	><span class="hs-identifier hs-type"
+	  >NatToPeano</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Peano"
+	><span class="hs-identifier hs-type"
+	  >Peano</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="NatToPeano"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	  ><span class="hs-identifier hs-var"
+	    >NatToPeano</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960435"
+      ><span class="annot"
+	><a href="#local-6989586621681960435"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span id="NatToPeano"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	  ><span class="hs-identifier hs-var"
+	    >NatToPeano</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Z"
+	><span class="hs-identifier hs-type"
+	  >Z</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span id="NatToPeano"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	  ><span class="hs-identifier hs-var"
+	    >NatToPeano</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960436"
+      ><span class="annot"
+	><a href="#local-6989586621681960436"
+	  ><span class="hs-identifier hs-type hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#S"
+	><span class="hs-identifier hs-type"
+	  >S</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	><span class="hs-identifier hs-type"
+	  >NatToPeano</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681960436"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#-"
+	><span class="hs-glyph hs-type"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM"
+	><span class="hs-identifier hs-type"
+	  >UpwardsM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Peano"
+	><span class="hs-identifier hs-type"
+	  >Peano</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Applicative"
+	><span class="hs-identifier hs-type"
+	  >Applicative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960335"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="UpwardsM"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM"
+	  ><span class="hs-identifier hs-var"
+	    >UpwardsM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960335"
+      ><span class="annot"
+	><a href="#local-6989586621681960335"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960336"
+      ><span class="annot"
+	><a href="#local-6989586621681960336"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | @upwardsM i k@ means @k i *&gt; k (i + 1) *&gt; ... *&gt; k (i + n - 1)@.</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- We use this function in order to statically unroll a loop in 'itraverseCounter_' through</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- instance resolution. This makes @validation@ benchmarks a couple of percent faster.</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span id="upwardsM"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM"
+	  ><span class="hs-identifier hs-type"
+	    >upwardsM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960335"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960335"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960340"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Applicative"
+	  ><span class="hs-identifier hs-type"
+	    >Applicative</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681960340"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM"
+	  ><span class="hs-identifier hs-type"
+	    >UpwardsM</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681960340"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#Z"
+	  ><span class="hs-identifier hs-type"
+	    >Z</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960446"
+      ><span class="annot"
+	><span class="annottext"
+	  >upwardsM :: Int -&gt; (Int -&gt; f ()) -&gt; f ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >upwardsM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; f ()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; f ()
+forall a. a -&gt; f a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM"
+	><span class="hs-pragma hs-type"
+	  >upwardsM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960344"
+      ><span id="local-6989586621681960345"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM"
+	    ><span class="hs-identifier hs-type"
+	      >UpwardsM</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960344"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960345"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM"
+	    ><span class="hs-identifier hs-type"
+	      >UpwardsM</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960344"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#S"
+	    ><span class="hs-identifier hs-type"
+	      >S</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960345"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960457"
+      ><span class="annot"
+	><span class="annottext"
+	  >upwardsM :: Int -&gt; (Int -&gt; f ()) -&gt; f ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >upwardsM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681960458"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621681960458"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960459"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int -&gt; f ()
+</span
+	  ><a href="#local-6989586621681960459"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; f ()
+</span
+	><a href="#local-6989586621681960459"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960458"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>f () -&gt; f () -&gt; f ()
+forall a b. f a -&gt; f b -&gt; f b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (f :: * -&gt; *) (n :: Peano).
+UpwardsM f n =&gt;
+Int -&gt; (Int -&gt; f ()) -&gt; f ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM"
+	><span class="hs-identifier hs-var"
+	  >upwardsM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681960344"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681960345"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960458"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; f ()
+</span
+	><a href="#local-6989586621681960459"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM"
+	><span class="hs-pragma hs-type"
+	  >upwardsM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Traverse the counters with an effectful function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#itraverseCounter_"
+	><span class="hs-identifier hs-type"
+	  >itraverseCounter_</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960350"
+      ><span class="annot"
+	><a href="#local-6989586621681960350"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960349"
+      ><span class="annot"
+	><a href="#local-6989586621681960349"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM"
+	><span class="hs-identifier hs-type"
+	  >UpwardsM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960349"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	><span class="hs-identifier hs-type"
+	  >NatToPeano</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960350"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	><span class="hs-identifier hs-type"
+	  >PrimMonad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960349"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960349"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960350"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	><span class="hs-identifier hs-type"
+	  >PrimState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960349"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960349"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="itraverseCounter_"
+      ><span class="annot"
+	><span class="annottext"
+	  >itraverseCounter_ :: forall (n :: Nat) (m :: * -&gt; *).
+(UpwardsM m (NatToPeano n), PrimMonad m) =&gt;
+(Int -&gt; Word8 -&gt; m ()) -&gt; StepCounter n (PrimState m) -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#itraverseCounter_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >itraverseCounter_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960469"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int -&gt; Word8 -&gt; m ()
+</span
+	  ><a href="#local-6989586621681960469"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	><span class="hs-identifier hs-type"
+	  >StepCounter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960470"
+      ><span class="annot"
+	><span class="annottext"
+	  >MutablePrimArray (PrimState m) Word8
+</span
+	  ><a href="#local-6989586621681960470"
+	  ><span class="hs-identifier hs-var"
+	    >arr</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- The safety of this operation is a little subtle. The frozen array is only</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- safe to use if the underlying mutable array is not mutated 'afterwards'.</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- In our case it likely _will_ be mutated afterwards... but not until we</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- are done with the frozen version. That ordering is enforced by the fact that</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- the whole thing runs in 'm': future accesses to the mutable array can't</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- happen until this whole function is finished.</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960471"
+      ><span class="annot"
+	><span class="annottext"
+	  >PrimArray Word8
+</span
+	  ><a href="#local-6989586621681960471"
+	  ><span class="hs-identifier hs-var"
+	    >arr'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MutablePrimArray (PrimState m) Word8 -&gt; m (PrimArray Word8)
+forall (m :: * -&gt; *) a.
+PrimMonad m =&gt;
+MutablePrimArray (PrimState m) a -&gt; m (PrimArray a)
+</span
+	><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#unsafeFreezePrimArray"
+	><span class="hs-identifier hs-var"
+	  >P.unsafeFreezePrimArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MutablePrimArray (PrimState m) Word8
+</span
+	><a href="#local-6989586621681960470"
+	><span class="hs-identifier hs-var"
+	  >arr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (f :: * -&gt; *) (n :: Peano).
+UpwardsM f n =&gt;
+Int -&gt; (Int -&gt; f ()) -&gt; f ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#upwardsM"
+	><span class="hs-identifier hs-var"
+	  >upwardsM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	><span class="hs-identifier hs-type"
+	  >NatToPeano</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960350"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Int -&gt; m ()) -&gt; m ()) -&gt; (Int -&gt; m ()) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681960473"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621681960473"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Word8 -&gt; m ()
+</span
+	><a href="#local-6989586621681960469"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960473"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Word8 -&gt; m ()) -&gt; Word8 -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrimArray Word8 -&gt; Int -&gt; Word8
+forall a. Prim a =&gt; PrimArray a -&gt; Int -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.PrimArray.html#indexPrimArray"
+	><span class="hs-identifier hs-var"
+	  >P.indexPrimArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrimArray Word8
+</span
+	><a href="#local-6989586621681960471"
+	><span class="hs-identifier hs-var"
+	  >arr'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681960473"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#itraverseCounter_"
+	><span class="hs-pragma hs-type"
+	  >itraverseCounter_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Traverse the counters with an effectful function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span id="local-6989586621681960358"
+      ><span id="local-6989586621681960359"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#iforCounter_"
+	    ><span class="hs-identifier hs-type"
+	      >iforCounter_</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-128"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#UpwardsM"
+	    ><span class="hs-identifier hs-type"
+	      >UpwardsM</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960358"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#NatToPeano"
+	    ><span class="hs-identifier hs-type"
+	      >NatToPeano</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960359"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimMonad"
+	    ><span class="hs-identifier hs-type"
+	      >PrimMonad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960358"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-129"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#StepCounter"
+	    ><span class="hs-identifier hs-type"
+	      >StepCounter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960359"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Control.Monad.Primitive.html#PrimState"
+	    ><span class="hs-identifier hs-type"
+	      >PrimState</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960358"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-130"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	    ><span class="hs-identifier hs-type"
+	      >Int</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	    ><span class="hs-identifier hs-type"
+	      >Word8</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960358"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-131"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681960358"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span id="iforCounter_"
+      ><span class="annot"
+	><span class="annottext"
+	  >iforCounter_ :: forall (m :: * -&gt; *) (n :: Nat).
+(UpwardsM m (NatToPeano n), PrimMonad m) =&gt;
+StepCounter n (PrimState m) -&gt; (Int -&gt; Word8 -&gt; m ()) -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#iforCounter_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >iforCounter_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Int -&gt; Word8 -&gt; m ()) -&gt; StepCounter n (PrimState m) -&gt; m ())
+-&gt; StepCounter n (PrimState m) -&gt; (Int -&gt; Word8 -&gt; m ()) -&gt; m ()
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Word8 -&gt; m ()) -&gt; StepCounter n (PrimState m) -&gt; m ()
+forall (n :: Nat) (m :: * -&gt; *).
+(UpwardsM m (NatToPeano n), PrimMonad m) =&gt;
+(Int -&gt; Word8 -&gt; m ()) -&gt; StepCounter n (PrimState m) -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#itraverseCounter_"
+	><span class="hs-identifier hs-var"
+	  >itraverseCounter_</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter.html#iforCounter_"
+	><span class="hs-pragma hs-type"
+	  >iforCounter_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Step counter data structure]
+The step counter data structure has had several iterations.
+
+Previously we used a &quot;word array&quot;, which was a single 'Word64' into which we
+packed 8 'Word8's. This worked pretty well: it was pure, and everything reduced
+to a bunch of primitive integer operations.
+
+However, it has a key limitation which is that it can only hold 8 counters.
+The obvious attempt to expand it to use a 'Word128' performed badly.
+
+The 'PrimArray' approach on the other hand was fairly competitive with the
+original 'WordArray', and scales fine to more than 8 counters, so we switched
+to using that instead.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

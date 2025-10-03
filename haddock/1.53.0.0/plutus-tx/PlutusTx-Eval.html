@@ -1,0 +1,515 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Eval</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.53.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Eval.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Eval</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:EvalResult"
+	      >EvalResult</a
+	      > = <a href="#v:EvalResult"
+	      >EvalResult</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:evalResult"
+		  >evalResult</a
+		  > &#8759; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		  >Either</a
+		  > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		  >CekEvaluationException</a
+		  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		  >NamedDeBruijn</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  >) (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:NTerm" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		  >NTerm</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  > ())</li
+		><li
+		><a href="#v:evalResultBudget"
+		  >evalResultBudget</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:evalResultTraces"
+		  >evalResultTraces</a
+		  > &#8759; [<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  >]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:displayEvalResult"
+	      >displayEvalResult</a
+	      > &#8759; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+	      >EvalResult</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:displayExBudget"
+	      >displayExBudget</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:prettyExBudget"
+	      >prettyExBudget</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:evaluateCompiledCode"
+	      >evaluateCompiledCode</a
+	      > &#8759; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+	      >EvalResult</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evaluateCompiledCode-39-"
+	      >evaluateCompiledCode'</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+	      >DefaultMachineParameters</a
+	      > &#8594; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+	      >EvalResult</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evaluatesToError"
+	      >evaluatesToError</a
+	      > &#8759; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evaluatesWithoutError"
+	      >evaluatesWithoutError</a
+	      > &#8759; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvalResult" class="def"
+	    >EvalResult</a
+	    > <a href="src/PlutusTx.Eval.html#EvalResult" class="link"
+	    >Source</a
+	    > <a href="#t:EvalResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:EvalResult" class="def"
+		  >EvalResult</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:evalResult" class="def"
+			  >evalResult</a
+			  > &#8759; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekEvaluationException</a
+			  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  >) (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:NTerm" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >NTerm</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > ())</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:evalResultBudget" class="def"
+			  >evalResultBudget</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:evalResultTraces" class="def"
+			  >evalResultTraces</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvalResult"
+	    >Instances</h4
+	    ><details id="i:EvalResult" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalResult:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+		      >EvalResult</a
+		      ></span
+		    > <a href="src/PlutusTx.Eval.html#line-38" class="link"
+		    >Source</a
+		    > <a href="#t:EvalResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalResult:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Eval.html"
+			>PlutusTx.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+			  >EvalResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+			  >EvalResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+			  >EvalResult</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalResult:Pretty:2"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+		      >EvalResult</a
+		      ></span
+		    > <a href="src/PlutusTx.Eval.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:EvalResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalResult:Pretty:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Eval.html"
+			>PlutusTx.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+			  >EvalResult</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+			  >EvalResult</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:displayEvalResult" class="def"
+	    >displayEvalResult</a
+	    > &#8759; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+	    >EvalResult</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Eval.html#displayEvalResult" class="link"
+	    >Source</a
+	    > <a href="#v:displayEvalResult" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:displayExBudget" class="def"
+	    >displayExBudget</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Eval.html#displayExBudget" class="link"
+	    >Source</a
+	    > <a href="#v:displayExBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyExBudget" class="def"
+	    >prettyExBudget</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusTx.Eval.html#prettyExBudget" class="link"
+	    >Source</a
+	    > <a href="#v:prettyExBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateCompiledCode" class="def"
+	    >evaluateCompiledCode</a
+	    > &#8759; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+	    >EvalResult</a
+	    > <a href="src/PlutusTx.Eval.html#evaluateCompiledCode" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateCompiledCode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Evaluates the given <code
+	      ><a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+		>CompiledCode</a
+		></code
+	      > using the CEK machine
+with the default machine parameters.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateCompiledCode-39-" class="def"
+	    >evaluateCompiledCode'</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+	    >DefaultMachineParameters</a
+	    > &#8594; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="PlutusTx-Eval.html#t:EvalResult" title="PlutusTx.Eval"
+	    >EvalResult</a
+	    > <a href="src/PlutusTx.Eval.html#evaluateCompiledCode%27" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateCompiledCode-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Evaluates the given <code
+	      ><a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+		>CompiledCode</a
+		></code
+	      > using the CEK machine
+with the given machine parameters.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluatesToError" class="def"
+	    >evaluatesToError</a
+	    > &#8759; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Eval.html#evaluatesToError" class="link"
+	    >Source</a
+	    > <a href="#v:evaluatesToError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluatesWithoutError" class="def"
+	    >evaluatesWithoutError</a
+	    > &#8759; <a href="PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Eval.html#evaluatesWithoutError" class="link"
+	    >Source</a
+	    > <a href="#v:evaluatesWithoutError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

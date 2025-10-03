@@ -1,0 +1,2534 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | This module contains example values to be used for testing. These should NOT be used in non-test code!</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Test.Examples</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Numeric.Natural.html"
+	><span class="hs-identifier"
+	  >Numeric.Natural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.html"
+	><span class="hs-identifier"
+	  >Universe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier"
+	  >Some</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Manually constructing scripts]
+The scripts we provide here are *manually* constructed Plutus Core. Why not use our great machinery for easily creating
+scripts with Plutus Tx? Because Plutus Tx relies on a compiler plugin, and so is always going to be a bit finicky to user.
+It seems better therefore to avoid depending on Plutus Tx in any &quot;core&quot; projects like the ledger.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Creates a script which has N arguments, and always succeeds.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Examples.html#alwaysSucceedingNAryFunction"
+	><span class="hs-identifier hs-type"
+	  >alwaysSucceedingNAryFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier hs-type"
+	  >SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="alwaysSucceedingNAryFunction"
+      ><span class="annot"
+	><span class="annottext"
+	  >alwaysSucceedingNAryFunction :: Natural -&gt; SerialisedScript
+</span
+	  ><a href="PlutusLedgerApi.Test.Examples.html#alwaysSucceedingNAryFunction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >alwaysSucceedingNAryFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226936"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621679226936"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC"
+	><span class="hs-identifier hs-var"
+	  >serialiseUPLC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript)
+-&gt; Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Version
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >PLC.plcVersion100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall {t} {uni :: * -&gt; *} {fun}.
+(Eq t, Num t) =&gt;
+t -&gt; Term DeBruijn uni fun ()
+</span
+	><a href="#local-6989586621679226940"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621679226936"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- No more arguments! The body can be anything that doesn't fail, so we return `\x . x`</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679226940"
+      ><span class="annot"
+	><span class="annottext"
+	  >body :: t -&gt; Term DeBruijn uni fun ()
+</span
+	  ><a href="#local-6989586621679226940"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226951"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679226951"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679226951"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t -&gt; t -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; DeBruijn -&gt; Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >UPLC.LamAbs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ())
+-&gt; Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DeBruijn -&gt; Term DeBruijn uni fun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- We're using de Bruijn indices, so we can use the same binder each time!</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="#local-6989586621679226940"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226955"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679226955"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; DeBruijn -&gt; Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >UPLC.LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ())
+-&gt; Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t -&gt; Term DeBruijn uni fun ()
+</span
+	><a href="#local-6989586621679226940"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679226955"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>t -&gt; t -&gt; t
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Creates a script which has N arguments, and always fails.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Examples.html#alwaysFailingNAryFunction"
+	><span class="hs-identifier hs-type"
+	  >alwaysFailingNAryFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier hs-type"
+	  >SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="alwaysFailingNAryFunction"
+      ><span class="annot"
+	><span class="annottext"
+	  >alwaysFailingNAryFunction :: Natural -&gt; SerialisedScript
+</span
+	  ><a href="PlutusLedgerApi.Test.Examples.html#alwaysFailingNAryFunction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >alwaysFailingNAryFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226957"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621679226957"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC"
+	><span class="hs-identifier hs-var"
+	  >serialiseUPLC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript)
+-&gt; Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Version
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >PLC.plcVersion100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall {t} {uni :: * -&gt; *} {fun}.
+(Eq t, Num t) =&gt;
+t -&gt; Term DeBruijn uni fun ()
+</span
+	><a href="#local-6989586621679226958"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621679226957"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- No more arguments! The body should be error.</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679226958"
+      ><span class="annot"
+	><span class="annottext"
+	  >body :: t -&gt; Term DeBruijn uni fun ()
+</span
+	  ><a href="#local-6989586621679226958"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226966"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679226966"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679226966"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t -&gt; t -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Term DeBruijn uni fun ()
+forall name (uni :: * -&gt; *) fun ann. ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- We're using de Bruijn indices, so we can use the same binder each time!</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="#local-6989586621679226958"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226968"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679226968"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; DeBruijn -&gt; Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >UPLC.LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ())
+-&gt; Term DeBruijn uni fun () -&gt; Term DeBruijn uni fun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t -&gt; Term DeBruijn uni fun ()
+</span
+	><a href="#local-6989586621679226958"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679226968"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>t -&gt; t -&gt; t
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Examples.html#summingFunction"
+	><span class="hs-identifier hs-type"
+	  >summingFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier hs-type"
+	  >SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="summingFunction"
+      ><span class="annot"
+	><span class="annottext"
+	  >summingFunction :: SerialisedScript
+</span
+	  ><a href="PlutusLedgerApi.Test.Examples.html#summingFunction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >summingFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC"
+	><span class="hs-identifier hs-var"
+	  >serialiseUPLC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript)
+-&gt; Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Version
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >PLC.plcVersion100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+forall {name}. Term name DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679226970"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679226970"
+      ><span class="annot"
+	><span class="annottext"
+	  >body :: Term name DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679226970"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term name DefaultUni DefaultFun ()
+-&gt; Term name DefaultUni DefaultFun ()
+-&gt; Term name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term name DefaultUni DefaultFun ()
+-&gt; Term name DefaultUni DefaultFun ()
+-&gt; Term name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultFun -&gt; Term name DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; fun -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AddInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.AddInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >PLC.mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >PLC.mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Wrap a script with lambda/app so that, for instance, it has a different hash but the same behavior.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Examples.html#saltFunction"
+	><span class="hs-identifier hs-type"
+	  >saltFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier hs-type"
+	  >SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier hs-type"
+	  >SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="saltFunction"
+      ><span class="annot"
+	><span class="annottext"
+	  >saltFunction :: Integer -&gt; SerialisedScript -&gt; SerialisedScript
+</span
+	  ><a href="PlutusLedgerApi.Test.Examples.html#saltFunction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >saltFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226986"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679226986"
+	  ><span class="hs-identifier hs-var"
+	    >salt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226987"
+      ><span class="annot"
+	><span class="annottext"
+	  >SerialisedScript
+</span
+	  ><a href="#local-6989586621679226987"
+	  ><span class="hs-identifier hs-var"
+	    >b0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC"
+	><span class="hs-identifier hs-var"
+	  >serialiseUPLC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript)
+-&gt; Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Version
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621679226988"
+	><span class="hs-identifier hs-var"
+	  >version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679226989"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679226988"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621679226988"
+	  ><span class="hs-identifier hs-var"
+	    >version</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226990"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term DeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679226990"
+	  ><span class="hs-identifier hs-var"
+	    >b1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SerialisedScript -&gt; Program DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#uncheckedDeserialiseUPLC"
+	><span class="hs-identifier hs-var"
+	  >uncheckedDeserialiseUPLC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SerialisedScript
+</span
+	><a href="#local-6989586621679226987"
+	><span class="hs-identifier hs-var"
+	  >b0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679226989"
+      ><span class="annot"
+	><span class="annottext"
+	  >body :: Term DeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679226989"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; DeBruijn
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >UPLC.LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679226990"
+	><span class="hs-identifier hs-var"
+	  >b1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Some (ValueOf DefaultUni)
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Some (ValueOf uni) -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Some (ValueOf DefaultUni)
+ -&gt; Term DeBruijn DefaultUni DefaultFun ())
+-&gt; Some (ValueOf DefaultUni)
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ValueOf DefaultUni Integer -&gt; Some (ValueOf DefaultUni)
+forall {k} (tag :: k -&gt; *) (a :: k). tag a -&gt; Some tag
+</span
+	><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-var"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ValueOf DefaultUni Integer -&gt; Some (ValueOf DefaultUni))
+-&gt; ValueOf DefaultUni Integer -&gt; Some (ValueOf DefaultUni)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc Integer) -&gt; Integer -&gt; ValueOf DefaultUni Integer
+forall (uni :: * -&gt; *) a. uni (Esc a) -&gt; a -&gt; ValueOf uni a
+</span
+	><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-var"
+	  >PLC.ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc Integer)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.DefaultUniInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679226986"
+	><span class="hs-identifier hs-var"
+	  >salt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Examples.html#integerToByteStringFunction"
+	><span class="hs-identifier hs-type"
+	  >integerToByteStringFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier hs-type"
+	  >SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="integerToByteStringFunction"
+      ><span class="annot"
+	><span class="annottext"
+	  >integerToByteStringFunction :: SerialisedScript
+</span
+	  ><a href="PlutusLedgerApi.Test.Examples.html#integerToByteStringFunction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >integerToByteStringFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC"
+	><span class="hs-identifier hs-var"
+	  >serialiseUPLC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript)
+-&gt; Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Version
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >PLC.plcVersion110</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679226998"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679226998"
+      ><span class="annot"
+	><span class="annottext"
+	  >body :: Term DeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679226998"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- This is run as a Plutus V3 script, so it must return BuiltinUnit</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; DeBruijn
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >UPLC.LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Term DeBruijn DefaultUni DefaultFun ())
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+-&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Apply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; DeBruijn
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >UPLC.LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; () -&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >PLC.mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; [Term DeBruijn DefaultUni DefaultFun ()]
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier hs-var"
+	  >PLC.mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultFun -&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; fun -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IntegerToByteString"
+	><span class="hs-identifier hs-var"
+	  >PLC.IntegerToByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >PLC.mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >PLC.mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>5</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >PLC.mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,1169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.TH</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.TH.html#compile"
+	><span class="hs-identifier"
+	  >compile</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.TH.html#compileUntyped"
+	><span class="hs-identifier"
+	  >compileUntyped</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.TH.html#loadFromFile"
+	><span class="hs-identifier"
+	  >loadFromFile</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Code</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Plugin.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >-- We do not use qualified import because the whole module contains off-chain code</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html"
+	><span class="hs-identifier"
+	  >Control.Monad.IO.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compile a quoted Haskell expression into a corresponding Plutus Core program.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="local-6989586621680046392"
+      ><span class="annot"
+	><a href="PlutusTx.TH.html#compile"
+	  ><span class="hs-identifier hs-type"
+	    >compile</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Code"
+	  ><span class="hs-identifier hs-type"
+	    >TH.Code</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Q"
+	  ><span class="hs-identifier hs-type"
+	    >TH.Q</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680046392"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Code"
+	  ><span class="hs-identifier hs-type"
+	    >TH.Code</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Q"
+	  ><span class="hs-identifier hs-type"
+	    >TH.Q</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680046392"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Typed TH]</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="compile"
+      ><span class="annot"
+	><span class="annottext"
+	  >compile :: forall a. Code Q a -&gt; Code Q (CompiledCode a)
+</span
+	  ><a href="PlutusTx.TH.html#compile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680046452"
+      ><span class="annot"
+	><span class="annottext"
+	  >Code Q a
+</span
+	  ><a href="#local-6989586621680046452"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Q Exp -&gt; Code Q (CompiledCode a)
+forall a (m :: * -&gt; *). Quote m =&gt; m Exp -&gt; Code m a
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#unsafeCodeCoerce"
+	><span class="hs-identifier hs-var"
+	  >TH.unsafeCodeCoerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Q Exp -&gt; Code Q (CompiledCode a))
+-&gt; Q Exp -&gt; Code Q (CompiledCode a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Q Exp -&gt; Q Exp
+</span
+	><a href="PlutusTx.TH.html#compileUntyped"
+	><span class="hs-identifier hs-var"
+	  >compileUntyped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Q Exp -&gt; Q Exp) -&gt; Q Exp -&gt; Q Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TExp a -&gt; Exp
+forall a. TExp a -&gt; Exp
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#unType"
+	><span class="hs-identifier hs-var"
+	  >TH.unType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TExp a -&gt; Exp) -&gt; Q (TExp a) -&gt; Q Exp
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Code Q a -&gt; Q (TExp a)
+forall (m :: * -&gt; *) a. Code m a -&gt; m (TExp a)
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#examineCode"
+	><span class="hs-identifier hs-var"
+	  >TH.examineCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Code Q a
+</span
+	><a href="#local-6989586621680046452"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Load a 'CompiledCode' from a file. Drop-in replacement for 'compile'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621680046411"
+      ><span class="annot"
+	><a href="PlutusTx.TH.html#loadFromFile"
+	  ><span class="hs-identifier hs-type"
+	    >loadFromFile</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	  ><span class="hs-identifier hs-type"
+	    >FilePath</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Code"
+	  ><span class="hs-identifier hs-type"
+	    >TH.Code</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Q"
+	  ><span class="hs-identifier hs-type"
+	    >TH.Q</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680046411"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="loadFromFile"
+      ><span class="annot"
+	><span class="annottext"
+	  >loadFromFile :: forall a. FilePath -&gt; Code Q (CompiledCode a)
+</span
+	  ><a href="PlutusTx.TH.html#loadFromFile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >loadFromFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680046463"
+      ><span class="annot"
+	><span class="annottext"
+	  >FilePath
+</span
+	  ><a href="#local-6989586621680046463"
+	  ><span class="hs-identifier hs-var"
+	    >fp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Q (TExp (CompiledCode a)) -&gt; Code Q (CompiledCode a)
+forall a (m :: * -&gt; *). m (TExp a) -&gt; Code m a
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#liftCode"
+	><span class="hs-identifier hs-var"
+	  >TH.liftCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Q (TExp (CompiledCode a)) -&gt; Code Q (CompiledCode a))
+-&gt; Q (TExp (CompiledCode a)) -&gt; Code Q (CompiledCode a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- so we lift the bytestring and construct the value in the quote.</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680046465"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621680046465"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO ByteString -&gt; Q ByteString
+forall a. IO a -&gt; Q a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html#liftIO"
+	><span class="hs-identifier hs-var"
+	  >liftIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IO ByteString -&gt; Q ByteString) -&gt; IO ByteString -&gt; Q ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; IO ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#readFile"
+	><span class="hs-identifier hs-var"
+	  >BS.readFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="#local-6989586621680046463"
+	><span class="hs-identifier hs-var"
+	  >fp</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Code Q (CompiledCode a) -&gt; Q (TExp (CompiledCode a))
+forall (m :: * -&gt; *) a. Code m a -&gt; m (TExp a)
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#examineCode"
+	><span class="hs-identifier hs-var"
+	  >TH.examineCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[||</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+-&gt; Maybe ByteString -&gt; CoverageIndex -&gt; CompiledCodeIn uni fun a
+forall (uni :: * -&gt; *) fun a.
+ByteString
+-&gt; Maybe ByteString -&gt; CoverageIndex -&gt; CompiledCodeIn uni fun a
+</span
+	><a href="PlutusTx.Code.html#SerializedCode"
+	><span class="hs-identifier hs-var"
+	  >SerializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680046465"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >||]</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Typed TH]
+It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we
+want to make a type literal, and there's no way to do that properly with typed TH.
+
+Moreover, we really want to create an expression with the precise form that we want,
+so we can't isolate the badness much. So we pretty much just have to use 'unsafeTExpCoerce'
+and assert that we know what we're doing.
+
+This isn't so bad, since our plc function accepts an argument of any type, so that's always
+going to typecheck, and the result is always a 'CompiledCode', so that's also fine.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compile a quoted Haskell expression into a corresponding Plutus Core program.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.TH.html#compileUntyped"
+	><span class="hs-identifier hs-type"
+	  >compileUntyped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Q"
+	><span class="hs-identifier hs-type"
+	  >TH.Q</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Exp"
+	><span class="hs-identifier hs-type"
+	  >TH.Exp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Q"
+	><span class="hs-identifier hs-type"
+	  >TH.Q</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Exp"
+	><span class="hs-identifier hs-type"
+	  >TH.Exp</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="compileUntyped"
+      ><span class="annot"
+	><span class="annottext"
+	  >compileUntyped :: Q Exp -&gt; Q Exp
+</span
+	  ><a href="PlutusTx.TH.html#compileUntyped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compileUntyped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680046469"
+      ><span class="annot"
+	><span class="annottext"
+	  >Q Exp
+</span
+	  ><a href="#local-6989586621680046469"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; Q ()
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#addCorePlugin"
+	><span class="hs-identifier hs-var"
+	  >TH.addCorePlugin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Plugin&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680046471"
+      ><span class="annot"
+	><span class="annottext"
+	  >Loc
+</span
+	  ><a href="#local-6989586621680046471"
+	  ><span class="hs-identifier hs-var"
+	    >loc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Q Loc
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#location"
+	><span class="hs-identifier hs-var"
+	  >TH.location</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621680046475"
+      ><span class="annot"
+	><span class="annottext"
+	  >locStr :: FilePath
+</span
+	  ><a href="#local-6989586621680046475"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >locStr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Loc -&gt; FilePath
+forall a. Ppr a =&gt; a -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Ppr.html#pprint"
+	><span class="hs-identifier hs-var"
+	  >TH.pprint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Loc
+</span
+	><a href="#local-6989586621680046471"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- See Note [Typed TH]</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[|</span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Utils.html#plc"
+	><span class="hs-identifier hs-type"
+	  >plc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-type"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-type"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Q TyLit -&gt; Q Type
+forall (m :: * -&gt; *). Quote m =&gt; m TyLit -&gt; m Type
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Lib.Internal.html#litT"
+	><span class="hs-identifier hs-var"
+	  >TH.litT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Q TyLit -&gt; Q Type) -&gt; Q TyLit -&gt; Q Type
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; Q TyLit
+forall (m :: * -&gt; *). Quote m =&gt; FilePath -&gt; m TyLit
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Lib.Internal.html#strTyLit"
+	><span class="hs-identifier hs-var"
+	  >TH.strTyLit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="#local-6989586621680046475"
+	><span class="hs-identifier hs-var"
+	  >locStr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Q Exp
+</span
+	><a href="#local-6989586621680046469"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >|]</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

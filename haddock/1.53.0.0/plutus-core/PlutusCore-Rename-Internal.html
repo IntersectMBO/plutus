@@ -1,0 +1,848 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Rename.Internal</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Rename.Internal.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Rename.Internal</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >The internal module of the renamer that defines the actual algorithms,
+ but not the user-facing API.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    >module <a href="PlutusCore-Rename-Monad.html"
+	      >PlutusCore.Rename.Monad</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Renamed"
+	      >Renamed</a
+	      > a = <a href="#v:Renamed"
+	      >Renamed</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unRenamed"
+		  >unRenamed</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Dupable"
+	      >Dupable</a
+	      > a = <a href="#v:Dupable"
+	      >Dupable</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unDupable"
+		  >unDupable</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:withFreshenedTyVarDecl"
+	      >withFreshenedTyVarDecl</a
+	      > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	      >HasRenaming</a
+	      > ren <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > ren m) &#8658; <a href="PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	      >TyVarDecl</a
+	      > tyname ann &#8594; (<a href="PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	      >TyVarDecl</a
+	      > tyname ann &#8594; m c) &#8594; m c</li
+	    ><li class="src short"
+	    ><a href="#v:withFreshenedVarDecl"
+	      >withFreshenedVarDecl</a
+	      > &#8759; (<a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	      >ScopedRenaming</a
+	      > m) &#8658; <a href="PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	      >VarDecl</a
+	      > tyname name uni ann &#8594; (m (<a href="PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	      >VarDecl</a
+	      > tyname name uni ann) &#8594; m c) &#8594; m c</li
+	    ><li class="src short"
+	    ><a href="#v:renameTypeM"
+	      >renameTypeM</a
+	      > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	      >HasRenaming</a
+	      > ren <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > ren m) &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:renameTermM"
+	      >renameTermM</a
+	      > &#8759; (<a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	      >ScopedRenaming</a
+	      > m) &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:renameProgramM"
+	      >renameProgramM</a
+	      > &#8759; (<a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > tyname name uni fun ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	      >ScopedRenaming</a
+	      > m) &#8658; <a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > tyname name uni fun ann)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  >module <a href="PlutusCore-Rename-Monad.html"
+	    >PlutusCore.Rename.Monad</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Renamed" class="def"
+	    >Renamed</a
+	    > a <a href="src/PlutusCore.Rename.Internal.html#Renamed" class="link"
+	    >Source</a
+	    > <a href="#t:Renamed" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A wrapper for signifying that the value inside of it satisfies global uniqueness.</p
+	    ><p
+	    >It's safe to call <code
+	      ><a href="PlutusCore-Rename-Internal.html#v:unRenamed" title="PlutusCore.Rename.Internal"
+		>unRenamed</a
+		></code
+	      >, it's not safe to call <code
+	      ><a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+		>Renamed</a
+		></code
+	      >, hence the latter is only exported
+ from this internal module and should not be exported from the main API.</p
+	    ><p
+	    >Don't provide any instances allowing the user to create a <code
+	      ><a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+		>Renamed</a
+		></code
+	      > (even out of an existing one
+ like with <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		>Functor</a
+		></code
+	      >).</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Renamed" class="def"
+		  >Renamed</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unRenamed" class="def"
+			  >unRenamed</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Renamed"
+	    >Instances</h4
+	    ><details id="i:Renamed" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Renamed:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+		      >Renamed</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Rename.Internal.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:Renamed" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Renamed:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename-Internal.html"
+			>PlutusCore.Rename.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+			  >Renamed</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+			  >Renamed</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+			  >Renamed</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Renamed:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+		      >Renamed</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Rename.Internal.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:Renamed" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Renamed:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename-Internal.html"
+			>PlutusCore.Rename.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+			  >Renamed</a
+			  > a &#8594; <a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+			  >Renamed</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+			  >Renamed</a
+			  > a &#8594; <a href="PlutusCore-Rename-Internal.html#t:Renamed" title="PlutusCore.Rename.Internal"
+			  >Renamed</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Dupable" class="def"
+	    >Dupable</a
+	    > a <a href="src/PlutusCore.Rename.Internal.html#Dupable" class="link"
+	    >Source</a
+	    > <a href="#t:Dupable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >Dupable a</code
+	      > is isomorphic to <code
+	      >a</code
+	      >, but the only way to extract the <code
+	      >a</code
+	      > is via <code
+	      >liftDupable</code
+	      >
+ (defined in the main API module because of a constraint requirement) which renames the stored
+ value along the way. This type is used whenever</p
+	    ><ol
+	    ><li value="1"
+	      >preserving global uniqueness is required</li
+	      ><li value="2"
+	      >some value may be used multiple times</li
+	      ></ol
+	    ><p
+	    >so we annotate such a value with <code
+	      ><a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+		>Dupable</a
+		></code
+	      > and call <code
+	      >liftDupable</code
+	      > at each usage, which ensures
+ global uniqueness is preserved.</p
+	    ><p
+	    ><code
+	      ><a href="PlutusCore-Rename-Internal.html#v:unDupable" title="PlutusCore.Rename.Internal"
+		>unDupable</a
+		></code
+	      > is not supposed to be exported. Don't provide any instances allowing the user to
+ access the underlying value.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Dupable" class="def"
+		  >Dupable</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unDupable" class="def"
+			  >unDupable</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Dupable"
+	    >Instances</h4
+	    ><details id="i:Dupable" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Dupable:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+		      >Dupable</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Rename.Internal.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:Dupable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Dupable:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename-Internal.html"
+			>PlutusCore.Rename.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Dupable:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+		      >Dupable</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Rename.Internal.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:Dupable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Dupable:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename-Internal.html"
+			>PlutusCore.Rename.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > a &#8594; <a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > a &#8594; <a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withFreshenedTyVarDecl" class="def"
+	    >withFreshenedTyVarDecl</a
+	    > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	    >HasRenaming</a
+	    > ren <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > ren m) &#8658; <a href="PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	    >TyVarDecl</a
+	    > tyname ann &#8594; (<a href="PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	    >TyVarDecl</a
+	    > tyname ann &#8594; m c) &#8594; m c <a href="src/PlutusCore.Rename.Internal.html#withFreshenedTyVarDecl" class="link"
+	    >Source</a
+	    > <a href="#v:withFreshenedTyVarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Replace the unique in the name stored in a <code
+	      ><a href="PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+		>TyVarDecl</a
+		></code
+	      > by a new unique, save the mapping
+ from the old unique to the new one and supply the updated <code
+	      ><a href="PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+		>TyVarDecl</a
+		></code
+	      > to a continuation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withFreshenedVarDecl" class="def"
+	    >withFreshenedVarDecl</a
+	    > &#8759; (<a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	    >ScopedRenaming</a
+	    > m) &#8658; <a href="PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	    >VarDecl</a
+	    > tyname name uni ann &#8594; (m (<a href="PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	    >VarDecl</a
+	    > tyname name uni ann) &#8594; m c) &#8594; m c <a href="src/PlutusCore.Rename.Internal.html#withFreshenedVarDecl" class="link"
+	    >Source</a
+	    > <a href="#v:withFreshenedVarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Replace the unique in the name stored in a <code
+	      ><a href="PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+		>VarDecl</a
+		></code
+	      > by a new unique, save the mapping
+ from the old unique to the new one and supply to a continuation the computation that
+ renames the type stored in the updated <code
+	      ><a href="PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+		>VarDecl</a
+		></code
+	      >.
+ The reason the continuation receives a computation rather than a pure term is that we may want
+ to bring several term and type variables in scope before renaming the types of term variables.
+ This situation arises when we want to rename a bunch of mutually recursive bindings.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renameTypeM" class="def"
+	    >renameTypeM</a
+	    > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	    >HasRenaming</a
+	    > ren <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > ren m) &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="src/PlutusCore.Rename.Internal.html#renameTypeM" class="link"
+	    >Source</a
+	    > <a href="#v:renameTypeM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rename a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		>Kind</a
+		></code
+	      > in the <code
+	      >RenameM</code
+	      > monad.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renameTermM" class="def"
+	    >renameTermM</a
+	    > &#8759; (<a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	    >ScopedRenaming</a
+	    > m) &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusCore.Rename.Internal.html#renameTermM" class="link"
+	    >Source</a
+	    > <a href="#v:renameTermM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rename a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      > in the <code
+	      >RenameM</code
+	      > monad.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renameProgramM" class="def"
+	    >renameProgramM</a
+	    > &#8759; (<a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > tyname name uni fun ann), <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	    >ScopedRenaming</a
+	    > m) &#8658; <a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > tyname name uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > tyname name uni fun ann) <a href="src/PlutusCore.Rename.Internal.html#renameProgramM" class="link"
+	    >Source</a
+	    > <a href="#v:renameProgramM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rename a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+		>Program</a
+		></code
+	      > in the <code
+	      >RenameM</code
+	      > monad.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
