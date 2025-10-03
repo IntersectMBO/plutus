@@ -20,7 +20,7 @@ days:
         - name: How to zk-SNARK on Cardano
           time_start: '15:50'
           time_end: '16:30'
-        - name: TBD-Wu
+        - name: TBD-Andrew
           time_start: '16:40'
           time_end: '17:20'
 
@@ -72,7 +72,7 @@ days:
         - name: TBD-Tudor
           time_start: '15:40'
           time_end: '16:20'
-        - name: Cardano High Assurance's Mission
+        - name: TBD-Wu
           time_start: '16:30'
           time_end: '17:10'
 
@@ -121,7 +121,7 @@ days:
           time_end: '17:00'
     - name: 2.55
       talks:
-        - name: TBD-Jacco
+        - name: A Layered Certifying Compiler Architecture
           time_start: '10:50'
           time_end: '11:30'
         - name: TBD-1
