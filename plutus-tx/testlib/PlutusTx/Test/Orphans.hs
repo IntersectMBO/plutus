@@ -48,5 +48,5 @@ instance
   where
   toTPlc compiledCode =
     catchAll (getPir compiledCode) >>= \case
-      Nothing -> fail "No PIR available"
-      Just program -> toTPlc program
+      Left _ -> fail "No PIR available"
+      Right program -> toTPlc program

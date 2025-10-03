@@ -56,7 +56,7 @@ import PlutusCore.Test (TestNested, ToUPlc (..), goldenAstSize, goldenTPlc, gold
                         runUPlcBudget)
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
-import PlutusTx.Code (CompiledCode, CompiledCodeIn (..), countAstNodes, getPir, getPirNoAnn)
+import PlutusTx.Code
 import PlutusTx.Test.Orphans ()
 import PlutusTx.Test.Run.Uplc (runPlcCek, runPlcCekBudget, runPlcCekTrace)
 import PlutusTx.Test.Util.Compiled (countFlatBytes)
@@ -65,6 +65,8 @@ import Test.Tasty (TestName)
 import Test.Tasty.Extras ()
 import Text.Printf (printf)
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.AstSize
+import PlutusPrelude
 
 -- Value assertion tests
 goldenCodeGen :: (TH.Ppr a) => TestName -> TH.Q a -> TH.ExpQ
@@ -107,8 +109,8 @@ goldenPir
   -> TestNested
 goldenPir name value =
   nestedGoldenVsDoc name ".pir"
-    . maybe
-      "PIR not found in CompiledCode"
+    . either
+      (\ _ -> "PIR not found in CompiledCode")
       (prettyClassicSimple . view progTerm)
     $ getPirNoAnn value
 
@@ -120,8 +122,8 @@ goldenPirReadable
   -> TestNested
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir"
-    . maybe
-      "PIR not found in CompiledCode"
+    . either
+      (\ _ -> "PIR not found in CompiledCode")
       (prettyReadableSimple . view progTerm)
     $ getPirNoAnn value
 
@@ -136,7 +138,7 @@ goldenPirReadableU
   -> TestNested
 goldenPirReadableU name value =
   nestedGoldenVsDoc name ".pir"
-    . maybe "PIR not found in CompiledCode" (prettyReadable . view progTerm)
+    . either (\ _ -> "PIR not found in CompiledCode") (prettyReadable . view progTerm)
     $ getPirNoAnn value
 
 goldenPirBy
@@ -146,7 +148,7 @@ goldenPirBy
   -> CompiledCodeIn uni fun a
   -> TestNested
 goldenPirBy config name value =
-  nestedGoldenVsDoc name ".pir" $ prettyBy config $ getPir value
+  nestedGoldenVsDoc name ".pir" $ prettyBy config $ unsafeFromRight $ getPir value
 
 goldenEvalCek
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
@@ -210,7 +212,7 @@ prettyCodeSize compiledCode =
     , fill 10 "Flat Size:" <+> prettyIntRightAligned flatSize
     ]
  where
-  astSize = countAstNodes compiledCode
+  astSize = UPLC.unAstSize $  programAstSize $ getPlc compiledCode
   flatSize = countFlatBytes compiledCode
 
 prettyIntRightAligned :: (Integral i) => i -> Doc ann

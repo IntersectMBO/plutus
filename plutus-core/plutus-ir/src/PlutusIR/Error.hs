@@ -13,9 +13,11 @@ module PlutusIR.Error
     , PLC.TypeError
     , TypeErrorExt (..)
     , PLC.Normalized (..)
+    , ApplyProgramError (..)
     ) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Error (ApplyProgramError (..))
 import PlutusCore.Pretty qualified as PLC
 import PlutusIR qualified as PIR
 import PlutusPrelude
@@ -37,6 +39,8 @@ data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation er
                      | PLCError !(PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
                      | PLCTypeError !(PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
                      | PIRTypeError !(TypeErrorExt uni a)
+                     | ApplyProgramError !ApplyProgramError
+                     | MissingProgramError
                      deriving stock (Functor)
 
 -- Pretty-printing
@@ -70,3 +74,5 @@ instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) =>
         PLCError e           -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
         PLCTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
         PIRTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
+        ApplyProgramError e  -> PP.vsep ["Error during program application:", PLC.pretty e ]
+        MissingProgramError  -> PP.vsep ["Missing PIR program in CompiledCode"]

@@ -17,7 +17,7 @@ import UntypedPlutusCore.AstSize as Export
 import UntypedPlutusCore.Subst as Export
 
 import PlutusCore.Default qualified as PLC
-import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
+import PlutusCore.Error (ApplyProgramError (IncompatVerError))
 import PlutusCore.Name.Unique as Export
 
 import Control.Monad.Except
@@ -32,4 +32,4 @@ applyProgram
 applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
   = pure $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
 applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
-    throwError $ MkApplyProgramError v1 v2
+    throwError $ IncompatVerError v1 v2

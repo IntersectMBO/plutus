@@ -17,8 +17,9 @@ import Prelude
 
 import PlutusCore qualified as PLC
 import PlutusCore.Flat (Flat)
-import PlutusCore.Pretty (Pretty, PrettyBy, PrettyConst, RenderContext)
+import PlutusCore.Pretty (Pretty, PrettyBy, PrettyConst, RenderContext, pretty)
 import PlutusTx.Code
+import PlutusIR.Error
 
 type family CompiledCodeFuncToHaskType t r where
   CompiledCodeFuncToHaskType (CompiledCodeIn uni fun (a -> b)) r =
@@ -31,8 +32,8 @@ type family FinalType t where
 
 class CompiledCodeFuncToHask t r uni fun where
   applyCodeN'
-    :: (Either String (CompiledCodeIn uni fun (FinalType t)) -> r)
-    -> Either String (CompiledCodeIn uni fun t)
+    :: (Either (Error uni fun PLC.SrcSpans) (CompiledCodeIn uni fun (FinalType t)) -> r)
+    -> Either (Error uni fun PLC.SrcSpans) (CompiledCodeIn uni fun t)
     -> CompiledCodeFuncToHaskType (CompiledCodeIn uni fun t) r
 
 instance {-# OVERLAPPING #-} ( PLC.Everywhere uni Flat
@@ -47,7 +48,7 @@ instance {-# OVERLAPPING #-} ( PLC.Everywhere uni Flat
          ) =>
   CompiledCodeFuncToHask (a -> b) r uni fun where
   applyCodeN' cont f a =
-    applyCodeN' @b @r cont $ f >>= flip applyCode a
+    applyCodeN' @b @r cont $ f >>= flip safeApplyCode a
 
 instance
   ( FinalType a ~ a
@@ -62,30 +63,34 @@ foo :: CompiledCode (Integer -> () -> Bool)
 bar :: CompiledCode Integer
 baz :: CompiledCode ()
 
-applyCodeN foo bar baz :: Either String (CompiledCode Bool)
+applyCodeN foo bar baz :: Either (Error uni fun SrcSpans) (CompiledCode Bool)
 ```
 -}
 applyCodeN
   :: forall uni fun a
-   . CompiledCodeFuncToHask a (Either String (CompiledCodeIn uni fun (FinalType a))) uni fun
+   . CompiledCodeFuncToHask a (Either (Error uni fun PLC.SrcSpans) (CompiledCodeIn uni fun (FinalType a))) uni fun
   => CompiledCodeIn uni fun a
   -> CompiledCodeFuncToHaskType
        (CompiledCodeIn uni fun a)
-       (Either String (CompiledCodeIn uni fun (FinalType a)))
+       (Either (Error uni fun PLC.SrcSpans) (CompiledCodeIn uni fun (FinalType a)))
 applyCodeN =
   applyCodeN'
-    @a @(Either String (CompiledCodeIn uni fun (FinalType a)))
+    @a @(Either (Error uni fun PLC.SrcSpans) (CompiledCodeIn uni fun (FinalType a)))
     id
     . pure
 
--- | Same as 'applyCodeN' but is partial instead of returning `Either String`.
+-- | Same as 'applyCodeN' but is partial instead of returning `Either (Error uni fun SrcSpans)`.
 unsafeApplyCodeN
   :: forall uni fun a
-   . CompiledCodeFuncToHask a (CompiledCodeIn uni fun (FinalType a)) uni fun
+   . ( CompiledCodeFuncToHask a (CompiledCodeIn uni fun (FinalType a)) uni fun
+     , PLC.Everywhere uni PrettyConst
+     , PrettyBy RenderContext (PLC.SomeTypeIn uni)
+     , PLC.Closed uni, Pretty fun
+     )
   => CompiledCodeIn uni fun a
   -> CompiledCodeFuncToHaskType (CompiledCodeIn uni fun a) (CompiledCodeIn uni fun (FinalType a))
 unsafeApplyCodeN =
   applyCodeN'
     @a @(CompiledCodeIn uni fun (FinalType a))
-    (either error id)
+    (either (error . show . pretty) id)
     . pure

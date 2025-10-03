@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE LambdaCase             #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- appears in the generated instances
@@ -65,8 +66,6 @@ data UniqueError ann
     | FreeVariable !Unique !ann
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
-
-instance Exception (UniqueError SrcSpan)
 
 data NormCheckError tyname name uni fun ann
     = BadType !ann !(Type tyname uni ann) !T.Text
@@ -288,11 +287,15 @@ instance (PrettyUni uni, Pretty fun, Pretty ann) =>
 
 -- | Errors from `applyProgram` for PIR, PLC, UPLC.
 data ApplyProgramError =
-    MkApplyProgramError Version Version
+    IncompatVerError Version Version
 
+instance Pretty ApplyProgramError where
+     pretty = \case
+       IncompatVerError v1 v2 ->
+        "Cannot apply two programs together: the first program has version " <> pretty v1
+            <> " but the second program has version " <> pretty v2
+
+-- TODO: remove this, we should not rely on impure exceptions
 instance Show ApplyProgramError where
-    show (MkApplyProgramError v1 v2) =
-        "Cannot apply two programs together: the first program has version " <> show v1
-            <> " but the second program has version " <> show v2
-
+  show = show . pretty
 instance Exception ApplyProgramError

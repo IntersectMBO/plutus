@@ -11,7 +11,17 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusTx.Code where
+module PlutusTx.Code
+  ( CompiledCode
+  , CompiledCodeIn (..)
+  , applyCode
+  , safeApplyCode
+  , getPlc
+  , getPlcNoAnn
+  , getPir
+  , getPirNoAnn
+  , getCovIdx
+  ) where
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
@@ -24,10 +34,13 @@ import PlutusIR qualified as PIR
 import PlutusTx.Coverage (CoverageIndex)
 import PlutusTx.Lift.Instances ()
 import UntypedPlutusCore qualified as UPLC
+import Control.Monad.Except
+import PlutusIR.Error
 
 -- We do not use qualified import because the whole module contains off-chain code
 import PlutusPrelude
 import Prelude as Haskell
+import PlutusIR.Compiler
 
 -- The final type parameter is inferred to be phantom, but we give it a nominal
 -- role, since it corresponds to the Haskell type of the program that was compiled into
@@ -67,6 +80,31 @@ data CompiledCodeIn uni fun a
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 
 -- | Apply a compiled function to a compiled argument. Will fail if the versions don't match.
+safeApplyCode
+  :: ( PLC.Closed uni
+     , uni `PLC.Everywhere` Flat
+     , Flat fun
+     , Pretty fun
+     , PLC.Everywhere uni PrettyConst
+     , PrettyBy RenderContext (PLC.SomeTypeIn uni)
+     , Monad m
+     , MonadError (Error uni fun SrcSpans) m
+     )
+  => CompiledCodeIn uni fun (a -> b)
+  -> CompiledCodeIn uni fun a
+  -> m (CompiledCodeIn uni fun b)
+safeApplyCode fun arg = do
+  uplc <- modifyError ApplyProgramError $ UPLC.applyProgram (getPlc fun) (getPlc arg)
+  pirFun <- getPir fun
+  pirArg <- getPir arg
+  pir <- modifyError ApplyProgramError $ PIR.applyProgram pirFun pirArg
+  pure $ DeserializedCode uplc (Just pir) (getCovIdx fun <> getCovIdx arg)
+
+{-| Apply a compiled function to a compiled argument.
+
+It will throw an error if the Plutus Core versions in the two code blocks don't match.
+See `safeApplyCode` for a safer alternative.
+-}
 applyCode
   :: ( PLC.Closed uni
      , uni `PLC.Everywhere` Flat
@@ -75,56 +113,10 @@ applyCode
      , PLC.Everywhere uni PrettyConst
      , PrettyBy RenderContext (PLC.SomeTypeIn uni)
      )
-  => CompiledCodeIn uni fun (a -> b)
-  -> CompiledCodeIn uni fun a
-  -> Either String (CompiledCodeIn uni fun b)
-applyCode fun arg = do
-  let uplc = unsafeFromRight $ UPLC.applyProgram (getPlc fun) (getPlc arg)
-  -- Probably this could be done with more appropriate combinators, but the
-  -- nested Maybes make it very easy to do the wrong thing here (I did it
-  -- wrong first!), so I wrote it painfully explicitly.
-  pir <- case (getPir fun, getPir arg) of
-    (Just funPir, Just argPir) -> case PIR.applyProgram funPir argPir of
-      Right appliedPir -> pure (Just appliedPir)
-      -- Had PIR for both, but failed to apply them, this should fail
-      Left err         -> Left $ show err
-    -- Missing PIR for one or both, this succeeds but has no PIR
-    (Just funPir, Nothing) ->
-      Left $
-        "Missing PIR for the argument."
-          <> "Got PIR for the function program \n"
-          <> display funPir
-    (Nothing, Just argPir) ->
-      Left $
-        "Missing PIR for the function program."
-          <> "Got PIR for the argument \n"
-          <> display argPir
-    (Nothing, Nothing) -> Left "Missing PIR for both the function program and the argument."
-
-  pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg)
-
-{-| Apply a compiled function to a compiled argument. Will throw if the versions don't match,
-should only be used in non-production code.
--}
-unsafeApplyCode
-  :: ( PLC.Closed uni
-     , uni `PLC.Everywhere` Flat
-     , Flat fun
-     , Pretty fun
-     , PLC.Everywhere uni PrettyConst
-     , PrettyBy RenderContext (PLC.SomeTypeIn uni)
-     )
   => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
-unsafeApplyCode fun arg = case applyCode fun arg of
+applyCode fun arg = case safeApplyCode fun arg of
   Right c  -> c
-  Left err -> error err
-
--- | The size of a 'CompiledCodeIn' as measured in AST nodes.
-countAstNodes
-  :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-  => CompiledCodeIn uni fun a
-  -> Integer
-countAstNodes = UPLC.unAstSize . UPLC.programAstSize . getPlc
+  Left err -> error (show $ pretty err)
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.
@@ -153,19 +145,21 @@ getPlcNoAnn = void . getPlc
 
 -- | Get the Plutus IR program, if there is one, out of a 'CompiledCodeIn'.
 getPir
-  :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-  => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun SrcSpans)
+  :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, MonadError (Error uni fun SrcSpans) m)
+  => CompiledCodeIn uni fun a -> m (PIR.Program PIR.TyName PIR.Name uni fun SrcSpans)
 getPir wrapper = case wrapper of
   SerializedCode _ pir _ -> case pir of
     Just bs -> case unflat (BSL.fromStrict bs) of
       Left e  -> throw $ ImpossibleDeserialisationFailure e
-      Right p -> Just p
-    Nothing -> Nothing
-  DeserializedCode _ pir _ -> pir
+      Right p -> pure p
+    Nothing -> throwError MissingProgramError
+  DeserializedCode _ pir _ ->
+    maybe (throwError MissingProgramError) pure pir
 
 getPirNoAnn
-  :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-  => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun ())
+  :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun
+     , MonadError (Error uni fun SrcSpans) m)
+  => CompiledCodeIn uni fun a -> m (PIR.Program PIR.TyName PIR.Name uni fun ())
 getPirNoAnn = fmap void . getPir
 
 getCovIdx :: CompiledCodeIn uni fun a -> CoverageIndex
