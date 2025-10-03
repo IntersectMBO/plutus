@@ -17,9 +17,9 @@ module PlutusTx.Code
   , applyCode
   , safeApplyCode
   , getPlc
-  , getPlcNoAnn
+  , getPlcForDebug
   , getPir
-  , getPirNoAnn
+  , getPirForDebug
   , getCovIdx
   ) where
 
@@ -40,7 +40,6 @@ import PlutusIR.Error
 -- We do not use qualified import because the whole module contains off-chain code
 import PlutusPrelude
 import Prelude as Haskell
-import PlutusIR.Compiler
 
 -- The final type parameter is inferred to be phantom, but we give it a nominal
 -- role, since it corresponds to the Haskell type of the program that was compiled into
@@ -84,19 +83,15 @@ safeApplyCode
   :: ( PLC.Closed uni
      , uni `PLC.Everywhere` Flat
      , Flat fun
-     , Pretty fun
-     , PLC.Everywhere uni PrettyConst
-     , PrettyBy RenderContext (PLC.SomeTypeIn uni)
-     , Monad m
      , MonadError (Error uni fun SrcSpans) m
      )
   => CompiledCodeIn uni fun (a -> b)
   -> CompiledCodeIn uni fun a
   -> m (CompiledCodeIn uni fun b)
 safeApplyCode fun arg = do
-  uplc <- modifyError ApplyProgramError $ UPLC.applyProgram (getPlc fun) (getPlc arg)
-  pirFun <- getPir fun
-  pirArg <- getPir arg
+  uplc <- modifyError ApplyProgramError $ UPLC.applyProgram (getPlcForDebug fun) (getPlcForDebug arg)
+  pirFun <- getPirForDebug fun
+  pirArg <- getPirForDebug arg
   pir <- modifyError ApplyProgramError $ PIR.applyProgram pirFun pirArg
   pure $ DeserializedCode uplc (Just pir) (getCovIdx fun <> getCovIdx arg)
 
@@ -129,25 +124,25 @@ instance Show ImpossibleDeserialisationFailure where
   show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
 
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
-getPlc
+getPlcForDebug
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
   => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans
-getPlc wrapper = case wrapper of
+getPlcForDebug wrapper = case wrapper of
   SerializedCode plc _ _ -> case unflat (BSL.fromStrict plc) of
     Left e                             -> throw $ ImpossibleDeserialisationFailure e
     Right (UPLC.UnrestrictedProgram p) -> p
   DeserializedCode plc _ _ -> plc
 
-getPlcNoAnn
+getPlc
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
   => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
-getPlcNoAnn = void . getPlc
+getPlc = void . getPlcForDebug
 
 -- | Get the Plutus IR program, if there is one, out of a 'CompiledCodeIn'.
-getPir
+getPirForDebug
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, MonadError (Error uni fun SrcSpans) m)
   => CompiledCodeIn uni fun a -> m (PIR.Program PIR.TyName PIR.Name uni fun SrcSpans)
-getPir wrapper = case wrapper of
+getPirForDebug wrapper = case wrapper of
   SerializedCode _ pir _ -> case pir of
     Just bs -> case unflat (BSL.fromStrict bs) of
       Left e  -> throw $ ImpossibleDeserialisationFailure e
@@ -156,11 +151,11 @@ getPir wrapper = case wrapper of
   DeserializedCode _ pir _ ->
     maybe (throwError MissingProgramError) pure pir
 
-getPirNoAnn
+getPir
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun
      , MonadError (Error uni fun SrcSpans) m)
   => CompiledCodeIn uni fun a -> m (PIR.Program PIR.TyName PIR.Name uni fun ())
-getPirNoAnn = fmap void . getPir
+getPir = fmap void . getPirForDebug
 
 getCovIdx :: CompiledCodeIn uni fun a -> CoverageIndex
 getCovIdx wrapper = case wrapper of

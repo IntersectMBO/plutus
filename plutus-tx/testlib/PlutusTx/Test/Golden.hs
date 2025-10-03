@@ -112,7 +112,7 @@ goldenPir name value =
     . either
       (\ _ -> "PIR not found in CompiledCode")
       (prettyClassicSimple . view progTerm)
-    $ getPirNoAnn value
+    $ getPir value
 
 -- | Does not print uniques.
 goldenPirReadable
@@ -125,7 +125,7 @@ goldenPirReadable name value =
     . either
       (\ _ -> "PIR not found in CompiledCode")
       (prettyReadableSimple . view progTerm)
-    $ getPirNoAnn value
+    $ getPir value
 
 {-| Prints uniques. This should be used sparingly: a simple change to a script or a
 compiler pass may change all uniques, making it difficult to see the actual
@@ -139,7 +139,7 @@ goldenPirReadableU
 goldenPirReadableU name value =
   nestedGoldenVsDoc name ".pir"
     . either (\ _ -> "PIR not found in CompiledCode") (prettyReadable . view progTerm)
-    $ getPirNoAnn value
+    $ getPir value
 
 goldenPirBy
   :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)

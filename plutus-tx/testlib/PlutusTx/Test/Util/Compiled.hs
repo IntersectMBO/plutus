@@ -23,7 +23,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusTx qualified as Tx
-import PlutusTx.Code (CompiledCode, getPlcNoAnn)
+import PlutusTx.Code (CompiledCode, getPlc)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
@@ -53,7 +53,7 @@ countFlatBytes =
     . SerialiseViaFlat
     . UPLC.UnrestrictedProgram
     . toAnonDeBruijnProg
-    . getPlcNoAnn
+    . getPlc
 
 {-| Given a DeBruijn-named term, give every variable the name "v".  If we later
    call unDeBruijn, that will rename the variables to things like "v123", where
@@ -78,7 +78,7 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
 We use this a lot.
 -}
 compiledCodeToTerm :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
-compiledCodeToTerm code = let UPLC.Program _ _ body = Tx.getPlcNoAnn code in body
+compiledCodeToTerm code = let UPLC.Program _ _ body = Tx.getPlc code in body
 
 {-| Evaluate a PLC term and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled

@@ -19,7 +19,7 @@ import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules qualified as PIR
 import PlutusPrelude (Default)
-import PlutusTx.Code (CompiledCodeIn, getPir, getPlcNoAnn)
+import PlutusTx.Code (CompiledCodeIn, getPir, getPlc)
 
 import PlutusCore.Flat (Flat)
 import Test.Tasty.Extras ()
@@ -28,7 +28,7 @@ instance
   (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
   => ToUPlc (CompiledCodeIn uni fun a) uni fun
   where
-  toUPlc compiledCode = toUPlc =<< catchAll (getPlcNoAnn compiledCode)
+  toUPlc compiledCode = toUPlc =<< catchAll (getPlc compiledCode)
 
 instance
   ( PLC.PrettyParens (PLC.SomeTypeIn uni)

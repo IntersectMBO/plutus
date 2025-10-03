@@ -19,7 +19,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersFo
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
 import PlutusCore.Pretty
-import PlutusTx.Code (CompiledCode, getPlcNoAnn)
+import PlutusTx.Code (CompiledCode, getPlc)
 import Prettyprinter (dot, indent, plural, vsep, (<+>))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CekReport (..),
@@ -101,7 +101,7 @@ evaluateCompiledCode'
   :: DefaultMachineParameters -> CompiledCode a -> EvalResult
 evaluateCompiledCode' params code = EvalResult{..}
  where
-  Program _ann _version term = getPlcNoAnn code
+  Program _ann _version term = getPlc code
   CekReport (cekResultToEither -> evalResult) (CountingSt evalResultBudget) evalResultTraces =
     runCekDeBruijn params counting logEmitter term
 
