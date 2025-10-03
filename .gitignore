@@ -120,3 +120,4 @@ TestCert.*
 **/_site/**/**
 **/.jekyll-metadata
 **/.jekyll-cache
+worktrees

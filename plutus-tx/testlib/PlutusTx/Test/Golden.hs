@@ -19,7 +19,7 @@ module PlutusTx.Test.Golden (
   goldenUPlc,
   goldenUPlcReadable,
   goldenBudget,
-  goldenSize,
+  goldenAstSize,
 
   -- * Golden evaluation testing
   goldenEvalCek,
@@ -51,7 +51,7 @@ import PlutusCore.Flat (Flat)
 import PlutusCore.Pretty (Doc, Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
                           PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
                           prettyPlcClassicSimple, prettyReadable, prettyReadableSimple)
-import PlutusCore.Test (TestNested, ToUPlc (..), goldenSize, goldenTPlc, goldenUPlc,
+import PlutusCore.Test (TestNested, ToUPlc (..), goldenAstSize, goldenTPlc, goldenUPlc,
                         goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM, ppCatch, rethrow,
                         runUPlcBudget)
 import PlutusIR.Core.Type (progTerm)
@@ -195,8 +195,8 @@ prettyBudget (PLC.ExBudget (ExCPU cpu) (ExMemory mem)) =
 
 {-| Pretty-print compiled code size
 
-Given a UPLC program, there are two quantification of "size": Term size and Flat size.
-Term Size measures AST nodes of the given UPLC program. Flat Size measures the number
+Given a UPLC program, there are two quantification of "size": AST Size and Flat Size.
+AST Size measures AST nodes of the given UPLC program. Flat Size measures the number
 of bytes when the given program serialized into bytestring using binary flat encoding format.
 
 Cost of storing smart contract onchain is partially determined by the Flat size. So it
@@ -206,11 +206,11 @@ to the flat encoding format.
 prettyCodeSize :: CompiledCodeIn PLC.DefaultUni PLC.DefaultFun a -> Doc ann
 prettyCodeSize compiledCode =
   vsep
-    [ fill 10 "Term Size:" <+> prettyIntRightAligned termSize
+    [ fill 10 "AST Size:" <+> prettyIntRightAligned astSize
     , fill 10 "Flat Size:" <+> prettyIntRightAligned flatSize
     ]
  where
-  termSize = countAstNodes compiledCode
+  astSize = countAstNodes compiledCode
   flatSize = countFlatBytes compiledCode
 
 prettyIntRightAligned :: (Integral i) => i -> Doc ann

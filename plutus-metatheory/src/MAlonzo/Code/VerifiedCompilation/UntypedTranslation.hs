@@ -2534,7 +2534,7 @@ du_translation'63'_178 v0 v1 v2 v3 v4 v5
                                       -> case coe v12 of
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v13
                                              -> let v14
-                                                      = MAlonzo.Code.Builtin.d_decBuiltin_418
+                                                      = MAlonzo.Code.Builtin.d_decBuiltin_426
                                                           (coe v8) (coe v10) in
                                                 coe
                                                   (case coe v14 of

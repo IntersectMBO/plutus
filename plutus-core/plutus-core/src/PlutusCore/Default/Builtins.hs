@@ -2047,7 +2047,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramBls12_381_G2_multiScalarMul)
 
     toBuiltinMeaning _semvar InsertCoin =
-      let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> Value
+      let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
           insertCoinDenotation = Value.insertCoin
           {-# INLINE insertCoinDenotation #-}
        in makeBuiltinMeaning
@@ -2071,7 +2071,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ValueContains =
-      let valueContainsDenotation :: Value -> Value -> Bool
+      let valueContainsDenotation :: Value -> Value -> BuiltinResult Bool
           valueContainsDenotation = Value.valueContains
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning

@@ -143,7 +143,6 @@ let
 
   # Path to the stdlib .agda-lib file for shell export.
   NIX_AGDA_STDLIB = "${agda-stdlib}/standard-library.agda-lib";
-
 in
 
 {

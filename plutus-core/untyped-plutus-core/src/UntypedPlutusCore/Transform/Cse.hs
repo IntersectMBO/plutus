@@ -10,7 +10,7 @@ import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.Size (termSize)
+import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
                                                recordSimplification)
 
@@ -37,14 +37,10 @@ import PlutusCore.Arity (builtinArity)
 1. Simplifications
 -------------------------------------------------------------------------------
 
-This is a simplified (i.e., not fully optimal) implementation of CSE. The two simplifications
-we made are:
+This is a simplified (i.e., not fully optimal) implementation of CSE. The one simplification
+we made is:
 
 - No alpha equivalence check, i.e., `\x -> x` and `\y -> y` are considered different expressions.
-- The builtin function arity information is approximate: rather than using the accurate arities,
-  we simply use the maximum number of arguments applied to a builtin function in the program
-  as the builtin function's arity. The arity information is used to determine whether a builtin
-  application is possibly saturated.
 
 -------------------------------------------------------------------------------
 2. How does it work?
@@ -90,7 +86,7 @@ In the above example, the CSE candidates are `(2+x, "0.1")` and `(1+(2+x), "0.1"
 Note that `3+x` is not a CSE candidate, because it has two paths, and neither has a count
 greater than 1. `2+` is also not a CSE candidate, because it is workfree.
 
-The CSE candidates are then processed in descending order of their `termSize`s. For each CSE
+The CSE candidates are then processed in descending order of their `termAstSize`s. For each CSE
 candidate, we generate a fresh variable, create a LamAbs for it under its path, and substitute
 it for all occurrences in the original term whose paths are descendents (or self) of
 the candidate's path. The order is because a bigger expression may contain a small subexpression.
@@ -222,9 +218,9 @@ cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
       commonSubexprs =
-        -- Processed the common subexpressions in descending order of `termSize`.
+        -- Processed the common subexpressions in descending order of `termAstSize`.
         -- See Note [CSE].
-        sortOn (Down . termSize)
+        sortOn (Down . termAstSize)
           . fmap snd3
           -- A subexpression is common if the count is greater than 1.
           . filter ((> 1) . thd3)

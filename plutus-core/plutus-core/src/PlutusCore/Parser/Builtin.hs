@@ -18,7 +18,7 @@ import PlutusCore.Value qualified as PLC (Value)
 import PlutusCore.Value qualified as Value
 
 import Control.Monad.Combinators
-import Data.ByteString (ByteString, pack)
+import Data.ByteString (ByteString, pack, unpack)
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
@@ -90,7 +90,16 @@ conArray uniA = Vector.fromList <$> conList uniA
 
 -- | Parser for values.
 conValue :: Parser PLC.Value
-conValue = Value.fromList <$> conList knownUni
+conValue = do
+  Value.fromList <$> (traverse validateKeys =<< conList knownUni)
+ where
+  validateToken (token, amt) = do
+    tk <- maybe (fail $ "Invalid token: " <> show (unpack token)) pure (Value.k token)
+    pure (tk, amt)
+  validateKeys (currency, tokens) = do
+    ck <- maybe (fail $ "Invalid currency: " <> show (unpack currency)) pure (Value.k currency)
+    tks <- traverse validateToken tokens
+    pure (ck, tks)
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)

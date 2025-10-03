@@ -25,7 +25,6 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
-import Control.Arrow ((&&&))
 import Data.ByteString qualified as BS
 import Data.Functor
 import Data.Map.Strict qualified as Map
@@ -375,37 +374,22 @@ instance ExMemoryUsage Data where
             B b        -> memoryUsage b
 
 instance ExMemoryUsage Value where
-  memoryUsage = memoryUsage . ValueTotalSize
+    memoryUsage = singletonRose . fromIntegral . Value.totalSize
 
-
-{-| Measure the size of a `Value` by its `Value.totalSize`, multiplied by
-the length of the longest currency symbol or token name plus 1.
--}
-newtype ValueTotalSize = ValueTotalSize {unValueTotalSize :: Value}
+-- | Measure the size of a `Value` by its `Value.totalSize`.
+newtype ValueTotalSize = ValueTotalSize { unValueTotalSize :: Value }
 
 instance ExMemoryUsage ValueTotalSize where
-  memoryUsage =
-    singletonRose
-      . fromInteger
-      . uncurry (*)
-      . (toInteger . Value.totalSize &&& toInteger . (+1) . Value.maxKeyLength)
-      . unValueTotalSize
+    memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
 
-{-| Measure the size of a `Value` by taking the max of
-(size of the outer map, size of the largest inner map), multiplied by
-the length of the longest currency symbol or token name plus 1.
--}
-newtype ValueOuterOrMaxInner = ValueOuterOrMaxInner {unValueOuterOrMaxInner :: Value}
+-- | Measure the size of a `Value` by taking the max of
+-- (size of the outer map, size of the largest inner map).
+newtype ValueOuterOrMaxInner = ValueOuterOrMaxInner { unValueOuterOrMaxInner :: Value }
 
 instance ExMemoryUsage ValueOuterOrMaxInner where
-  memoryUsage =
-    singletonRose
-      . fromInteger
-      . uncurry (*)
-      . ( toInteger . (+1) . Value.maxKeyLength
-            &&& (toInteger . uncurry max . (Map.size . Value.unpack &&& Value.maxInnerSize))
-        )
-      . unValueOuterOrMaxInner
+    memoryUsage (ValueOuterOrMaxInner v) = singletonRose (fromIntegral size)
+      where
+        size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
