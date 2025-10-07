@@ -35,7 +35,7 @@ days:
         - name: 'Aiken Type System: Past, Present, Future'
           time_start: '15:50'
           time_end: '16:50'
-        - name: TBD-Firth
+        - name: Hydra Plutus/Aiken Review
           time_start: '17:00'
           time_end: '17:20'
 
@@ -69,7 +69,7 @@ days:
         - name: UPLC Costing
           time_start: '14:50'
           time_end: '15:30'
-        - name: TBD-Tudor
+        - name: 'Validity, Liquidity, and Fidelity: Formal Verification for Smart Contracts in Cardano'
           time_start: '15:40'
           time_end: '16:20'
         - name: TBD-Wu
