@@ -806,7 +806,7 @@ modelFun <- function(path) {
         mk.result(m, "exp_mod_cost")
     }
 
-    dropListModel   <- linearInX     ("DropList")
+    dropListModel <- linearInX ("DropList")
 
     ## Arrays
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
@@ -814,21 +814,17 @@ modelFun <- function(path) {
     indexArrayModel           <- constantModel ("IndexArray")
 
     ## Values
-    lookupCoinModel <- linearInZ ("LookupCoin")
 
-    ## ValueContains is O(n₂ × log max(m₁, k₁)) where n₂ is the total size of the second Value
-    ## We model this as linear in the sum of sizes, which is conservative
-    valueContainsModel <- {
-        fname <- "ValueContains"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers()
-        m <- lm(t ~ I(x_mem + y_mem), filtered)
-        mk.result(m, "added_sizes")
-    }
+    # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
+    lookupCoinModel           <- linearInZ ("LookupCoin")    
 
-    valueDataModel <- constantModel ("ValueData")
-    unValueDataModel <- linearInX ("UnValueData")
+    # X wrapped with `Logarithmic . ValueOuterOrMaxInner`
+    # Y wrapped with `ValueTotalSize`
+    valueContainsModel        <- linearInY("ValueContains")         
+
+    # Sizes of parameters are used as is (unwrapped):
+    valueDataModel            <- constantModel ("ValueData")
+    unValueDataModel          <- linearInX ("UnValueData")
 
     ##### Models to be returned to Haskell #####
 
