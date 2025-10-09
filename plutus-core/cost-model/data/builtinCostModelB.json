@@ -1209,8 +1209,8 @@
   "lookupCoin": {
     "cpu": {
       "arguments": {
-        "intercept": 209937,
-        "slope": 7181
+        "intercept": 203599,
+        "slope": 7256
       },
       "type": "linear_in_z"
     },
@@ -1223,7 +1223,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 131959
+        "slope": 130720
       },
       "type": "linear_in_y"
     },
@@ -1234,7 +1234,7 @@
   },
   "valueData": {
     "cpu": {
-      "arguments": 182815,
+      "arguments": 156990,
       "type": "constant_cost"
     },
     "memory": {
@@ -1246,7 +1246,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 33361
+        "slope": 36194
       },
       "type": "linear_in_x"
     },
