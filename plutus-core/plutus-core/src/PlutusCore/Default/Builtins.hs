@@ -24,8 +24,9 @@ import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
-                                                    NumBytesCostedAsNumWords (..), memoryUsage,
-                                                    singletonRose)
+                                                    LogValueOuterOrMaxInner (..),
+                                                    NumBytesCostedAsNumWords (..),
+                                                    ValueTotalSize (..), memoryUsage, singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
@@ -2056,8 +2057,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunFourArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar LookupCoin =
-      let lookupCoinDenotation :: ByteString -> ByteString -> Value -> Integer
-          lookupCoinDenotation = Value.lookupCoin
+      let lookupCoinDenotation :: ByteString -> ByteString -> LogValueOuterOrMaxInner -> Integer
+          lookupCoinDenotation p t (LogValueOuterOrMaxInner v) = Value.lookupCoin p t v
           {-# INLINE lookupCoinDenotation #-}
        in makeBuiltinMeaning
             lookupCoinDenotation
@@ -2072,8 +2073,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ValueContains =
-      let valueContainsDenotation :: Value -> Value -> BuiltinResult Bool
-          valueContainsDenotation = Value.valueContains
+      let valueContainsDenotation :: LogValueOuterOrMaxInner -> ValueTotalSize -> BuiltinResult Bool
+          valueContainsDenotation (LogValueOuterOrMaxInner v1) (ValueTotalSize v2) =
+            Value.valueContains v1 v2
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning
             valueContainsDenotation
