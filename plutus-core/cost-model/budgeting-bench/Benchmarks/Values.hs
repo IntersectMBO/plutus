@@ -10,9 +10,9 @@ import Common
 import Control.Monad (replicateM)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
-import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
+import PlutusCore (DefaultFun (InsertCoin, LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (LogValueOuterOrMaxInner (..),
-                                                    ValueTotalSize (..))
+                                                    ValueOuterOrMaxInner (..), ValueTotalSize (..))
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
 import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformByteStringM, uniformRM)
@@ -205,6 +205,58 @@ unValueDataBenchmark :: StdGen -> Benchmark
 unValueDataBenchmark gen =
   createOneTermBuiltinBench UnValueData [] (Value.valueData <$> generateTestValues gen)
 
+-- insertCoin :: ByteString -> ByteString -> Integer -> Value -> Value
+----------------------------------------------------------------------------------------------------
+-- InsertCoin --------------------------------------------------------------------------------------
+
+insertCoinBenchmark :: StdGen -> Benchmark
+insertCoinBenchmark gen =
+  createFourTermBuiltinBenchElementwiseWithWrappers
+    (id, id, id, ValueOuterOrMaxInner) -- Wrap Value argument to report outer/max inner size
+    InsertCoin -- the builtin fun
+    [] -- no type arguments needed (monomorphic builtin)
+    (insertCoinArgs gen) -- the argument combos to generate benchmarks for
+
+insertCoinArgs :: StdGen -> [(ByteString, ByteString, Integer, Value)]
+insertCoinArgs gen = runStateGen_ gen $ \(g :: g) -> do
+  -- Add search keys to common test values
+  let testValues = generateTestValues gen
+  commonWithKeys <- mapM (withSearchKeys g . pure) testValues
+
+  -- Additional tests specific to insertCoin
+  let valueSizes = [(100, 10), (500, 20), (1_000, 50), (2_000, 100)]
+  additionalTests <-
+    sequence $
+      concat
+        [ -- Value size tests (number of policies × tokens per policy)
+          [ generateInsertTest g numPolicies tokensPerPolicy
+          | (numPolicies, tokensPerPolicy) <- valueSizes
+          ]
+        , -- Budget-constrained tests (at 30KB limit)
+          [generateBudgetTest g 30_000]
+        , -- Additional random tests for parameter spread
+          replicate 50 (generateRandomInsertTest g)
+        ]
+
+  pure $ commonWithKeys ++ additionalTests
+
+-- | Generate insert test with specified parameters
+generateInsertTest
+  :: (StatefulGen g m)
+  => g
+  -> Int -- Number of policies
+  -> Int -- Tokens per policy
+  -> m (ByteString, ByteString, Value)
+generateInsertTest g numPolicies tokensPerPolicy =
+  withSearchKeys g (generateConstrainedValue numPolicies tokensPerPolicy g)
+
+-- | Generate random insert test with varied parameters for better spread
+generateRandomInsertTest :: (StatefulGen g m) => g -> m (ByteString, ByteString, Value)
+generateRandomInsertTest g = do
+  numPolicies <- uniformRM (1, 2_000) g
+  tokensPerPolicy <- uniformRM (1, 1_000) g
+  withSearchKeys g (generateConstrainedValue numPolicies tokensPerPolicy g)
+
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
 
@@ -244,15 +296,10 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
   policyIds <- replicateM numPolicies (generateKey g)
   tokenNames <- replicateM tokensPerPolicy (generateKey g)
 
-  -- Generate positive quantities (1 to 1000000)
-  let quantity :: Int -> Int -> Integer
-      quantity policyIndex tokenIndex =
-        fromIntegral (1 + (policyIndex * 1_000 + tokenIndex) `mod` 1_000_000)
-
-      nestedMap :: [(K, [(K, Integer)])]
+  let nestedMap :: [(K, [(K, Integer)])]
       nestedMap =
         [ ( policyId
-          , [ (tokenName, quantity policyIndex tokenIndex)
+          , [ (tokenName, genQuantity policyIndex tokenIndex)
             | (tokenIndex, tokenName) <- zip [0 ..] tokenNames
             ]
           )
@@ -295,3 +342,8 @@ generateKey g = do
 -- | Generate random key as ByteString (for lookup arguments)
 generateKeyBS :: (StatefulGen g m) => g -> m ByteString
 generateKeyBS = uniformByteStringM Value.maxKeyLen
+
+-- | Generate positive quantities (1 to 1000000)
+genQuantity :: Int -> Int -> Integer
+genQuantity policyIndex tokenIndex =
+  fromIntegral (1 + (policyIndex * 1_000 + tokenIndex) `mod` 1_000_000)
