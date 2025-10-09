@@ -35,11 +35,11 @@ import Data.Text qualified as T
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
-import GHC.Exts (Int (I#))
+import GHC.Exts (Int (I#), quotInt#)
 import GHC.Integer
 import GHC.Integer.Logarithms
 import GHC.Natural
-import GHC.Prim
+import GHC.Num.Integer (integerLog2)
 import Universe
 
 {-
@@ -411,7 +411,7 @@ instance ExMemoryUsage n => ExMemoryUsage (Logarithmic n) where
         CostRose size _ ->
           let sizeInteger :: Integer
               sizeInteger = fromSatInt size
-              logSize = I# (integerLog2# sizeInteger)
+              logSize = integerLog2 sizeInteger
           in singletonRose $ max 1 (fromIntegral (logSize + 1))
     {-# INLINE memoryUsage #-}
 
