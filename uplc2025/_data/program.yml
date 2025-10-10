@@ -72,7 +72,7 @@ days:
         - name: 'Validity, Liquidity, and Fidelity: Formal Verification for Smart Contracts in Cardano'
           time_start: '15:40'
           time_end: '16:20'
-        - name: TBD-Wu
+        - name: Importance of educating devs - common pitfalls of Cardano development when interacting with UPLC
           time_start: '16:30'
           time_end: '17:10'
 
