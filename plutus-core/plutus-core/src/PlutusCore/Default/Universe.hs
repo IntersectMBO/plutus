@@ -226,8 +226,8 @@ instance GEq DefaultUni where
             pure Refl
         goStep (DefaultUniApply f1 x1) a2 = do
             DefaultUniApply f2 x2 <- pure a2
-            Refl <- oneShot goRec f1 f2
-            Refl <- oneShot goRec x1 x2
+            Refl <- goRec f1 f2
+            Refl <- goRec x1 x2
             pure Refl
         goStep DefaultUniData a2 = do
             DefaultUniData <- pure a2
