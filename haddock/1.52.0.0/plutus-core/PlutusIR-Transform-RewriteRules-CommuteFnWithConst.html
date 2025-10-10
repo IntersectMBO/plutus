@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.RewriteRules.CommuteFnWithConst</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.RewriteRules.CommuteFnWithConst.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.RewriteRules.CommuteFnWithConst</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Commute such that constants are the first arguments. Consider:</p
+	  ><ol
+	  ><li value="1"
+	    >equalsInteger 1 x</li
+	    ><li value="2"
+	    >equalsInteger x 1</li
+	    ></ol
+	  ><p
+	  >We have unary application, so these are two partial applications:</p
+	  ><ol
+	  ><li value="1"
+	    >(equalsInteger 1) x</li
+	    ><li value="2"
+	    >(equalsInteger x) 1</li
+	    ></ol
+	  ><p
+	  >With (1), we can share the `equalsInteger 1` node, and it will be the same across any place where
+we do this.</p
+	  ><p
+	  >With (2), both the nodes here include x, which is a variable that will likely be different in other
+invocations of <code
+	    >equalsInteger</code
+	    >. So the second one is harder to share, which is worse for CSE.</p
+	  ><p
+	  >So commuting <code
+	    >equalsInteger</code
+	    > so that it has the constant first both a) makes various occurrences of
+<code
+	    >equalsInteger</code
+	    > more likely to look similar, and b) gives us a maximally-shareable node for CSE.</p
+	  ><p
+	  >This applies to any commutative builtin function that takes constants as arguments, although we
+might expect that <code
+	    >equalsInteger</code
+	    > is the one that will benefit the most.
+Plutonomy only commutes <code
+	    ><a href="../plutus-core/PlutusCore-Default-Builtins.html#v:EqualsInteger" title="PlutusCore.Default.Builtins"
+	      >EqualsInteger</a
+	      ></code
+	    > in their <code
+	    >commEquals</code
+	    >.</p
+	  ></div
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:commuteFnWithConst" class="def"
+	    >commuteFnWithConst</a
+	    > &#8759; t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a &#8658; t &#8594; t <a href="src/PlutusIR.Transform.RewriteRules.CommuteFnWithConst.html#commuteFnWithConst" class="link"
+	    >Source</a
+	    > <a href="#v:commuteFnWithConst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

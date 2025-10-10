@@ -1,0 +1,153 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Cost.Base where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.List
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Agda.Builtin.String
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Algebra.Structures
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Builtin
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Data.Maybe.Base
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.Data.String.Base
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.Data.Vec.Base
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>-- Cost.Base.CostingNat
+<span class="lineno">   29 </span>d_CostingNat_4 :: ()
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">d_CostingNat_4 = erased</span></span>
+<span class="lineno">   31 </span>-- Cost.Base.StepKind
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">d_StepKind_6 = ()</span></span>
+<span class="lineno">   33 </span>data T_StepKind_6
+<span class="lineno">   34 </span>  = C_BConst_8 | C_BVar_10 | C_BLamAbs_12 | C_BApply_14 |
+<span class="lineno">   35 </span>    C_BDelay_16 | C_BForce_18 | C_BBuiltin_20 | C_BConstr_22 |
+<span class="lineno">   36 </span>    C_BCase_24
+<span class="lineno">   37 </span>-- Cost.Base.showStepKind'
+<span class="lineno">   38 </span>d_showStepKind''_26 ::
+<span class="lineno">   39 </span>  T_StepKind_6 -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">d_showStepKind''_26 v0</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   42 </span><span class="spaces">      </span><span class="nottickedoff">C_BConst_8 -&gt; coe (&quot;BConst&quot; :: Data.Text.Text)</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">C_BVar_10 -&gt; coe (&quot;BVar&quot; :: Data.Text.Text)</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">C_BLamAbs_12 -&gt; coe (&quot;BLamAbs&quot; :: Data.Text.Text)</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">C_BApply_14 -&gt; coe (&quot;BApply&quot; :: Data.Text.Text)</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">C_BDelay_16 -&gt; coe (&quot;BDelay&quot; :: Data.Text.Text)</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">C_BForce_18 -&gt; coe (&quot;BForce&quot; :: Data.Text.Text)</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="nottickedoff">C_BBuiltin_20 -&gt; coe (&quot;BBuiltin&quot; :: Data.Text.Text)</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="nottickedoff">C_BConstr_22 -&gt; coe (&quot;BConstr&quot; :: Data.Text.Text)</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">C_BCase_24 -&gt; coe (&quot;BCase&quot; :: Data.Text.Text)</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   52 </span>-- Cost.Base.showStepKind
+<span class="lineno">   53 </span>d_showStepKind_28 ::
+<span class="lineno">   54 </span>  T_StepKind_6 -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">d_showStepKind_28 v0</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du_fromMaybe_46 (&quot;&quot; :: Data.Text.Text)</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   59 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d_tail_14</span>
+<span class="lineno">   60 </span><span class="spaces">         </span><span class="nottickedoff">(d_showStepKind''_26 (coe v0)))</span></span>
+<span class="lineno">   61 </span>-- Cost.Base.stepKindList
+<span class="lineno">   62 </span>d_stepKindList_32 :: [T_StepKind_6]
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">d_stepKindList_32</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BConst_8)</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   67 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BVar_10)</span>
+<span class="lineno">   68 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   69 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BLamAbs_12)</span>
+<span class="lineno">   70 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   71 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BApply_14)</span>
+<span class="lineno">   72 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   73 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BDelay_16)</span>
+<span class="lineno">   74 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   75 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BForce_18)</span>
+<span class="lineno">   76 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   77 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BBuiltin_20)</span>
+<span class="lineno">   78 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   79 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BConstr_22)</span>
+<span class="lineno">   80 </span><span class="spaces">                           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   81 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_BCase_24)</span>
+<span class="lineno">   82 </span><span class="spaces">                              </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))))))))</span></span>
+<span class="lineno">   83 </span>-- Cost.Base.ExBudgetCategory
+<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">d_ExBudgetCategory_34 = ()</span></span>
+<span class="lineno">   85 </span>data T_ExBudgetCategory_34
+<span class="lineno">   86 </span>  = C_BStep_36 T_StepKind_6 |
+<span class="lineno">   87 </span>    C_BBuiltinApp_40 MAlonzo.Code.Builtin.T_Builtin_2
+<span class="lineno">   88 </span>                     MAlonzo.Code.Data.Vec.Base.T_Vec_28 |
+<span class="lineno">   89 </span>    C_BStartup_42
+<span class="lineno">   90 </span>-- Cost.Base.MachineParameters
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">d_MachineParameters_46 a0 = ()</span></span>
+<span class="lineno">   92 </span>data T_MachineParameters_46
+<span class="lineno">   93 </span>  = C_MachineParameters'46'constructor_359 (T_ExBudgetCategory_34 -&gt;
+<span class="lineno">   94 </span>                                            AgdaAny)
+<span class="lineno">   95 </span>                                           AgdaAny (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   96 </span>                                           MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+<span class="lineno">   97 </span>-- Cost.Base.MachineParameters.cekMachineCost
+<span class="lineno">   98 </span>d_cekMachineCost_58 ::
+<span class="lineno">   99 </span>  T_MachineParameters_46 -&gt; T_ExBudgetCategory_34 -&gt; AgdaAny
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">d_cekMachineCost_58 v0</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">= case coe v0 of</span>
+<span class="lineno">  102 </span><span class="spaces">      </span><span class="istickedoff">C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -&gt; coe v1</span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  104 </span>-- Cost.Base.MachineParameters.ε
+<span class="lineno">  105 </span>d_ε_60 :: T_MachineParameters_46 -&gt; AgdaAny
+<span class="lineno">  106 </span><span class="decl"><span class="istickedoff">d_ε_60 v0</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="istickedoff">= case coe v0 of</span>
+<span class="lineno">  108 </span><span class="spaces">      </span><span class="istickedoff">C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -&gt; coe v2</span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  110 </span>-- Cost.Base.MachineParameters._∙_
+<span class="lineno">  111 </span>d__'8729'__62 ::
+<span class="lineno">  112 </span>  T_MachineParameters_46 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  113 </span><span class="decl"><span class="istickedoff">d__'8729'__62 v0</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">= case coe v0 of</span>
+<span class="lineno">  115 </span><span class="spaces">      </span><span class="istickedoff">C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -&gt; coe v3</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  117 </span>-- Cost.Base.MachineParameters.costMonoid
+<span class="lineno">  118 </span>d_costMonoid_64 ::
+<span class="lineno">  119 </span>  T_MachineParameters_46 -&gt;
+<span class="lineno">  120 </span>  MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">d_costMonoid_64 v0</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -&gt; coe v4</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  125 </span>-- Cost.Base.MachineParameters.startupCost
+<span class="lineno">  126 </span>d_startupCost_66 :: () -&gt; T_MachineParameters_46 -&gt; AgdaAny
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">d_startupCost_66 ~v0 v1 = du_startupCost_66 v1</span></span>
+<span class="lineno">  128 </span>du_startupCost_66 :: T_MachineParameters_46 -&gt; AgdaAny
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">du_startupCost_66 v0</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="istickedoff">= coe d_cekMachineCost_58 v0 (coe C_BStartup_42)</span></span>
+
+</pre>
+</body>
+</html>

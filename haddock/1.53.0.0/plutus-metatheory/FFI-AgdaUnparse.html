@@ -1,0 +1,1065 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >FFI.AgdaUnparse</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.53.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/FFI.AgdaUnparse.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>FFI.AgdaUnparse</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:usToHyphen"
+	      >usToHyphen</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:AgdaUnparse"
+	      >AgdaUnparse</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:agdaUnparse"
+		  >agdaUnparse</a
+		  > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:agdaUnfold"
+	      >agdaUnfold</a
+	      > &#8759; (<a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+	      >AgdaUnparse</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+	      >Foldable</a
+	      > f) &#8658; f a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:usToHyphen" class="def"
+	    >usToHyphen</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/FFI.AgdaUnparse.html#usToHyphen" class="link"
+	    >Source</a
+	    > <a href="#v:usToHyphen" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:AgdaUnparse" class="def"
+	    >AgdaUnparse</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/FFI.AgdaUnparse.html#AgdaUnparse" class="link"
+	    >Source</a
+	    > <a href="#t:AgdaUnparse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class for types that can be unparsed to Agda code.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:agdaUnparse" class="def"
+	      >agdaUnparse</a
+	      > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+	      >Source</a
+	      > <a href="#v:agdaUnparse" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AgdaUnparse"
+	    >Instances</h4
+	    ><details id="i:AgdaUnparse" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:1"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-74" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:2"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:3"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:4"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-110" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:5"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-92" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:6"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-44" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:7"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+		      >SimplifierStage</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierStage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:8"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+		      >UTerm</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+			  >UTerm</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:9"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		      >Text</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:10"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:11"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+		      >Natural</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+			  >Natural</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:12"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > ()</span
+		    > <a href="src/FFI.AgdaUnparse.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:13"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:14"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+		      >Char</a
+		      ></span
+		    > <a href="src/FFI.AgdaUnparse.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+			  >Char</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:15"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > (<a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+		      >Esc</a
+		      > a))</span
+		    > <a href="src/FFI.AgdaUnparse.html#line-113" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+			  >Esc</a
+			  > a) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:16"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > a &#8658; <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+		      >Vector</a
+		      > a)</span
+		    > <a href="src/FFI.AgdaUnparse.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+			  >Vector</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:17"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > a &#8658; <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > [a]</span
+		    > <a href="src/FFI.AgdaUnparse.html#line-83" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; [a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:18"
+		      ></span
+		      > <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      >))</span
+		    > <a href="src/FFI.AgdaUnparse.html#line-131" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AgdaUnparse:AgdaUnparse:19"
+		      ></span
+		      > (<a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > a, <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > b) &#8658; <a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+		      >AgdaUnparse</a
+		      > (a, b)</span
+		    > <a href="src/FFI.AgdaUnparse.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:AgdaUnparse" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AgdaUnparse:AgdaUnparse:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-AgdaUnparse.html"
+			>FFI.AgdaUnparse</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:agdaUnparse"
+			  >agdaUnparse</a
+			  > &#8759; (a, b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/FFI.AgdaUnparse.html#agdaUnparse" class="link"
+			  >Source</a
+			  > <a href="#v:agdaUnparse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:agdaUnfold" class="def"
+	    >agdaUnfold</a
+	    > &#8759; (<a href="FFI-AgdaUnparse.html#t:AgdaUnparse" title="FFI.AgdaUnparse"
+	    >AgdaUnparse</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+	    >Foldable</a
+	    > f) &#8658; f a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/FFI.AgdaUnparse.html#agdaUnfold" class="link"
+	    >Source</a
+	    > <a href="#v:agdaUnfold" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

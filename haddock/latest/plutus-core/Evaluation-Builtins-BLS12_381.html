@@ -1,0 +1,987 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.BLS12_381</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.BLS12_381.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.BLS12_381</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Property tests for the BLS12-381 builtins </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:mkTestName"
+	      >mkTestName</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withNTests"
+	      >withNTests</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Testable" title="Test.Tasty.QuickCheck"
+	      >Testable</a
+	      > prop &#8658; prop &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryConstant"
+	      >arbitraryConstant</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryScalar"
+	      >arbitraryScalar</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:millerLoopTerm"
+	      >millerLoopTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mulMlResultTerm"
+	      >mulMlResultTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:finalVerifyTerm"
+	      >finalVerifyTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_add_assoc"
+	      >test_add_assoc</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_add_zero"
+	      >test_add_zero</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_neg"
+	      >test_neg</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_add_commutative"
+	      >test_add_commutative</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_is_an_abelian_group"
+	      >test_is_an_abelian_group</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_assoc"
+	      >test_scalarMul_assoc</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_distributive_left"
+	      >test_scalarMul_distributive_left</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_distributive_right"
+	      >test_scalarMul_distributive_right</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_zero"
+	      >test_scalarMul_zero</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_one"
+	      >test_scalarMul_one</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_inverse"
+	      >test_scalarMul_inverse</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_repeated_addition"
+	      >test_scalarMul_repeated_addition</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scalarMul_periodic"
+	      >test_scalarMul_periodic</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_Z_action_good"
+	      >test_Z_action_good</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_roundtrip_compression"
+	      >test_roundtrip_compression</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_uncompression_wrong_size"
+	      >test_uncompression_wrong_size</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_uncompress_out_of_group"
+	      >test_uncompress_out_of_group</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_compression_bit_set"
+	      >test_compression_bit_set</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_clear_compression_bit"
+	      >test_clear_compression_bit</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_flip_sign_bit"
+	      >test_flip_sign_bit</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_set_infinity_bit"
+	      >test_set_infinity_bit</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:numHashCollisionInputs"
+	      >numHashCollisionInputs</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_no_hash_collisions"
+	      >test_no_hash_collisions</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_no_hash_collisions_dst"
+	      >test_no_hash_collisions_dst</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_compress_hash"
+	      >test_compress_hash</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_pairing_left_additive"
+	      >test_pairing_left_additive</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_pairing_right_additive"
+	      >test_pairing_right_additive</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_pairing_balanced"
+	      >test_pairing_balanced</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_random_pairing"
+	      >test_random_pairing</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_BLS12_381"
+	      >test_BLS12_381</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTestName" class="def"
+	    >mkTestName</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#mkTestName" class="link"
+	    >Source</a
+	    > <a href="#v:mkTestName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withNTests" class="def"
+	    >withNTests</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Testable" title="Test.Tasty.QuickCheck"
+	    >Testable</a
+	    > prop &#8658; prop &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#withNTests" class="link"
+	    >Source</a
+	    > <a href="#v:withNTests" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryConstant" class="def"
+	    >arbitraryConstant</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#arbitraryConstant" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryScalar" class="def"
+	    >arbitraryScalar</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#arbitraryScalar" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryScalar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:millerLoopTerm" class="def"
+	    >millerLoopTerm</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#millerLoopTerm" class="link"
+	    >Source</a
+	    > <a href="#v:millerLoopTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mulMlResultTerm" class="def"
+	    >mulMlResultTerm</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#mulMlResultTerm" class="link"
+	    >Source</a
+	    > <a href="#v:mulMlResultTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:finalVerifyTerm" class="def"
+	    >finalVerifyTerm</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#finalVerifyTerm" class="link"
+	    >Source</a
+	    > <a href="#v:finalVerifyTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_add_assoc" class="def"
+	    >test_add_assoc</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_add_assoc" class="link"
+	    >Source</a
+	    > <a href="#v:test_add_assoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Group addition is associative.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_add_zero" class="def"
+	    >test_add_zero</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_add_zero" class="link"
+	    >Source</a
+	    > <a href="#v:test_add_zero" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Zero is an identity for addition.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_neg" class="def"
+	    >test_neg</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_neg" class="link"
+	    >Source</a
+	    > <a href="#v:test_neg" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Every element has an inverse
+ | a+(-a) = 0 for all group elements.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_add_commutative" class="def"
+	    >test_add_commutative</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_add_commutative" class="link"
+	    >Source</a
+	    > <a href="#v:test_add_commutative" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Group addition is commutative.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_is_an_abelian_group" class="def"
+	    >test_is_an_abelian_group</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_is_an_abelian_group" class="link"
+	    >Source</a
+	    > <a href="#v:test_is_an_abelian_group" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_assoc" class="def"
+	    >test_scalarMul_assoc</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_assoc" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_assoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(ab)p = a(bp) for all scalars a and b and all group elements p.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_distributive_left" class="def"
+	    >test_scalarMul_distributive_left</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_distributive_left" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_distributive_left" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(a+b)p = ap +bp for all scalars a and b and all group elements p.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_distributive_right" class="def"
+	    >test_scalarMul_distributive_right</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_distributive_right" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_distributive_right" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >a(p+q) = ap + aq for all scalars a and all group elements p and q.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_zero" class="def"
+	    >test_scalarMul_zero</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_zero" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_zero" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >0p = 0 for all group elements p.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_one" class="def"
+	    >test_scalarMul_one</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_one" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_one" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >1p = p for all group elements p.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_inverse" class="def"
+	    >test_scalarMul_inverse</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_inverse" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_inverse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(-1)p = -p for all group elements p.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_repeated_addition" class="def"
+	    >test_scalarMul_repeated_addition</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_repeated_addition" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_repeated_addition" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scalarMul_periodic" class="def"
+	    >test_scalarMul_periodic</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_scalarMul_periodic" class="link"
+	    >Source</a
+	    > <a href="#v:test_scalarMul_periodic" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_Z_action_good" class="def"
+	    >test_Z_action_good</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_Z_action_good" class="link"
+	    >Source</a
+	    > <a href="#v:test_Z_action_good" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_roundtrip_compression" class="def"
+	    >test_roundtrip_compression</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_roundtrip_compression" class="link"
+	    >Source</a
+	    > <a href="#v:test_roundtrip_compression" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_uncompression_wrong_size" class="def"
+	    >test_uncompression_wrong_size</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_uncompression_wrong_size" class="link"
+	    >Source</a
+	    > <a href="#v:test_uncompression_wrong_size" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Uncompression should only accept inputs of the expected length, so we check
+ it on random inputs of the incorrect length.  Inputs of the expected length
+ are excluded by the incorrectSize predicate; however even if an input did
+ have the expected length it would be very unlikely to deserialise to a point
+ in the group because the cofactors are very big (7.6*10^37 for G1 and
+ 3.1*10^152 for G2).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_uncompress_out_of_group" class="def"
+	    >test_uncompress_out_of_group</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_uncompress_out_of_group" class="link"
+	    >Source</a
+	    > <a href="#v:test_uncompress_out_of_group" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This tests the case we've omitted in the previous test, and should fail
+ with very high probablity.  It's quite difficult to test this with random
+ inputs.  We can improve our chances of getting a bytestring which encodes a
+ point on the curve by setting the compression bit and clearing the infinity
+ bit, but about 50% of the samples will still not be the x-coordinate of a
+ point on the curve.  We can also generate points with an x-coordinate that's
+ bigger than the field size (especially for G2), which will give us a bad
+ encoding.  Maybe this just isn't a very good test.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_compression_bit_set" class="def"
+	    >test_compression_bit_set</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_compression_bit_set" class="link"
+	    >Source</a
+	    > <a href="#v:test_compression_bit_set" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check that the most significant bit is set for all compressed points</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_clear_compression_bit" class="def"
+	    >test_clear_compression_bit</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_clear_compression_bit" class="link"
+	    >Source</a
+	    > <a href="#v:test_clear_compression_bit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check that bytestrings with the compression bit clear fail to uncompress.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_flip_sign_bit" class="def"
+	    >test_flip_sign_bit</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_flip_sign_bit" class="link"
+	    >Source</a
+	    > <a href="#v:test_flip_sign_bit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check that flipping the sign bit in a compressed point gives the inverse of
+ the point.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_set_infinity_bit" class="def"
+	    >test_set_infinity_bit</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_set_infinity_bit" class="link"
+	    >Source</a
+	    > <a href="#v:test_set_infinity_bit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check that bytestrings with the infinity bit set fail to uncompress.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:numHashCollisionInputs" class="def"
+	    >numHashCollisionInputs</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#numHashCollisionInputs" class="link"
+	    >Source</a
+	    > <a href="#v:numHashCollisionInputs" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_no_hash_collisions" class="def"
+	    >test_no_hash_collisions</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_no_hash_collisions" class="link"
+	    >Source</a
+	    > <a href="#v:test_no_hash_collisions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Hashing into G1 or G2 should be collision-free.  A failure here would
+ suggest an implementation error somewhere.  Here we test multiple messages
+ but always use an empty Domain Separation Tag.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_no_hash_collisions_dst" class="def"
+	    >test_no_hash_collisions_dst</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_no_hash_collisions_dst" class="link"
+	    >Source</a
+	    > <a href="#v:test_no_hash_collisions_dst" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that we get no collisions if we keep the message constant but vary the
+ DST.  DSTs can be at most 255 bytes long in Plutus Core; there's a test
+ elsewhere that we get a failure for longer DSTs.  This test could fail (but
+ not because of a hash collision) if we let it generate longer DSTs because
+ the final list could contain multiple occurrences of CekError.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_compress_hash" class="def"
+	    >test_compress_hash</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_compress_hash" class="link"
+	    >Source</a
+	    > <a href="#v:test_compress_hash" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_pairing_left_additive" class="def"
+	    >test_pairing_left_additive</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_pairing_left_additive" class="link"
+	    >Source</a
+	    > <a href="#v:test_pairing_left_additive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_pairing_right_additive" class="def"
+	    >test_pairing_right_additive</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_pairing_right_additive" class="link"
+	    >Source</a
+	    > <a href="#v:test_pairing_right_additive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_pairing_balanced" class="def"
+	    >test_pairing_balanced</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_pairing_balanced" class="link"
+	    >Source</a
+	    > <a href="#v:test_pairing_balanced" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_random_pairing" class="def"
+	    >test_random_pairing</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_random_pairing" class="link"
+	    >Source</a
+	    > <a href="#v:test_random_pairing" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_BLS12_381" class="def"
+	    >test_BLS12_381</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_BLS12_381" class="link"
+	    >Source</a
+	    > <a href="#v:test_BLS12_381" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

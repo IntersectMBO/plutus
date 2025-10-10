@@ -1,0 +1,3887 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Module handling provenances of terms.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Compiler.Provenance</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.html"
+	><span class="hs-identifier"
+	  >Data.Hashable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>S</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PP</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >-- | Indicates where a value comes from.</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- This is either an original annotation or a pieces of context explaining how the term</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- relates to a previous 'Provenance'. We also provide 'noProvenance' for convenience.</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- The provenance should always be just the original annotation, if we have one. It should only be another</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- kind of provenance if we're in the process of generating some term that doesn't correspond directly to a term in</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >-- the original AST.</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Provenance"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	  ><span class="hs-identifier hs-var"
+	    >Provenance</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679467614"
+      ><span class="annot"
+	><a href="#local-6989586621679467614"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Original"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#Original"
+	  ><span class="hs-identifier hs-var"
+	    >Original</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679467614"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="LetBinding"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#LetBinding"
+	  ><span class="hs-identifier hs-var"
+	    >LetBinding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Recursivity"
+	><span class="hs-identifier hs-type"
+	  >Recursivity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679467614"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TermBinding"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#TermBinding"
+	  ><span class="hs-identifier hs-var"
+	    >TermBinding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679467614"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TypeBinding"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#TypeBinding"
+	  ><span class="hs-identifier hs-var"
+	    >TypeBinding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679467614"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="DatatypeComponent"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#DatatypeComponent"
+	  ><span class="hs-identifier hs-var"
+	    >DatatypeComponent</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#DatatypeComponent"
+	><span class="hs-identifier hs-type"
+	  >DatatypeComponent</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679467614"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Added for accumulating difference provenances when floating lets</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="MultipleSources"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#MultipleSources"
+	  ><span class="hs-identifier hs-var"
+	    >MultipleSources</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >S.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679467614"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679467670"
+      ><span id="local-6989586621679467695"
+	><span id="local-6989586621679467698"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Provenance a -&gt; ShowS
+[Provenance a] -&gt; ShowS
+Provenance a -&gt; String
+(Int -&gt; Provenance a -&gt; ShowS)
+-&gt; (Provenance a -&gt; String)
+-&gt; ([Provenance a] -&gt; ShowS)
+-&gt; Show (Provenance a)
+forall a. Show a =&gt; Int -&gt; Provenance a -&gt; ShowS
+forall a. Show a =&gt; [Provenance a] -&gt; ShowS
+forall a. Show a =&gt; Provenance a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Provenance a -&gt; ShowS
+showsPrec :: Int -&gt; Provenance a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; Provenance a -&gt; String
+show :: Provenance a -&gt; String
+$cshowList :: forall a. Show a =&gt; [Provenance a] -&gt; ShowS
+showList :: [Provenance a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467704"
+      ><span id="local-6989586621679467722"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Provenance a -&gt; Provenance a -&gt; Bool
+(Provenance a -&gt; Provenance a -&gt; Bool)
+-&gt; (Provenance a -&gt; Provenance a -&gt; Bool) -&gt; Eq (Provenance a)
+forall a. Eq a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+== :: Provenance a -&gt; Provenance a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+/= :: Provenance a -&gt; Provenance a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467731"
+      ><span id="local-6989586621679467749"
+	><span id="local-6989586621679467752"
+	  ><span id="local-6989586621679467755"
+	    ><span id="local-6989586621679467758"
+	      ><span id="local-6989586621679467761"
+		><span id="local-6989586621679467764"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (Provenance a)
+Eq (Provenance a) =&gt;
+(Provenance a -&gt; Provenance a -&gt; Ordering)
+-&gt; (Provenance a -&gt; Provenance a -&gt; Bool)
+-&gt; (Provenance a -&gt; Provenance a -&gt; Bool)
+-&gt; (Provenance a -&gt; Provenance a -&gt; Bool)
+-&gt; (Provenance a -&gt; Provenance a -&gt; Bool)
+-&gt; (Provenance a -&gt; Provenance a -&gt; Provenance a)
+-&gt; (Provenance a -&gt; Provenance a -&gt; Provenance a)
+-&gt; Ord (Provenance a)
+Provenance a -&gt; Provenance a -&gt; Bool
+Provenance a -&gt; Provenance a -&gt; Ordering
+Provenance a -&gt; Provenance a -&gt; Provenance a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (Provenance a)
+forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Ordering
+forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Provenance a
+$ccompare :: forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Ordering
+compare :: Provenance a -&gt; Provenance a -&gt; Ordering
+$c&lt; :: forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+&lt; :: Provenance a -&gt; Provenance a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+&lt;= :: Provenance a -&gt; Provenance a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+&gt; :: Provenance a -&gt; Provenance a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Bool
+&gt;= :: Provenance a -&gt; Provenance a -&gt; Bool
+$cmax :: forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Provenance a
+max :: Provenance a -&gt; Provenance a -&gt; Provenance a
+$cmin :: forall a. Ord a =&gt; Provenance a -&gt; Provenance a -&gt; Provenance a
+min :: Provenance a -&gt; Provenance a -&gt; Provenance a
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467770"
+      ><span id="local-6989586621679467776"
+	><span id="local-6989586621679467792"
+	  ><span id="local-6989586621679467797"
+	    ><span id="local-6989586621679467805"
+	      ><span id="local-6989586621679467808"
+		><span id="local-6989586621679467811"
+		  ><span id="local-6989586621679467814"
+		    ><span id="local-6989586621679467817"
+		      ><span id="local-6989586621679467820"
+			><span id="local-6989586621679467823"
+			  ><span id="local-6989586621679467831"
+			    ><span id="local-6989586621679467834"
+			      ><span id="local-6989586621679467839"
+				><span id="local-6989586621679467844"
+				  ><span id="local-6989586621679467849"
+				    ><span id="local-6989586621679467854"
+				      ><span class="annot"
+					><span class="annottext"
+					  >(forall m. Monoid m =&gt; Provenance m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Provenance a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Provenance a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Provenance a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Provenance a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Provenance a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Provenance a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Provenance a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Provenance a -&gt; a)
+-&gt; (forall a. Provenance a -&gt; [a])
+-&gt; (forall a. Provenance a -&gt; Bool)
+-&gt; (forall a. Provenance a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; Provenance a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; Provenance a -&gt; a)
+-&gt; (forall a. Ord a =&gt; Provenance a -&gt; a)
+-&gt; (forall a. Num a =&gt; Provenance a -&gt; a)
+-&gt; (forall a. Num a =&gt; Provenance a -&gt; a)
+-&gt; Foldable Provenance
+forall a. Eq a =&gt; a -&gt; Provenance a -&gt; Bool
+forall a. Num a =&gt; Provenance a -&gt; a
+forall a. Ord a =&gt; Provenance a -&gt; a
+forall m. Monoid m =&gt; Provenance m -&gt; m
+forall a. Provenance a -&gt; Bool
+forall a. Provenance a -&gt; Int
+forall a. Provenance a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; Provenance a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Provenance a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; Provenance m -&gt; m
+fold :: forall m. Monoid m =&gt; Provenance m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Provenance a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Provenance a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Provenance a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Provenance a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Provenance a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Provenance a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Provenance a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Provenance a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Provenance a -&gt; a
+$ctoList :: forall a. Provenance a -&gt; [a]
+toList :: forall a. Provenance a -&gt; [a]
+$cnull :: forall a. Provenance a -&gt; Bool
+null :: forall a. Provenance a -&gt; Bool
+$clength :: forall a. Provenance a -&gt; Int
+length :: forall a. Provenance a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; Provenance a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; Provenance a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; Provenance a -&gt; a
+maximum :: forall a. Ord a =&gt; Provenance a -&gt; a
+$cminimum :: forall a. Ord a =&gt; Provenance a -&gt; a
+minimum :: forall a. Ord a =&gt; Provenance a -&gt; a
+$csum :: forall a. Num a =&gt; Provenance a -&gt; a
+sum :: forall a. Num a =&gt; Provenance a -&gt; a
+$cproduct :: forall a. Num a =&gt; Provenance a -&gt; a
+product :: forall a. Num a =&gt; Provenance a -&gt; a
+</span
+					  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+					    >Foldable</span
+					    ></a
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467860"
+      ><span id="local-6989586621679467862"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Provenance a -&gt; Rep (Provenance a) x)
+-&gt; (forall x. Rep (Provenance a) x -&gt; Provenance a)
+-&gt; Generic (Provenance a)
+forall x. Rep (Provenance a) x -&gt; Provenance a
+forall x. Provenance a -&gt; Rep (Provenance a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (Provenance a) x -&gt; Provenance a
+forall a x. Provenance a -&gt; Rep (Provenance a) x
+$cfrom :: forall a x. Provenance a -&gt; Rep (Provenance a) x
+from :: forall x. Provenance a -&gt; Rep (Provenance a) x
+$cto :: forall a x. Rep (Provenance a) x -&gt; Provenance a
+to :: forall x. Rep (Provenance a) x -&gt; Provenance a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679467870"
+      ><span id="local-6989586621679467877"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Eq (Provenance a)
+Eq (Provenance a) =&gt;
+(Int -&gt; Provenance a -&gt; Int)
+-&gt; (Provenance a -&gt; Int) -&gt; Hashable (Provenance a)
+Int -&gt; Provenance a -&gt; Int
+Provenance a -&gt; Int
+forall a. Eq a =&gt; (Int -&gt; a -&gt; Int) -&gt; (a -&gt; Int) -&gt; Hashable a
+forall a. Hashable a =&gt; Eq (Provenance a)
+forall a. Hashable a =&gt; Int -&gt; Provenance a -&gt; Int
+forall a. Hashable a =&gt; Provenance a -&gt; Int
+$chashWithSalt :: forall a. Hashable a =&gt; Int -&gt; Provenance a -&gt; Int
+hashWithSalt :: Int -&gt; Provenance a -&gt; Int
+$chash :: forall a. Hashable a =&gt; Provenance a -&gt; Int
+hash :: Provenance a -&gt; Int
+</span
+	    ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467613"
+      ><span id="local-6989586621679467926"
+	><span id="local-6989586621679467930"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+	      ><span class="hs-identifier hs-type"
+		>Ord</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467613"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-type"
+		>Semigroup</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	      ><span class="hs-identifier hs-type"
+		>Provenance</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467613"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679467936"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679467936"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679467937"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: Provenance a -&gt; Provenance a -&gt; Provenance a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >&lt;&gt;</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679467938"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679467938"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (Provenance a) -&gt; Provenance a
+forall a. Set (Provenance a) -&gt; Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#MultipleSources"
+	><span class="hs-identifier hs-var"
+	  >MultipleSources</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Set (Provenance a)
+forall {a}. Provenance a -&gt; Set (Provenance a)
+</span
+	><a href="#local-6989586621679467939"
+	><span class="hs-identifier hs-var"
+	  >toSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679467936"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (Provenance a) -&gt; Set (Provenance a) -&gt; Set (Provenance a)
+forall a. Ord a =&gt; Set a -&gt; Set a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#union"
+	><span class="hs-operator hs-var"
+	  >`S.union`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Set (Provenance a)
+forall {a}. Provenance a -&gt; Set (Provenance a)
+</span
+	><a href="#local-6989586621679467939"
+	><span class="hs-identifier hs-var"
+	  >toSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679467938"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679467939"
+      ><span class="annot"
+	><span class="annottext"
+	  >toSet :: Provenance a -&gt; Set (Provenance a)
+</span
+	  ><a href="#local-6989586621679467939"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#MultipleSources"
+	><span class="hs-identifier hs-type"
+	  >MultipleSources</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679467941"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set (Provenance a)
+</span
+	  ><a href="#local-6989586621679467941"
+	  ><span class="hs-identifier hs-var"
+	    >ps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (Provenance a)
+</span
+	><a href="#local-6989586621679467941"
+	><span class="hs-identifier hs-var"
+	  >ps</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679467942"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679467942"
+	  ><span class="hs-identifier hs-var"
+	    >other</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Set (Provenance a)
+forall a. a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >S.singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679467942"
+	><span class="hs-identifier hs-var"
+	  >other</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467620"
+      ><span id="local-6989586621679467949"
+	><span id="local-6989586621679467953"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+	      ><span class="hs-identifier hs-type"
+		>Ord</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467620"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-type"
+		>Monoid</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	      ><span class="hs-identifier hs-type"
+		>Provenance</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467620"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679467956"
+      ><span class="annot"
+	><span class="annottext"
+	  >mempty :: Provenance a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >mempty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+forall a. Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#noProvenance"
+	><span class="hs-identifier hs-var"
+	  >noProvenance</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-comment"
+      >-- workaround, use a smart constructor to replace the older NoProvenance data constructor</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="local-6989586621679467621"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#noProvenance"
+	  ><span class="hs-identifier hs-type"
+	    >noProvenance</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	  ><span class="hs-identifier hs-type"
+	    >Provenance</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679467621"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="noProvenance"
+      ><span class="annot"
+	><span class="annottext"
+	  >noProvenance :: forall a. Provenance a
+</span
+	  ><a href="PlutusIR.Compiler.Provenance.html#noProvenance"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >noProvenance</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (Provenance a) -&gt; Provenance a
+forall a. Set (Provenance a) -&gt; Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#MultipleSources"
+	><span class="hs-identifier hs-var"
+	  >MultipleSources</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (Provenance a)
+forall a. Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >S.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467627"
+      ><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#AnnInline"
+	  ><span class="hs-identifier hs-type"
+	    >AnnInline</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679467627"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#AnnInline"
+	  ><span class="hs-identifier hs-type"
+	    >AnnInline</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	  ><span class="hs-identifier hs-type"
+	    >Provenance</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679467627"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679467965"
+      ><span class="annot"
+	><span class="annottext"
+	  >annAlwaysInline :: Provenance a
+</span
+	  ><a href="#local-6989586621679467965"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >annAlwaysInline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Provenance a
+forall a. a -&gt; Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#Original"
+	><span class="hs-identifier hs-var"
+	  >Original</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+forall a. AnnInline a =&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annAlwaysInline"
+	><span class="hs-identifier hs-var"
+	  >annAlwaysInline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679467968"
+      ><span class="annot"
+	><span class="annottext"
+	  >annSafeToInline :: Provenance a
+</span
+	  ><a href="#local-6989586621679467968"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >annSafeToInline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Provenance a
+forall a. a -&gt; Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#Original"
+	><span class="hs-identifier hs-var"
+	  >Original</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+forall a. AnnInline a =&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annSafeToInline"
+	><span class="hs-identifier hs-var"
+	  >annSafeToInline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679467971"
+      ><span class="annot"
+	><span class="annottext"
+	  >annMayInline :: Provenance a
+</span
+	  ><a href="#local-6989586621679467971"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >annMayInline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Provenance a
+forall a. a -&gt; Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#Original"
+	><span class="hs-identifier hs-var"
+	  >Original</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+forall a. AnnInline a =&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="DatatypeComponent"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#DatatypeComponent"
+	  ><span class="hs-identifier hs-var"
+	    >DatatypeComponent</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Constructor"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#Constructor"
+	  ><span class="hs-identifier hs-var"
+	    >Constructor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ConstructorType"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#ConstructorType"
+	  ><span class="hs-identifier hs-var"
+	    >ConstructorType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Destructor"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#Destructor"
+	  ><span class="hs-identifier hs-var"
+	    >Destructor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="DestructorType"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#DestructorType"
+	  ><span class="hs-identifier hs-var"
+	    >DestructorType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="DatatypeType"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#DatatypeType"
+	  ><span class="hs-identifier hs-var"
+	    >DatatypeType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="PatternFunctor"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#PatternFunctor"
+	  ><span class="hs-identifier hs-var"
+	    >PatternFunctor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679467980"
+      ><span id="local-6989586621679467982"
+	><span id="local-6989586621679467985"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; DatatypeComponent -&gt; ShowS
+[DatatypeComponent] -&gt; ShowS
+DatatypeComponent -&gt; String
+(Int -&gt; DatatypeComponent -&gt; ShowS)
+-&gt; (DatatypeComponent -&gt; String)
+-&gt; ([DatatypeComponent] -&gt; ShowS)
+-&gt; Show DatatypeComponent
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DatatypeComponent -&gt; ShowS
+showsPrec :: Int -&gt; DatatypeComponent -&gt; ShowS
+$cshow :: DatatypeComponent -&gt; String
+show :: DatatypeComponent -&gt; String
+$cshowList :: [DatatypeComponent] -&gt; ShowS
+showList :: [DatatypeComponent] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467988"
+      ><span id="local-6989586621679467990"
+	><span class="annot"
+	  ><span class="annottext"
+	    >DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+(DatatypeComponent -&gt; DatatypeComponent -&gt; Bool)
+-&gt; (DatatypeComponent -&gt; DatatypeComponent -&gt; Bool)
+-&gt; Eq DatatypeComponent
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+== :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+$c/= :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+/= :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467995"
+      ><span id="local-6989586621679467997"
+	><span id="local-6989586621679467999"
+	  ><span id="local-6989586621679468002"
+	    ><span id="local-6989586621679468005"
+	      ><span id="local-6989586621679468008"
+		><span id="local-6989586621679468011"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq DatatypeComponent
+Eq DatatypeComponent =&gt;
+(DatatypeComponent -&gt; DatatypeComponent -&gt; Ordering)
+-&gt; (DatatypeComponent -&gt; DatatypeComponent -&gt; Bool)
+-&gt; (DatatypeComponent -&gt; DatatypeComponent -&gt; Bool)
+-&gt; (DatatypeComponent -&gt; DatatypeComponent -&gt; Bool)
+-&gt; (DatatypeComponent -&gt; DatatypeComponent -&gt; Bool)
+-&gt; (DatatypeComponent -&gt; DatatypeComponent -&gt; DatatypeComponent)
+-&gt; (DatatypeComponent -&gt; DatatypeComponent -&gt; DatatypeComponent)
+-&gt; Ord DatatypeComponent
+DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+DatatypeComponent -&gt; DatatypeComponent -&gt; Ordering
+DatatypeComponent -&gt; DatatypeComponent -&gt; DatatypeComponent
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DatatypeComponent -&gt; DatatypeComponent -&gt; Ordering
+compare :: DatatypeComponent -&gt; DatatypeComponent -&gt; Ordering
+$c&lt; :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+&lt; :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+$c&lt;= :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+&lt;= :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+$c&gt; :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+&gt; :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+$c&gt;= :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+&gt;= :: DatatypeComponent -&gt; DatatypeComponent -&gt; Bool
+$cmax :: DatatypeComponent -&gt; DatatypeComponent -&gt; DatatypeComponent
+max :: DatatypeComponent -&gt; DatatypeComponent -&gt; DatatypeComponent
+$cmin :: DatatypeComponent -&gt; DatatypeComponent -&gt; DatatypeComponent
+min :: DatatypeComponent -&gt; DatatypeComponent -&gt; DatatypeComponent
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679468014"
+      ><span id="local-6989586621679468016"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. DatatypeComponent -&gt; Rep DatatypeComponent x)
+-&gt; (forall x. Rep DatatypeComponent x -&gt; DatatypeComponent)
+-&gt; Generic DatatypeComponent
+forall x. Rep DatatypeComponent x -&gt; DatatypeComponent
+forall x. DatatypeComponent -&gt; Rep DatatypeComponent x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. DatatypeComponent -&gt; Rep DatatypeComponent x
+from :: forall x. DatatypeComponent -&gt; Rep DatatypeComponent x
+$cto :: forall x. Rep DatatypeComponent x -&gt; DatatypeComponent
+to :: forall x. Rep DatatypeComponent x -&gt; DatatypeComponent
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679468021"
+      ><span id="local-6989586621679468027"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Eq DatatypeComponent
+Eq DatatypeComponent =&gt;
+(Int -&gt; DatatypeComponent -&gt; Int)
+-&gt; (DatatypeComponent -&gt; Int) -&gt; Hashable DatatypeComponent
+Int -&gt; DatatypeComponent -&gt; Int
+DatatypeComponent -&gt; Int
+forall a. Eq a =&gt; (Int -&gt; a -&gt; Int) -&gt; (a -&gt; Int) -&gt; Hashable a
+$chashWithSalt :: Int -&gt; DatatypeComponent -&gt; Int
+hashWithSalt :: Int -&gt; DatatypeComponent -&gt; Int
+$chash :: DatatypeComponent -&gt; Int
+hash :: DatatypeComponent -&gt; Int
+</span
+	    ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679468044"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >PP.Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#DatatypeComponent"
+	  ><span class="hs-identifier hs-type"
+	    >DatatypeComponent</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679468055"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. DatatypeComponent -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679468055"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#Constructor"
+	><span class="hs-identifier hs-var"
+	  >Constructor</span
+	  ></a
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;constructor&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#ConstructorType"
+	><span class="hs-identifier hs-var"
+	  >ConstructorType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;constructor type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#Destructor"
+	><span class="hs-identifier hs-var"
+	  >Destructor</span
+	  ></a
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;destructor&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#DestructorType"
+	><span class="hs-identifier hs-var"
+	  >DestructorType</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;destructor type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#DatatypeType"
+	><span class="hs-identifier hs-var"
+	  >DatatypeType</span
+	  ></a
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;datatype type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#PatternFunctor"
+	><span class="hs-identifier hs-var"
+	  >PatternFunctor</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;pattern functor&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="GeneratedKind"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#GeneratedKind"
+	  ><span class="hs-identifier hs-var"
+	    >GeneratedKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="RecursiveLet"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#RecursiveLet"
+	  ><span class="hs-identifier hs-var"
+	    >RecursiveLet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679468059"
+      ><span id="local-6989586621679468061"
+	><span id="local-6989586621679468065"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; GeneratedKind -&gt; ShowS
+[GeneratedKind] -&gt; ShowS
+GeneratedKind -&gt; String
+(Int -&gt; GeneratedKind -&gt; ShowS)
+-&gt; (GeneratedKind -&gt; String)
+-&gt; ([GeneratedKind] -&gt; ShowS)
+-&gt; Show GeneratedKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; GeneratedKind -&gt; ShowS
+showsPrec :: Int -&gt; GeneratedKind -&gt; ShowS
+$cshow :: GeneratedKind -&gt; String
+show :: GeneratedKind -&gt; String
+$cshowList :: [GeneratedKind] -&gt; ShowS
+showList :: [GeneratedKind] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679468068"
+      ><span id="local-6989586621679468070"
+	><span class="annot"
+	  ><span class="annottext"
+	    >GeneratedKind -&gt; GeneratedKind -&gt; Bool
+(GeneratedKind -&gt; GeneratedKind -&gt; Bool)
+-&gt; (GeneratedKind -&gt; GeneratedKind -&gt; Bool) -&gt; Eq GeneratedKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: GeneratedKind -&gt; GeneratedKind -&gt; Bool
+== :: GeneratedKind -&gt; GeneratedKind -&gt; Bool
+$c/= :: GeneratedKind -&gt; GeneratedKind -&gt; Bool
+/= :: GeneratedKind -&gt; GeneratedKind -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679468075"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >PP.Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusIR.Compiler.Provenance.html#GeneratedKind"
+	  ><span class="hs-identifier hs-type"
+	    >GeneratedKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679468079"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. GeneratedKind -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneratedKind
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#RecursiveLet"
+	><span class="hs-identifier hs-var"
+	  >RecursiveLet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;recursive let&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Set the provenance on a term to the given value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="local-6989586621679467638"
+      ><span id="local-6989586621679467639"
+	><span id="local-6989586621679467640"
+	  ><span class="annot"
+	    ><a href="PlutusIR.Compiler.Provenance.html#setProvenance"
+	      ><span class="hs-identifier hs-type"
+		>setProvenance</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	      ><span class="hs-identifier hs-type"
+		>Functor</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467638"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	      ><span class="hs-identifier hs-type"
+		>Provenance</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467639"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467638"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467640"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467638"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	      ><span class="hs-identifier hs-type"
+		>Provenance</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679467639"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="setProvenance"
+      ><span class="annot"
+	><span class="annottext"
+	  >setProvenance :: forall (f :: * -&gt; *) b a.
+Functor f =&gt;
+Provenance b -&gt; f a -&gt; f (Provenance b)
+</span
+	  ><a href="PlutusIR.Compiler.Provenance.html#setProvenance"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setProvenance</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance b -&gt; f a -&gt; f (Provenance b)
+forall a b. a -&gt; f b -&gt; f a
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >(&lt;$)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Mark all the annotations on a term as original. Useful for preparing terms for the PIR compiler.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="local-6989586621679467647"
+      ><span id="local-6989586621679467648"
+	><span class="annot"
+	  ><a href="PlutusIR.Compiler.Provenance.html#original"
+	    ><span class="hs-identifier hs-type"
+	      >original</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-type"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679467647"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679467647"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679467648"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679467647"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	    ><span class="hs-identifier hs-type"
+	      >Provenance</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679467648"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="original"
+      ><span class="annot"
+	><span class="annottext"
+	  >original :: forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f (Provenance a)
+</span
+	  ><a href="PlutusIR.Compiler.Provenance.html#original"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >original</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; Provenance a) -&gt; f a -&gt; f (Provenance a)
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Provenance a
+forall a. a -&gt; Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#Original"
+	><span class="hs-identifier hs-var"
+	  >Original</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679467654"
+      ><span id="local-6989586621679468090"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-type"
+	      >PP.Pretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679467654"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-type"
+	      >PP.Pretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	    ><span class="hs-identifier hs-type"
+	      >Provenance</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679467654"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679468128"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. Provenance a -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#DatatypeComponent"
+	><span class="hs-identifier hs-type"
+	  >DatatypeComponent</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468129"
+      ><span class="annot"
+	><span class="annottext"
+	  >DatatypeComponent
+</span
+	  ><a href="#local-6989586621679468129"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468130"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679468130"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. DatatypeComponent -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DatatypeComponent
+</span
+	><a href="#local-6989586621679468129"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;from&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Provenance a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PLC.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679468130"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Original"
+	><span class="hs-identifier hs-type"
+	  >Original</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468131"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679468131"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Doc ann
+forall ann. a -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PLC.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679468131"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#LetBinding"
+	><span class="hs-identifier hs-type"
+	  >LetBinding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468132"
+      ><span class="annot"
+	><span class="annottext"
+	  >Recursivity
+</span
+	  ><a href="#local-6989586621679468132"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468133"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679468133"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >                </span
+      ><span id="local-6989586621679468136"
+      ><span class="annot"
+	><span class="annottext"
+	  >rstr :: Doc ann
+</span
+	  ><a href="#local-6989586621679468136"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >rstr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><a href="#local-6989586621679468132"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><a href="PlutusIR.Core.Type.html#NonRec"
+	><span class="hs-identifier hs-var"
+	  >NonRec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;non-recursive&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><a href="PlutusIR.Core.Type.html#Rec"
+	><span class="hs-identifier hs-var"
+	  >Rec</span
+	  ></a
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;recursive&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;(&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><a href="#local-6989586621679468136"
+	><span class="hs-identifier hs-var"
+	  >rstr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;)&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;let binding&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;from&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Provenance a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PLC.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679468133"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#TermBinding"
+	><span class="hs-identifier hs-type"
+	  >TermBinding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468139"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679468139"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468140"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679468140"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;term binding&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;of&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PLC.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679468139"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;from&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Provenance a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PLC.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679468140"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#TypeBinding"
+	><span class="hs-identifier hs-type"
+	  >TypeBinding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468141"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679468141"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468142"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679468142"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;type binding&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;of&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PLC.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679468141"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;from&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Provenance a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PLC.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679468142"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#MultipleSources"
+	><span class="hs-identifier hs-type"
+	  >MultipleSources</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679468143"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set (Provenance a)
+</span
+	  ><a href="#local-6989586621679468143"
+	  ><span class="hs-identifier hs-var"
+	    >p1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (Provenance a) -&gt; [Provenance a]
+forall a. Set a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >S.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (Provenance a)
+</span
+	><a href="#local-6989586621679468143"
+	><span class="hs-identifier hs-var"
+	  >p1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;&lt;unknown&gt;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >                                </span
+      ><span id="local-6989586621679468145"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Provenance a]
+</span
+	  ><a href="#local-6989586621679468145"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Provenance a] -&gt; Doc ann
+forall ann. [Provenance a] -&gt; Doc ann
+forall a ann. Pretty a =&gt; [a] -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#prettyList"
+	><span class="hs-identifier hs-var"
+	  >PLC.prettyList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Provenance a]
+</span
+	><a href="#local-6989586621679468145"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
