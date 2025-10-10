@@ -294,10 +294,8 @@ valueContains v1 v2
     goInner t a2 = (<>) (All $ lookupCoin (unK c) (unK t) v1 >= a2)
 {-# INLINEABLE valueContains #-}
 
-{-| The precise complexity is complicated, but an upper bound
-is \(O(n_{1} \log n_{2}) + O(m)\), where \(n_{1}\) is the total size of the smaller
-value, \(n_{2}\) is the total size of the bigger value, and \(m\) is the
-combined size of the outer maps.
+{-| \(O(n_{1}) + O(n_{2})\), where \(n_{1}\) and \(n_{2}\) are the total sizes
+(i.e., sum of inner map sizes) of the two maps.
 -}
 unionValue :: Value -> Value -> Value
 unionValue (unpack -> vA) (unpack -> vB) =
