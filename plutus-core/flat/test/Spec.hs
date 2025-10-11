@@ -33,6 +33,7 @@ import PlutusCore.Flat.Encoder qualified as E
 import PlutusCore.Flat.Encoder.Prim qualified as E
 import PlutusCore.Flat.Encoder.Strict qualified as E
 import PlutusCore.Flat.Endian
+import System.Environment.IgnoreAccept
 import System.Exit
 import Test.Data
 import Test.Data.Arbitrary ()
@@ -87,7 +88,7 @@ mainShow = do
   mapM_ (\_ -> generate (arbitrary :: Gen Int) >>= print) [1 .. 10]
   exitFailure
 
-mainTest = defaultMain tests
+mainTest = ignoreAcceptOption $ defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [testPrimitives, testEncDec, testFlat]
@@ -794,7 +795,3 @@ prop_common_unsigned n _ = let n2 :: h = fromIntegral n
 -- b1 :: BLOB UTF8
 -- b1 = BLOB UTF8 (preAligned (List255 [97,98,99]))
 -- -- b1 = BLOB (preAligned (UTF8 (List255 [97,98,99])))
-
-
-
-
