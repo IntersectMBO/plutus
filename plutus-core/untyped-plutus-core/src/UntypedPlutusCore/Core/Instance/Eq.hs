@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -65,7 +66,13 @@ deriving stock instance
 
 instance HashableTermConstraints uni fun ann => Hashable (Term DeBruijn uni fun ann)
 
-deriving stock instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
+deriving stock instance (
+#if __GLASGOW_HASKELL__ < 914
+  -- These constraints are REQUIERD for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+  -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+  GEq uni, Closed uni, Eq fun,
+#endif
+  uni `Everywhere` Eq, Eq ann,
                   Eq (Term name uni fun ann)
                   ) =>  Eq (Program name uni fun ann)
 
