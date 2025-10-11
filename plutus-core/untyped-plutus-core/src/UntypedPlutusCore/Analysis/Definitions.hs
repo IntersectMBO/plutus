@@ -16,6 +16,7 @@ import PlutusCore.Name.Unique (HasUnique, TermUnique (TermUnique), Unique (Uniqu
 import Control.Lens (forMOf_)
 import Control.Monad.State (MonadState, execStateT)
 import Control.Monad.Writer (MonadWriter, WriterT (runWriterT))
+import Data.Foldable (traverse_)
 
 -- | Given a UPLC term, add all of its term definitions and usages, including its subterms,
 -- to a global map.
@@ -40,6 +41,8 @@ handleTerm = \case
         addUsage n ann TermScope
     LamAbs ann n _ ->
         addDef n ann TermScope
+    Let ann ns _ ->
+        traverse_ (\n -> addDef n ann TermScope) ns
     _               -> pure ()
 
 runTermDefs
