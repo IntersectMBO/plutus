@@ -152,6 +152,10 @@ arity <- function(name) {
         "LengthOfArray" = 1,
         "ListToArray" = 1,
         "IndexArray" = 2,
+        "LookupCoin" = 3,
+        "ValueContains" = 2,
+        "ValueData" = 1,
+        "UnValueData" = 1,
         -1  ## Default for missing values
         )
 }
@@ -802,12 +806,25 @@ modelFun <- function(path) {
         mk.result(m, "exp_mod_cost")
     }
 
-    dropListModel   <- linearInX     ("DropList")
+    dropListModel <- linearInX ("DropList")
 
-    ## Arrays 
+    ## Arrays
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
+
+    ## Values
+
+    # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
+    lookupCoinModel           <- linearInZ ("LookupCoin")    
+
+    # X wrapped with `Logarithmic . ValueOuterOrMaxInner`
+    # Y wrapped with `ValueTotalSize`
+    valueContainsModel        <- linearInY("ValueContains")         
+
+    # Sizes of parameters are used as is (unwrapped):
+    valueDataModel            <- constantModel ("ValueData")
+    unValueDataModel          <- linearInX ("UnValueData")
 
     ##### Models to be returned to Haskell #####
 
@@ -902,7 +919,11 @@ modelFun <- function(path) {
         dropListModel                        = dropListModel,
         lengthOfArrayModel                   = lengthOfArrayModel,
         listToArrayModel                     = listToArrayModel,
-        indexArrayModel                      = indexArrayModel
+        indexArrayModel                      = indexArrayModel,
+        lookupCoinModel                      = lookupCoinModel,
+        valueContainsModel                   = valueContainsModel,
+        valueDataModel                       = valueDataModel,
+        unValueDataModel                     = unValueDataModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

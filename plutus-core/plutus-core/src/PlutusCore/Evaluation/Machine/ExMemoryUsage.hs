@@ -14,6 +14,8 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , IntegerCostedLiterally(..)
     , ValueTotalSize(..)
     , ValueOuterOrMaxInner(..)
+    , Logarithmic(..)
+    , LogValueOuterOrMaxInner(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -34,11 +36,11 @@ import Data.Text qualified as T
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
-import GHC.Exts (Int (I#))
+import GHC.Exts (Int (I#), quotInt#)
 import GHC.Integer
 import GHC.Integer.Logarithms
 import GHC.Natural
-import GHC.Prim
+import GHC.Num.Integer (integerLog2)
 import Universe
 
 {-
@@ -390,6 +392,48 @@ instance ExMemoryUsage ValueOuterOrMaxInner where
     memoryUsage (ValueOuterOrMaxInner v) = singletonRose (fromIntegral size)
       where
         size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
+
+{-| A wrapper that applies a logarithmic transformation to another size measure.
+This is useful for modeling operations with logarithmic complexity, where the cost
+depends on log(n) where n is the size measure from the wrapped newtype.
+
+For example, @Logarithmic ValueOuterOrMaxInner@ can be used to model operations
+that are O(log max(m, k)) where m is the number of policies and k is the max tokens
+per policy.
+
+The memory usage is calculated as: @max 1 (floor (log2 size + 1))@ where size comes
+from the wrapped newtype's ExMemoryUsage instance.
+-}
+newtype Logarithmic n = Logarithmic { unLogarithmic :: n }
+
+instance ExMemoryUsage n => ExMemoryUsage (Logarithmic n) where
+    memoryUsage (Logarithmic wrapped) =
+      case memoryUsage wrapped of
+        CostRose size _ ->
+          let sizeInteger :: Integer
+              sizeInteger = fromSatInt size
+              logSize = integerLog2 sizeInteger
+          in singletonRose $ max 1 (fromIntegral (logSize + 1))
+    {-# INLINE memoryUsage #-}
+
+{-| A combined wrapper for Value that measures size using outer/max inner map sizes
+with logarithmic transformation. This is equivalent to @Logarithmic ValueOuterOrMaxInner@
+but defined as a single newtype for simpler type instances and better error messages.
+
+Used for builtins like lookupCoin and valueContains where the cost depends on
+O(log max(m, k)) where m is the number of policies and k is the max tokens per policy.
+
+If this is used to wrap an argument in the denotation of a builtin then it *MUST* also
+be used to wrap the same argument in the relevant budgeting benchmark.
+-}
+newtype LogValueOuterOrMaxInner = LogValueOuterOrMaxInner { unLogValueOuterOrMaxInner :: Value }
+
+instance ExMemoryUsage LogValueOuterOrMaxInner where
+    memoryUsage (LogValueOuterOrMaxInner v) =
+      let size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
+          logSize = integerLog2 (toInteger size)
+      in singletonRose $ max 1 (fromIntegral (logSize + 1))
+    {-# INLINE memoryUsage #-}
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able

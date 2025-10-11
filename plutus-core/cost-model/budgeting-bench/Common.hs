@@ -431,3 +431,36 @@ createThreeTermBuiltinBenchWithWrappers (wrapX, wrapY, wrapZ) fun tys xs ys zs =
       [mkBM x y z | z <- zs] | y <- ys] | x <- xs]
   where mkBM x y z = benchDefault (showMemoryUsage (wrapZ z)) $ mkApp3 fun tys x y z
 
+{- See Note [Adjusting the memory usage of arguments of costing benchmarks]. -}
+createFourTermBuiltinBenchElementwiseWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , uni `HasTermLevel` d
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , ExMemoryUsage c'
+     , ExMemoryUsage d'
+     , NFData a
+     , NFData b
+     , NFData c
+     , NFData d
+     )
+  => (a -> a', b -> b', c -> c', d -> d')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [(a,b,c,d)]
+  -> Benchmark
+createFourTermBuiltinBenchElementwiseWithWrappers (wrapW, wrapX, wrapY, wrapZ) fun tys inputs =
+  bgroup (show fun) $
+  fmap
+  (\(w, x, y, z) ->
+     bgroup (showMemoryUsage $ wrapW w)
+     [bgroup (showMemoryUsage $ wrapX x)
+      [bgroup (showMemoryUsage $ wrapY y) [mkBM w x y z]]
+     ]
+  )
+  inputs
+  where mkBM w x y z = benchDefault (showMemoryUsage $ wrapZ z) $ mkApp4 fun tys w x y z
