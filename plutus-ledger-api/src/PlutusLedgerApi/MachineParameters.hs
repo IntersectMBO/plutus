@@ -12,7 +12,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachinePa
 machineParametersFor
   :: PlutusLedgerLanguage
   -> MajorProtocolVersion
-  -> DefaultMachineParameters
+  -> DefaultMachineParameters DefaultFun
 machineParametersFor ledgerLang majorPV =
   MachineParameters
       (if majorPV < pv11PV
