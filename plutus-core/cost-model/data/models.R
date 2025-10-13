@@ -820,7 +820,7 @@ modelFun <- function(path) {
 
     # X wrapped with `Logarithmic . ValueOuterOrMaxInner`
     # Y wrapped with `ValueTotalSize`
-    valueContainsModel        <- linearInY("ValueContains")         
+    valueContainsModel        <- linearInY ("ValueContains")         
 
     # Sizes of parameters are used as is (unwrapped):
     valueDataModel            <- constantModel ("ValueData")
