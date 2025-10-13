@@ -95,10 +95,10 @@ library
     Data.MultiSet.Lens
     Data.Version.Extras
     PlutusCore
-    PlutusCore.AstSize
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Arity
+    PlutusCore.AstSize
     PlutusCore.Bitwise
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
@@ -515,11 +515,11 @@ library plutus-ir
   hs-source-dirs:  plutus-ir/src
   exposed-modules:
     PlutusIR
-    PlutusIR.AstSize
     PlutusIR.Analysis.Builtins
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Analysis.VarInfo
+    PlutusIR.AstSize
     PlutusIR.Check.Uniques
     PlutusIR.Compiler
     PlutusIR.Compiler.Datatype
@@ -935,6 +935,7 @@ executable cost-model-budgeting-bench
     Benchmarks.Strings
     Benchmarks.Tracing
     Benchmarks.Unit
+    Benchmarks.Values
     Common
     CriterionExtensions
     Generators
