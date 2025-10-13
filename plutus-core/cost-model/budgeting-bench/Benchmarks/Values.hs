@@ -15,7 +15,8 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (LogValueOuterOrMaxInner (..)
                                                     ValueOuterOrMaxInner (..), ValueTotalSize (..))
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformByteStringM, uniformRM)
+import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformByteStringM, uniformRM,
+                               uniformRs)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -264,19 +265,27 @@ generateRandomInsertTest g = do
 generateTestValues :: StdGen -> [Value]
 generateTestValues gen = runStateGen_ gen \g -> do
   let
-    baseValueSizes = [1, 10, 50, 100, 500, 1_000]
+    baseValueSizes :: [Int]
+    baseValueSizes = take 10 $ uniformRs (1, 1_000) g
+
+    budgets :: [Int]
+    budgets = take 10 $ uniformRs (1_000, 30_000) g
+
+    numToksPerPolicy :: [Int]
+    numToksPerPolicy = take 10 $ uniformRs (1, 100) g
 
   sequence $
     concat
       [ -- Empty value as edge case
         [pure Value.empty]
       , -- Standard value sizes
-        [ generateConstrainedValue numPolicies 10 g
+        [ generateConstrainedValue numPolicies tokensPerPolicy g
         | numPolicies <- baseValueSizes
+        , tokensPerPolicy <- numToksPerPolicy
         ]
       , -- Budget-constrained tests
         [ generateValueWithBudget budget g
-        | budget <- [1_000, 10_000, 30_000]
+        | budget <- budgets
         ]
       , -- Random tests for parameter spread (50 combinations)
         replicate 50 $ do
