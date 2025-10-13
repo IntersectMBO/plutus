@@ -177,9 +177,9 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramListToArray                     = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 7 1
   , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost 32
   -- Builtin values
-  , paramLookupCoin                      = Id $ ModelThreeArgumentsConstantCost 1
-  , paramValueContains                   = Id $ ModelTwoArgumentsConstantCost 1
-  , paramValueData                       = Id $ ModelOneArgumentConstantCost 1
-  , paramUnValueData                     = Id $ ModelOneArgumentConstantCost 1
+  , paramLookupCoin                      = Id $ ModelThreeArgumentsConstantCost 10
+  , paramValueContains                   = Id $ ModelTwoArgumentsConstantCost 32
+  , paramValueData                       = Id $ ModelOneArgumentConstantCost 32
+  , paramUnValueData                     = Id $ ModelOneArgumentConstantCost 32
   }
   where identityFunction = OneVariableLinearFunction 0 1
