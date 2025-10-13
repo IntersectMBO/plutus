@@ -1,6 +1,5 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE MagicHash            #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -36,9 +35,6 @@ import Data.Text qualified as T
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
-import GHC.Exts (Int (I#), quotInt#)
-import GHC.Integer
-import GHC.Integer.Logarithms
 import GHC.Natural
 import GHC.Num.Integer (integerLog2)
 import Universe
@@ -237,12 +233,12 @@ instance ExMemoryUsage () where
 64-bit words.  This is the default size measure for `Integer`s.
 -}
 memoryUsageInteger :: Integer -> CostingInteger
--- integerLog2# is unspecified for 0 (but in practice returns -1)
+-- integerLog2 is unspecified for 0 (but in practice returns -1)
 -- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
 -- keep this special case for the time being though.
 memoryUsageInteger 0 = 1
--- Assume 64 Int
-memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
+-- Assume 64-bit words
+memoryUsageInteger i = fromIntegral (integerLog2 (abs i) `div` 64 + 1)
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
 {-# OPAQUE memoryUsageInteger #-}
