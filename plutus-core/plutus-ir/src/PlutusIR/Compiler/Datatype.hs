@@ -323,7 +323,8 @@ For a (self-)recursive datatype we have to change three things:
 mkScottTy :: MonadQuote m => ann -> Datatype TyName Name uni ann -> m (Type TyName uni ann)
 mkScottTy ann d@(Datatype _ _ _ _ constrs) = do
    res <- resultTypeName d
-   -- FIXME: normalize datacons' types also here
+   -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1875):
+   -- normalize datacons' types also here
    let caseTys = fmap (constructorCaseType ann (TyVar ann res)) constrs
    pure $
       -- forall res.
@@ -389,7 +390,7 @@ mkConstructorType :: Datatype TyName Name uni (Provenance a) -> VarDecl TyName N
 -- this type appears *inside* the scope of the abstraction for the datatype so we can just reference the name and
 -- we don't need to do anything to the declared type
 -- see Note [Abstract data types]
--- FIXME: normalize constructors also here
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1875): normalize constructors also here
 mkConstructorType (Datatype _ _ tvs _ _) constr = PIR.mkIterTyForall tvs $ _varDeclType constr
 
 -- See Note [Encoding of datatypes]
@@ -421,7 +422,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
     argsAndTypes <- do
         -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
         -- see Note [Abstract data types]
-        -- FIXME: normalize datacons' types also here
+        -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1875): normalize datacons' types also here
         let argTypes = unveilDatatype (getType dty) d <$> constructorArgTypes thisConstr
         -- we don't have any names for these things, we just had the type, so we call them "arg_i
         argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName $ "arg_" <> showText i)
@@ -445,7 +446,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
             casesAndTypes <- do
                   -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
                   -- see Note [Abstract data types]
-                  -- FIXME: normalize datacons' types also here
+                  -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1875): normalize datacons' types also here
                   let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType ann (TyVar ann resultType)) constrs
                   caseArgNames <- for constrs (\c -> safeFreshName $ "case_" <> T.pack (varDeclNameString c))
                   pure $ zipWith (VarDecl ann) caseArgNames caseTypes
@@ -506,7 +507,7 @@ mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
             caseVars <- for constrs $ \c -> do
                 -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
                 -- see Note [Abstract data types]
-                -- FIXME: normalize datacons' types also here
+                -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1875): normalize datacons' types also here
                 let caseType = constructorCaseType ann (TyVar ann resultType) c
                     unveiledCaseType = unveilDatatype (getType dty) d caseType
                 caseArgName <- safeFreshName $ "case_" <> T.pack (varDeclNameString c)

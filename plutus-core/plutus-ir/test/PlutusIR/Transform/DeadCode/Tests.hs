@@ -38,7 +38,8 @@ test_deadCode =
             , "pruneDatatype"
             ]
 
--- FIXME this test sometimes fails so ignoring it to make CI pass.
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1877):
+-- this test sometimes fails so ignoring it to make CI pass.
 typecheckRemoveDeadBindingsProp :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheckRemoveDeadBindingsProp biVariant =
   withMaxSuccess (3 * numTestsForPassProp) $
