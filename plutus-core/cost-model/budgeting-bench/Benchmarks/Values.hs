@@ -13,7 +13,7 @@ import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (LogValueOuterOrMaxInner (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterOrMaxInner (..),
                                                     ValueTotalSize (..))
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
@@ -36,7 +36,7 @@ makeBenchmarks gen =
 lookupCoinBenchmark :: StdGen -> Benchmark
 lookupCoinBenchmark gen =
   createThreeTermBuiltinBenchElementwiseWithWrappers
-    (id, id, LogValueOuterOrMaxInner) -- Wrap Value argument to report outer/max inner size with log
+    (id, id, ValueLogOuterOrMaxInner) -- Wrap Value argument to report outer/max inner size with log
     LookupCoin -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
     (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
@@ -73,7 +73,7 @@ withSearchKeys g genValue = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (LogValueOuterOrMaxInner, ValueTotalSize)
+    (ValueLogOuterOrMaxInner, ValueTotalSize)
     -- Container: outer/maxInner with log, Contained: totalSize
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
