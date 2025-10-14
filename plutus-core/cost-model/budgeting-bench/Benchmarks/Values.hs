@@ -68,8 +68,9 @@ benchInsertCoin gen =
 --   5. Deleting a TokenName by inserting a 0 amount. Randomly extracting a (PolicyId, TokenName) pair from the Value.
 --   6. Deleting a PolicyId by inserting a 0 amount into its last TokenName. Should generate a Value with multiple such PolicyIds, and randomly picking which PolicyId to delete.
 -- We're interested in the worst case performance, so we'll use the largest key values possible.
--- Each one of the cases should be applied to monotonically increasing sizes of the Value.
 -- We should also run randomized benchmarks, where we insert random values into random Values.
+-- We actually want to see how the performance scales with the size of the Value, so we should generate Values of varying sizes.
+-- We want to make sure we are also hitting the worst case scenarios and various edge cases.
 insertCoinBenchGen
     :: StdGen
     -> [InsertCoinBenchmark]
@@ -106,4 +107,7 @@ newTokenName gen = do
 
 uniformAmount :: StateGenM StdGen -> BenchState Amount
 uniformAmount gen =
-    Amount <$> uniformRM (0, 100) gen
+    Amount <$> uniformRM (0, 100) gen -- TODO: tweak the range
+
+newValue :: StateGenM StdGen -> BenchState Value
+newValue gen = undefined
