@@ -122,28 +122,28 @@ testLedgerLanguages = testGroup "ledger languages"
 testLanguageVersions :: TestTree
 testLanguageVersions =
   testGroup "Plutus Core language versions" $
-    let expectGood pl prog ll pv =
+    let expectGood plcv prog ll pv =
           testCase ("Ok in " ++ showPV pv) $
-          assertBool  (pl ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
+          assertBool  (plcv ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
           isRight $ mkTestTerm ll pv prog
-        expectBad pl prog ll pv =
+        expectBad plcv prog ll pv =
           testCase ("Not in " ++ showPV pv) $
-          assertBool  (pl ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
+          assertBool  (plcv ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
           isLeft $  mkTestTerm ll pv prog
-        testOkFrom pl ll firstGood prog =
+        testOkFrom plcv ll firstGood prog =
           let expectedGood = [ firstGood .. newestPV ]
           in testGroup (show ll) $
-             fmap (expectBad pl prog ll) (allPVs \\ expectedGood) ++
-             fmap (expectGood pl prog ll) expectedGood
+             fmap (expectBad plcv prog ll) (allPVs \\ expectedGood) ++
+             fmap (expectGood plcv prog ll) expectedGood
     in [ testGroup "v1.0.0 availability"
-         [ testOkFrom "p100" PlutusV1 alonzoPV v100script
-         , testOkFrom "p100" PlutusV2 vasilPV v100script
-         , testOkFrom "p100" PlutusV3 changPV  v100script
+         [ testOkFrom "v100" PlutusV1 alonzoPV v100script
+         , testOkFrom "v100" PlutusV2 vasilPV  v100script
+         , testOkFrom "v100" PlutusV3 changPV  v100script
          ]
         , testGroup "v1.1.0 availability"
-         [ testOkFrom "p110" PlutusV1 newestPV v110script
-         , testOkFrom "p110" PlutusV2 newestPV v110script
-         , testOkFrom "p110" PlutusV3 changPV  v110script
+         [ testOkFrom "v110" PlutusV1 newestPV v110script
+         , testOkFrom "v110" PlutusV2 newestPV v110script
+         , testOkFrom "v110" PlutusV3 changPV  v110script
          ]
          -- Check that case and constr are not allowed in 1.1.0 in any LL/PV combination
        , testCase "case is not available in v1.0.0 ever" $
