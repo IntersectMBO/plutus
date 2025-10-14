@@ -26,7 +26,6 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
-import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (PrettyConfigPlc)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
