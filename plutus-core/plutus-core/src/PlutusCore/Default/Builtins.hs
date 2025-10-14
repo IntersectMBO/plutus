@@ -844,12 +844,12 @@ Our final example is this:
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
-              (SomeConstant (Some (ValueOf uniListA xs))) = do
+              (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
                         Just Refl ->                                       -- [2]
                             pure . fromValueOf uniListA $ x : xs           -- [3]
-                        _ -> throwError $ structuralUnliftingError
+                        Nothing -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
@@ -1425,7 +1425,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
                         Just Refl -> pure . fromValueOf uniListA $ x : xs
-                        _         -> throwError $ structuralUnliftingError
+                        Nothing   -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
