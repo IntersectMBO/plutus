@@ -39,11 +39,11 @@ library docusaurus-code
     BasicValidators
 
   build-depends:
-    , base               >=4.9   && <5
-    , plutus-core        ^>=1.53
-    , plutus-ledger-api  ^>=1.53
-    , plutus-tx          ^>=1.53
-    , plutus-tx-plugin   ^>=1.53
+    , base               >=4.9       && <5
+    , plutus-core        ^>=1.53.1.0
+    , plutus-ledger-api  ^>=1.53.1.0
+    , plutus-tx          ^>=1.53.1.0
+    , plutus-tx-plugin   ^>=1.53.1.0
 
 executable example-cip57
   import:           lang, ghc-version-support, os-support
@@ -54,9 +54,9 @@ executable example-cip57
   build-depends:
     , base               ^>=4.18
     , containers
-    , plutus-ledger-api  ^>=1.53
-    , plutus-tx          ^>=1.53
-    , plutus-tx-plugin   ^>=1.53
+    , plutus-ledger-api  ^>=1.53.1.0
+    , plutus-tx          ^>=1.53.1.0
+    , plutus-tx-plugin   ^>=1.53.1.0
 
 executable example-evaluation
   import:           lang, ghc-version-support, os-support
@@ -66,9 +66,9 @@ executable example-evaluation
   other-modules:    Paths_docusaurus_examples
   build-depends:
     , base                         ^>=4.18
-    , plutus-ledger-api            ^>=1.53
-    , plutus-tx                    ^>=1.53
-    , plutus-tx-plugin             ^>=1.53
+    , plutus-ledger-api            ^>=1.53.1.0
+    , plutus-tx                    ^>=1.53.1.0
+    , plutus-tx-plugin             ^>=1.53.1.0
     , plutus-tx:plutus-tx-testlib
     , text
 
@@ -85,9 +85,9 @@ executable quickstart
   default-language: Haskell2010
   other-modules:    AuctionValidator
   build-depends:
-    , base               >=4.9   && <5
+    , base               >=4.9       && <5
     , base16-bytestring
     , bytestring
-    , plutus-ledger-api  ^>=1.53
-    , plutus-tx          ^>=1.53
-    , plutus-tx-plugin   ^>=1.53
+    , plutus-ledger-api  ^>=1.53.1.0
+    , plutus-tx          ^>=1.53.1.0
+    , plutus-tx-plugin   ^>=1.53.1.0
