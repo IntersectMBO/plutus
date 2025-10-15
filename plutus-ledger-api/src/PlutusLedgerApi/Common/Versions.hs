@@ -274,12 +274,12 @@ plcVersionsIntroducedIn =
       ]
     PlutusV2 ->
       Map.fromList
-      [ (alonzoPV, Set.fromList [ plcVersion100 ])
+      [ (vasilPV,  Set.fromList [ plcVersion100 ])
       , (pv11PV,   Set.fromList [ plcVersion110 ])
       ]
     PlutusV3 ->
       Map.fromList
-      [(changPV, Set.fromList [ plcVersion110 ])
+      [ (changPV,  Set.fromList [ plcVersion100, plcVersion110 ])
       ]
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
