@@ -5,6 +5,7 @@ module PlutusCore.Parser.Builtin where
 
 import PlutusPrelude (Word8, reoption, void)
 
+import PlutusCore.Builtin.Result qualified
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data
@@ -91,13 +92,22 @@ conArray uniA = Vector.fromList <$> conList uniA
 -- | Parser for values.
 conValue :: Parser PLC.Value
 conValue = do
-  Value.fromList <$> (traverse validateKeys =<< conList knownUni)
+  keys <- traverse validateKeys =<< conList knownUni
+  case Value.fromList keys of
+    PlutusCore.Builtin.Result.BuiltinSuccess v -> pure v
+    PlutusCore.Builtin.Result.BuiltinSuccessWithLogs _logs v -> pure v
+    PlutusCore.Builtin.Result.BuiltinFailure logs _trace ->
+      fail $ "Failed to construct Value: " <> show logs
  where
   validateToken (token, amt) = do
-    tk <- maybe (fail $ "Invalid token: " <> show (unpack token)) pure (Value.k token)
-    pure (tk, amt)
+    tk <- maybe (fail $ "Token name exceeds maximum length of 32 bytes: " <> show (unpack token))
+               pure (Value.k token)
+    qty <- maybe (fail $ "Token quantity out of signed 128-bit integer bounds: " <> show amt)
+                pure (Value.quantity amt)
+    pure (tk, qty)
   validateKeys (currency, tokens) = do
-    ck <- maybe (fail $ "Invalid currency: " <> show (unpack currency)) pure (Value.k currency)
+    ck <- maybe (fail $ "Currency symbol exceeds maximum length of 32 bytes: " <> show (unpack currency))
+                pure (Value.k currency)
     tks <- traverse validateToken tokens
     pure (ck, tks)
 

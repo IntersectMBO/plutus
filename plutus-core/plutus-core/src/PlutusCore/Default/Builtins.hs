@@ -2063,7 +2063,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunThreeArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar UnionValue =
-      let unionValueDenotation :: Value -> Value -> Value
+      let unionValueDenotation :: Value -> Value -> BuiltinResult Value
           unionValueDenotation = Value.unionValue
           {-# INLINE unionValueDenotation #-}
        in makeBuiltinMeaning

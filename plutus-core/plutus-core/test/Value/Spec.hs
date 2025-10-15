@@ -20,7 +20,7 @@ import Test.Tasty.QuickCheck
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Data (Data (..))
 import PlutusCore.Flat qualified as Flat
-import PlutusCore.Generators.QuickCheck.Builtin (ValueAmount (..), genShortHex)
+import PlutusCore.Generators.QuickCheck.Builtin (genShortHex)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as V
 
@@ -38,33 +38,47 @@ prop_packPreservesInvariants :: V.NestedMap -> Property
 prop_packPreservesInvariants = checkInvariants . V.pack
 
 -- | Verifies that @insertCoin@ correctly updates the sizes
-prop_insertCoinBookkeeping :: Value -> ValueAmount -> Property
-prop_insertCoinBookkeeping v (ValueAmount amt) =
+prop_insertCoinBookkeeping :: Value -> V.Quantity -> Property
+prop_insertCoinBookkeeping v quantity =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let BuiltinSuccess v' = V.insertCoin (V.unK currency) (V.unK token) amt v
+      let BuiltinSuccess v' =
+            V.insertCoin (V.unK currency) (V.unK token) (V.unQuantity quantity) v
        in checkBookkeeping v'
 
 -- | Verifies that @insertCoin@ preserves @Value@ invariants
-prop_insertCoinPreservesInvariants :: Value -> ValueAmount -> Property
-prop_insertCoinPreservesInvariants v (ValueAmount amt) =
+prop_insertCoinPreservesInvariants :: Value -> V.Quantity -> Property
+prop_insertCoinPreservesInvariants v quantity =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let BuiltinSuccess v' = V.insertCoin (V.unK currency) (V.unK token) amt v
+      let BuiltinSuccess v' =
+            V.insertCoin (V.unK currency) (V.unK token) (V.unQuantity quantity) v
        in checkInvariants v'
 
 prop_unionCommutative :: Value -> Value -> Property
-prop_unionCommutative v v' = V.unionValue v v' === V.unionValue v' v
+prop_unionCommutative v v' =
+  case (V.unionValue v v', V.unionValue v' v) of
+    (BuiltinSuccess r1, BuiltinSuccess r2) -> r1 === r2
+    (BuiltinFailure{}, BuiltinFailure{})   -> property True
+    _                                      -> property False
 
 prop_unionAssociative :: Value -> Value -> Value -> Property
 prop_unionAssociative v1 v2 v3 =
-  V.unionValue v1 (V.unionValue v2 v3) === V.unionValue (V.unionValue v1 v2) v3
+  case (V.unionValue v2 v3, V.unionValue v1 v2) of
+    (BuiltinSuccess v23, BuiltinSuccess v12) ->
+      case (V.unionValue v1 v23, V.unionValue v12 v3) of
+        (BuiltinSuccess r1, BuiltinSuccess r2) -> r1 === r2
+        (BuiltinFailure{}, BuiltinFailure{})   -> property True
+        _                                      -> property False
+    _ -> property False
 
 prop_insertCoinIdempotent :: Value -> Property
 prop_insertCoinIdempotent v =
   v
     === F.foldl'
-      (\acc (c, t, a) -> let BuiltinSuccess v' = V.insertCoin (V.unK c) (V.unK t) a acc in v')
+      (\acc (c, t, q) ->
+        let BuiltinSuccess v' = V.insertCoin (V.unK c) (V.unK t) (V.unQuantity q) acc
+         in v')
       v
       (V.toFlatList v)
 
@@ -86,12 +100,31 @@ prop_insertCoinValidatesToken v =
           BuiltinFailure{} -> property True
           _                -> property False
 
-prop_lookupAfterInsertion :: Value -> ValueAmount -> Property
-prop_lookupAfterInsertion v (ValueAmount amt) =
+prop_insertCoinValidatesQuantityMin :: Value -> Property
+prop_insertCoinValidatesQuantityMin v =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let amt = V.minQuantity - 1
+       in case V.insertCoin c t amt v of
+            BuiltinFailure{} -> property True
+            _                -> property False
+
+prop_insertCoinValidatesQuantityMax :: Value -> Property
+prop_insertCoinValidatesQuantityMax v =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let amt = V.maxQuantity + 1
+       in case V.insertCoin c t amt v of
+            BuiltinFailure{} -> property True
+            _                -> property False
+
+prop_lookupAfterInsertion :: Value -> V.Quantity -> Property
+prop_lookupAfterInsertion v quantity =
   forAll (genShortHex (V.totalSize v)) $ \currency ->
     forAll (genShortHex (V.totalSize v)) $ \token ->
-      let BuiltinSuccess v' = V.insertCoin (V.unK currency) (V.unK token) amt v
-       in V.lookupCoin (V.unK currency) (V.unK token) v' === amt
+      let BuiltinSuccess v' =
+            V.insertCoin (V.unK currency) (V.unK token) (V.unQuantity quantity) v
+       in V.lookupCoin (V.unK currency) (V.unK token) v' === V.unQuantity quantity
 
 prop_lookupAfterDeletion :: Value -> Property
 prop_lookupAfterDeletion v =
@@ -124,7 +157,12 @@ prop_deleteCoinPreservesInvariants v =
   vs = scanr (\(c, t, _) -> V.deleteCoin (V.unK c) (V.unK t)) v fl
 
 toPositiveValue :: Value -> Value
-toPositiveValue = V.pack . fmap (fmap abs) . V.unpack
+toPositiveValue =
+  V.pack . fmap (Map.map (\q ->
+    case V.quantity (abs (V.unQuantity q)) of
+      Just absQ -> absQ
+      Nothing   -> error $ "toPositiveValue: abs quantity out of bounds: " <> show (V.unQuantity q)
+  )) . V.unpack
 
 prop_containsReflexive :: Value -> Property
 prop_containsReflexive (toPositiveValue -> v) =
@@ -191,31 +229,78 @@ checkBookkeeping v =
   actualMaxInnerSize = V.maxInnerSize v
   expectedSize = sum $ Map.map Map.size (V.unpack v)
   actualSize = V.totalSize v
-  expectedNeg = length [amt | inner <- Map.elems (V.unpack v), amt <- Map.elems inner, amt < 0]
+  expectedNeg =
+    length [q | inner <- Map.elems (V.unpack v), q <- Map.elems inner, V.unQuantity q < 0]
   actualNeg = V.negativeAmounts v
 
 checkInvariants :: Value -> Property
 checkInvariants (V.unpack -> v) =
   property ((not . any Map.null) v)
-    .&&. property ((not . any (elem 0)) v)
+    .&&. property ((not . any (elem V.zeroQuantity)) v)
 
-prop_unValueDataValidatesCurrency :: ValueAmount -> Property
-prop_unValueDataValidatesCurrency (ValueAmount amt) =
+prop_unValueDataValidatesCurrency :: V.Quantity -> Property
+prop_unValueDataValidatesCurrency quantity =
   forAll gen33Bytes $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let d = Map [(B c, Map [(B t, I amt)])]
+      let d = Map [(B c, Map [(B t, I (V.unQuantity quantity))])]
        in case V.unValueData d of
             BuiltinFailure{} -> property True
             _                -> property False
 
-prop_unValueDataValidatesToken :: ValueAmount -> Property
-prop_unValueDataValidatesToken (ValueAmount amt) =
+prop_unValueDataValidatesToken :: V.Quantity -> Property
+prop_unValueDataValidatesToken quantity =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen33Bytes $ \t ->
-      let d = Map [(B c, Map [(B t, I amt)])]
+      let d = Map [(B c, Map [(B t, I (V.unQuantity quantity))])]
        in case V.unValueData d of
             BuiltinFailure{} -> property True
             _                -> property False
+
+prop_unValueDataValidatesQuantityMin :: Property
+prop_unValueDataValidatesQuantityMin =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let amt = V.minQuantity - 1
+          d = Map [(B c, Map [(B t, I amt)])]
+       in case V.unValueData d of
+            BuiltinFailure{} -> property True
+            _                -> property False
+
+prop_unValueDataValidatesQuantityMax :: Property
+prop_unValueDataValidatesQuantityMax =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let amt = V.maxQuantity + 1
+          d = Map [(B c, Map [(B t, I amt)])]
+       in case V.unValueData d of
+            BuiltinFailure{} -> property True
+            _                -> property False
+
+prop_unionValueDetectsOverflow :: Property
+prop_unionValueDetectsOverflow =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let BuiltinSuccess v1 = V.insertCoin c t V.maxQuantity V.empty
+          BuiltinSuccess v2 = V.insertCoin c t 1 V.empty
+       in case V.unionValue v1 v2 of
+            BuiltinFailure{} -> property True
+            _                -> property False
+
+prop_flatDecodeInvalidQuantityMin :: Property
+prop_flatDecodeInvalidQuantityMin =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let amt = V.minQuantity - 1
+          flat = Flat.flat $ Map.singleton c (Map.singleton t amt)
+       in property . isLeft $ Flat.unflat @Value flat
+
+prop_flatDecodeInvalidQuantityMax :: Property
+prop_flatDecodeInvalidQuantityMax =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let amt = V.maxQuantity + 1
+          flat = Flat.flat $ Map.singleton c (Map.singleton t amt)
+       in property . isLeft $ Flat.unflat @Value flat
 
 tests :: TestTree
 tests =
@@ -252,6 +337,12 @@ tests =
         "insertCoinValidatesToken"
         prop_insertCoinValidatesToken
     , testProperty
+        "insertCoinValidatesQuantityMin"
+        prop_insertCoinValidatesQuantityMin
+    , testProperty
+        "insertCoinValidatesQuantityMax"
+        prop_insertCoinValidatesQuantityMax
+    , testProperty
         "lookupAfterInsertion"
         prop_lookupAfterInsertion
     , testProperty
@@ -282,6 +373,15 @@ tests =
         "unValueDataValidatesToken"
         prop_unValueDataValidatesToken
     , testProperty
+        "unValueDataValidatesQuantityMin"
+        prop_unValueDataValidatesQuantityMin
+    , testProperty
+        "unValueDataValidatesQuantityMax"
+        prop_unValueDataValidatesQuantityMax
+    , testProperty
+        "unionValueDetectsOverflow"
+        prop_unionValueDetectsOverflow
+    , testProperty
         "flatRoundtrip"
         prop_flatRoundtrip
     , testProperty
@@ -293,4 +393,10 @@ tests =
     , testProperty
         "flatDecodeInvalidToken"
         prop_flatDecodeInvalidToken
+    , testProperty
+        "flatDecodeInvalidQuantityMin"
+        prop_flatDecodeInvalidQuantityMin
+    , testProperty
+        "flatDecodeInvalidQuantityMax"
+        prop_flatDecodeInvalidQuantityMax
     ]
