@@ -57,6 +57,9 @@ showPV (MajorProtocolVersion pv) =
 errorScript :: SerialisedScript
 errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
 
+v100script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+v100script = UPLC.Program () PLC.plcVersion100 $ UPLC.Constant () (PLC.Some (PLC.ValueOf PLC.DefaultUniUnit ()))
+
 v110script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 mempty
 
@@ -119,23 +122,28 @@ testLedgerLanguages = testGroup "ledger languages"
 testLanguageVersions :: TestTree
 testLanguageVersions =
   testGroup "Plutus Core language versions" $
-    let expectGood prog ll pv =
+    let expectGood plcv prog ll pv =
           testCase ("Ok in " ++ showPV pv) $
-          assertBool  ("v110" ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
+          assertBool  (plcv ++ " not allowed in " ++ show ll ++" @" ++ showPV pv) $
           isRight $ mkTestTerm ll pv prog
-        expectBad prog ll pv =
+        expectBad plcv prog ll pv =
           testCase ("Not in " ++ showPV pv) $
-          assertBool  ("v110" ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
+          assertBool  (plcv ++ " should not be allowed in " ++ show ll ++" @" ++ showPV pv) $
           isLeft $  mkTestTerm ll pv prog
-        testOkFrom ll firstGood prog =
+        testOkFrom plcv ll firstGood prog =
           let expectedGood = [ firstGood .. newestPV ]
           in testGroup (show ll) $
-             fmap (expectBad prog ll) (allPVs \\ expectedGood) ++
-             fmap (expectGood prog ll) expectedGood
-    in [ testGroup "v1.1.0 availability"
-         [ testOkFrom PlutusV1 newestPV v110script
-         , testOkFrom PlutusV2 newestPV v110script
-         , testOkFrom PlutusV3 changPV  v110script
+             fmap (expectBad plcv prog ll) (allPVs \\ expectedGood) ++
+             fmap (expectGood plcv prog ll) expectedGood
+    in [ testGroup "v1.0.0 availability"
+         [ testOkFrom "v100" PlutusV1 alonzoPV v100script
+         , testOkFrom "v100" PlutusV2 vasilPV  v100script
+         , testOkFrom "v100" PlutusV3 changPV  v100script
+         ]
+        , testGroup "v1.1.0 availability"
+         [ testOkFrom "v110" PlutusV1 newestPV v110script
+         , testOkFrom "v110" PlutusV2 newestPV v110script
+         , testOkFrom "v110" PlutusV3 changPV  v110script
          ]
          -- Check that case and constr are not allowed in 1.1.0 in any LL/PV combination
        , testCase "case is not available in v1.0.0 ever" $
