@@ -291,7 +291,7 @@ instance Arbitrary Value.K where
 
 instance Arbitrary Value.Quantity where
   arbitrary =
-    chooseInteger (Value.minQuantity, Value.maxQuantity) `suchThatMap` Value.quantity
+    chooseInteger (Value.unQuantity minBound, Value.unQuantity maxBound) `suchThatMap` Value.quantity
 
 {-| A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
 instance for @a@.

@@ -14,8 +14,6 @@ module PlutusCore.Value (
   Quantity, -- Do not expose data constructor
   quantity,
   unQuantity,
-  minQuantity,
-  maxQuantity,
   zeroQuantity,
   addQuantity,
   negativeAmounts,
@@ -97,16 +95,6 @@ instance CBOR.Serialise K where
 ----------------------------------------------------------------------------------------------------
 -- Quantity: Signed 128-bit Integer ----------------------------------------------------------------
 
--- | Minimum value for a quantity in a Value (signed 128-bit integer minimum).
-minQuantity :: Integer
-minQuantity = -(2 ^ (127 :: Integer))
-{-# INLINE minQuantity #-}
-
--- | Maximum value for a quantity in a Value (signed 128-bit integer maximum).
-maxQuantity :: Integer
-maxQuantity = 2 ^ (127 :: Integer) - 1
-{-# INLINE maxQuantity #-}
-
 -- | A signed 128-bit integer quantity.
 newtype Quantity = UnsafeQuantity {unQuantity :: Integer}
   deriving newtype (Eq, Ord, Show, NFData, Hashable)
@@ -135,10 +123,16 @@ instance Flat.Flat Quantity where
 instance Pretty Quantity where
   pretty (UnsafeQuantity i) = pretty i
 
+instance Bounded Quantity where
+  minBound = UnsafeQuantity (-(2 ^ (127 :: Integer)))
+  {-# INLINE minBound #-}
+  maxBound = UnsafeQuantity (2 ^ (127 :: Integer) - 1)
+  {-# INLINE maxBound #-}
+
 -- | Smart constructor for Quantity that validates bounds.
 quantity :: Integer -> Maybe Quantity
 quantity i
-  | i >= minQuantity && i <= maxQuantity = Just (UnsafeQuantity i)
+  | i >= unQuantity minBound && i <= unQuantity maxBound = Just (UnsafeQuantity i)
   | otherwise = Nothing
 {-# INLINEABLE quantity #-}
 
@@ -378,10 +372,10 @@ valueContains :: Value -> Value -> BuiltinResult Bool
 valueContains v1 v2
   | negativeAmounts v1 > 0 = fail "valueContains: first value contains negative amounts"
   | negativeAmounts v2 > 0 = fail "valueContains: second value contains negative amounts"
-  | otherwise = BuiltinSuccess . getAll $ Map.foldrWithKey' go (All True) (unpack v2)
+  | otherwise = BuiltinSuccess . getAll $ Map.foldrWithKey' go mempty (unpack v2)
  where
   go :: K -> Map K Quantity -> All -> All
-  go c inner = (<> Map.foldrWithKey' goInner (All True) inner)
+  go c inner = (<> Map.foldrWithKey' goInner mempty inner)
    where
     goInner :: K -> Quantity -> All -> All
     goInner t a2 = (<> All (lookupCoin (unK c) (unK t) v1 >= unQuantity a2))
