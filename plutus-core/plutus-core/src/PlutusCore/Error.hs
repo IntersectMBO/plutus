@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                    #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -84,8 +85,13 @@ deriving stock instance
 deriving stock instance
     ( Eq (Term tyname name uni fun ann)
     , Eq (Type tyname uni ann)
-    , GEq uni, Closed uni, uni `Everywhere` Eq
-    , Eq fun, Eq ann
+#if __GLASGOW_HASKELL__ < 914
+    -- These constraints are REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+    -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+    , GEq uni, Closed uni
+    , Eq fun
+#endif
+    , uni `Everywhere` Eq, Eq ann
     ) => Eq (NormCheckError tyname name uni fun ann)
 
 -- | This is needed for nice kind/type checking error messages. In some cases the type checker knows
@@ -151,15 +157,33 @@ data Error uni fun ann
     deriving stock (Generic, Functor)
 
 deriving stock instance
-    (Eq fun, Eq ann, Closed uni, Everywhere uni Eq, GEq uni, Eq ParserError) =>
+    (Eq fun, Eq ann, Closed uni, Everywhere uni Eq, GEq uni
+#if __GLASGOW_HASKELL__ < 914
+    -- These constraints are REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+    -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+    , Eq ParserError
+#endif
+    ) =>
         Eq (Error uni fun ann)
 
 deriving anyclass instance
-    (NFData fun, NFData ann, Closed uni, Everywhere uni NFData, NFData ParserError) =>
+    (NFData fun, NFData ann, Closed uni, Everywhere uni NFData
+#if __GLASGOW_HASKELL__ < 914
+    -- These constraints are REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+    -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+    , NFData ParserError
+#endif
+    ) =>
         NFData (Error uni fun ann)
 
 deriving stock instance
-    (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) =>
+    (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni
+#if __GLASGOW_HASKELL__ < 914
+    -- These constraints are REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+    -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+    , Show ParserError
+#endif
+    ) =>
         Show (Error uni fun ann)
 
 instance Pretty SourcePos where
