@@ -114,8 +114,8 @@ prop_insertCoinValidatesCurrency :: Value -> Property
 prop_insertCoinValidatesCurrency v =
   forAll gen33Bytes $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      forAll (arbitrary `suchThat` (/= 0)) $ \amt ->
-        case V.insertCoin c t amt v of
+      forAll (arbitrary `suchThat` (/= 0)) $ \quantity ->
+        case V.insertCoin c t quantity v of
           BuiltinFailure{} -> property True
           _                -> property False
 
@@ -123,8 +123,8 @@ prop_insertCoinValidatesToken :: Value -> Property
 prop_insertCoinValidatesToken v =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen33Bytes $ \t ->
-      forAll (arbitrary `suchThat` (/= 0)) $ \amt ->
-        case V.insertCoin c t amt v of
+      forAll (arbitrary `suchThat` (/= 0)) $ \quantity ->
+        case V.insertCoin c t quantity v of
           BuiltinFailure{} -> property True
           _                -> property False
 
@@ -132,19 +132,19 @@ prop_insertCoinValidatesQuantityMin :: Value -> Property
 prop_insertCoinValidatesQuantityMin v =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let amt = V.minQuantity - 1
-       in case V.insertCoin c t amt v of
-            BuiltinFailure{} -> property True
-            _                -> property False
+      forAll genBelowMinQuantity $ \quantity ->
+        case V.insertCoin c t quantity v of
+          BuiltinFailure{} -> property True
+          _                -> property False
 
 prop_insertCoinValidatesQuantityMax :: Value -> Property
 prop_insertCoinValidatesQuantityMax v =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let amt = V.maxQuantity + 1
-       in case V.insertCoin c t amt v of
-            BuiltinFailure{} -> property True
-            _                -> property False
+      forAll genAboveMaxQuantity $ \quantity ->
+        case V.insertCoin c t quantity v of
+          BuiltinFailure{} -> property True
+          _                -> property False
 
 prop_lookupAfterInsertion :: Value -> V.Quantity -> Property
 prop_lookupAfterInsertion v quantity =
@@ -186,11 +186,7 @@ prop_deleteCoinPreservesInvariants v =
 
 toPositiveValue :: Value -> Value
 toPositiveValue =
-  V.pack . fmap (Map.map (\q ->
-    case V.quantity (abs (V.unQuantity q)) of
-      Just absQ -> absQ
-      Nothing   -> error $ "toPositiveValue: abs quantity out of bounds: " <> show (V.unQuantity q)
-  )) . V.unpack
+  V.pack . fmap (Map.map (fromMaybe maxBound . V.quantity . abs . V.unQuantity)) . V.unpack
 
 prop_containsReflexive :: Value -> Property
 prop_containsReflexive (toPositiveValue -> v) =
@@ -225,12 +221,22 @@ gen32BytesOrFewer = do
 gen33Bytes :: Gen ByteString
 gen33Bytes = B.pack <$> vectorOf 33 arbitrary
 
+genBelowMinQuantity :: Gen Integer
+genBelowMinQuantity = do
+  Positive offset <- arbitrary
+  pure (V.unQuantity minBound - offset)
+
+genAboveMaxQuantity :: Gen Integer
+genAboveMaxQuantity = do
+  Positive offset <- arbitrary
+  pure (V.unQuantity maxBound + offset)
+
 prop_flatDecodeSuccess :: Property
-prop_flatDecodeSuccess = forAll (arbitrary `suchThat` (/= 0)) $ \amt ->
+prop_flatDecodeSuccess = forAll (arbitrary `suchThat` (/= 0)) $ \quantity ->
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let flat = Flat.flat $ Map.singleton c (Map.singleton t amt)
-          BuiltinSuccess v = V.insertCoin c t amt V.empty
+      let flat = Flat.flat $ Map.singleton c (Map.singleton t quantity)
+          BuiltinSuccess v = V.insertCoin c t quantity V.empty
        in Flat.unflat flat === Right v
 
 prop_flatDecodeInvalidCurrency :: Property
@@ -288,27 +294,27 @@ prop_unValueDataValidatesQuantityMin :: Property
 prop_unValueDataValidatesQuantityMin =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let amt = V.minQuantity - 1
-          d = Map [(B c, Map [(B t, I amt)])]
-       in case V.unValueData d of
-            BuiltinFailure{} -> property True
-            _                -> property False
+      forAll genBelowMinQuantity $ \quantity ->
+        let d = Map [(B c, Map [(B t, I quantity)])]
+         in case V.unValueData d of
+              BuiltinFailure{} -> property True
+              _                -> property False
 
 prop_unValueDataValidatesQuantityMax :: Property
 prop_unValueDataValidatesQuantityMax =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let amt = V.maxQuantity + 1
-          d = Map [(B c, Map [(B t, I amt)])]
-       in case V.unValueData d of
-            BuiltinFailure{} -> property True
-            _                -> property False
+      forAll genAboveMaxQuantity $ \quantity ->
+        let d = Map [(B c, Map [(B t, I quantity)])]
+         in case V.unValueData d of
+              BuiltinFailure{} -> property True
+              _                -> property False
 
 prop_unionValueDetectsOverflow :: Property
 prop_unionValueDetectsOverflow =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let BuiltinSuccess v1 = V.insertCoin c t V.maxQuantity V.empty
+      let BuiltinSuccess v1 = V.insertCoin c t (V.unQuantity maxBound) V.empty
           BuiltinSuccess v2 = V.insertCoin c t 1 V.empty
        in case V.unionValue v1 v2 of
             BuiltinFailure{} -> property True
@@ -318,17 +324,17 @@ prop_flatDecodeInvalidQuantityMin :: Property
 prop_flatDecodeInvalidQuantityMin =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let amt = V.minQuantity - 1
-          flat = Flat.flat $ Map.singleton c (Map.singleton t amt)
-       in property . isLeft $ Flat.unflat @Value flat
+      forAll genBelowMinQuantity $ \quantity ->
+        let flat = Flat.flat $ Map.singleton c (Map.singleton t quantity)
+         in property . isLeft $ Flat.unflat @Value flat
 
 prop_flatDecodeInvalidQuantityMax :: Property
 prop_flatDecodeInvalidQuantityMax =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      let amt = V.maxQuantity + 1
-          flat = Flat.flat $ Map.singleton c (Map.singleton t amt)
-       in property . isLeft $ Flat.unflat @Value flat
+      forAll genAboveMaxQuantity $ \quantity ->
+        let flat = Flat.flat $ Map.singleton c (Map.singleton t quantity)
+         in property . isLeft $ Flat.unflat @Value flat
 
 tests :: TestTree
 tests =
