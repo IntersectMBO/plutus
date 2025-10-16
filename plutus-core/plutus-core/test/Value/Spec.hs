@@ -310,6 +310,32 @@ prop_unValueDataValidatesQuantityMax =
               BuiltinFailure{} -> property True
               _                -> property False
 
+prop_unValueDataValidatesMixedQuantities :: Property
+prop_unValueDataValidatesMixedQuantities =
+  forAll genValueDataWithMixedQuantities $ \(dataVal, hasInvalid) ->
+    case V.unValueData dataVal of
+      BuiltinSuccess{}         -> not hasInvalid
+      BuiltinSuccessWithLogs{} -> not hasInvalid
+      BuiltinFailure{}         -> hasInvalid
+ where
+  -- Generate Value Data with mixed valid/invalid quantities (90% valid, 10% invalid)
+  genValueDataWithMixedQuantities :: Gen (Data, Bool)
+  genValueDataWithMixedQuantities = do
+    numEntries <- chooseInt (1, 10)
+    entries <- vectorOf numEntries $ do
+      c <- gen32BytesOrFewer
+      t <- gen32BytesOrFewer
+      -- 90% valid, 10% invalid
+      quantity <- frequency
+        [ (9, arbitrary :: Gen Integer)  -- valid range
+        , (1, oneof [genBelowMinQuantity, genAboveMaxQuantity])  -- invalid
+        ]
+      pure (B c, Map [(B t, I quantity)])
+    let hasInvalid = any (\(_, Map inner) -> any isInvalidQuantity inner) entries
+        isInvalidQuantity (_, I q) = q < V.unQuantity minBound || q > V.unQuantity maxBound
+        isInvalidQuantity _        = False
+    pure (Map entries, hasInvalid)
+
 prop_unionValueDetectsOverflow :: Property
 prop_unionValueDetectsOverflow =
   forAll gen32BytesOrFewer $ \c ->
@@ -412,6 +438,9 @@ tests =
     , testProperty
         "unValueDataValidatesQuantityMax"
         prop_unValueDataValidatesQuantityMax
+    , testProperty
+        "unValueDataValidatesMixedQuantities"
+        prop_unValueDataValidatesMixedQuantities
     , testProperty
         "unionValueDetectsOverflow"
         prop_unionValueDetectsOverflow
