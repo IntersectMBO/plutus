@@ -19,7 +19,6 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusTx.Compiler.Types
 import UntypedPlutusCore qualified as UPLC
 
-import Control.Applicative (many, optional, (<|>))
 import Control.Exception
 import Control.Lens
 import Data.Bifunctor (first)
@@ -36,7 +35,6 @@ import Data.Text qualified as Text
 import Data.Type.Equality
 import GHC.Plugins qualified as GHC
 import Prettyprinter
-import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 
 import Text.Read (readMaybe)
 import Type.Reflection
@@ -78,7 +76,6 @@ data PluginOptions = PluginOptions
     -- Which effectively ignores the trace text.
     _posRemoveTrace                    :: Bool
   , _posDumpCompilationTrace           :: Bool
-  , _posCertify                        :: Maybe String
   }
 
 makeLenses ''PluginOptions
@@ -310,18 +307,6 @@ pluginOptions =
     , let k = "dump-compilation-trace"
           desc = "Dump compilation trace for debugging"
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
-    , let k = "certify"
-          desc =
-            "Produce a certificate for the compiled program, with the given name. "
-              <> "This certificate provides evidence that the compiler optimizations have "
-              <> "preserved the functional behavior of the original program. "
-              <> "Currently, this is only supported for the UPLC compilation pipeline. "
-              <> "Warning: this is an experimental feature and may not work as expected."
-          p = optional $ do
-            firstC <- upperChar
-            rest <- many (alphaNumChar <|> char '_' <|> char '\\')
-            pure (firstC : rest)
-       in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -394,7 +379,6 @@ defaultPluginOptions =
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
-    , _posCertify = Nothing
     }
 
 processOne

@@ -83,11 +83,9 @@ library
     , flat                   ^>=0.6
     , ghc
     , lens
-    , megaparsec
     , mtl
     , plutus-core            ^>=1.53.1.0
     , plutus-core:plutus-ir
-    , plutus-metatheory      ^>=1.53.1.0
     , plutus-tx              ^>=1.53.1.0
     , prettyprinter
     , template-haskell
