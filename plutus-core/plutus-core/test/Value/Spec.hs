@@ -20,7 +20,7 @@ import Test.Tasty.QuickCheck
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Data (Data (..))
 import PlutusCore.Flat qualified as Flat
-import PlutusCore.Generators.QuickCheck.Builtin (genShortHex)
+import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin, genShortHex)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as V
 
@@ -114,7 +114,7 @@ prop_insertCoinValidatesCurrency :: Value -> Property
 prop_insertCoinValidatesCurrency v =
   forAll gen33Bytes $ \c ->
     forAll gen32BytesOrFewer $ \t ->
-      forAll (arbitrary `suchThat` (/= 0)) $ \quantity ->
+      forAll (arbitraryBuiltin `suchThat` (/= 0)) $ \quantity ->
         case V.insertCoin c t quantity v of
           BuiltinFailure{} -> property True
           _                -> property False
@@ -123,7 +123,7 @@ prop_insertCoinValidatesToken :: Value -> Property
 prop_insertCoinValidatesToken v =
   forAll gen32BytesOrFewer $ \c ->
     forAll gen33Bytes $ \t ->
-      forAll (arbitrary `suchThat` (/= 0)) $ \quantity ->
+      forAll (arbitraryBuiltin `suchThat` (/= 0)) $ \quantity ->
         case V.insertCoin c t quantity v of
           BuiltinFailure{} -> property True
           _                -> property False
@@ -232,7 +232,7 @@ genAboveMaxQuantity = do
   pure (V.unQuantity maxBound + offset)
 
 prop_flatDecodeSuccess :: Property
-prop_flatDecodeSuccess = forAll (arbitrary `suchThat` (/= 0)) $ \quantity ->
+prop_flatDecodeSuccess = forAll (arbitraryBuiltin `suchThat` (/= 0)) $ \quantity ->
   forAll gen32BytesOrFewer $ \c ->
     forAll gen32BytesOrFewer $ \t ->
       let flat = Flat.flat $ Map.singleton c (Map.singleton t quantity)
@@ -327,7 +327,7 @@ prop_unValueDataValidatesMixedQuantities =
       t <- gen32BytesOrFewer
       -- 90% valid, 10% invalid
       quantity <- frequency
-        [ (9, arbitrary :: Gen Integer)  -- valid range
+        [ (9, arbitraryBuiltin :: Gen Integer)  -- valid range
         , (1, oneof [genBelowMinQuantity, genAboveMaxQuantity])  -- invalid
         ]
       pure (B c, Map [(B t, I quantity)])

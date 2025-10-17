@@ -286,12 +286,21 @@ uniqueNames wrap ys = do
   xs <- uniqueVectorOf len $ wrap <$> genShortHex len
   pure $ zip xs ys
 
+instance ArbitraryBuiltin Value.K where
+  arbitraryBuiltin = arbitraryBuiltin `suchThatMap` Value.k
+
 instance Arbitrary Value.K where
-  arbitrary = arbitrary `suchThatMap` Value.k
+    arbitrary = arbitraryBuiltin
+    shrink = shrinkBuiltin
+
+instance ArbitraryBuiltin Value.Quantity where
+  arbitraryBuiltin =
+    chooseInteger (Value.unQuantity minBound, Value.unQuantity maxBound)
+      `suchThatMap` Value.quantity
 
 instance Arbitrary Value.Quantity where
-  arbitrary =
-    chooseInteger (Value.unQuantity minBound, Value.unQuantity maxBound) `suchThatMap` Value.quantity
+    arbitrary = arbitraryBuiltin
+    shrink = shrinkBuiltin
 
 {-| A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
 instance for @a@.
@@ -309,7 +318,7 @@ instance ArbitraryBuiltin Value where
   arbitraryBuiltin = do
     -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
     -- list of lists.
-    quantities <- multiSplit0 0.2 =<< arbitrary
+    quantities <- multiSplit0 0.2 =<< arbitraryBuiltin
     -- Generate 'TokenName's and 'CurrencySymbol's.
     currencies <- uniqueNames id =<< traverse (uniqueNames id) quantities
     case Value.fromList currencies of
