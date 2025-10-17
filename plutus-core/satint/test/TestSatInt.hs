@@ -6,6 +6,7 @@
 -- in safeint, since I want to upstream this in due course.
 module Main where
 
+import System.Environment.IgnoreAccept
 import Control.Exception as E
 import Data.List
 import Data.Maybe
@@ -17,7 +18,7 @@ import Test.HUnit as T
 import Test.QuickCheck
 
 main :: IO ()
-main = defaultMain tests
+main = ignoreAcceptOption $ defaultMain tests
 
 isArithException :: a -> IO Bool
 isArithException n = E.catch (n `seq` return False)
