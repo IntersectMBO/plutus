@@ -1,4 +1,11 @@
 
+<a id='changelog-1.53.1.0'></a>
+# 1.53.1.0 — 2025-10-17
+
+## Removed
+
+- Removed the experimental compiler certification option temporarily due to ghc issues regarding the profiling build of `plutus-metatheory`.
+
 <a id='changelog-1.53.0.0'></a>
 # 1.53.0.0 — 2025-09-04
 
