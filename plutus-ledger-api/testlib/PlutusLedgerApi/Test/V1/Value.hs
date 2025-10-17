@@ -61,4 +61,4 @@ valueFromBuiltin =
     . Map.toList
     . PLC.unpack
  where
-  inner = fmap (first (TokenName . toBuiltin . PLC.unK)) . Map.toList
+  inner = fmap (bimap (TokenName . toBuiltin . PLC.unK) PLC.unQuantity) . Map.toList
