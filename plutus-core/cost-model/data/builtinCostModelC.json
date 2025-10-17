@@ -1068,14 +1068,14 @@
     "complementByteString": {
         "cpu": {
             "arguments": {
-               "intercept": 107878,
+                "intercept": 107878,
                 "slope": 680
             },
             "type": "linear_in_x"
         },
         "memory": {
             "arguments": {
-               "intercept": 0,
+                "intercept": 0,
                 "slope": 1
             },
             "type": "linear_in_x"
@@ -1083,11 +1083,11 @@
     },
     "readBit": {
         "cpu": {
-           "arguments": 95336,
+            "arguments": 95336,
             "type": "constant_cost"
         },
         "memory": {
-           "arguments": 1,
+            "arguments": 1,
             "type": "constant_cost"
         }
     },
@@ -1221,6 +1221,55 @@
         },
         "memory": {
             "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
+    "lookupCoin": {
+        "cpu": {
+            "arguments": {
+                "intercept": 210606,
+                "slope": 8019
+            },
+            "type": "linear_in_z"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "valueContains": {
+        "cpu": {
+            "arguments": {
+                "intercept": 1000,
+                "slope": 94161
+            },
+            "type": "linear_in_y"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "valueData": {
+        "cpu": {
+            "arguments": 162241,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "unValueData": {
+        "cpu": {
+            "arguments": {
+                "intercept": 1000,
+                "slope": 15417
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 1,
             "type": "constant_cost"
         }
     }

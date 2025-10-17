@@ -336,5 +336,16 @@ data ParamName =
   | Bls12_381_G2_multiScalarMul'cpu'arguments'intercept
   | Bls12_381_G2_multiScalarMul'cpu'arguments'slope
   | Bls12_381_G2_multiScalarMul'memory'arguments
+  | LookupCoin'cpu'arguments'intercept
+  | LookupCoin'cpu'arguments'slope
+  | LookupCoin'memory'arguments
+  | ValueContains'cpu'arguments'intercept
+  | ValueContains'cpu'arguments'slope
+  | ValueContains'memory'arguments
+  | ValueData'cpu'arguments
+  | ValueData'memory'arguments
+  | UnValueData'cpu'arguments'intercept
+  | UnValueData'cpu'arguments'slope
+  | UnValueData'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)

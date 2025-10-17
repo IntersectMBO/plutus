@@ -18,7 +18,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import Data.Int (Int64)
 import Data.Map qualified as Map
-import Data.Maybe
 import GHC.Stack (HasCallStack)
 
 
@@ -29,8 +28,10 @@ import GHC.Stack (HasCallStack)
 -- | Example values of costs for @PlutusV3@, in expected ledger order.
 -- Suitable to be used in testing.
 costModelParamsForTesting :: HasCallStack => [(V3.ParamName, Int64)]
-costModelParamsForTesting = Map.toList $ fromJust $
-    Common.extractCostModelParamsLedgerOrder mCostModel
+costModelParamsForTesting =
+  case Common.extractCostModelParamsLedgerOrder mCostModel of
+    Nothing -> error "extractCostModelParamsLedgerOrder (V3): nothing extracted"
+    Just xs -> Map.toList xs
 
 -- | The PlutusV3 "cost model" is constructed by the v4 "cost model", by clearing v4 introductions.
 mCostModel :: MCostModel
