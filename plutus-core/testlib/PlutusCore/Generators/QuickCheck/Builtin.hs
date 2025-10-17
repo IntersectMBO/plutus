@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
@@ -30,7 +31,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Data.Vector.Strict qualified as Strict
-import Test.QuickCheck
+import Test.QuickCheck hiding (Some (..))
 import Test.QuickCheck.Instances.ByteString ()
 import Test.QuickCheck.Instances.Vector ()
 import Universe

@@ -1,4 +1,11 @@
 
+<a id='changelog-1.53.1.0'></a>
+# 1.53.1.0 — 2025-10-17
+
+## Fixed
+
+- Allows PlutusV3 scripts with the v1.0.0 Plutus Core language version.
+
 <a id='changelog-1.51.0.0'></a>
 # 1.51.0.0 — 2025-07-30
 

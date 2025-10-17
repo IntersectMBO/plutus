@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.53.0.0
+version:         1.53.1.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -113,7 +113,7 @@ library
   build-depends:
     , aeson
     , aeson-pretty
-    , base               >=4.9   && <5
+    , base               >=4.9       && <5
     , base16-bytestring  >=1
     , bytestring
     , cborg
@@ -122,8 +122,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.53
-    , plutus-tx          ^>=1.53
+    , plutus-core        ^>=1.53.1.0
+    , plutus-tx          ^>=1.53.1.0
     , prettyprinter
     , serialise
     , tagged
@@ -151,15 +151,15 @@ library plutus-ledger-api-testlib
 
   build-depends:
     , barbies
-    , base                             >=4.9   && <5
+    , base                             >=4.9       && <5
     , base16-bytestring
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core                      ^>=1.53
+    , plutus-core                      ^>=1.53.1.0
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                ^>=1.53
-    , plutus-tx                        ^>=1.53
+    , plutus-ledger-api                ^>=1.53.1.0
+    , plutus-tx                        ^>=1.53.1.0
     , prettyprinter
     , QuickCheck
     , serialise
@@ -186,7 +186,7 @@ test-suite plutus-ledger-api-test
     Spec.Versions
 
   build-depends:
-    , base                                         >=4.9   && <5
+    , base                                         >=4.9       && <5
     , bytestring
     , cborg
     , containers
@@ -195,11 +195,11 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core                                  ^>=1.53
+    , plutus-core                                  ^>=1.53.1.0
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.53
+    , plutus-ledger-api                            ^>=1.53.1.0
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.53
+    , plutus-tx                                    ^>=1.53.1.0
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , serialise
@@ -238,18 +238,18 @@ test-suite plutus-ledger-api-plugin-test
     buildable: False
 
   build-depends:
-    , base                                         >=4.9   && <5
+    , base                                         >=4.9       && <5
     , bytestring
     , containers
     , filepath
     , lens
     , mtl
-    , plutus-core                                  ^>=1.53
+    , plutus-core                                  ^>=1.53.1.0
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.53
+    , plutus-ledger-api                            ^>=1.53.1.0
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.53
-    , plutus-tx-plugin                             ^>=1.53
+    , plutus-tx                                    ^>=1.53.1.0
+    , plutus-tx-plugin                             ^>=1.53.1.0
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , QuickCheck
@@ -269,12 +269,12 @@ executable test-onchain-evaluation
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , async
-    , base                                         >=4.9   && <5
+    , base                                         >=4.9       && <5
     , extra
     , filepath
     , mtl
-    , plutus-core                                  ^>=1.53
-    , plutus-ledger-api                            ^>=1.53
+    , plutus-core                                  ^>=1.53.1.0
+    , plutus-ledger-api                            ^>=1.53.1.0
     , plutus-ledger-api:plutus-ledger-api-testlib
     , serialise
     , tasty
@@ -288,15 +288,15 @@ executable analyse-script-events
   default-language: Haskell2010
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-    , base                                         >=4.9   && <5
+    , base                                         >=4.9       && <5
     , extra
     , filepath
     , lens
     , mtl
-    , plutus-core                                  ^>=1.53
-    , plutus-ledger-api                            ^>=1.53
+    , plutus-core                                  ^>=1.53.1.0
+    , plutus-ledger-api                            ^>=1.53.1.0
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.53
+    , plutus-tx                                    ^>=1.53.1.0
     , primitive
     , serialise
 
@@ -310,12 +310,12 @@ executable dump-cost-model-parameters
   build-depends:
     , aeson
     , aeson-pretty
-    , base                  >=4.9   && <5
+    , base                  >=4.9       && <5
     , bytestring
     , containers
     , extra
     , optparse-applicative
-    , plutus-core           ^>=1.53
-    , plutus-ledger-api     ^>=1.53
+    , plutus-core           ^>=1.53.1.0
+    , plutus-ledger-api     ^>=1.53.1.0
     , text
     , vector

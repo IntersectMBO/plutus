@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
 
 module Evaluation.Builtins.Costing where
 
@@ -22,7 +23,7 @@ import Data.Maybe
 import Data.SatInt
 import Test.QuickCheck.Gen
 import Test.Tasty
-import Test.Tasty.QuickCheck
+import Test.Tasty.QuickCheck hiding (Some (..))
 
 deriving newtype instance Foldable NonEmptyList  -- QuickCheck...
 
