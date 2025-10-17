@@ -50,6 +50,10 @@ instance name ~ Name => EstablishScoping (Term name uni fun) where
         -- that none of the transformations leak variables outside of the branch they're bound in.
         pure . referenceOutOfScope branchBounds $
             Case NotAName aScoped . Vector.fromList $ map referenceInBranch esScopedPoked
+    establishScoping (Let _ _ns _t) = error "no"
+    establishScoping (Bind _ _t _bs) = error "no"
+    -- TODO: Current scope checking uses `NameAnn` which only allows a single name to be annotated.
+    -- It's hard to support `Let` and `Bind` which binds multiple names at once
 
 instance name ~ Name => EstablishScoping (Program name uni fun) where
     establishScoping (Program _ ver term) = Program NotAName ver <$> establishScoping term
@@ -65,6 +69,8 @@ instance name ~ Name => CollectScopeInfo (Term name uni fun) where
     collectScopeInfo (Builtin _ _)          = mempty
     collectScopeInfo (Constr _ _ es)        = foldMap collectScopeInfo es
     collectScopeInfo (Case _ arg cs)        = collectScopeInfo arg <> foldMap collectScopeInfo cs
+    collectScopeInfo (Let _ _ns _t)         = error "no"
+    collectScopeInfo (Bind _ _t _bs)        = error "no"
 
 instance name ~ Name => CollectScopeInfo (Program name uni fun) where
     collectScopeInfo (Program _ _ term) = collectScopeInfo term
