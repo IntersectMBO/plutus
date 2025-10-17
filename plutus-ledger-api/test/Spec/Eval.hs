@@ -55,7 +55,7 @@ evalAPI pv t =
     -- handcraft a serialised script
     let ss :: V1.SerialisedScript = V1.serialiseUPLC $ Program () PLC.plcVersion100 t
         s :: V1.ScriptForEvaluation = either (Prelude.error . show) id $ deserialiseScript PlutusV1 pv ss
-        ec :: V1.EvaluationContext = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext $ fmap snd V1.costModelParamsForTesting
+        ec :: V1.EvaluationContext DefaultFun = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext $ fmap snd V1.costModelParamsForTesting
     in isRight $ snd $ V1.evaluateScriptRestricting pv V1.Quiet ec (unExRestrictingBudget enormousBudget) s []
 
 {-| Test a given eval function against the expected results.
@@ -97,7 +97,7 @@ lengthParamNamesV PlutusV1 = length $ enumerate @V1.ParamName
 lengthParamNamesV PlutusV2 = length $ enumerate @V2.ParamName
 lengthParamNamesV PlutusV3 = length $ enumerate @V3.ParamName
 
-mkEvaluationContextV :: PlutusLedgerLanguage -> IO EvaluationContext
+mkEvaluationContextV :: PlutusLedgerLanguage -> IO (EvaluationContext DefaultFun)
 mkEvaluationContextV ll =
     either (assertFailure . display) (pure . fst) . runWriterT $
         take (lengthParamNamesV ll) costParams & case ll of

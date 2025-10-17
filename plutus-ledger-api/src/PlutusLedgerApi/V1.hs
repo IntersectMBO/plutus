@@ -251,7 +251,7 @@ evaluateScriptCounting ::
   -- | Whether to produce log output
   Common.VerboseMode ->
   -- | Includes the cost model to use for tallying up the execution costs
-  EvaluationContext.EvaluationContext ->
+  EvaluationContext.EvaluationContext Eval.DefaultFun ->
   -- | The script to evaluate
   Common.ScriptForEvaluation ->
   -- | The arguments to the script
@@ -272,7 +272,7 @@ evaluateScriptRestricting ::
   -- | Whether to produce log output
   Common.VerboseMode ->
   -- | Includes the cost model to use for tallying up the execution costs
-  EvaluationContext.EvaluationContext ->
+  EvaluationContext.EvaluationContext Eval.DefaultFun ->
   -- | The resource budget which must not be exceeded during evaluation
   Common.ExBudget ->
   -- | The script to evaluate
