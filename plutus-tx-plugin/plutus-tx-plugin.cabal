@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.53.0.0
+version:         1.53.1.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -74,7 +74,7 @@ library
 
   build-depends:
     , array
-    , base                   >=4.9   && <5
+    , base                   >=4.9       && <5
     , base16-bytestring
     , bytestring
     , containers
@@ -83,12 +83,10 @@ library
     , flat                   ^>=0.6
     , ghc
     , lens
-    , megaparsec
     , mtl
-    , plutus-core            ^>=1.53
+    , plutus-core            ^>=1.53.1.0
     , plutus-core:plutus-ir
-    , plutus-metatheory      ^>=1.53
-    , plutus-tx              ^>=1.53
+    , plutus-tx              ^>=1.53.1.0
     , prettyprinter
     , template-haskell
     , text
@@ -100,11 +98,11 @@ executable gen-plugin-opts-doc
   hs-source-dirs:   app
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-    , base                  >=4.7      && <5
+    , base                  >=4.7       && <5
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.53
+    , plutus-tx-plugin      ^>=1.53.1.0
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -184,7 +182,7 @@ test-suite plutus-tx-plugin-tests
     Unicode.Spec
 
   build-depends:
-    , base                             >=4.9   && <5
+    , base                             >=4.9       && <5
     , base16-bytestring
     , bytestring
     , containers
@@ -194,10 +192,10 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.53
+    , plutus-core                      ^>=1.53.1.0
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.53
-    , plutus-tx-plugin                 ^>=1.53
+    , plutus-tx                        ^>=1.53.1.0
+    , plutus-tx-plugin                 ^>=1.53.1.0
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , serialise
@@ -227,11 +225,11 @@ test-suite size
   main-is:            Main.hs
   hs-source-dirs:     test/size
   build-depends:
-    , base                             >=4.9   && <5.0
-    , plutus-core                      ^>=1.53
+    , base                             >=4.9       && <5.0
+    , plutus-core                      ^>=1.53.1.0
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.53
-    , plutus-tx-plugin                 ^>=1.53
+    , plutus-tx                        ^>=1.53.1.0
+    , plutus-tx-plugin                 ^>=1.53.1.0
     , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty
