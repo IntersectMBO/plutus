@@ -1,1 +1,1 @@
-Value -> Value -> Value
+Value -> Value -> BuiltinResult Value
