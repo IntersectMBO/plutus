@@ -1,7 +1,10 @@
 ---
 name: UPLC AMA
 speakers:
-  - TBD
+  - Ziyang Liu
+  - Roman Kireev
+  - Kenneth MacKenzie
+  - Philip Wadler
 categories:
   - Panel
 ---

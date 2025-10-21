@@ -78,9 +78,6 @@ days:
 
     - name: 2.55
       talks:
-        - name: Plinth
-          time_start: '10:50'
-          time_end: '11:30'
         - name: Compiling UPLC to RISC-V
           time_start: '14:40'
           time_end: '15:40'
