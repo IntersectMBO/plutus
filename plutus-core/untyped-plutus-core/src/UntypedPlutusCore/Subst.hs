@@ -72,6 +72,8 @@ termMapNames f = go
             Force ann t          -> Force ann (go t)
             Constr ann i es      -> Constr ann i (fmap go es)
             Case ann arg cs      -> Case ann (go arg) (fmap go cs)
+            Let ann ns t         -> Let ann (fmap f ns) (go t)
+            Bind ann t bs        -> Bind ann (go t) (fmap go bs)
 
             Constant ann c       -> Constant ann c
             Builtin ann b        -> Builtin ann b

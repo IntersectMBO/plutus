@@ -90,6 +90,20 @@ caseTerm = withSpan $ \sp ->
       whenVersion (\v -> v < plcVersion110) $ fail "'case' is not allowed before version 1.1.0"
       pure res
 
+letTerm :: Parser PTerm
+letTerm = withSpan $ \sp ->
+  inParens $ symbol "let" *> do
+    res <- UPLC.Let sp <$> (inParens $ many (leadingWhitespace name)) <*> term
+    -- TODO: version check
+    pure res
+
+bindTerm :: Parser PTerm
+bindTerm = withSpan $ \sp ->
+  inParens $ symbol "bind" *> do
+    res <- UPLC.Bind sp <$> term <*> (many term)
+    -- TODO: version check
+    pure res
+
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
 term = leadingWhitespace go
@@ -106,6 +120,8 @@ term = leadingWhitespace go
             , errorTerm
             , constrTerm
             , caseTerm
+            , letTerm
+            , bindTerm
             ]
 
 -- | Parser for UPLC programs.

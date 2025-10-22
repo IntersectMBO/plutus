@@ -12,6 +12,7 @@ module UntypedPlutusCore.Core.Instance.Pretty.Readable () where
 import PlutusCore.Pretty.PrettyConst
 import PlutusCore.Pretty.Readable
 import PlutusPrelude
+import Prettyprinter.Custom (parens')
 import UntypedPlutusCore.Core.Type
 
 import Prettyprinter
@@ -53,6 +54,10 @@ instance
     Constr _ i es -> iterAppDocM $ \_ prettyArg ->
       ("constr" <+> prettyArg i) :| [prettyArg es]
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
+    Let _ ns t -> iterAppDocM $ \_ prettyArg ->
+      "let" :| [parens' (sep $ prettyArg <$> ns), prettyArg t]
+    Bind _ t bs -> iterAppDocM $ \_ prettyArg ->
+      "bind" :| [prettyArg t, prettyArg bs]
 
 instance
   (PrettyReadableBy configName (Term name uni fun a)) =>

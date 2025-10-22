@@ -450,7 +450,9 @@ isStrictIn name = go
   go = \case
     Var _ann name' -> name == name'
     LamAbs _ann _paramName _body -> False
+    Let _ann _names _body -> False
     Apply _ann t1 t2 -> go t1 || go t2
+    Bind _ann body binds -> go body || any go binds
     Force _ann t -> go t
     Delay _ann _term -> False
     Constant{} -> False
@@ -511,6 +513,8 @@ costIsAcceptable = \case
   Case{} -> False
   Force{} -> False
   Delay{} -> True
+  Bind{} -> False
+  Let{} -> False
 
 {-| Is the size increase (in the AST) of inlining a variable whose RHS is
 the given term acceptable?
