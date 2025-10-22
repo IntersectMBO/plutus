@@ -121,7 +121,7 @@ days:
         - name: A Layered Certifying Compiler Architecture
           time_start: '10:50'
           time_end: '11:30'
-        - name: TBD-1
+        - name: JIT-compiling Plutus on the JVM – the fastest UPLC evaluator on the planet
           time_start: '13:30'
           time_end: '14:10'
         - name: Unconference
