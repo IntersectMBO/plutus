@@ -238,6 +238,9 @@ unitCostTwoArguments   =  CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwo
 unitCostThreeArguments :: CostingFun ModelThreeArguments
 unitCostThreeArguments =  CostingFun (ModelThreeArgumentsConstantCost 1) (ModelThreeArgumentsConstantCost 0)
 
+unitCostFourArguments :: CostingFun ModelFourArguments
+unitCostFourArguments  =  CostingFun (ModelFourArgumentsConstantCost 1) (ModelFourArgumentsConstantCost 0)
+
 unitCostSixArguments :: CostingFun ModelSixArguments
 unitCostSixArguments   =  CostingFun (ModelSixArgumentsConstantCost 1) (ModelSixArgumentsConstantCost 0)
 
@@ -355,6 +358,9 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramLengthOfArray                   = unitCostOneArgument
     , paramListToArray                     = unitCostOneArgument
     , paramIndexArray                      = unitCostTwoArguments
+    -- Builtin values
+    , paramInsertCoin                      = unitCostFourArguments
+    , paramUnionValue                      = unitCostTwoArguments
     }
 
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
