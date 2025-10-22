@@ -2,6 +2,7 @@
 
 module Main where
 
+import PlutusLedgerApi.Common (DefaultFun)
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.Examples
 import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
@@ -33,7 +34,7 @@ import Data.Int (Int64)
 main :: IO ()
 main = defaultMain tests
 
-v1_evalCtxForTesting :: V1.EvaluationContext
+v1_evalCtxForTesting :: V1.EvaluationContext DefaultFun
 v1_evalCtxForTesting =
   fst . unsafeFromRight . runWriterT . V1.mkEvaluationContext $
     fmap snd V1.costModelParamsForTesting
@@ -43,7 +44,7 @@ As a result, the cost model parameters for `integerToByteString`
 and `byteStringToInteger` should be set to large numbers, preventing
 them from being used.
 -}
-v3_evalCtxTooFewParams :: V3.EvaluationContext
+v3_evalCtxTooFewParams :: V3.EvaluationContext DefaultFun
 v3_evalCtxTooFewParams =
   fst . unsafeFromRight . runWriterT $
     V3.mkEvaluationContext . take 223 $

@@ -33,7 +33,7 @@ a protocol update with the updated cost model parameters.
 mkEvaluationContext
   :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
   => [Int64] -- ^ the (updated) cost model parameters of the protocol
-  -> m EvaluationContext
+  -> m (EvaluationContext DefaultFun)
 mkEvaluationContext =
   tagWithParamNames @V3.ParamName
     >=> pure . toCostModelParams

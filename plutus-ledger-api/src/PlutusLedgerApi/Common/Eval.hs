@@ -1,11 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StrictData        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE StrictData           #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 module PlutusLedgerApi.Common.Eval
     ( EvaluationError (..)
@@ -13,6 +14,7 @@ module PlutusLedgerApi.Common.Eval
     , AsScriptDecodeError (..)
     , LogOutput
     , VerboseMode (..)
+    , DefaultFun
     , evaluateScriptRestricting
     , evaluateScriptCounting
     , evaluateTerm
@@ -113,7 +115,9 @@ mkTermToEvaluate ll pv script args = do
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
-toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
+toMachineParameters
+    :: Eq (BuiltinSemanticsVariant fun)
+    => MajorProtocolVersion -> EvaluationContext fun -> DefaultMachineParameters fun
 toMachineParameters pv (EvaluationContext ll toCaser toSemVar machParsList) =
     case lookup (toSemVar pv) machParsList of
         Nothing -> error $ Prelude.concat
@@ -148,7 +152,7 @@ protocol version are
    more semantically precise to associate bundles of machine parameters with semantics variants than
    with protocol versions
 -}
-data EvaluationContext = EvaluationContext
+data EvaluationContext fun = EvaluationContext
     { _evalCtxLedgerLang    :: PlutusLedgerLanguage
       -- ^ Specifies what language versions the 'EvaluationContext' is for.
     , _evalCtxCaserBuiltin  :: MajorProtocolVersion -> CaserBuiltin DefaultUni
@@ -159,16 +163,19 @@ data EvaluationContext = EvaluationContext
       -- is available.
       -- FIXME: do we need to test that it fails for older PVs?  We can't submit
       -- transactions in old PVs, so maybe it doesn't matter.
-    , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
+    , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant fun
       -- ^ Specifies how to get a semantics variant for this ledger language given a
       -- 'MajorProtocolVersion'.
     , _evalCtxMachParsCache ::
-        [(BuiltinSemanticsVariant DefaultFun, DefaultMachineVariantParameters)]
+        [(BuiltinSemanticsVariant fun, DefaultMachineVariantParameters fun)]
       -- ^ The cache of 'DefaultMachineParameters' for each semantics variant supported by the
       -- current language version.
     }
     deriving stock Generic
-    deriving anyclass (NFData, NoThunks)
+
+instance (NFData (BuiltinSemanticsVariant fun), Enum fun, Bounded fun) => NFData (EvaluationContext fun)
+
+instance (NoThunks (BuiltinSemanticsVariant fun), Enum fun, Bounded fun) => NoThunks (EvaluationContext fun)
 
 {-|  Create an 'EvaluationContext' given all builtin semantics variants supported by the provided
 language version.
@@ -190,7 +197,7 @@ mkDynEvaluationContext
     -> [BuiltinSemanticsVariant DefaultFun]
     -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
     -> Plutus.CostModelParams
-    -> m EvaluationContext
+    -> m (EvaluationContext DefaultFun)
 mkDynEvaluationContext ll toCaser semVars toSemVar newCMP = do
     machPars <- mkMachineVariantParametersFor semVars newCMP
     pure $ EvaluationContext ll toCaser toSemVar machPars
@@ -202,12 +209,13 @@ assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defa
 -- | Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
 -- on-chain evaluator.
 evaluateTerm
-    :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
+    :: (ThrowableBuiltins DefaultUni fun, Eq (BuiltinSemanticsVariant fun))
+    => UPLC.ExBudgetMode cost DefaultUni fun
     -> MajorProtocolVersion
     -> VerboseMode
-    -> EvaluationContext
-    -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-    -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun
+    -> EvaluationContext fun
+    -> UPLC.Term UPLC.NamedDeBruijn DefaultUni fun ()
+    -> UPLC.CekReport cost NamedDeBruijn DefaultUni fun
 evaluateTerm budgetMode pv verbose ectx =
     UPLC.runCekDeBruijn
         (toMachineParameters pv ectx)
@@ -231,7 +239,7 @@ evaluateScriptRestricting
     :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
     -> MajorProtocolVersion -- ^ Which major protocol version to run the operation in
     -> VerboseMode          -- ^ Whether to produce log output
-    -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
+    -> EvaluationContext DefaultFun -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget             -- ^ The resource budget which must not be exceeded during evaluation
     -> ScriptForEvaluation  -- ^ The script to evaluate
     -> [Plutus.Data]        -- ^ The arguments to the script
@@ -254,7 +262,7 @@ evaluateScriptCounting
     :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
     -> MajorProtocolVersion -- ^ Which major protocol version to run the operation in
     -> VerboseMode          -- ^ Whether to produce log output
-    -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
+    -> EvaluationContext DefaultFun -- ^ Includes the cost model to use for tallying up the execution costs
     -> ScriptForEvaluation  -- ^ The script to evaluate
     -> [Plutus.Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
