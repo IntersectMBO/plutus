@@ -1,1 +1,1 @@
-Value -> Value -> BuiltinResult Bool
+ValueLogOuterOrMaxInner -> ValueTotalSize -> BuiltinResult Bool
