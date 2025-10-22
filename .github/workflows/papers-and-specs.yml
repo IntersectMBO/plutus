@@ -20,7 +20,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Build & Publish Papers & Specs
     runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write
