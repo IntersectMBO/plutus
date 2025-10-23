@@ -21,12 +21,15 @@ import System.FilePath ((</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
-import FFI.Untyped (UTerm)
+import FFI.Untyped (UTerm, uconv)
 
+import PlutusCore.Pretty (prettyPlcReadableSimple)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
+
+import Debug.Trace (trace)
 
 type CertName = String
 type CertDir = String
@@ -100,11 +103,13 @@ data TermWithId = TermWithId
   { termId :: Int
   , term   :: UTerm
   }
+  deriving stock Show
 
 data Ast = Ast
   { equivClass    :: EquivClass
   , astTermWithId :: TermWithId
   }
+  deriving stock Show
 
 getTermId :: Ast -> Int
 getTermId Ast {astTermWithId = TermWithId {termId} } = termId
@@ -194,11 +199,12 @@ mkAgdaAstFile ast =
       agdaIdStr = "ast" <> show agdaId
       agdaAstTy = agdaIdStr <> " : Untyped"
       agdaAstDef = agdaIdStr <> " = " <> agdaAst
+      uplcAst = show . prettyPlcReadableSimple . uconv 0 . term . astTermWithId $ ast
       agdaAstFile = agdaModuleName <> ".agda"
-   in (agdaAstFile, mkAstModule agdaModuleName agdaAstTy agdaAstDef)
+   in (agdaAstFile, mkAstModule agdaModuleName agdaAstTy agdaAstDef uplcAst)
 
-mkAstModule :: String -> String -> String -> String
-mkAstModule agdaIdStr agdaAstTy agdaAstDef =
+mkAstModule :: String -> String -> String -> String -> String
+mkAstModule agdaIdStr agdaAstTy agdaAstDef uplcAst =
   "module " <> agdaIdStr <> " where\
   \\n\
   \\nopen import VerifiedCompilation\
@@ -217,6 +223,8 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
   \\nopen import Data.Empty using (⊥)\
   \\nopen import Data.Bool.Base using (Bool; false; true)\
   \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
+  \\n\
+  \\n{-\n" <> uplcAst <> "\n-}\n\
   \\n\
   \\n" <> agdaAstTy <> "\n\
   \\n" <> agdaAstDef <> "\n"
