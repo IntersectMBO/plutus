@@ -186,8 +186,11 @@ getCE (just (cert (ce _ {X} {X'} t b a))) = just (X , X' , t , b , a)
 open import Data.Bool.Base using (Bool; false; true)
 open import Agda.Builtin.Equality using (_≡_; refl)
 
+postulate
+  tr : {X X' : Set} → SimplifierTag → X → X' → Bool → Bool
+
 passed? : Maybe Cert → Bool
-passed? (just (cert (ce _ _ _ _))) = false
+passed? (just (cert (ce p t x1 x2))) = false
 passed? (just (cert (proof _))) = true
 passed? nothing = false
 
