@@ -429,7 +429,7 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
   \Dterm(\bits{0111} \cdot s)  &= (s', \Builtin{b}) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
   \Dterm(\bits{1000} \cdot s)  &= (s'', \Constr{i}{l}) &&\quad \text{if } \D_{\N}(s) = (s', i)\ \text{and}\ i < 2^{64} &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)\\
-  \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
+  \Dterm(\bits{1001} \cdot s)  &= (s'', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
 \paragraph{NOTE.} The decoder $\Dterm$ should fail if we are decoding a program
