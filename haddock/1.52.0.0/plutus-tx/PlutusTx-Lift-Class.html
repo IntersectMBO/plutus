@@ -1,0 +1,3585 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Lift.Class</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Lift.Class.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Lift.Class</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Typeable"
+	      >Typeable</a
+	      > uni (a &#8759; k) <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:typeRep"
+		  >typeRep</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+		  >Proxy</a
+		  > a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+		  >RTCompile</a
+		  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Lift"
+	      >Lift</a
+	      > uni a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:lift"
+		  >lift</a
+		  > &#8759; a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+		  >RTCompile</a
+		  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:RTCompile"
+	      >RTCompile</a
+	      > uni fun = <a href="../plutus-core/PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	      >DefT</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > uni fun () <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Typeable" class="def"
+	    >Typeable</a
+	    > uni (a &#8759; k) <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Lift.Class.html#Typeable" class="link"
+	    >Source</a
+	    > <a href="#t:Typeable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Class for types which have a corresponding Plutus IR type. Instances should always be derived,
+do not write your own instance!</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:typeRep" class="def"
+	      >typeRep</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	      >Proxy</a
+	      > a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+	      >RTCompile</a
+	      > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+	      >Source</a
+	      > <a href="#v:typeRep" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Get the Plutus IR type corresponding to this type.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Typeable"
+	    >Instances</h4
+	    ><details id="i:Typeable" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:1"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-378" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:2"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:3"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > ()</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > () &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:4"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-231" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:5"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-245" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:6"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-259" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:7"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-153" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:8"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="PlutusTx.html#t:Data" title="PlutusTx"
+		      >Data</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-222" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:9"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+		      >BuiltinInteger</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+			  >BuiltinInteger</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:10"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		      >Text</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-161" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:11"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni () &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+		      >BuiltinUnit</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-169" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+			  >BuiltinUnit</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:12"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:13"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;Int is not supported, use Integer instead&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-134" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:14"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni f, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni a) &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni (f a &#8759; k)</span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (f a) &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:15"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--44--44--44--41-" title="GHC.Tuple.Prim"
+		      >(,,,,)</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--44--44--44--41-" title="GHC.Tuple.Prim"
+			  >(,,,,)</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:16"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--44--44--41-" title="GHC.Tuple.Prim"
+		      >(,,,)</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--44--44--41-" title="GHC.Tuple.Prim"
+			  >(,,,)</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:17"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--44--41-" title="GHC.Tuple.Prim"
+		      >(,,)</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--44--41-" title="GHC.Tuple.Prim"
+			  >(,,)</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:18"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:19"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      ></span
+		    > <a href="src/PlutusTx.AssocMap.html#line-404" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:20"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      ></span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-632" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:21"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		      >These</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-28" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+			  >These</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:22"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+		      >(,)</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+			  >(,)</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:23"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+		      >(,)</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+		      >BuiltinPair</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-209" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+			  >BuiltinPair</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:24"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      ></span
+		    > <a href="src/PlutusTx.Data.List.html#line-753" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:24"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:25"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-26" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:25"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:26"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+		      >List</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:26"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+			  >List</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:27"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+		      >Vector</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinArray" title="PlutusTx.Builtins.Internal"
+		      >BuiltinArray</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-197" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:27"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinArray" title="PlutusTx.Builtins.Internal"
+			  >BuiltinArray</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:28"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+		      >List</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+		      >BuiltinList</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-186" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:28"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Typeable:Typeable:29"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni (-&gt;)</span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Typeable:Typeable:29"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (-&gt;) &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Lift" class="def"
+	    >Lift</a
+	    > uni a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Lift.Class.html#Lift" class="link"
+	    >Source</a
+	    > <a href="#t:Lift" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Class for types which can be lifted into Plutus IR. Instances should be derived, do not write
+your own instance!</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:lift" class="def"
+	      >lift</a
+	      > &#8759; a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+	      >RTCompile</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+	      >Source</a
+	      > <a href="#v:lift" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Get a Plutus IR term corresponding to the given value.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Lift"
+	    >Instances</h4
+	    ><details id="i:Lift" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:1"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-378" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:2"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:3"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > ()</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; () &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:4"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-238" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:5"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-252" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:6"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-266" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:7"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-157" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:8"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="PlutusTx.html#t:Data" title="PlutusTx"
+		      >Data</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-226" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:9"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+		      >BuiltinInteger</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-149" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+			  >BuiltinInteger</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:10"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		      >Text</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-165" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:11"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni () &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+		      >BuiltinUnit</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-173" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+			  >BuiltinUnit</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:12"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-181" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:13"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;Int is not supported, use Integer instead&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-140" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:14"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-753" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:15"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-26" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:16"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > [a]</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; [a] &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:17"
+		      ></span
+		      > (<a href="PlutusTx-Builtins-HasBuiltin.html#t:HasFromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >HasFromBuiltin</a
+		      > arep, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+		      >Vector</a
+		      > (<a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >FromBuiltin</a
+		      > arep))) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinArray" title="PlutusTx.Builtins.Internal"
+		      >BuiltinArray</a
+		      > arep)</span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-202" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinArray" title="PlutusTx.Builtins.Internal"
+			  >BuiltinArray</a
+			  > arep &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:18"
+		      ></span
+		      > (<a href="PlutusTx-Builtins-HasBuiltin.html#t:HasFromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >HasFromBuiltin</a
+		      > arep, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni [<a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >FromBuiltin</a
+		      > arep]) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+		      >BuiltinList</a
+		      > arep)</span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-191" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > arep &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:19"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a b &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:20"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > [(k, v)] &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-404" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:21"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-632" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:22"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		      >These</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-28" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+			  >These</a
+			  > a b &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:23"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; (a, b) &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:24"
+		      ></span
+		      > (<a href="PlutusTx-Builtins-HasBuiltin.html#t:HasFromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >HasFromBuiltin</a
+		      > arep, <a href="PlutusTx-Builtins-HasBuiltin.html#t:HasFromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >HasFromBuiltin</a
+		      > brep, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni (<a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >FromBuiltin</a
+		      > arep, <a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >FromBuiltin</a
+		      > brep)) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+		      >BuiltinPair</a
+		      > arep brep)</span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-213" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:24"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+			  >BuiltinPair</a
+			  > arep brep &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:25"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > c, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > c) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (a, b, c)</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:25"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; (a, b, c) &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:26"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > c, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > d, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > c, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > d) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (a, b, c, d)</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:26"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; (a, b, c, d) &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Lift:Lift:27"
+		      ></span
+		      > (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > c, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > d, <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > e, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > a, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > b, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > c, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > d, <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > e) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (a, b, c, d, e)</span
+		    > <a href="src/PlutusTx.Lift.Instances.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Lift:Lift:27"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Instances.html"
+			>PlutusTx.Lift.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; (a, b, c, d, e) &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:RTCompile" class="def"
+	    >RTCompile</a
+	    > uni fun = <a href="../plutus-core/PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	    >DefT</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > uni fun () <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > <a href="src/PlutusTx.Lift.Class.html#RTCompile" class="link"
+	    >Source</a
+	    > <a href="#t:RTCompile" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

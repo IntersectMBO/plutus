@@ -1,0 +1,339 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Text.Printf.Generic where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Char qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.List qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Agda.Builtin.String qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Data.List.Base qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Data.Product.Nary.NonDependent qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Data.Sum.Base qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Function.Nary.NonDependent.Base qualified
+<span class="lineno">   25 </span>import MAlonzo.Code.Text.Format.Generic qualified
+<span class="lineno">   26 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   27 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   28 </span>                    word64ToNat)
+<span class="lineno">   29 </span>import MAlonzo.RTE qualified
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- Text.Printf.Generic.PrintfSpec
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">d_PrintfSpec_18 a0 a1 a2 = ()</span></span>
+<span class="lineno">   33 </span>data T_PrintfSpec_18
+<span class="lineno">   34 </span>  = C_PrintfSpec'46'constructor_113 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   35 </span>                                    (MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; AgdaAny)
+<span class="lineno">   36 </span>-- Text.Printf.Generic._.ArgType
+<span class="lineno">   37 </span>d_ArgType_30 ::
+<span class="lineno">   38 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   39 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">   40 </span>  () -&gt; AgdaAny -&gt; ()
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">d_ArgType_30 = erased</span></span>
+<span class="lineno">   42 </span>-- Text.Printf.Generic.PrintfSpec._.ArgChunk
+<span class="lineno">   43 </span>d_ArgChunk_42 ::
+<span class="lineno">   44 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   45 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">   46 </span>  () -&gt; T_PrintfSpec_18 -&gt; ()
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">d_ArgChunk_42 = erased</span></span>
+<span class="lineno">   48 </span>-- Text.Printf.Generic.PrintfSpec._.ArgType
+<span class="lineno">   49 </span>d_ArgType_44 ::
+<span class="lineno">   50 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   51 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">   52 </span>  () -&gt; T_PrintfSpec_18 -&gt; AgdaAny -&gt; ()
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">d_ArgType_44 = erased</span></span>
+<span class="lineno">   54 </span>-- Text.Printf.Generic.PrintfSpec._.lexArg
+<span class="lineno">   55 </span>d_lexArg_46 ::
+<span class="lineno">   56 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   57 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">   58 </span>  () -&gt;
+<span class="lineno">   59 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">   60 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe AgdaAny
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">d_lexArg_46 ~v0 v1 ~v2 ~v3 = du_lexArg_46 v1</span></span>
+<span class="lineno">   62 </span>du_lexArg_46 ::
+<span class="lineno">   63 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">   64 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe AgdaAny
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">du_lexArg_46 v0</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Text.Format.Generic.d_lexArg_18 (coe v0)</span></span>
+<span class="lineno">   67 </span>-- Text.Printf.Generic.PrintfSpec.renderArg
+<span class="lineno">   68 </span>d_renderArg_50 :: T_PrintfSpec_18 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">d_renderArg_50 v0</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="nottickedoff">C_PrintfSpec'46'constructor_113 v1 v2 -&gt; coe v1</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">_                                     -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   73 </span>-- Text.Printf.Generic.PrintfSpec.renderStr
+<span class="lineno">   74 </span>d_renderStr_52 ::
+<span class="lineno">   75 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">   76 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; AgdaAny
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">d_renderStr_52 v0</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="nottickedoff">C_PrintfSpec'46'constructor_113 v1 v2 -&gt; coe v2</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">_                                     -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   81 </span>-- Text.Printf.Generic.Type._.Format
+<span class="lineno">   82 </span>d_Format_64 ::
+<span class="lineno">   83 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt; ()
+<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">d_Format_64 = erased</span></span>
+<span class="lineno">   85 </span>-- Text.Printf.Generic.Type._.Error
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">d_Error_66 a0 = ()</span></span>
+<span class="lineno">   87 </span>-- Text.Printf.Generic.Type.Error
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">d_Error_96 a0 a1 a2 = ()</span></span>
+<span class="lineno">   89 </span>data T_Error_96 = C_Error'46'constructor_421
+<span class="lineno">   90 </span>-- Text.Printf.Generic.Type.Size
+<span class="lineno">   91 </span>d_Size_100 ::
+<span class="lineno">   92 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">   93 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt; Integer
+<span class="lineno">   94 </span><span class="decl"><span class="nottickedoff">d_Size_100 ~v0 v1 = du_Size_100 v1</span></span>
+<span class="lineno">   95 </span>du_Size_100 :: MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt; Integer
+<span class="lineno">   96 </span><span class="decl"><span class="nottickedoff">du_Size_100 v0</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v1 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v1</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Text.Format.Generic.du_size_68 v1</span>
+<span class="lineno">  101 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  102 </span>-- Text.Printf.Generic.Type.Printf
+<span class="lineno">  103 </span>d_Printf_108 ::
+<span class="lineno">  104 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  105 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  106 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt; () -&gt; ()
+<span class="lineno">  107 </span><span class="decl"><span class="nottickedoff">d_Printf_108 = erased</span></span>
+<span class="lineno">  108 </span>-- Text.Printf.Generic.Type.map
+<span class="lineno">  109 </span>d_map_118 ::
+<span class="lineno">  110 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  111 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  112 </span>  () -&gt;
+<span class="lineno">  113 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  114 </span>  () -&gt;
+<span class="lineno">  115 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt;
+<span class="lineno">  116 </span>  (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">d_map_118 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6 v7 = du_map_118 v5 v6 v7</span></span>
+<span class="lineno">  118 </span>du_map_118 ::
+<span class="lineno">  119 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt;
+<span class="lineno">  120 </span>  (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">du_map_118 v0 v1 v2</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v3 -&gt; erased</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v3</span>
+<span class="lineno">  125 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  126 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Function.Nary.NonDependent.Base.du_map'8345'_140</span>
+<span class="lineno">  127 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  128 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_foldr_216 (coe addInt)</span>
+<span class="lineno">  129 </span><span class="spaces">                </span><span class="nottickedoff">(coe (0 :: Integer))</span>
+<span class="lineno">  130 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  131 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_map_22</span>
+<span class="lineno">  132 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  133 </span><span class="spaces">                      </span><span class="nottickedoff">(\ v4 -&gt;</span>
+<span class="lineno">  134 </span><span class="spaces">                         </span><span class="nottickedoff">let v5 = 1 :: Integer in</span>
+<span class="lineno">  135 </span><span class="spaces">                         </span><span class="nottickedoff">coe</span>
+<span class="lineno">  136 </span><span class="spaces">                           </span><span class="nottickedoff">(case coe v4 of</span>
+<span class="lineno">  137 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Text.Format.Generic.C_Raw_64 v6 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">  138 </span><span class="spaces">                              </span><span class="nottickedoff">_                                            -&gt; coe v5)))</span>
+<span class="lineno">  139 </span><span class="spaces">                   </span><span class="nottickedoff">(coe v3)))</span>
+<span class="lineno">  140 </span><span class="spaces">             </span><span class="nottickedoff">(coe v1) (coe v2)</span>
+<span class="lineno">  141 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  142 </span>-- Text.Printf.Generic.Render._.ArgChunk
+<span class="lineno">  143 </span>d_ArgChunk_142 ::
+<span class="lineno">  144 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  145 </span>  () -&gt;
+<span class="lineno">  146 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  147 </span>  T_PrintfSpec_18 -&gt; ()
+<span class="lineno">  148 </span><span class="decl"><span class="nottickedoff">d_ArgChunk_142 = erased</span></span>
+<span class="lineno">  149 </span>-- Text.Printf.Generic.Render._.ArgType
+<span class="lineno">  150 </span>d_ArgType_144 ::
+<span class="lineno">  151 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  152 </span>  () -&gt;
+<span class="lineno">  153 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  154 </span>  T_PrintfSpec_18 -&gt; AgdaAny -&gt; ()
+<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">d_ArgType_144 = erased</span></span>
+<span class="lineno">  156 </span>-- Text.Printf.Generic.Render._.lexArg
+<span class="lineno">  157 </span>d_lexArg_146 ::
+<span class="lineno">  158 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  159 </span>  () -&gt;
+<span class="lineno">  160 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  161 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  162 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe AgdaAny
+<span class="lineno">  163 </span><span class="decl"><span class="nottickedoff">d_lexArg_146 ~v0 ~v1 v2 ~v3 = du_lexArg_146 v2</span></span>
+<span class="lineno">  164 </span>du_lexArg_146 ::
+<span class="lineno">  165 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  166 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe AgdaAny
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">du_lexArg_146 v0</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Text.Format.Generic.d_lexArg_18 (coe v0)</span></span>
+<span class="lineno">  169 </span>-- Text.Printf.Generic.Render._.renderArg
+<span class="lineno">  170 </span>d_renderArg_148 :: T_PrintfSpec_18 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  171 </span><span class="decl"><span class="nottickedoff">d_renderArg_148 v0 = coe d_renderArg_50 (coe v0)</span></span>
+<span class="lineno">  172 </span>-- Text.Printf.Generic.Render._.renderStr
+<span class="lineno">  173 </span>d_renderStr_150 ::
+<span class="lineno">  174 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  175 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; AgdaAny
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">d_renderStr_150 v0 = coe d_renderStr_52 (coe v0)</span></span>
+<span class="lineno">  177 </span>-- Text.Printf.Generic.Render._.Error
+<span class="lineno">  178 </span><span class="decl"><span class="nottickedoff">d_Error_154 a0 a1 a2 a3 a4 a5 = ()</span></span>
+<span class="lineno">  179 </span>-- Text.Printf.Generic.Render._.Printf
+<span class="lineno">  180 </span>d_Printf_156 ::
+<span class="lineno">  181 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  182 </span>  () -&gt;
+<span class="lineno">  183 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  184 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  185 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  186 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt; () -&gt; ()
+<span class="lineno">  187 </span><span class="decl"><span class="nottickedoff">d_Printf_156 = erased</span></span>
+<span class="lineno">  188 </span>-- Text.Printf.Generic.Render._.map
+<span class="lineno">  189 </span>d_map_158 ::
+<span class="lineno">  190 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  191 </span>  () -&gt;
+<span class="lineno">  192 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  193 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  194 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  195 </span>  () -&gt;
+<span class="lineno">  196 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  197 </span>  () -&gt;
+<span class="lineno">  198 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt;
+<span class="lineno">  199 </span>  (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  200 </span><span class="decl"><span class="nottickedoff">d_map_158 ~v0 ~v1 ~v2 ~v3 = du_map_158</span></span>
+<span class="lineno">  201 </span>du_map_158 ::
+<span class="lineno">  202 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  203 </span>  () -&gt;
+<span class="lineno">  204 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  205 </span>  () -&gt;
+<span class="lineno">  206 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt;
+<span class="lineno">  207 </span>  (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  208 </span><span class="decl"><span class="nottickedoff">du_map_158 v0 v1 v2 v3 v4 v5 v6 = coe du_map_118 v4 v5 v6</span></span>
+<span class="lineno">  209 </span>-- Text.Printf.Generic.Render._.lexer
+<span class="lineno">  210 </span>d_lexer_178 ::
+<span class="lineno">  211 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  212 </span>  () -&gt;
+<span class="lineno">  213 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  214 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  215 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  216 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  217 </span><span class="decl"><span class="nottickedoff">d_lexer_178 ~v0 ~v1 v2 ~v3 = du_lexer_178 v2</span></span>
+<span class="lineno">  218 </span>du_lexer_178 ::
+<span class="lineno">  219 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  220 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  221 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  222 </span><span class="decl"><span class="nottickedoff">du_lexer_178 v0</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Text.Format.Generic.d_lexer_88 (coe v0)</span></span>
+<span class="lineno">  224 </span>-- Text.Printf.Generic.Render._.⟦_⟧
+<span class="lineno">  225 </span>d_'10214'_'10215'_182 ::
+<span class="lineno">  226 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  227 </span>  () -&gt;
+<span class="lineno">  228 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  229 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  230 </span>  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -&gt; AgdaAny
+<span class="lineno">  231 </span><span class="decl"><span class="nottickedoff">d_'10214'_'10215'_182 ~v0 ~v1 ~v2 ~v3 = du_'10214'_'10215'_182</span></span>
+<span class="lineno">  232 </span>du_'10214'_'10215'_182 ::
+<span class="lineno">  233 </span>  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -&gt; AgdaAny
+<span class="lineno">  234 </span><span class="decl"><span class="nottickedoff">du_'10214'_'10215'_182</span>
+<span class="lineno">  235 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Text.Format.Generic.du_'10214'_'10215'_74</span></span>
+<span class="lineno">  236 </span>-- Text.Printf.Generic.Render.assemble
+<span class="lineno">  237 </span>d_assemble_198 ::
+<span class="lineno">  238 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  239 </span>  () -&gt;
+<span class="lineno">  240 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  241 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  242 </span>  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -&gt;
+<span class="lineno">  243 </span>  AgdaAny -&gt; [AgdaAny]
+<span class="lineno">  244 </span><span class="decl"><span class="nottickedoff">d_assemble_198 ~v0 ~v1 ~v2 v3 v4 v5 = du_assemble_198 v3 v4 v5</span></span>
+<span class="lineno">  245 </span>du_assemble_198 ::
+<span class="lineno">  246 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  247 </span>  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -&gt;
+<span class="lineno">  248 </span>  AgdaAny -&gt; [AgdaAny]
+<span class="lineno">  249 </span><span class="decl"><span class="nottickedoff">du_assemble_198 v0 v1 v2</span>
+<span class="lineno">  250 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  251 </span><span class="spaces">      </span><span class="nottickedoff">[] -&gt; coe v1</span>
+<span class="lineno">  252 </span><span class="spaces">      </span><span class="nottickedoff">(:) v3 v4</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">  254 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Text.Format.Generic.C_Arg_62 v5</span>
+<span class="lineno">  255 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  256 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v6 v7</span>
+<span class="lineno">  257 </span><span class="spaces">                      </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  258 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  259 </span><span class="spaces">                           </span><span class="nottickedoff">(coe d_renderArg_50 v0 v5 v6)</span>
+<span class="lineno">  260 </span><span class="spaces">                           </span><span class="nottickedoff">(coe du_assemble_198 (coe v0) (coe v4) (coe v7))</span>
+<span class="lineno">  261 </span><span class="spaces">                    </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  262 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Text.Format.Generic.C_Raw_64 v5</span>
+<span class="lineno">  263 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  264 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  265 </span><span class="spaces">                    </span><span class="nottickedoff">(coe d_renderStr_52 v0 v5)</span>
+<span class="lineno">  266 </span><span class="spaces">                    </span><span class="nottickedoff">(coe du_assemble_198 (coe v0) (coe v4) (coe v2))</span>
+<span class="lineno">  267 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  268 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  269 </span>-- Text.Printf.Generic.Render.printf′
+<span class="lineno">  270 </span>d_printf'8242'_218 ::
+<span class="lineno">  271 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  272 </span>  () -&gt;
+<span class="lineno">  273 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  274 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  275 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">  276 </span><span class="decl"><span class="nottickedoff">d_printf'8242'_218 ~v0 ~v1 ~v2 v3 v4 = du_printf'8242'_218 v3 v4</span></span>
+<span class="lineno">  277 </span>du_printf'8242'_218 ::
+<span class="lineno">  278 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  279 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">  280 </span><span class="decl"><span class="nottickedoff">du_printf'8242'_218 v0 v1</span>
+<span class="lineno">  281 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  282 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v2 -&gt; erased</span>
+<span class="lineno">  283 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v2</span>
+<span class="lineno">  284 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  285 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Product.Nary.NonDependent.du_curry'8868''8345'_170</span>
+<span class="lineno">  286 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  287 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_foldr_216 (coe addInt)</span>
+<span class="lineno">  288 </span><span class="spaces">                </span><span class="nottickedoff">(coe (0 :: Integer))</span>
+<span class="lineno">  289 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  290 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_map_22</span>
+<span class="lineno">  291 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  292 </span><span class="spaces">                      </span><span class="nottickedoff">(\ v3 -&gt;</span>
+<span class="lineno">  293 </span><span class="spaces">                         </span><span class="nottickedoff">let v4 = 1 :: Integer in</span>
+<span class="lineno">  294 </span><span class="spaces">                         </span><span class="nottickedoff">coe</span>
+<span class="lineno">  295 </span><span class="spaces">                           </span><span class="nottickedoff">(case coe v3 of</span>
+<span class="lineno">  296 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Text.Format.Generic.C_Raw_64 v5 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">  297 </span><span class="spaces">                              </span><span class="nottickedoff">_                                            -&gt; coe v4)))</span>
+<span class="lineno">  298 </span><span class="spaces">                   </span><span class="nottickedoff">(coe v2)))</span>
+<span class="lineno">  299 </span><span class="spaces">             </span><span class="nottickedoff">(coe du_assemble_198 (coe v0) (coe v2))</span>
+<span class="lineno">  300 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  301 </span>-- Text.Printf.Generic.Render.printf
+<span class="lineno">  302 </span>d_printf_226 ::
+<span class="lineno">  303 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  304 </span>  () -&gt;
+<span class="lineno">  305 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  306 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  307 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; AgdaAny
+<span class="lineno">  308 </span><span class="decl"><span class="nottickedoff">d_printf_226 ~v0 ~v1 v2 v3 v4 = du_printf_226 v2 v3 v4</span></span>
+<span class="lineno">  309 </span>du_printf_226 ::
+<span class="lineno">  310 </span>  MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -&gt;
+<span class="lineno">  311 </span>  T_PrintfSpec_18 -&gt;
+<span class="lineno">  312 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; AgdaAny
+<span class="lineno">  313 </span><span class="decl"><span class="nottickedoff">du_printf_226 v0 v1 v2</span>
+<span class="lineno">  314 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  315 </span><span class="spaces">      </span><span class="nottickedoff">du_printf'8242'_218 (coe v1)</span>
+<span class="lineno">  316 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Text.Format.Generic.d_lexer_88 (coe v0) (coe v2))</span></span>
+
+</pre>
+</body>
+</html>

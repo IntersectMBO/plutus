@@ -1,0 +1,1967 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Compiler.Trace</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Control.Monad.Extra.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Extra</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.html"
+	><span class="hs-identifier"
+	  >Control.Monad.State</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html"
+	><span class="hs-identifier"
+	  >Data.Maybe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Debug.Trace.html"
+	><span class="hs-identifier"
+	  >Debug.Trace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A combination of `withContextM` and `traceCompilationStep`.
+
+`withContextM` emits a stack trace when the compilation fails, and can be
+turned on via `-fcontext-level=&lt;level&gt;`.
+
+`traceCompilationStep` dumps the full compilation trace, and can be
+turned on via `-fdump-compilation-trace`.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="local-6989586621679537864"
+      ><span id="local-6989586621679537865"
+	><span id="local-6989586621679537867"
+	  ><span id="local-6989586621679537872"
+	    ><span id="local-6989586621679537876"
+	      ><span class="annot"
+		><a href="PlutusTx.Compiler.Trace.html#traceCompilation"
+		  ><span class="hs-identifier hs-type"
+		    >traceCompilation</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-28"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		  ><span class="hs-identifier hs-type"
+		    >MonadReader</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#CompileContext"
+		  ><span class="hs-identifier hs-type"
+		    >CompileContext</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537864"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537865"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537867"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-29"
+		></span
+		><span
+		>     </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		  ><span class="hs-identifier hs-type"
+		    >MonadState</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#CompileState"
+		  ><span class="hs-identifier hs-type"
+		    >CompileState</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537867"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-30"
+		></span
+		><span
+		>     </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		  ><span class="hs-identifier hs-type"
+		    >MonadError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Error.html#WithContext"
+		  ><span class="hs-identifier hs-type"
+		    >WithContext</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+		  ><span class="hs-identifier hs-type"
+		    >Text</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537872"
+		  ><span class="hs-identifier hs-type"
+		    >e</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537867"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-31"
+		></span
+		><span
+		>     </span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-32"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+		  ><span class="hs-identifier hs-type"
+		    >Int</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-33"
+		></span
+		><span
+		>  </span
+		><span class="annot"
+		><span class="hs-comment"
+		  >-- ^ Context level</span
+		  ></span
+		><span
+		>
+</span
+		><span id="line-34"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#SDoc"
+		  ><span class="hs-identifier hs-type"
+		    >GHC.SDoc</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-35"
+		></span
+		><span
+		>  </span
+		><span class="annot"
+		><span class="hs-comment"
+		  >-- ^ The thing (expr, type, kind, etc.) being compiled</span
+		  ></span
+		><span
+		>
+</span
+		><span id="line-36"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537867"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537876"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-37"
+		></span
+		><span
+		>  </span
+		><span class="annot"
+		><span class="hs-comment"
+		  >-- ^ The compilation action</span
+		  ></span
+		><span
+		>
+</span
+		><span id="line-38"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537867"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679537876"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="traceCompilation"
+      ><span class="annot"
+	><span class="annottext"
+	  >traceCompilation :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) e a.
+(MonadReader (CompileContext uni fun) m, MonadState CompileState m,
+ MonadError (WithContext Text e) m) =&gt;
+Int -&gt; SDoc -&gt; m a -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Trace.html#traceCompilation"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >traceCompilation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679537946"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679537946"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679537947"
+      ><span class="annot"
+	><span class="annottext"
+	  >SDoc
+</span
+	  ><a href="#local-6989586621679537947"
+	  ><span class="hs-identifier hs-var"
+	    >sd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; m Text -&gt; m a -&gt; m a
+forall c e (m :: * -&gt; *) a.
+MonadError (WithContext c e) m =&gt;
+Int -&gt; m c -&gt; m a -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Error.html#withContextM"
+	><span class="hs-identifier hs-var"
+	  >withContextM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679537946"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; m Text
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *).
+MonadReader (CompileContext uni fun) m =&gt;
+SDoc -&gt; m Text
+</span
+	><a href="PlutusTx.Compiler.Utils.html#sdToTxt"
+	><span class="hs-identifier hs-var"
+	  >sdToTxt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc
+</span
+	><a href="#local-6989586621679537947"
+	><span class="hs-identifier hs-var"
+	  >sd</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m a -&gt; m a) -&gt; (m a -&gt; m a) -&gt; m a -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; m a -&gt; m a
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(MonadReader (CompileContext uni fun) m,
+ MonadState CompileState m) =&gt;
+SDoc -&gt; m a -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Trace.html#traceCompilationStep"
+	><span class="hs-identifier hs-var"
+	  >traceCompilationStep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc
+</span
+	><a href="#local-6989586621679537947"
+	><span class="hs-identifier hs-var"
+	  >sd</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="local-6989586621679537892"
+      ><span id="local-6989586621679537893"
+	><span id="local-6989586621679537894"
+	  ><span id="local-6989586621679537895"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Trace.html#traceCompilationStep"
+		><span class="hs-identifier hs-type"
+		  >traceCompilationStep</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-42"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		><span class="hs-identifier hs-type"
+		  >MonadReader</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#CompileContext"
+		><span class="hs-identifier hs-type"
+		  >CompileContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537892"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537893"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537894"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		><span class="hs-identifier hs-type"
+		  >MonadState</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#CompileState"
+		><span class="hs-identifier hs-type"
+		  >CompileState</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537894"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-43"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#SDoc"
+		><span class="hs-identifier hs-type"
+		  >GHC.SDoc</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-44"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The thing (expr, type, kind, etc.) being compiled</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-45"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537894"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537895"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-46"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The compilation action</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-47"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537894"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679537895"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="traceCompilationStep"
+      ><span class="annot"
+	><span class="annottext"
+	  >traceCompilationStep :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(MonadReader (CompileContext uni fun) m,
+ MonadState CompileState m) =&gt;
+SDoc -&gt; m a -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Trace.html#traceCompilationStep"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >traceCompilationStep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679538004"
+      ><span class="annot"
+	><span class="annottext"
+	  >SDoc
+</span
+	  ><a href="#local-6989586621679538004"
+	  ><span class="hs-identifier hs-var"
+	    >sd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679538005"
+      ><span class="annot"
+	><span class="annottext"
+	  >m a
+</span
+	  ><a href="#local-6989586621679538005"
+	  ><span class="hs-identifier hs-var"
+	    >compile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m Bool -&gt; m a -&gt; m a -&gt; m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m Bool -&gt; m a -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Control.Monad.Extra.html#ifM"
+	><span class="hs-identifier hs-var"
+	  >ifM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>m Bool -&gt; m Bool
+forall (m :: * -&gt; *). Functor m =&gt; m Bool -&gt; m Bool
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Control.Monad.Extra.html#notM"
+	><span class="hs-identifier hs-var"
+	  >notM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni fun -&gt; Bool) -&gt; m Bool
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; a) -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#asks"
+	><span class="hs-identifier hs-var"
+	  >asks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni fun -&gt; Bool
+forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Bool
+</span
+	><a href="PlutusTx.Compiler.Types.html#ccDebugTraceOn"
+	><span class="hs-identifier hs-var"
+	  >ccDebugTraceOn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m a
+</span
+	><a href="#local-6989586621679538005"
+	><span class="hs-identifier hs-var"
+	  >compile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m a -&gt; m a) -&gt; m a -&gt; m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CompileState"
+	><span class="hs-identifier hs-type"
+	  >CompileState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679538011"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679538011"
+	  ><span class="hs-identifier hs-var"
+	    >nextStep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679538012"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Int]
+</span
+	  ><a href="#local-6989586621679538012"
+	  ><span class="hs-identifier hs-var"
+	    >prevSteps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m CompileState
+forall s (m :: * -&gt; *). MonadState s m =&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#get"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileState -&gt; m ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; s -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#put"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileState -&gt; m ()) -&gt; CompileState -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; [Int] -&gt; CompileState
+</span
+	><a href="PlutusTx.Compiler.Types.html#CompileState"
+	><span class="hs-identifier hs-var"
+	  >CompileState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679538011"
+	><span class="hs-identifier hs-var"
+	  >nextStep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679538011"
+	><span class="hs-identifier hs-var"
+	  >nextStep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; [Int] -&gt; [Int]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int]
+</span
+	><a href="#local-6989586621679538012"
+	><span class="hs-identifier hs-var"
+	  >prevSteps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679538016"
+      ><span class="annot"
+	><span class="annottext"
+	  >mbParentStep :: Maybe Int
+</span
+	  ><a href="#local-6989586621679538016"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mbParentStep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int] -&gt; Maybe Int
+forall a. [a] -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#listToMaybe"
+	><span class="hs-identifier hs-var"
+	  >listToMaybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int]
+</span
+	><a href="#local-6989586621679538012"
+	><span class="hs-identifier hs-var"
+	  >prevSteps</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679538018"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679538018"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; m String
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *).
+MonadReader (CompileContext uni fun) m =&gt;
+SDoc -&gt; m String
+</span
+	><a href="PlutusTx.Compiler.Utils.html#sdToStr"
+	><span class="hs-identifier hs-var"
+	  >sdToStr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc
+</span
+	><a href="#local-6989586621679538004"
+	><span class="hs-identifier hs-var"
+	  >sd</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m ()
+forall (f :: * -&gt; *). Applicative f =&gt; String -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Debug.Trace.html#traceM"
+	><span class="hs-identifier hs-var"
+	  >traceM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; m ()) -&gt; String -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&lt;Step &quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679538011"
+	><span class="hs-identifier hs-var"
+	  >nextStep</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; (Int -&gt; String) -&gt; Maybe Int -&gt; String
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679538023"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679538023"
+	  ><span class="hs-identifier hs-var"
+	    >parentStep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;, Parent Step: &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679538023"
+	><span class="hs-identifier hs-var"
+	  >parentStep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Int
+</span
+	><a href="#local-6989586621679538016"
+	><span class="hs-identifier hs-var"
+	  >mbParentStep</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&gt;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m ()
+forall (f :: * -&gt; *). Applicative f =&gt; String -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Debug.Trace.html#traceM"
+	><span class="hs-identifier hs-var"
+	  >traceM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679538018"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679538024"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679538024"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m a
+</span
+	><a href="#local-6989586621679538005"
+	><span class="hs-identifier hs-var"
+	  >compile</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m ()
+forall (f :: * -&gt; *). Applicative f =&gt; String -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Debug.Trace.html#traceM"
+	><span class="hs-identifier hs-var"
+	  >traceM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; m ()) -&gt; String -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&lt;Completed step &quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679538011"
+	><span class="hs-identifier hs-var"
+	  >nextStep</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; (Int -&gt; String) -&gt; Maybe Int -&gt; String
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679538025"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679538025"
+	  ><span class="hs-identifier hs-var"
+	    >parentStep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;, Returning to step &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679538025"
+	><span class="hs-identifier hs-var"
+	  >parentStep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Int
+</span
+	><a href="#local-6989586621679538016"
+	><span class="hs-identifier hs-var"
+	  >mbParentStep</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&gt;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileState -&gt; CompileState) -&gt; m ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; (s -&gt; s) -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#modify%27"
+	><span class="hs-identifier hs-var"
+	  >modify'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CompileState -&gt; CompileState) -&gt; m ())
+-&gt; (CompileState -&gt; CompileState) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CompileState"
+	><span class="hs-identifier hs-type"
+	  >CompileState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679538027"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679538027"
+	  ><span class="hs-identifier hs-var"
+	    >nextStep'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679538028"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Int]
+</span
+	  ><a href="#local-6989586621679538028"
+	  ><span class="hs-identifier hs-var"
+	    >prevSteps'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; [Int] -&gt; CompileState
+</span
+	><a href="PlutusTx.Compiler.Types.html#CompileState"
+	><span class="hs-identifier hs-var"
+	  >CompileState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679538027"
+	><span class="hs-identifier hs-var"
+	  >nextStep'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; [Int] -&gt; [Int]
+forall a. Int -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#drop"
+	><span class="hs-identifier hs-var"
+	  >drop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int]
+</span
+	><a href="#local-6989586621679538028"
+	><span class="hs-identifier hs-var"
+	  >prevSteps'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; m a
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679538024"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

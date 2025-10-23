@@ -1,0 +1,2218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Common.Versions</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.51.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Common.Versions.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Common.Versions</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Cardano Protocol versions</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Plutus ledger languages</a
+	      ></li
+	    ><li
+	    ><a href="#g:3"
+	      >Plutus Core language versions</a
+	      ></li
+	    ><li
+	    ><a href="#g:4"
+	      >Version-testing functions</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >This module contains the code for handling the various kinds of version that we care about:</p
+	  ><ul
+	  ><li
+	    >Protocol versions</li
+	    ><li
+	    >Plutus ledger languages</li
+	    ><li
+	    >Plutus Core language versions</li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    >module <a href="PlutusLedgerApi-Common-ProtocolVersions.html"
+	      >PlutusLedgerApi.Common.ProtocolVersions</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PlutusLedgerLanguage"
+	      >PlutusLedgerLanguage</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:PlutusV1"
+		  >PlutusV1</a
+		  ></li
+		><li
+		>| <a href="#v:PlutusV2"
+		  >PlutusV2</a
+		  ></li
+		><li
+		>| <a href="#v:PlutusV3"
+		  >PlutusV3</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Version"
+	      >Version</a
+	      > = <a href="#v:Version"
+	      >Version</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_versionMajor"
+		  >_versionMajor</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+		  >Natural</a
+		  ></li
+		><li
+		><a href="#v:_versionMinor"
+		  >_versionMinor</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+		  >Natural</a
+		  ></li
+		><li
+		><a href="#v:_versionPatch"
+		  >_versionPatch</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+		  >Natural</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:ledgerLanguageIntroducedIn"
+	      >ledgerLanguageIntroducedIn</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ledgerLanguagesAvailableIn"
+	      >ledgerLanguagesAvailableIn</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:plcVersionsIntroducedIn"
+	      >plcVersionsIntroducedIn</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+	      >Version</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:plcVersionsAvailableIn"
+	      >plcVersionsAvailableIn</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+	      >Version</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinsIntroducedIn"
+	      >builtinsIntroducedIn</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:builtinsAvailableIn"
+	      >builtinsAvailableIn</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:batch1"
+	      >batch1</a
+	      > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:batch2"
+	      >batch2</a
+	      > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:batch3"
+	      >batch3</a
+	      > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:batch4a"
+	      >batch4a</a
+	      > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:batch4b"
+	      >batch4b</a
+	      > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:batch5"
+	      >batch5</a
+	      > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:batch6"
+	      >batch6</a
+	      > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >Cardano Protocol versions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  >module <a href="PlutusLedgerApi-Common-ProtocolVersions.html"
+	    >PlutusLedgerApi.Common.ProtocolVersions</a
+	    ></p
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Plutus ledger languages</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PlutusLedgerLanguage" class="def"
+	    >PlutusLedgerLanguage</a
+	    > <a href="src/PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage" class="link"
+	    >Source</a
+	    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The Plutus ledger language. These are entirely different script languages from the ledger's perspective,
+which on our side are interpreted in very similar ways.</p
+	    ><p
+	    >It is a simple enumerated datatype (there is no major and minor components as in protocol version)
+and the <strong
+	      >ordering of constructors</strong
+	      > is essential for deriving Enum,Ord,Bounded.</p
+	    ><p
+	    >IMPORTANT: this is different from the Plutus Core language version, <code
+	      ><a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		>Version</a
+		></code
+	      ></p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PlutusV1" class="def"
+		  >PlutusV1</a
+		  ></td
+		><td class="doc"
+		><p
+		  >introduced in Alonzo HF</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PlutusV2" class="def"
+		  >PlutusV2</a
+		  ></td
+		><td class="doc"
+		><p
+		  >introduced in Vasil HF</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PlutusV3" class="def"
+		  >PlutusV3</a
+		  ></td
+		><td class="doc"
+		><p
+		  >introduced in Chang HF</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PlutusLedgerLanguage"
+	    >Instances</h4
+	    ><details id="i:PlutusLedgerLanguage" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Bounded:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Bounded:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Enum:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Enum:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Generic:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > x &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Show:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:NFData:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:NFData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Eq:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Ord:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Ord:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:NoThunks:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:NoThunks:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Pretty:9"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Pretty:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Serialise:10"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Serialise:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlutusLedgerLanguage:Rep:11"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Versions.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:PlutusLedgerLanguage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlutusLedgerLanguage:Rep:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Versions.html"
+			>PlutusLedgerApi.Common.Versions</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			>PlutusLedgerLanguage</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;PlutusLedgerLanguage&quot; &quot;PlutusLedgerApi.Common.Versions&quot; &quot;plutus-ledger-api-1.51.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;PlutusV1&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;PlutusV2&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;PlutusV3&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><a href="#g:3" id="g:3"
+	><h1
+	  >Plutus Core language versions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Version" class="def"
+	    >Version</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:Version" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The version of Plutus Core used by this program.</p
+	    ><p
+	    >The intention is to convey different levels of backwards compatibility for existing scripts:
+- Major version changes are backwards-incompatible
+- Minor version changes are backwards-compatible
+- Patch version changes should be entirely invisible (and we will likely not use this level)</p
+	    ><p
+	    >The version used should be changed only when the <em
+	      >language itself</em
+	      > changes.
+For example, adding a new kind of term to the language would require a minor
+version bump; removing a kind of term would require a major version bump.</p
+	    ><p
+	    >Similarly, changing the semantics of the language will require a version bump,
+typically a major one. This is the main reason why the version is actually
+tracked in the AST: we can have two language versions with identical ASTs but
+different semantics, so we need to track the version explicitly.</p
+	    ><p
+	    >Compatibility is about compatibility for specific scripts, not about e.g. tools which consume
+scripts. Adding a new kind of term does not change how existing scripts behave, but does
+change what tools would need to do to process scripts.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Version" class="def"
+		  >Version</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_versionMajor" class="def"
+			  >_versionMajor</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+			  >Natural</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_versionMinor" class="def"
+			  >_versionMinor</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+			  >Natural</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_versionPatch" class="def"
+			  >_versionPatch</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+			  >Natural</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Version"
+	    >Instances</h4
+	    ><details id="i:Version" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > x &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:NFData:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:Hashable:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		      >Hashable</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:Hashable:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:hashWithSalt"
+			  >hashWithSalt</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hashWithSalt" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:hash"
+			  >hash</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hash" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:Pretty:7"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:Pretty:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Version:Rep:8"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Version:Rep:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Version.html"
+			>PlutusCore.Version</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			>Version</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;Version&quot; &quot;PlutusCore.Version&quot; &quot;plutus-core-1.51.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Version&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_versionMajor&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+			>Natural</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_versionMinor&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+			>Natural</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_versionPatch&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+			>Natural</a
+			>))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><a href="#g:4" id="g:4"
+	><h1
+	  >Version-testing functions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ledgerLanguageIntroducedIn" class="def"
+	    >ledgerLanguageIntroducedIn</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > <a href="src/PlutusLedgerApi.Common.Versions.html#ledgerLanguageIntroducedIn" class="link"
+	    >Source</a
+	    > <a href="#v:ledgerLanguageIntroducedIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Query the protocol version that a specific Plutus ledger language was first introduced in.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ledgerLanguagesAvailableIn" class="def"
+	    >ledgerLanguagesAvailableIn</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > <a href="src/PlutusLedgerApi.Common.Versions.html#ledgerLanguagesAvailableIn" class="link"
+	    >Source</a
+	    > <a href="#v:ledgerLanguagesAvailableIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Which Plutus language versions are available in the given
+<code
+	      ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		>MajorProtocolVersion</a
+		></code
+	      >?  See Note [New builtins/language versions and protocol
+versions].  This function (and others in this module) assumes that once a LL is
+available it remains available in all later PVs and that if m &lt;= n, PlutusVm is
+introduced no later than PlutusVn.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plcVersionsIntroducedIn" class="def"
+	    >plcVersionsIntroducedIn</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+	    >Version</a
+	    >) <a href="src/PlutusLedgerApi.Common.Versions.html#plcVersionsIntroducedIn" class="link"
+	    >Source</a
+	    > <a href="#v:plcVersionsIntroducedIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A map indicating which Plutus Core versions were introduced in which
+<code
+	      ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		>MajorProtocolVersion</a
+		></code
+	      > and <code
+	      ><a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		>PlutusLedgerLanguage</a
+		></code
+	      >. Each version should appear at most once.
+This <strong
+	      >must</strong
+	      > be updated when new versions are added.
+See Note [New builtins/language versions and protocol versions]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plcVersionsAvailableIn" class="def"
+	    >plcVersionsAvailableIn</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+	    >Version</a
+	    > <a href="src/PlutusLedgerApi.Common.Versions.html#plcVersionsAvailableIn" class="link"
+	    >Source</a
+	    > <a href="#v:plcVersionsAvailableIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Which Plutus Core language versions are available in the given <code
+	      ><a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		>PlutusLedgerLanguage</a
+		></code
+	      >
+and <code
+	      ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		>MajorProtocolVersion</a
+		></code
+	      >? </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinsIntroducedIn" class="def"
+	    >builtinsIntroducedIn</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) <a href="src/PlutusLedgerApi.Common.Versions.html#builtinsIntroducedIn" class="link"
+	    >Source</a
+	    > <a href="#v:builtinsIntroducedIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given a ledger language, return a map indicating which builtin functions were
+  introduced in which <code
+	      ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		>MajorProtocolVersion</a
+		></code
+	      >.  This <strong
+	      >must</strong
+	      > be updated when new
+  builtins are added.  It is not necessary to add entries for protocol versions
+  where no new builtins are added.  See Note [New builtins/language versions and
+  protocol versions]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinsAvailableIn" class="def"
+	    >builtinsAvailableIn</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="src/PlutusLedgerApi.Common.Versions.html#builtinsAvailableIn" class="link"
+	    >Source</a
+	    > <a href="#v:builtinsAvailableIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return a set containing the builtins which are available in a given LL in a
+given PV.  All builtins are available in all LLs from <code
+	      ><a href="PlutusLedgerApi-Common-ProtocolVersions.html#v:pv11PV" title="PlutusLedgerApi.Common.ProtocolVersions"
+		>pv11PV</a
+		></code
+	      > onwards. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:batch1" class="def"
+	    >batch1</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] <a href="src/PlutusLedgerApi.Common.Versions.html#batch1" class="link"
+	    >Source</a
+	    > <a href="#v:batch1" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:batch2" class="def"
+	    >batch2</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] <a href="src/PlutusLedgerApi.Common.Versions.html#batch2" class="link"
+	    >Source</a
+	    > <a href="#v:batch2" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:batch3" class="def"
+	    >batch3</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] <a href="src/PlutusLedgerApi.Common.Versions.html#batch3" class="link"
+	    >Source</a
+	    > <a href="#v:batch3" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:batch4a" class="def"
+	    >batch4a</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] <a href="src/PlutusLedgerApi.Common.Versions.html#batch4a" class="link"
+	    >Source</a
+	    > <a href="#v:batch4a" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:batch4b" class="def"
+	    >batch4b</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] <a href="src/PlutusLedgerApi.Common.Versions.html#batch4b" class="link"
+	    >Source</a
+	    > <a href="#v:batch4b" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:batch5" class="def"
+	    >batch5</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] <a href="src/PlutusLedgerApi.Common.Versions.html#batch5" class="link"
+	    >Source</a
+	    > <a href="#v:batch5" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:batch6" class="def"
+	    >batch6</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] <a href="src/PlutusLedgerApi.Common.Versions.html#batch6" class="link"
+	    >Source</a
+	    > <a href="#v:batch6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

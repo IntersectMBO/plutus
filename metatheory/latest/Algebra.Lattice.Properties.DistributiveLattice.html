@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Algebra.Lattice.Properties.DistributiveLattice</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Some derivable properties</a>
+<a id="135" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="209" class="Symbol">{-#</a> <a id="213" class="Keyword">OPTIONS</a> <a id="221" class="Pragma">--cubical-compatible</a> <a id="242" class="Pragma">--safe</a> <a id="249" class="Symbol">#-}</a>
+
+<a id="254" class="Keyword">open</a> <a id="259" class="Keyword">import</a> <a id="266" href="Algebra.Lattice.Bundles.html" class="Module">Algebra.Lattice.Bundles</a>
+<a id="290" class="Keyword">import</a> <a id="297" href="Algebra.Lattice.Properties.Lattice.html" class="Module">Algebra.Lattice.Properties.Lattice</a> <a id="332" class="Symbol">as</a> <a id="335" class="Module">LatticeProperties</a>
+
+<a id="354" class="Keyword">module</a> <a id="361" href="Algebra.Lattice.Properties.DistributiveLattice.html" class="Module">Algebra.Lattice.Properties.DistributiveLattice</a>
+  <a id="410" class="Symbol">{</a><a id="411" href="Algebra.Lattice.Properties.DistributiveLattice.html#411" class="Bound">dl₁</a> <a id="415" href="Algebra.Lattice.Properties.DistributiveLattice.html#415" class="Bound">dl₂</a><a id="418" class="Symbol">}</a> <a id="420" class="Symbol">(</a><a id="421" href="Algebra.Lattice.Properties.DistributiveLattice.html#421" class="Bound">DL</a> <a id="424" class="Symbol">:</a> <a id="426" href="Algebra.Lattice.Bundles.html#4993" class="Record">DistributiveLattice</a> <a id="446" href="Algebra.Lattice.Properties.DistributiveLattice.html#411" class="Bound">dl₁</a> <a id="450" href="Algebra.Lattice.Properties.DistributiveLattice.html#415" class="Bound">dl₂</a><a id="453" class="Symbol">)</a>
+  <a id="457" class="Keyword">where</a>
+
+<a id="464" class="Keyword">open</a> <a id="469" href="Algebra.Lattice.Bundles.html#4993" class="Module">DistributiveLattice</a> <a id="489" href="Algebra.Lattice.Properties.DistributiveLattice.html#421" class="Bound">DL</a>
+<a id="492" class="Keyword">open</a> <a id="497" class="Keyword">import</a> <a id="504" href="Algebra.Definitions.html" class="Module">Algebra.Definitions</a> <a id="524" href="Algebra.Lattice.Bundles.html#5134" class="Field Operator">_≈_</a>
+<a id="528" class="Keyword">open</a> <a id="533" class="Keyword">import</a> <a id="540" href="Algebra.Lattice.Structures.html" class="Module">Algebra.Lattice.Structures</a> <a id="567" href="Algebra.Lattice.Bundles.html#5134" class="Field Operator">_≈_</a>
+<a id="571" class="Keyword">open</a> <a id="576" class="Keyword">import</a> <a id="583" href="Relation.Binary.Reasoning.Setoid.html" class="Module">Relation.Binary.Reasoning.Setoid</a> <a id="616" href="Algebra.Lattice.Bundles.html#4867" class="Function">setoid</a>
+
+<a id="624" class="Comment">------------------------------------------------------------------------</a>
+<a id="697" class="Comment">-- Export properties of lattices</a>
+
+<a id="731" class="Keyword">open</a> <a id="736" href="Algebra.Lattice.Properties.Lattice.html" class="Module">LatticeProperties</a> <a id="754" href="Algebra.Lattice.Bundles.html#5376" class="Function">lattice</a> <a id="762" class="Keyword">public</a>
+
+<a id="770" class="Comment">------------------------------------------------------------------------</a>
+<a id="843" class="Comment">-- The dual construction is also a distributive lattice.</a>
+
+<a id="∧-∨-isDistributiveLattice"></a><a id="901" href="Algebra.Lattice.Properties.DistributiveLattice.html#901" class="Function">∧-∨-isDistributiveLattice</a> <a id="927" class="Symbol">:</a> <a id="929" href="Algebra.Lattice.Structures.html#4745" class="Record">IsDistributiveLattice</a> <a id="951" href="Algebra.Lattice.Bundles.html#5216" class="Field Operator">_∧_</a> <a id="955" href="Algebra.Lattice.Bundles.html#5176" class="Field Operator">_∨_</a>
+<a id="959" href="Algebra.Lattice.Properties.DistributiveLattice.html#901" class="Function">∧-∨-isDistributiveLattice</a> <a id="985" class="Symbol">=</a> <a id="987" class="Keyword">record</a>
+  <a id="996" class="Symbol">{</a> <a id="998" href="Algebra.Lattice.Structures.html#4813" class="Field">isLattice</a>   <a id="1010" class="Symbol">=</a> <a id="1012" href="Algebra.Lattice.Properties.Lattice.html#3018" class="Function">∧-∨-isLattice</a>
+  <a id="1028" class="Symbol">;</a> <a id="1030" href="Algebra.Lattice.Structures.html#4845" class="Field">∨-distrib-∧</a> <a id="1042" class="Symbol">=</a> <a id="1044" href="Algebra.Lattice.Structures.html#4883" class="Function">∧-distrib-∨</a>
+  <a id="1058" class="Symbol">;</a> <a id="1060" href="Algebra.Lattice.Structures.html#4883" class="Field">∧-distrib-∨</a> <a id="1072" class="Symbol">=</a> <a id="1074" href="Algebra.Lattice.Structures.html#4845" class="Function">∨-distrib-∧</a>
+  <a id="1088" class="Symbol">}</a>
+
+<a id="∧-∨-distributiveLattice"></a><a id="1091" href="Algebra.Lattice.Properties.DistributiveLattice.html#1091" class="Function">∧-∨-distributiveLattice</a> <a id="1115" class="Symbol">:</a> <a id="1117" href="Algebra.Lattice.Bundles.html#4993" class="Record">DistributiveLattice</a> <a id="1137" class="Symbol">_</a> <a id="1139" class="Symbol">_</a>
+<a id="1141" href="Algebra.Lattice.Properties.DistributiveLattice.html#1091" class="Function">∧-∨-distributiveLattice</a> <a id="1165" class="Symbol">=</a> <a id="1167" class="Keyword">record</a>
+  <a id="1176" class="Symbol">{</a> <a id="1178" href="Algebra.Lattice.Bundles.html#5256" class="Field">isDistributiveLattice</a> <a id="1200" class="Symbol">=</a> <a id="1202" href="Algebra.Lattice.Properties.DistributiveLattice.html#901" class="Function">∧-∨-isDistributiveLattice</a>
+  <a id="1230" class="Symbol">}</a>
+</pre></body></html>

@@ -1,0 +1,2535 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Data.Aeson.Flatten</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#flattenObject"
+	><span class="hs-identifier"
+	  >flattenObject</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#unflattenObject"
+	><span class="hs-identifier"
+	  >unflattenObject</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#mergeObject"
+	><span class="hs-identifier"
+	  >mergeObject</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#mergeValue"
+	><span class="hs-identifier"
+	  >mergeValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#hmToObj"
+	><span class="hs-identifier"
+	  >hmToObj</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span class="hs-cpp"
+      >
+#if MIN_VERSION_aeson(2,0,0)
+</span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson.KeyMap</span
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Strict.html"
+	><span class="hs-identifier"
+	  >Data.HashMap.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>HM</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert an object to a hashmap. Compatibility shim for pre-/post-aeson-2.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-type"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#HashMap"
+	><span class="hs-identifier hs-type"
+	  >HM.HashMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span class="hs-cpp"
+      >
+#if MIN_VERSION_aeson(2,0,0)
+</span
+      ><span id="objToHm"
+      ><span class="annot"
+	><span class="annottext"
+	  >objToHm :: Object -&gt; HashMap Text Value
+</span
+	  ><a href="Data.Aeson.Flatten.html#objToHm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >objToHm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+forall v. KeyMap v -&gt; HashMap Text v
+</span
+	><span class="hs-identifier hs-var"
+	>toHashMapText</span
+	></span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span class="hs-identifier"
+      >objToHm</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >id</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a hashmap to an object. Compatibility shim for pre-/post-aeson-2.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#hmToObj"
+	><span class="hs-identifier hs-type"
+	  >hmToObj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#HashMap"
+	><span class="hs-identifier hs-type"
+	  >HM.HashMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span class="hs-cpp"
+      >
+#if MIN_VERSION_aeson(2,0,0)
+</span
+      ><span id="hmToObj"
+      ><span class="annot"
+	><span class="annottext"
+	  >hmToObj :: HashMap Text Value -&gt; Object
+</span
+	  ><a href="Data.Aeson.Flatten.html#hmToObj"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >hmToObj</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value -&gt; Object
+forall v. HashMap Text v -&gt; KeyMap v
+</span
+	><span class="hs-identifier hs-var"
+	>fromHashMapText</span
+	></span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span class="hs-identifier"
+      >hmToObj</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >id</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- | Turn a nested object into a &quot;flat&quot; object where the keys represent paths into the original</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- object. The keys in the result will be the keys in the original path, separated by `sep`.</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >-- The inverse of 'unflattenObject'.</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#flattenObject"
+	><span class="hs-identifier hs-type"
+	  >flattenObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="flattenObject"
+      ><span class="annot"
+	><span class="annottext"
+	  >flattenObject :: Text -&gt; Object -&gt; Object
+</span
+	  ><a href="Data.Aeson.Flatten.html#flattenObject"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flattenObject</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823364"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823364"
+	  ><span class="hs-identifier hs-var"
+	    >sep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823365"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823365"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#hmToObj"
+	><span class="hs-identifier hs-var"
+	  >hmToObj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HashMap Text Value -&gt; Object) -&gt; HashMap Text Value -&gt; Object
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text -&gt; HashMap Text Value -&gt; HashMap Text Value
+</span
+	><a href="#local-6989586621681823366"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+</span
+	><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-var"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823365"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823366"
+	><span class="hs-identifier hs-type"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#HashMap"
+	><span class="hs-identifier hs-type"
+	  >HM.HashMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#HashMap"
+	><span class="hs-identifier hs-type"
+	  >HM.HashMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681823366"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: Maybe Text -&gt; HashMap Text Value -&gt; HashMap Text Value
+</span
+	  ><a href="#local-6989586621681823366"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823367"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe Text
+</span
+	  ><a href="#local-6989586621681823367"
+	  ><span class="hs-identifier hs-var"
+	    >mprefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Value -&gt; HashMap Text Value)
+-&gt; HashMap Text Value -&gt; HashMap Text Value
+forall m k v. Monoid m =&gt; (k -&gt; v -&gt; m) -&gt; HashMap k v -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#foldMapWithKey"
+	><span class="hs-identifier hs-var"
+	  >HM.foldMapWithKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Text -&gt; Value -&gt; HashMap Text Value)
+ -&gt; HashMap Text Value -&gt; HashMap Text Value)
+-&gt; (Text -&gt; Value -&gt; HashMap Text Value)
+-&gt; HashMap Text Value
+-&gt; HashMap Text Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681823369"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823369"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823370"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681823370"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823374"
+      ><span class="annot"
+	><span class="annottext"
+	  >newName :: Text
+</span
+	  ><a href="#local-6989586621681823374"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >newName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text
+</span
+	><a href="#local-6989586621681823367"
+	><span class="hs-identifier hs-var"
+	  >mprefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823375"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823375"
+	  ><span class="hs-identifier hs-var"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823375"
+	><span class="hs-identifier hs-var"
+	  >prefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823364"
+	><span class="hs-identifier hs-var"
+	  >sep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823369"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823369"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681823370"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823377"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823377"
+	  ><span class="hs-identifier hs-var"
+	    >o'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text -&gt; HashMap Text Value -&gt; HashMap Text Value
+</span
+	><a href="#local-6989586621681823366"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Maybe Text
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823374"
+	><span class="hs-identifier hs-var"
+	  >newName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HashMap Text Value -&gt; HashMap Text Value)
+-&gt; HashMap Text Value -&gt; HashMap Text Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+</span
+	><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-var"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823377"
+	><span class="hs-identifier hs-var"
+	  >o'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >                </span
+      ><span id="local-6989586621681823378"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681823378"
+	  ><span class="hs-identifier hs-var"
+	    >leaf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Value -&gt; HashMap Text Value
+forall k v. Hashable k =&gt; k -&gt; v -&gt; HashMap k v
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.Strict.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >HM.singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823374"
+	><span class="hs-identifier hs-var"
+	  >newName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681823378"
+	><span class="hs-identifier hs-var"
+	  >leaf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >-- | Turn a &quot;flat&quot; object whose keys represent paths into an unflattened object.</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- The keys in the result will be the resulting path, separated by `sep`.</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- The inverse of 'flattenObject'.</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#unflattenObject"
+	><span class="hs-identifier hs-type"
+	  >unflattenObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="unflattenObject"
+      ><span class="annot"
+	><span class="annottext"
+	  >unflattenObject :: Text -&gt; Object -&gt; Object
+</span
+	  ><a href="Data.Aeson.Flatten.html#unflattenObject"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unflattenObject</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823380"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823380"
+	  ><span class="hs-identifier hs-var"
+	    >sep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823381"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823381"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Text -&gt; Value -&gt; Object)
+-&gt; Object -&gt; HashMap Text Value -&gt; Object
+forall a k v. (a -&gt; k -&gt; v -&gt; a) -&gt; a -&gt; HashMap k v -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#foldlWithKey"
+	><span class="hs-identifier hs-var"
+	  >HM.foldlWithKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681823383"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823383"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823384"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823384"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823385"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681823385"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#mergeObject"
+	><span class="hs-identifier hs-var"
+	  >mergeObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823383"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Value -&gt; Object
+</span
+	><a href="#local-6989586621681823386"
+	><span class="hs-identifier hs-var"
+	  >mkPathObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823384"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681823385"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+</span
+	><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-var"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823381"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823386"
+	><span class="hs-identifier hs-type"
+	  >mkPathObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681823386"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkPathObject :: Text -&gt; Value -&gt; Object
+</span
+	  ><a href="#local-6989586621681823386"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkPathObject</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823387"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823387"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823388"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681823388"
+	  ><span class="hs-identifier hs-var"
+	    >value</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823391"
+      ><span class="annot"
+	><span class="annottext"
+	  >path :: [Text]
+</span
+	  ><a href="#local-6989586621681823391"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >path</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HasCallStack =&gt; Text -&gt; Text -&gt; [Text]
+Text -&gt; Text -&gt; [Text]
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#splitOn"
+	><span class="hs-identifier hs-var"
+	  >Text.splitOn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823380"
+	><span class="hs-identifier hs-var"
+	  >sep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823387"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#hmToObj"
+	><span class="hs-identifier hs-var"
+	  >hmToObj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HashMap Text Value -&gt; Object) -&gt; HashMap Text Value -&gt; Object
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; Value -&gt; HashMap Text Value
+</span
+	><a href="#local-6989586621681823393"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621681823391"
+	><span class="hs-identifier hs-var"
+	  >path</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681823388"
+	><span class="hs-identifier hs-var"
+	  >value</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823393"
+	><span class="hs-identifier hs-type"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#HashMap"
+	><span class="hs-identifier hs-type"
+	  >HM.HashMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >                </span
+      ><span id="local-6989586621681823393"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: [Text] -&gt; Value -&gt; HashMap Text Value
+</span
+	  ><a href="#local-6989586621681823393"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; HashMap Text Value
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;empty path&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823393"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span id="local-6989586621681823395"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823395"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823396"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681823396"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Value -&gt; HashMap Text Value
+forall k v. Hashable k =&gt; k -&gt; v -&gt; HashMap k v
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.Strict.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >HM.singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823395"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681823396"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823393"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681823397"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823397"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621681823398"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681823398"
+	  ><span class="hs-identifier hs-var"
+	    >n'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621681823399"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621681823399"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823400"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621681823400"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Value -&gt; HashMap Text Value
+forall k v. Hashable k =&gt; k -&gt; v -&gt; HashMap k v
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.Strict.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >HM.singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823397"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; HashMap Text Value) -&gt; Value -&gt; HashMap Text Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Value) -&gt; Object -&gt; Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#hmToObj"
+	><span class="hs-identifier hs-var"
+	  >hmToObj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HashMap Text Value -&gt; Object) -&gt; HashMap Text Value -&gt; Object
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; Value -&gt; HashMap Text Value
+</span
+	><a href="#local-6989586621681823393"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681823398"
+	><span class="hs-identifier hs-var"
+	  >n'</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; [Text] -&gt; [Text]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621681823399"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681823400"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-comment"
+      >-- | Merge two objects, merging the values where both sides have an entry for a key rather than</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-comment"
+      >-- taking the first.</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#mergeObject"
+	><span class="hs-identifier hs-type"
+	  >mergeObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="mergeObject"
+      ><span class="annot"
+	><span class="annottext"
+	  >mergeObject :: Object -&gt; Object -&gt; Object
+</span
+	  ><a href="Data.Aeson.Flatten.html#mergeObject"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mergeObject</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823401"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823401"
+	  ><span class="hs-identifier hs-var"
+	    >o1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823402"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823402"
+	  ><span class="hs-identifier hs-var"
+	    >o2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#hmToObj"
+	><span class="hs-identifier hs-var"
+	  >hmToObj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HashMap Text Value -&gt; Object) -&gt; HashMap Text Value -&gt; Object
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; Value -&gt; Value)
+-&gt; HashMap Text Value -&gt; HashMap Text Value -&gt; HashMap Text Value
+forall k v.
+Eq k =&gt;
+(v -&gt; v -&gt; v) -&gt; HashMap k v -&gt; HashMap k v -&gt; HashMap k v
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.Strict.html#unionWith"
+	><span class="hs-identifier hs-var"
+	  >HM.unionWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Value -&gt; Value
+</span
+	><a href="Data.Aeson.Flatten.html#mergeValue"
+	><span class="hs-identifier hs-var"
+	  >mergeValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+</span
+	><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-var"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823401"
+	><span class="hs-identifier hs-var"
+	  >o1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+</span
+	><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-var"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823402"
+	><span class="hs-identifier hs-var"
+	  >o2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Merge two values, merging the objects using 'mergeObject'. Can't merge anything else.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#mergeValue"
+	><span class="hs-identifier hs-type"
+	  >mergeValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="mergeValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >mergeValue :: Value -&gt; Value -&gt; Value
+</span
+	  ><a href="Data.Aeson.Flatten.html#mergeValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mergeValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823404"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823404"
+	  ><span class="hs-identifier hs-var"
+	    >o1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823405"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621681823405"
+	  ><span class="hs-identifier hs-var"
+	    >o2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Value) -&gt; Object -&gt; Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#mergeObject"
+	><span class="hs-identifier hs-var"
+	  >mergeObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823404"
+	><span class="hs-identifier hs-var"
+	  >o1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621681823405"
+	><span class="hs-identifier hs-var"
+	  >o2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html#mergeValue"
+	><span class="hs-identifier hs-var"
+	  >mergeValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; Value
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;can't merge&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

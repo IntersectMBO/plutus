@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Compiler.Laziness</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.51.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Compiler.Laziness.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Compiler.Laziness</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Simulating laziness.</p
+	  ></div
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:delay" class="def"
+	    >delay</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) <a href="src/PlutusTx.Compiler.Laziness.html#delay" class="link"
+	    >Source</a
+	    > <a href="#v:delay" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:delayType" class="def"
+	    >delayType</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Laziness.html#delayType" class="link"
+	    >Source</a
+	    > <a href="#v:delayType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:delayVar" class="def"
+	    >delayVar</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="PlutusTx-PIRTypes.html#t:PIRVar" title="PlutusTx.PIRTypes"
+	    >PIRVar</a
+	    > uni &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRVar" title="PlutusTx.PIRTypes"
+	    >PIRVar</a
+	    > uni) <a href="src/PlutusTx.Compiler.Laziness.html#delayVar" class="link"
+	    >Source</a
+	    > <a href="#v:delayVar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:force" class="def"
+	    >force</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) <a href="src/PlutusTx.Compiler.Laziness.html#force" class="link"
+	    >Source</a
+	    > <a href="#v:force" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:maybeDelay" class="def"
+	    >maybeDelay</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) <a href="src/PlutusTx.Compiler.Laziness.html#maybeDelay" class="link"
+	    >Source</a
+	    > <a href="#v:maybeDelay" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:maybeDelayVar" class="def"
+	    >maybeDelayVar</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-PIRTypes.html#t:PIRVar" title="PlutusTx.PIRTypes"
+	    >PIRVar</a
+	    > uni &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRVar" title="PlutusTx.PIRTypes"
+	    >PIRVar</a
+	    > uni) <a href="src/PlutusTx.Compiler.Laziness.html#maybeDelayVar" class="link"
+	    >Source</a
+	    > <a href="#v:maybeDelayVar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:maybeDelayType" class="def"
+	    >maybeDelayType</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Laziness.html#maybeDelayType" class="link"
+	    >Source</a
+	    > <a href="#v:maybeDelayType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:maybeForce" class="def"
+	    >maybeForce</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) <a href="src/PlutusTx.Compiler.Laziness.html#maybeForce" class="link"
+	    >Source</a
+	    > <a href="#v:maybeForce" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

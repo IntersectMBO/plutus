@@ -1,0 +1,5484 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RoleAnnotations       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Code</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BSL</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.html"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier"
+	  >unflat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Decoder.html"
+	><span class="hs-identifier"
+	  >Flat.Decoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Decoder.Types.html#DecodeException"
+	><span class="hs-identifier"
+	  >DecodeException</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html#SrcSpans"
+	><span class="hs-identifier"
+	  >SrcSpans</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyConst"
+	><span class="hs-identifier"
+	  >PrettyConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.Fixity.html#RenderContext"
+	><span class="hs-identifier"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Coverage.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Coverage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Coverage.html#CoverageIndex"
+	><span class="hs-identifier"
+	  >CoverageIndex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.Instances.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift.Instances</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- We do not use qualified import because the whole module contains off-chain code</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-comment"
+      >-- The final type parameter is inferred to be phantom, but we give it a nominal</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >-- role, since it corresponds to the Haskell type of the program that was compiled into</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- this 'CompiledCodeIn'. It could be okay to give it a representational role, since</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- we compile newtypes the same as their underlying types, but people probably just</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >-- shouldn't coerce the final parameter regardless, so we play it safe with a nominal role.</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >role</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	><span class="hs-identifier hs-type"
+	  >CompiledCodeIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>representational</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>representational</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>nominal</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >-- NOTE: any changes to this type must be paralleled by changes</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-comment"
+      >-- in the plugin code that generates values of this type. That is</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >-- done by code generation so it's not typechecked normally.</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A compiled Plutus Tx program. The last type parameter indicates
+the type of the Haskell expression that was compiled, and
+hence the type of the compiled code.
+
+Note: the compiled PLC program does *not* have normalized types,
+if you want to put it on the chain you must normalize the types first.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CompiledCodeIn"
+      ><span class="annot"
+	><a href="PlutusTx.Code.html#CompiledCodeIn"
+	  ><span class="hs-identifier hs-var"
+	    >CompiledCodeIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041791"
+      ><span class="annot"
+	><a href="#local-6989586621680041791"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041792"
+      ><span class="annot"
+	><a href="#local-6989586621680041792"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041793"
+      ><span class="annot"
+	><a href="#local-6989586621680041793"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SerializedCode"
+      ><span class="annot"
+	><a href="PlutusTx.Code.html#SerializedCode"
+	  ><span class="hs-identifier hs-var"
+	    >SerializedCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Serialized UPLC program of type 'UPLC.Program NamedDeBruijn uni fun SrcSpans'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Serialized PIR program of type 'PIR.Program PIR.TyName PIR.Name uni fun SrcSpans'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusTx.Coverage.html#CoverageIndex"
+	><span class="hs-identifier hs-type"
+	  >CoverageIndex</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- Metadata used for program coverage.</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span id="DeserializedCode"
+      ><span class="annot"
+	><a href="PlutusTx.Code.html#DeserializedCode"
+	  ><span class="hs-identifier hs-var"
+	    >DeserializedCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.NamedDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680041791"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680041792"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html#SrcSpans"
+	><span class="hs-identifier hs-type"
+	  >SrcSpans</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Deserialized UPLC program</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >PIR.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >PLC.TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >PLC.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680041791"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680041792"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html#SrcSpans"
+	><span class="hs-identifier hs-type"
+	  >SrcSpans</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Deserialized PIR program, if available</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusTx.Coverage.html#CoverageIndex"
+	><span class="hs-identifier hs-type"
+	  >CoverageIndex</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Metadata used for program coverage.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | 'CompiledCodeIn' instantiated with default built-in types and functions.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CompiledCode"
+      ><span class="annot"
+	><a href="PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-var"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	><span class="hs-identifier hs-type"
+	  >CompiledCodeIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Apply a compiled function to a compiled argument. Will fail if the versions don't match.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="local-6989586621680041711"
+      ><span id="local-6989586621680041715"
+	><span id="local-6989586621680041721"
+	  ><span id="local-6989586621680041722"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Code.html#applyCode"
+		><span class="hs-identifier hs-type"
+		  >applyCode</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-71"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+		><span class="hs-identifier hs-type"
+		  >PLC.Closed</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-72"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+		><span class="hs-operator hs-type"
+		  >`PLC.Everywhere`</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+		><span class="hs-identifier hs-type"
+		  >Flat</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-73"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+		><span class="hs-identifier hs-type"
+		  >Flat</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041715"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-74"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041715"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-75"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+		><span class="hs-identifier hs-type"
+		  >PLC.Everywhere</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyConst"
+		><span class="hs-identifier hs-type"
+		  >PrettyConst</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-76"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.Fixity.html#RenderContext"
+		><span class="hs-identifier hs-type"
+		  >RenderContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#SomeTypeIn"
+		><span class="hs-identifier hs-type"
+		  >PLC.SomeTypeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-77"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-78"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+		><span class="hs-identifier hs-type"
+		  >CompiledCodeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041715"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041721"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041722"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-79"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+		><span class="hs-identifier hs-type"
+		  >CompiledCodeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041715"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041721"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-80"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+		><span class="hs-identifier hs-type"
+		  >Either</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+		><span class="hs-identifier hs-type"
+		  >String</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+		><span class="hs-identifier hs-type"
+		  >CompiledCodeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041715"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041722"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="applyCode"
+      ><span class="annot"
+	><span class="annottext"
+	  >applyCode :: forall (uni :: * -&gt; *) fun a b.
+(Closed uni, Everywhere uni Flat, Flat fun, Pretty fun,
+ Everywhere uni PrettyConst,
+ PrettyBy RenderContext (SomeTypeIn uni)) =&gt;
+CompiledCodeIn uni fun (a -&gt; b)
+-&gt; CompiledCodeIn uni fun a
+-&gt; Either String (CompiledCodeIn uni fun b)
+</span
+	  ><a href="PlutusTx.Code.html#applyCode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >applyCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041952"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun (a -&gt; b)
+</span
+	  ><a href="#local-6989586621680041952"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041953"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun a
+</span
+	  ><a href="#local-6989586621680041953"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621680041954"
+      ><span class="annot"
+	><span class="annottext"
+	  >uplc :: Program NamedDeBruijn uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680041954"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >uplc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either ApplyProgramError (Program NamedDeBruijn uni fun SrcSpans)
+-&gt; Program NamedDeBruijn uni fun SrcSpans
+forall e a. Show e =&gt; Either e a -&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusPrelude.html#unsafeFromRight"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromRight</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either ApplyProgramError (Program NamedDeBruijn uni fun SrcSpans)
+ -&gt; Program NamedDeBruijn uni fun SrcSpans)
+-&gt; Either
+     ApplyProgramError (Program NamedDeBruijn uni fun SrcSpans)
+-&gt; Program NamedDeBruijn uni fun SrcSpans
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+-&gt; Program NamedDeBruijn uni fun SrcSpans
+-&gt; Either
+     ApplyProgramError (Program NamedDeBruijn uni fun SrcSpans)
+forall (m :: * -&gt; *) a name (uni :: * -&gt; *) fun.
+(MonadError ApplyProgramError m, Semigroup a) =&gt;
+Program name uni fun a
+-&gt; Program name uni fun a -&gt; m (Program name uni fun a)
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.html#applyProgram"
+	><span class="hs-identifier hs-var"
+	  >UPLC.applyProgram</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b)
+-&gt; Program NamedDeBruijn uni fun SrcSpans
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+</span
+	><a href="PlutusTx.Code.html#getPlc"
+	><span class="hs-identifier hs-var"
+	  >getPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b)
+</span
+	><a href="#local-6989586621680041952"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+</span
+	><a href="PlutusTx.Code.html#getPlc"
+	><span class="hs-identifier hs-var"
+	  >getPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621680041953"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Probably this could be done with more appropriate combinators, but the</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- nested Maybes make it very easy to do the wrong thing here (I did it</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- wrong first!), so I wrote it painfully explicitly.</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680041958"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	  ><a href="#local-6989586621680041958"
+	  ><span class="hs-identifier hs-var"
+	    >pir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b)
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="PlutusTx.Code.html#getPir"
+	><span class="hs-identifier hs-var"
+	  >getPir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b)
+</span
+	><a href="#local-6989586621680041952"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="PlutusTx.Code.html#getPir"
+	><span class="hs-identifier hs-var"
+	  >getPir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621680041953"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041960"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680041960"
+	  ><span class="hs-identifier hs-var"
+	    >funPir</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041961"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680041961"
+	  ><span class="hs-identifier hs-var"
+	    >argPir</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+-&gt; Program TyName Name uni fun SrcSpans
+-&gt; Either ApplyProgramError (Program TyName Name uni fun SrcSpans)
+forall (m :: * -&gt; *) a tyname name (uni :: * -&gt; *) fun.
+(MonadError ApplyProgramError m, Semigroup a) =&gt;
+Program tyname name uni fun a
+-&gt; Program tyname name uni fun a
+-&gt; m (Program tyname name uni fun a)
+</span
+	><a href="../../plutus-core/src/PlutusIR.Core.Type.html#applyProgram"
+	><span class="hs-identifier hs-var"
+	  >PIR.applyProgram</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+</span
+	><a href="#local-6989586621680041960"
+	><span class="hs-identifier hs-var"
+	  >funPir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+</span
+	><a href="#local-6989586621680041961"
+	><span class="hs-identifier hs-var"
+	  >argPir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041963"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680041963"
+	  ><span class="hs-identifier hs-var"
+	    >appliedPir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a. a -&gt; Either String a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+</span
+	><a href="#local-6989586621680041963"
+	><span class="hs-identifier hs-var"
+	  >appliedPir</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Had PIR for both, but failed to apply them, this should fail</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041964"
+      ><span class="annot"
+	><span class="annottext"
+	  >ApplyProgramError
+</span
+	  ><a href="#local-6989586621680041964"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String
+ -&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans)))
+-&gt; String
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ApplyProgramError -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ApplyProgramError
+</span
+	><a href="#local-6989586621680041964"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Missing PIR for one or both, this succeeds but has no PIR</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041966"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680041966"
+	  ><span class="hs-identifier hs-var"
+	    >funPir</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String
+ -&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans)))
+-&gt; String
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Missing PIR for the argument.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Got PIR for the function program \n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+</span
+	><a href="#local-6989586621680041966"
+	><span class="hs-identifier hs-var"
+	  >funPir</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041968"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680041968"
+	  ><span class="hs-identifier hs-var"
+	    >argPir</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String
+ -&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans)))
+-&gt; String
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Missing PIR for the function program.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Got PIR for the argument \n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+</span
+	><a href="#local-6989586621680041968"
+	><span class="hs-identifier hs-var"
+	  >argPir</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Either String (Maybe (Program TyName Name uni fun SrcSpans))
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Missing PIR for both the function program and the argument.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun b
+-&gt; Either String (CompiledCodeIn uni fun b)
+forall a. a -&gt; Either String a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompiledCodeIn uni fun b
+ -&gt; Either String (CompiledCodeIn uni fun b))
+-&gt; CompiledCodeIn uni fun b
+-&gt; Either String (CompiledCodeIn uni fun b)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+-&gt; CoverageIndex
+-&gt; CompiledCodeIn uni fun b
+forall (uni :: * -&gt; *) fun a.
+Program NamedDeBruijn uni fun SrcSpans
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+-&gt; CoverageIndex
+-&gt; CompiledCodeIn uni fun a
+</span
+	><a href="PlutusTx.Code.html#DeserializedCode"
+	><span class="hs-identifier hs-var"
+	  >DeserializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+</span
+	><a href="#local-6989586621680041954"
+	><span class="hs-identifier hs-var"
+	  >uplc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="#local-6989586621680041958"
+	><span class="hs-identifier hs-var"
+	  >pir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b) -&gt; CoverageIndex
+forall (uni :: * -&gt; *) fun a.
+CompiledCodeIn uni fun a -&gt; CoverageIndex
+</span
+	><a href="PlutusTx.Code.html#getCovIdx"
+	><span class="hs-identifier hs-var"
+	  >getCovIdx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b)
+</span
+	><a href="#local-6989586621680041952"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageIndex -&gt; CoverageIndex -&gt; CoverageIndex
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a -&gt; CoverageIndex
+forall (uni :: * -&gt; *) fun a.
+CompiledCodeIn uni fun a -&gt; CoverageIndex
+</span
+	><a href="PlutusTx.Code.html#getCovIdx"
+	><span class="hs-identifier hs-var"
+	  >getCovIdx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621680041953"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Apply a compiled function to a compiled argument. Will throw if the versions don't match,
+should only be used in non-production code.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="local-6989586621680041797"
+      ><span id="local-6989586621680041798"
+	><span id="local-6989586621680041799"
+	  ><span id="local-6989586621680041800"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Code.html#unsafeApplyCode"
+		><span class="hs-identifier hs-type"
+		  >unsafeApplyCode</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-110"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+		><span class="hs-identifier hs-type"
+		  >PLC.Closed</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041797"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-111"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041797"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+		><span class="hs-operator hs-type"
+		  >`PLC.Everywhere`</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+		><span class="hs-identifier hs-type"
+		  >Flat</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-112"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+		><span class="hs-identifier hs-type"
+		  >Flat</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041798"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-113"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041798"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-114"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+		><span class="hs-identifier hs-type"
+		  >PLC.Everywhere</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041797"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyConst"
+		><span class="hs-identifier hs-type"
+		  >PrettyConst</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-115"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.Fixity.html#RenderContext"
+		><span class="hs-identifier hs-type"
+		  >RenderContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#SomeTypeIn"
+		><span class="hs-identifier hs-type"
+		  >PLC.SomeTypeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041797"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-116"
+	      ></span
+	      ><span
+	      >     </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-117"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+		><span class="hs-identifier hs-type"
+		  >CompiledCodeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041797"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041798"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041799"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041800"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+		><span class="hs-identifier hs-type"
+		  >CompiledCodeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041797"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041798"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041799"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Code.html#CompiledCodeIn"
+		><span class="hs-identifier hs-type"
+		  >CompiledCodeIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041797"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041798"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680041800"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span id="unsafeApplyCode"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsafeApplyCode :: forall (uni :: * -&gt; *) fun a b.
+(Closed uni, Everywhere uni Flat, Flat fun, Pretty fun,
+ Everywhere uni PrettyConst,
+ PrettyBy RenderContext (SomeTypeIn uni)) =&gt;
+CompiledCodeIn uni fun (a -&gt; b)
+-&gt; CompiledCodeIn uni fun a -&gt; CompiledCodeIn uni fun b
+</span
+	  ><a href="PlutusTx.Code.html#unsafeApplyCode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsafeApplyCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041985"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun (a -&gt; b)
+</span
+	  ><a href="#local-6989586621680041985"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041986"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun a
+</span
+	  ><a href="#local-6989586621680041986"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b)
+-&gt; CompiledCodeIn uni fun a
+-&gt; Either String (CompiledCodeIn uni fun b)
+forall (uni :: * -&gt; *) fun a b.
+(Closed uni, Everywhere uni Flat, Flat fun, Pretty fun,
+ Everywhere uni PrettyConst,
+ PrettyBy RenderContext (SomeTypeIn uni)) =&gt;
+CompiledCodeIn uni fun (a -&gt; b)
+-&gt; CompiledCodeIn uni fun a
+-&gt; Either String (CompiledCodeIn uni fun b)
+</span
+	><a href="PlutusTx.Code.html#applyCode"
+	><span class="hs-identifier hs-var"
+	  >applyCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun (a -&gt; b)
+</span
+	><a href="#local-6989586621680041985"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621680041986"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041987"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun b
+</span
+	  ><a href="#local-6989586621680041987"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun b
+</span
+	><a href="#local-6989586621680041987"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680041988"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621680041988"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; CompiledCodeIn uni fun b
+forall a. HasCallStack =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621680041988"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The size of a 'CompiledCodeIn' as measured in AST nodes.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="local-6989586621680041808"
+      ><span id="local-6989586621680041809"
+	><span id="local-6989586621680041810"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Code.html#countAstNodes"
+	      ><span class="hs-identifier hs-type"
+		>countAstNodes</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-124"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Closed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041808"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041808"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041809"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-125"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041808"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041809"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041810"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-126"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	      ><span class="hs-identifier hs-type"
+		>Integer</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span id="countAstNodes"
+      ><span class="annot"
+	><span class="annottext"
+	  >countAstNodes :: forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Integer
+</span
+	  ><a href="PlutusTx.Code.html#countAstNodes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >countAstNodes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; Integer
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#unSize"
+	><span class="hs-identifier hs-var"
+	  >UPLC.unSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Size -&gt; Integer)
+-&gt; (CompiledCodeIn uni fun a -&gt; Size)
+-&gt; CompiledCodeIn uni fun a
+-&gt; Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans -&gt; Size
+forall name (uni :: * -&gt; *) fun ann.
+Program name uni fun ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Size.html#programSize"
+	><span class="hs-identifier hs-var"
+	  >UPLC.programSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program NamedDeBruijn uni fun SrcSpans -&gt; Size)
+-&gt; (CompiledCodeIn uni fun a
+    -&gt; Program NamedDeBruijn uni fun SrcSpans)
+-&gt; CompiledCodeIn uni fun a
+-&gt; Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+</span
+	><a href="PlutusTx.Code.html#getPlc"
+	><span class="hs-identifier hs-var"
+	  >getPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Deserializing the AST]
+The types suggest that we can fail to deserialize the AST that we embedded in the program.
+However, we just did it ourselves, so this should be impossible, and we signal this with an
+exception.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="ImpossibleDeserialisationFailure"
+      ><span class="annot"
+	><a href="PlutusTx.Code.html#ImpossibleDeserialisationFailure"
+	  ><span class="hs-identifier hs-var"
+	    >ImpossibleDeserialisationFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ImpossibleDeserialisationFailure"
+      ><span class="annot"
+	><a href="PlutusTx.Code.html#ImpossibleDeserialisationFailure"
+	  ><span class="hs-identifier hs-var"
+	    >ImpossibleDeserialisationFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Decoder.Types.html#DecodeException"
+	><span class="hs-identifier hs-type"
+	  >DecodeException</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680042007"
+      ><span id="local-6989586621680042011"
+	><span id="local-6989586621680042014"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Show ImpossibleDeserialisationFailure
+Typeable ImpossibleDeserialisationFailure
+(Typeable ImpossibleDeserialisationFailure,
+ Show ImpossibleDeserialisationFailure) =&gt;
+(ImpossibleDeserialisationFailure -&gt; SomeException)
+-&gt; (SomeException -&gt; Maybe ImpossibleDeserialisationFailure)
+-&gt; (ImpossibleDeserialisationFailure -&gt; String)
+-&gt; Exception ImpossibleDeserialisationFailure
+SomeException -&gt; Maybe ImpossibleDeserialisationFailure
+ImpossibleDeserialisationFailure -&gt; String
+ImpossibleDeserialisationFailure -&gt; SomeException
+forall e.
+(Typeable e, Show e) =&gt;
+(e -&gt; SomeException)
+-&gt; (SomeException -&gt; Maybe e) -&gt; (e -&gt; String) -&gt; Exception e
+$ctoException :: ImpossibleDeserialisationFailure -&gt; SomeException
+toException :: ImpossibleDeserialisationFailure -&gt; SomeException
+$cfromException :: SomeException -&gt; Maybe ImpossibleDeserialisationFailure
+fromException :: SomeException -&gt; Maybe ImpossibleDeserialisationFailure
+$cdisplayException :: ImpossibleDeserialisationFailure -&gt; String
+displayException :: ImpossibleDeserialisationFailure -&gt; String
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.Type.html#Exception"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Exception</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680042018"
+      ><span id="local-6989586621680042022"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	    ><span class="hs-identifier hs-type"
+	      >Show</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Code.html#ImpossibleDeserialisationFailure"
+	    ><span class="hs-identifier hs-type"
+	      >ImpossibleDeserialisationFailure</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680042029"
+      ><span class="annot"
+	><span class="annottext"
+	  >show :: ImpossibleDeserialisationFailure -&gt; String
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >show</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#ImpossibleDeserialisationFailure"
+	><span class="hs-identifier hs-type"
+	  >ImpossibleDeserialisationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042030"
+      ><span class="annot"
+	><span class="annottext"
+	  >DecodeException
+</span
+	  ><a href="#local-6989586621680042030"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Failed to deserialise our own program! This is a bug, please report it. Caused by: &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException
+</span
+	><a href="#local-6989586621680042030"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span id="local-6989586621680041771"
+      ><span id="local-6989586621680041772"
+	><span id="local-6989586621680041773"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Code.html#getPlc"
+	      ><span class="hs-identifier hs-type"
+		>getPlc</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-141"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Closed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041771"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041771"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041772"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-142"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041771"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041772"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041773"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	      ><span class="hs-identifier hs-type"
+		>UPLC.Program</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	      ><span class="hs-identifier hs-type"
+		>UPLC.NamedDeBruijn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041771"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041772"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Annotation.html#SrcSpans"
+	      ><span class="hs-identifier hs-type"
+		>SrcSpans</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span id="getPlc"
+      ><span class="annot"
+	><span class="annottext"
+	  >getPlc :: forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+</span
+	  ><a href="PlutusTx.Code.html#getPlc"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getPlc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042046"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun a
+</span
+	  ><a href="#local-6989586621680042046"
+	  ><span class="hs-identifier hs-var"
+	    >wrapper</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621680042046"
+	><span class="hs-identifier hs-var"
+	  >wrapper</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#SerializedCode"
+	><span class="hs-identifier hs-type"
+	  >SerializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042047"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621680042047"
+	  ><span class="hs-identifier hs-var"
+	    >plc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ByteString
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageIndex
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+-&gt; Decoded (UnrestrictedProgram NamedDeBruijn uni fun SrcSpans)
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Internal.html#fromStrict"
+	><span class="hs-identifier hs-var"
+	  >BSL.fromStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621680042047"
+	><span class="hs-identifier hs-var"
+	  >plc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042049"
+      ><span class="annot"
+	><span class="annottext"
+	  >DecodeException
+</span
+	  ><a href="#local-6989586621680042049"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                             </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ImpossibleDeserialisationFailure
+-&gt; Program NamedDeBruijn uni fun SrcSpans
+forall a e. Exception e =&gt; e -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.html#throw"
+	><span class="hs-identifier hs-var"
+	  >throw</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ImpossibleDeserialisationFailure
+ -&gt; Program NamedDeBruijn uni fun SrcSpans)
+-&gt; ImpossibleDeserialisationFailure
+-&gt; Program NamedDeBruijn uni fun SrcSpans
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException -&gt; ImpossibleDeserialisationFailure
+</span
+	><a href="PlutusTx.Code.html#ImpossibleDeserialisationFailure"
+	><span class="hs-identifier hs-var"
+	  >ImpossibleDeserialisationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException
+</span
+	><a href="#local-6989586621680042049"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Instance.Flat.html#UnrestrictedProgram"
+	><span class="hs-identifier hs-type"
+	  >UPLC.UnrestrictedProgram</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042052"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program NamedDeBruijn uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680042052"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+</span
+	><a href="#local-6989586621680042052"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#DeserializedCode"
+	><span class="hs-identifier hs-type"
+	  >DeserializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042053"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program NamedDeBruijn uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680042053"
+	  ><span class="hs-identifier hs-var"
+	    >plc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageIndex
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+</span
+	><a href="#local-6989586621680042053"
+	><span class="hs-identifier hs-var"
+	  >plc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span id="local-6989586621680041846"
+      ><span id="local-6989586621680041847"
+	><span id="local-6989586621680041848"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Code.html#getPlcNoAnn"
+	      ><span class="hs-identifier hs-type"
+		>getPlcNoAnn</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-150"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Closed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041846"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041846"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041847"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-151"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041846"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041847"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041848"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	      ><span class="hs-identifier hs-type"
+		>UPLC.Program</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	      ><span class="hs-identifier hs-type"
+		>UPLC.NamedDeBruijn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041846"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041847"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span id="getPlcNoAnn"
+      ><span class="annot"
+	><span class="annottext"
+	  >getPlcNoAnn :: forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun ()
+</span
+	  ><a href="PlutusTx.Code.html#getPlcNoAnn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getPlcNoAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+-&gt; Program NamedDeBruijn uni fun ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier hs-var"
+	  >void</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program NamedDeBruijn uni fun SrcSpans
+ -&gt; Program NamedDeBruijn uni fun ())
+-&gt; (CompiledCodeIn uni fun a
+    -&gt; Program NamedDeBruijn uni fun SrcSpans)
+-&gt; CompiledCodeIn uni fun a
+-&gt; Program NamedDeBruijn uni fun ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun SrcSpans
+</span
+	><a href="PlutusTx.Code.html#getPlc"
+	><span class="hs-identifier hs-var"
+	  >getPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the Plutus IR program, if there is one, out of a 'CompiledCodeIn'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span id="local-6989586621680041774"
+      ><span id="local-6989586621680041775"
+	><span id="local-6989586621680041776"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Code.html#getPir"
+	      ><span class="hs-identifier hs-type"
+		>getPir</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-156"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Closed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041774"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041774"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041775"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-157"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041774"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041775"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041776"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	      ><span class="hs-identifier hs-type"
+		>Maybe</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusIR.Core.Type.html#Program"
+	      ><span class="hs-identifier hs-type"
+		>PIR.Program</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>PIR.TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>PIR.Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041774"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041775"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Annotation.html#SrcSpans"
+	      ><span class="hs-identifier hs-type"
+		>SrcSpans</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span id="getPir"
+      ><span class="annot"
+	><span class="annottext"
+	  >getPir :: forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	  ><a href="PlutusTx.Code.html#getPir"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getPir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042077"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun a
+</span
+	  ><a href="#local-6989586621680042077"
+	  ><span class="hs-identifier hs-var"
+	    >wrapper</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621680042077"
+	><span class="hs-identifier hs-var"
+	  >wrapper</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#SerializedCode"
+	><span class="hs-identifier hs-type"
+	  >SerializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042078"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe ByteString
+</span
+	  ><a href="#local-6989586621680042078"
+	  ><span class="hs-identifier hs-var"
+	    >pir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageIndex
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ByteString
+</span
+	><a href="#local-6989586621680042078"
+	><span class="hs-identifier hs-var"
+	  >pir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042079"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621680042079"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Decoded (Program TyName Name uni fun SrcSpans)
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Internal.html#fromStrict"
+	><span class="hs-identifier hs-var"
+	  >BSL.fromStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621680042079"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042080"
+      ><span class="annot"
+	><span class="annottext"
+	  >DecodeException
+</span
+	  ><a href="#local-6989586621680042080"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ImpossibleDeserialisationFailure
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall a e. Exception e =&gt; e -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.html#throw"
+	><span class="hs-identifier hs-var"
+	  >throw</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ImpossibleDeserialisationFailure
+ -&gt; Maybe (Program TyName Name uni fun SrcSpans))
+-&gt; ImpossibleDeserialisationFailure
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException -&gt; ImpossibleDeserialisationFailure
+</span
+	><a href="PlutusTx.Code.html#ImpossibleDeserialisationFailure"
+	><span class="hs-identifier hs-var"
+	  >ImpossibleDeserialisationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException
+</span
+	><a href="#local-6989586621680042080"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042081"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621680042081"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+</span
+	><a href="#local-6989586621680042081"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ByteString
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#DeserializedCode"
+	><span class="hs-identifier hs-type"
+	  >DeserializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042082"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	  ><a href="#local-6989586621680042082"
+	  ><span class="hs-identifier hs-var"
+	    >pir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageIndex
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="#local-6989586621680042082"
+	><span class="hs-identifier hs-var"
+	  >pir</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span id="local-6989586621680041865"
+      ><span id="local-6989586621680041866"
+	><span id="local-6989586621680041867"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Code.html#getPirNoAnn"
+	      ><span class="hs-identifier hs-type"
+		>getPirNoAnn</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-167"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Closed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041865"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041865"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041866"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-168"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041865"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041866"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041867"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	      ><span class="hs-identifier hs-type"
+		>Maybe</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusIR.Core.Type.html#Program"
+	      ><span class="hs-identifier hs-type"
+		>PIR.Program</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>PIR.TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>PIR.Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041865"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041866"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span id="getPirNoAnn"
+      ><span class="annot"
+	><span class="annottext"
+	  >getPirNoAnn :: forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Maybe (Program TyName Name uni fun ())
+</span
+	  ><a href="PlutusTx.Code.html#getPirNoAnn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getPirNoAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program TyName Name uni fun SrcSpans
+ -&gt; Program TyName Name uni fun ())
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+-&gt; Maybe (Program TyName Name uni fun ())
+forall a b. (a -&gt; b) -&gt; Maybe a -&gt; Maybe b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+-&gt; Program TyName Name uni fun ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier hs-var"
+	  >void</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe (Program TyName Name uni fun SrcSpans)
+ -&gt; Maybe (Program TyName Name uni fun ()))
+-&gt; (CompiledCodeIn uni fun a
+    -&gt; Maybe (Program TyName Name uni fun SrcSpans))
+-&gt; CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="PlutusTx.Code.html#getPir"
+	><span class="hs-identifier hs-var"
+	  >getPir</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span id="local-6989586621680041794"
+      ><span id="local-6989586621680041795"
+	><span id="local-6989586621680041796"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Code.html#getCovIdx"
+	      ><span class="hs-identifier hs-type"
+		>getCovIdx</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041794"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041795"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680041796"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Coverage.html#CoverageIndex"
+	      ><span class="hs-identifier hs-type"
+		>CoverageIndex</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span id="getCovIdx"
+      ><span class="annot"
+	><span class="annottext"
+	  >getCovIdx :: forall (uni :: * -&gt; *) fun a.
+CompiledCodeIn uni fun a -&gt; CoverageIndex
+</span
+	  ><a href="PlutusTx.Code.html#getCovIdx"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getCovIdx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042094"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun a
+</span
+	  ><a href="#local-6989586621680042094"
+	  ><span class="hs-identifier hs-var"
+	    >wrapper</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621680042094"
+	><span class="hs-identifier hs-var"
+	  >wrapper</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#SerializedCode"
+	><span class="hs-identifier hs-type"
+	  >SerializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ByteString
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042095"
+      ><span class="annot"
+	><span class="annottext"
+	  >CoverageIndex
+</span
+	  ><a href="#local-6989586621680042095"
+	  ><span class="hs-identifier hs-var"
+	    >idx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageIndex
+</span
+	><a href="#local-6989586621680042095"
+	><span class="hs-identifier hs-var"
+	  >idx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Code.html#DeserializedCode"
+	><span class="hs-identifier hs-type"
+	  >DeserializedCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun SrcSpans
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680042096"
+      ><span class="annot"
+	><span class="annottext"
+	  >CoverageIndex
+</span
+	  ><a href="#local-6989586621680042096"
+	  ><span class="hs-identifier hs-var"
+	    >idx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageIndex
+</span
+	><a href="#local-6989586621680042096"
+	><span class="hs-identifier hs-var"
+	  >idx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

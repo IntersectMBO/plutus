@@ -1,0 +1,807 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Analysis.VarInfo</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Analysis.VarInfo.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Analysis.VarInfo</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:VarsInfo"
+	      >VarsInfo</a
+	      > tyname name uni a = <a href="#v:VarsInfo"
+	      >VarsInfo</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:termVarInfoMap"
+		  >termVarInfoMap</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+		  >UniqueMap</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  > (<a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+		  >VarInfo</a
+		  > tyname name uni a)</li
+		><li
+		><a href="#v:typeVarInfoMap"
+		  >typeVarInfoMap</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+		  >UniqueMap</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+		  >TypeUnique</a
+		  > (<a href="PlutusIR-Analysis-VarInfo.html#t:TyVarInfo" title="PlutusIR.Analysis.VarInfo"
+		  >TyVarInfo</a
+		  > tyname name uni a)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:lookupVarInfo"
+	      >lookupVarInfo</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > &#8658; name &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarInfo</a
+	      > tyname name uni a)</li
+	    ><li class="src short"
+	    ><a href="#v:lookupTyVarInfo"
+	      >lookupTyVarInfo</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > &#8658; tyname &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Analysis-VarInfo.html#t:TyVarInfo" title="PlutusIR.Analysis.VarInfo"
+	      >TyVarInfo</a
+	      > tyname name uni a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TyVarInfo"
+	      >TyVarInfo</a
+	      > tyname name uni a<ul class="subs"
+	      ><li
+		>= <a href="#v:NormalTyVar"
+		  >NormalTyVar</a
+		  ></li
+		><li
+		>| <a href="#v:DatatypeTyVar"
+		  >DatatypeTyVar</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		  >Datatype</a
+		  > tyname name uni a)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:VarInfo"
+	      >VarInfo</a
+	      > tyname name uni a<ul class="subs"
+	      ><li
+		>= <a href="#v:NormalVar"
+		  >NormalVar</a
+		  > <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+		  >Strictness</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni a) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+		  >Arity</a
+		  >)</li
+		><li
+		>| <a href="#v:DatatypeConstructor"
+		  >DatatypeConstructor</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > tyname</li
+		><li
+		>| <a href="#v:DatatypeMatcher"
+		  >DatatypeMatcher</a
+		  > tyname</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:varInfoStrictness"
+	      >varInfoStrictness</a
+	      > &#8759; <a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarInfo</a
+	      > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	      >Strictness</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:varInfoArity"
+	      >varInfoArity</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarInfo</a
+	      > tyname name uni a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:termVarInfo"
+	      >termVarInfo</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >) &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a</li
+	    ><li class="src short"
+	    ><a href="#v:datatypeMatcherArity"
+	      >datatypeMatcherArity</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > tyname uni fun a &#8594; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:datatypeConstructorArity"
+	      >datatypeConstructorArity</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > tyname uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:bindingVarInfo"
+	      >bindingVarInfo</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >) &#8658; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a</li
+	    ><li class="src short"
+	    ><a href="#v:getConstructorArities"
+	      >getConstructorArities</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >) &#8658; tyname &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      >]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:VarsInfo" class="def"
+	    >VarsInfo</a
+	    > tyname name uni a <a href="src/PlutusIR.Analysis.VarInfo.html#VarsInfo" class="link"
+	    >Source</a
+	    > <a href="#t:VarsInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Information about variables and type variables in the program.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:VarsInfo" class="def"
+		  >VarsInfo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:termVarInfoMap" class="def"
+			  >termVarInfoMap</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+			  >UniqueMap</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+			  >TermUnique</a
+			  > (<a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarInfo</a
+			  > tyname name uni a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:typeVarInfoMap" class="def"
+			  >typeVarInfoMap</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+			  >UniqueMap</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+			  >TypeUnique</a
+			  > (<a href="PlutusIR-Analysis-VarInfo.html#t:TyVarInfo" title="PlutusIR.Analysis.VarInfo"
+			  >TyVarInfo</a
+			  > tyname name uni a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:VarsInfo"
+	    >Instances</h4
+	    ><details id="i:VarsInfo" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarsInfo:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+		      >VarsInfo</a
+		      > tyname name uni a)</span
+		    > <a href="src/PlutusIR.Analysis.VarInfo.html#line-24" class="link"
+		    >Source</a
+		    > <a href="#t:VarsInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarsInfo:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Analysis-VarInfo.html"
+			>PlutusIR.Analysis.VarInfo</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a] &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarsInfo:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+		      >VarsInfo</a
+		      > tyname name uni a)</span
+		    > <a href="src/PlutusIR.Analysis.VarInfo.html#line-21" class="link"
+		    >Source</a
+		    > <a href="#t:VarsInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarsInfo:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Analysis-VarInfo.html"
+			>PlutusIR.Analysis.VarInfo</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a) &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupVarInfo" class="def"
+	    >lookupVarInfo</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    > &#8658; name &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarInfo</a
+	    > tyname name uni a) <a href="src/PlutusIR.Analysis.VarInfo.html#lookupVarInfo" class="link"
+	    >Source</a
+	    > <a href="#v:lookupVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Lookup the <code
+	      ><a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+		>VarInfo</a
+		></code
+	      > for a <code
+	      >name</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupTyVarInfo" class="def"
+	    >lookupTyVarInfo</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > &#8658; tyname &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Analysis-VarInfo.html#t:TyVarInfo" title="PlutusIR.Analysis.VarInfo"
+	    >TyVarInfo</a
+	    > tyname name uni a) <a href="src/PlutusIR.Analysis.VarInfo.html#lookupTyVarInfo" class="link"
+	    >Source</a
+	    > <a href="#v:lookupTyVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Lookup the <code
+	      ><a href="PlutusIR-Analysis-VarInfo.html#t:TyVarInfo" title="PlutusIR.Analysis.VarInfo"
+		>TyVarInfo</a
+		></code
+	      > for a <code
+	      >tyname</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TyVarInfo" class="def"
+	    >TyVarInfo</a
+	    > tyname name uni a <a href="src/PlutusIR.Analysis.VarInfo.html#TyVarInfo" class="link"
+	    >Source</a
+	    > <a href="#t:TyVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Information about a type variable in the program.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NormalTyVar" class="def"
+		  >NormalTyVar</a
+		  ></td
+		><td class="doc"
+		><p
+		  >A normal type variable, which could be anything.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DatatypeTyVar" class="def"
+		  >DatatypeTyVar</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		  >Datatype</a
+		  > tyname name uni a)</td
+		><td class="doc"
+		><p
+		  >A type variable corresponding to a datatype.
+ Tells us the number of type variables and the constructors.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:VarInfo" class="def"
+	    >VarInfo</a
+	    > tyname name uni a <a href="src/PlutusIR.Analysis.VarInfo.html#VarInfo" class="link"
+	    >Source</a
+	    > <a href="#t:VarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NormalVar" class="def"
+		  >NormalVar</a
+		  > <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+		  >Strictness</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni a) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+		  >Arity</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >A normal term variable, which could be anything.
+ Tells us if it is strictly evaluated, its type, and possibly its arity.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DatatypeConstructor" class="def"
+		  >DatatypeConstructor</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > tyname</td
+		><td class="doc"
+		><p
+		  >A term variable corresponding to a datatype constructor.
+ Tells us the index of the constructor and the name of the datatype that owns it.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DatatypeMatcher" class="def"
+		  >DatatypeMatcher</a
+		  > tyname</td
+		><td class="doc"
+		><p
+		  >A term variable corresponding to a datatype matcher.
+ Tells us the name of the datatype that owns it.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:varInfoStrictness" class="def"
+	    >varInfoStrictness</a
+	    > &#8759; <a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarInfo</a
+	    > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	    >Strictness</a
+	    > <a href="src/PlutusIR.Analysis.VarInfo.html#varInfoStrictness" class="link"
+	    >Source</a
+	    > <a href="#v:varInfoStrictness" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:varInfoArity" class="def"
+	    >varInfoArity</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarInfo</a
+	    > tyname name uni a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > <a href="src/PlutusIR.Analysis.VarInfo.html#varInfoArity" class="link"
+	    >Source</a
+	    > <a href="#v:varInfoArity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termVarInfo" class="def"
+	    >termVarInfo</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >) &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a <a href="src/PlutusIR.Analysis.VarInfo.html#termVarInfo" class="link"
+	    >Source</a
+	    > <a href="#v:termVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:datatypeMatcherArity" class="def"
+	    >datatypeMatcherArity</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > tyname uni fun a &#8594; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > <a href="src/PlutusIR.Analysis.VarInfo.html#datatypeMatcherArity" class="link"
+	    >Source</a
+	    > <a href="#v:datatypeMatcherArity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:datatypeConstructorArity" class="def"
+	    >datatypeConstructorArity</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > tyname uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > <a href="src/PlutusIR.Analysis.VarInfo.html#datatypeConstructorArity" class="link"
+	    >Source</a
+	    > <a href="#v:datatypeConstructorArity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingVarInfo" class="def"
+	    >bindingVarInfo</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >) &#8658; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a <a href="src/PlutusIR.Analysis.VarInfo.html#bindingVarInfo" class="link"
+	    >Source</a
+	    > <a href="#v:bindingVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getConstructorArities" class="def"
+	    >getConstructorArities</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >) &#8658; tyname &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    >] <a href="src/PlutusIR.Analysis.VarInfo.html#getConstructorArities" class="link"
+	    >Source</a
+	    > <a href="#v:getConstructorArities" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the arities of the constructors for the given datatype name.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

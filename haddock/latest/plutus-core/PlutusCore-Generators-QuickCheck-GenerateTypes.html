@@ -1,0 +1,544 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.QuickCheck.GenerateTypes</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.QuickCheck.GenerateTypes</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Generators for well-kinded types</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:genAtomicType"
+	      >genAtomicType</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:GenTm" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >GenTm</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genType"
+	      >genType</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:GenTm" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >GenTm</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genClosedType"
+	      >genClosedType</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genClosedTypeDebug"
+	      >genClosedTypeDebug</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genTypeWithCtx"
+	      >genTypeWithCtx</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genTypeWithCtxDebug"
+	      >genTypeWithCtxDebug</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genKindAndTypeWithCtx"
+	      >genKindAndTypeWithCtx</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:builtinKind"
+	      >builtinKind</a
+	      > &#8759; <a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:genKindAndType"
+	      >genKindAndType</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genKindAndTypeDebug"
+	      >genKindAndTypeDebug</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:normalizeTy"
+	      >normalizeTy</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:genCtx"
+	      >genCtx</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >Generators for well-kinded types</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genAtomicType" class="def"
+	    >genAtomicType</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:GenTm" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >GenTm</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genAtomicType" class="link"
+	    >Source</a
+	    > <a href="#v:genAtomicType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate &quot;small&quot; types at a given kind such as builtins, bound variables, bound datatypes,
+ and lambda abstractions  t0 ... tn. T</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genType" class="def"
+	    >genType</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:GenTm" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >GenTm</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genType" class="link"
+	    >Source</a
+	    > <a href="#v:genType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a type at a given kind</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genClosedType" class="def"
+	    >genClosedType</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genClosedType" class="link"
+	    >Source</a
+	    > <a href="#v:genClosedType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a closed type at a given kind</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genClosedTypeDebug" class="def"
+	    >genClosedTypeDebug</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genClosedTypeDebug" class="link"
+	    >Source</a
+	    > <a href="#v:genClosedTypeDebug" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a closed type at a given kind</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTypeWithCtx" class="def"
+	    >genTypeWithCtx</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genTypeWithCtx" class="link"
+	    >Source</a
+	    > <a href="#v:genTypeWithCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a type in the given context with the given kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTypeWithCtxDebug" class="def"
+	    >genTypeWithCtxDebug</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genTypeWithCtxDebug" class="link"
+	    >Source</a
+	    > <a href="#v:genTypeWithCtxDebug" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a type in the given context with the given kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genKindAndTypeWithCtx" class="def"
+	    >genKindAndTypeWithCtx</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genKindAndTypeWithCtx" class="link"
+	    >Source</a
+	    > <a href="#v:genKindAndTypeWithCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a well-kinded type and its kind in a given context</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinKind" class="def"
+	    >builtinKind</a
+	    > &#8759; <a href="../plutus-core/Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#builtinKind" class="link"
+	    >Source</a
+	    > <a href="#v:builtinKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the kind of a builtin</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genKindAndType" class="def"
+	    >genKindAndType</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genKindAndType" class="link"
+	    >Source</a
+	    > <a href="#v:genKindAndType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate an arbitrary kind and closed type of that kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genKindAndTypeDebug" class="def"
+	    >genKindAndTypeDebug</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genKindAndTypeDebug" class="link"
+	    >Source</a
+	    > <a href="#v:genKindAndTypeDebug" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate an arbitrary kind and closed type of that kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normalizeTy" class="def"
+	    >normalizeTy</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#normalizeTy" class="link"
+	    >Source</a
+	    > <a href="#v:normalizeTy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Normalize a type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genCtx" class="def"
+	    >genCtx</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.GenerateTypes.html#genCtx" class="link"
+	    >Source</a
+	    > <a href="#v:genCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a context of free type variables with kinds</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

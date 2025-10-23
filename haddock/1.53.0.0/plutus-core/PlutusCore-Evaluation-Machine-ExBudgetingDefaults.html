@@ -1,0 +1,480 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.ExBudgetingDefaults</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:defaultBuiltinsRuntimeForSemanticsVariant"
+	      >defaultBuiltinsRuntimeForSemanticsVariant</a
+	      > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	      >HasMeaningIn</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > term &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinsRuntime</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > term</li
+	    ><li class="src short"
+	    ><a href="#v:defaultCekParametersForVariant"
+	      >defaultCekParametersForVariant</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > ann &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:defaultCostModelParamsForVariant"
+	      >defaultCostModelParamsForVariant</a
+	      > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	      >CostModelParams</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cekCostModelForVariant"
+	      >cekCostModelForVariant</a
+	      > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	      >BuiltinCostModel</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultBuiltinsRuntimeForTesting"
+	      >defaultBuiltinsRuntimeForTesting</a
+	      > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	      >HasMeaningIn</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > term &#8658; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinsRuntime</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > term</li
+	    ><li class="src short"
+	    ><a href="#v:defaultCekParametersForTesting"
+	      >defaultCekParametersForTesting</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > ann &#8658; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:defaultCekMachineCostsForTesting"
+	      >defaultCekMachineCostsForTesting</a
+	      > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultCostModelParamsForTesting"
+	      >defaultCostModelParamsForTesting</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	      >CostModelParams</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultBuiltinCostModelForTesting"
+	      >defaultBuiltinCostModelForTesting</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	      >BuiltinCostModel</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultCekCostModelForTesting"
+	      >defaultCekCostModelForTesting</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	      >BuiltinCostModel</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultCekCostModelForTestingB"
+	      >defaultCekCostModelForTestingB</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	      >BuiltinCostModel</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unitCekMachineCosts"
+	      >unitCekMachineCosts</a
+	      > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unitCekParameters"
+	      >unitCekParameters</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > ann &#8658; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultBuiltinsRuntimeForSemanticsVariant" class="def"
+	    >defaultBuiltinsRuntimeForSemanticsVariant</a
+	    > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	    >HasMeaningIn</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > term &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	    >BuiltinsRuntime</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > term <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultBuiltinsRuntimeForSemanticsVariant" class="link"
+	    >Source</a
+	    > <a href="#v:defaultBuiltinsRuntimeForSemanticsVariant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCekParametersForVariant" class="def"
+	    >defaultCekParametersForVariant</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > ann &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann) <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekParametersForVariant" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCekParametersForVariant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCostModelParamsForVariant" class="def"
+	    >defaultCostModelParamsForVariant</a
+	    > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	    >CostModelParams</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCostModelParamsForVariant" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCostModelParamsForVariant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cekCostModelForVariant" class="def"
+	    >cekCostModelForVariant</a
+	    > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	    >BuiltinCostModel</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#cekCostModelForVariant" class="link"
+	    >Source</a
+	    > <a href="#v:cekCostModelForVariant" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the <code
+	      ><a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		>CostModel</a
+		></code
+	      > corresponding to the given semantics variant. The dependency on the
+ semantics variant is what makes cost models configurable.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultBuiltinsRuntimeForTesting" class="def"
+	    >defaultBuiltinsRuntimeForTesting</a
+	    > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	    >HasMeaningIn</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > term &#8658; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	    >BuiltinsRuntime</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > term <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultBuiltinsRuntimeForTesting" class="link"
+	    >Source</a
+	    > <a href="#v:defaultBuiltinsRuntimeForTesting" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCekParametersForTesting" class="def"
+	    >defaultCekParametersForTesting</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > ann &#8658; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann) <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekParametersForTesting" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCekParametersForTesting" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCekMachineCostsForTesting" class="def"
+	    >defaultCekMachineCostsForTesting</a
+	    > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekMachineCostsForTesting" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCekMachineCostsForTesting" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCostModelParamsForTesting" class="def"
+	    >defaultCostModelParamsForTesting</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	    >CostModelParams</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCostModelParamsForTesting" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCostModelParamsForTesting" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultBuiltinCostModelForTesting" class="def"
+	    >defaultBuiltinCostModelForTesting</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	    >BuiltinCostModel</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultBuiltinCostModelForTesting" class="link"
+	    >Source</a
+	    > <a href="#v:defaultBuiltinCostModelForTesting" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCekCostModelForTesting" class="def"
+	    >defaultCekCostModelForTesting</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	    >BuiltinCostModel</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekCostModelForTesting" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCekCostModelForTesting" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCekCostModelForTestingB" class="def"
+	    >defaultCekCostModelForTestingB</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	    >BuiltinCostModel</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekCostModelForTestingB" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCekCostModelForTestingB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unitCekMachineCosts" class="def"
+	    >unitCekMachineCosts</a
+	    > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#unitCekMachineCosts" class="link"
+	    >Source</a
+	    > <a href="#v:unitCekMachineCosts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unitCekParameters" class="def"
+	    >unitCekParameters</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > ann &#8658; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann) <a href="src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#unitCekParameters" class="link"
+	    >Source</a
+	    > <a href="#v:unitCekParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.IO.Primitive.Core where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.IO qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   18 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   19 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   20 </span>                    word64ToNat)
+<span class="lineno">   21 </span>import MAlonzo.RTE qualified
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- IO.Primitive.Core.pure
+<span class="lineno">   24 </span>d_pure_12 ::
+<span class="lineno">   25 </span>  forall xA'46'a.
+<span class="lineno">   26 </span>    forall xA.
+<span class="lineno">   27 </span>      MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   28 </span>      () -&gt; xA -&gt; MAlonzo.Code.Agda.Builtin.IO.T_IO_8 xA'46'a xA
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">d_pure_12 = \_ _ -&gt; return</span></span>
+<span class="lineno">   30 </span>-- IO.Primitive.Core._&gt;&gt;=_
+<span class="lineno">   31 </span>d__'62''62''61'__14 ::
+<span class="lineno">   32 </span>  forall xA'46'a.
+<span class="lineno">   33 </span>    forall xA.
+<span class="lineno">   34 </span>      forall xB'46'a.
+<span class="lineno">   35 </span>        forall xB.
+<span class="lineno">   36 </span>          MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   37 </span>          () -&gt;
+<span class="lineno">   38 </span>          MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   39 </span>          () -&gt;
+<span class="lineno">   40 </span>          MAlonzo.Code.Agda.Builtin.IO.T_IO_8 xA'46'a xA -&gt;
+<span class="lineno">   41 </span>          (xA -&gt; MAlonzo.Code.Agda.Builtin.IO.T_IO_8 xB'46'a xB) -&gt;
+<span class="lineno">   42 </span>          MAlonzo.Code.Agda.Builtin.IO.T_IO_8 xB'46'a xB
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">d__'62''62''61'__14 = \_ _ _ _ -&gt; (&gt;&gt;=)</span></span>
+<span class="lineno">   44 </span>-- IO.Primitive.Core.return
+<span class="lineno">   45 </span>d_return_16 ::
+<span class="lineno">   46 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   47 </span>  () -&gt;
+<span class="lineno">   48 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">d_return_16 v0 ~v1 = du_return_16 v0</span></span>
+<span class="lineno">   50 </span>du_return_16 ::
+<span class="lineno">   51 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   52 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">du_return_16 v0 = coe d_pure_12 <span class="nottickedoff">v0</span> <span class="nottickedoff">erased</span></span></span>
+<span class="lineno">   54 </span>-- IO.Primitive.Core._&gt;&gt;_
+<span class="lineno">   55 </span>d__'62''62'__18 ::
+<span class="lineno">   56 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   57 </span>  () -&gt;
+<span class="lineno">   58 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   59 </span>  () -&gt;
+<span class="lineno">   60 </span>  MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny -&gt;
+<span class="lineno">   61 </span>  MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny -&gt;
+<span class="lineno">   62 </span>  MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">d__'62''62'__18 v0 ~v1 v2 ~v3 v4 v5 = du__'62''62'__18 v0 v2 v4 v5</span></span>
+<span class="lineno">   64 </span>du__'62''62'__18 ::
+<span class="lineno">   65 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   66 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   67 </span>  MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny -&gt;
+<span class="lineno">   68 </span>  MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny -&gt;
+<span class="lineno">   69 </span>  MAlonzo.Code.Agda.Builtin.IO.T_IO_8 AgdaAny AgdaAny
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">du__'62''62'__18 v0 v1 v2 v3</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">= coe d__'62''62''61'__14 v0 erased v1 erased v2 (\ v4 -&gt; v3)</span></span>
+
+</pre>
+</body>
+</html>

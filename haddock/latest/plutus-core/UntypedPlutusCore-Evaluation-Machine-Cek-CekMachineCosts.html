@@ -1,0 +1,1453 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:CekMachineCosts"
+	      >CekMachineCosts</a
+	      > = <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCostsBase</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	      >Identity</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CekMachineCostsBase"
+	      >CekMachineCostsBase</a
+	      > f = <a href="#v:CekMachineCostsBase"
+	      >CekMachineCostsBase</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:cekStartupCost"
+		  >cekStartupCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekVarCost"
+		  >cekVarCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekConstCost"
+		  >cekConstCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekLamCost"
+		  >cekLamCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekDelayCost"
+		  >cekDelayCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekForceCost"
+		  >cekForceCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekApplyCost"
+		  >cekApplyCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekBuiltinCost"
+		  >cekBuiltinCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekConstrCost"
+		  >cekConstrCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:cekCaseCost"
+		  >cekCaseCost</a
+		  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:cekMachineCostsPrefix"
+	      >cekMachineCostsPrefix</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unitCekMachineCosts"
+	      >unitCekMachineCosts</a
+	      > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:CekMachineCosts" class="def"
+	    >CekMachineCosts</a
+	    > = <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCostsBase</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	    >Identity</a
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts" class="link"
+	    >Source</a
+	    > <a href="#t:CekMachineCosts" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CekMachineCostsBase" class="def"
+	    >CekMachineCostsBase</a
+	    > f <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase" class="link"
+	    >Source</a
+	    > <a href="#t:CekMachineCostsBase" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CekMachineCostsBase" class="def"
+		  >CekMachineCostsBase</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:cekStartupCost" class="def"
+			  >cekStartupCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekVarCost" class="def"
+			  >cekVarCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekConstCost" class="def"
+			  >cekConstCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekLamCost" class="def"
+			  >cekLamCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekDelayCost" class="def"
+			  >cekDelayCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekForceCost" class="def"
+			  >cekForceCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekApplyCost" class="def"
+			  >cekApplyCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekBuiltinCost" class="def"
+			  >cekBuiltinCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Just the cost of evaluating a Builtin node, not the builtin itself.
+ There's no entry for Error since we'll be exiting anyway; also, what would
+ happen if calling <code
+			    >Error</code
+			    > caused the budget to be exceeded?</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekConstrCost" class="def"
+			  >cekConstrCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cekCaseCost" class="def"
+			  >cekCaseCost</a
+			  > &#8759; f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CekMachineCostsBase"
+	    >Instances</h4
+	    ><details id="i:CekMachineCostsBase" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:ConstraintsB:1"
+		      ></span
+		      > ConstraintsB <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:ConstraintsB:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > AllB c <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:baddDicts"
+			  >baddDicts</a
+			  > &#8759; &#8704; (c &#8759; k &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+			  >Constraint</a
+			  >) (f &#8759; k &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). AllB c <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Product.html#t:Product" title="Data.Functor.Product"
+			  >Product</a
+			  > (Dict c) f)</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:FunctorB:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:FunctorB" title="Hedgehog"
+		      >FunctorB</a
+		      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:FunctorB:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bmap"
+			  >bmap</a
+			  > &#8759; (&#8704; (a &#8759; k). f a &#8594; g a) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > g <a href="#v:bmap" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:TraversableB:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TraversableB" title="Hedgehog"
+		      >TraversableB</a
+		      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:TraversableB:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:btraverse"
+			  >btraverse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+			  >Applicative</a
+			  > e &#8658; (&#8704; (a &#8759; k). f a &#8594; e (g a)) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; e (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > g) <a href="#v:btraverse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:Lift:4"
+		      ></span
+		      > AllBF (<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) f <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:Lift:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f) <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:FromJSON:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+		      >Identity</a
+		      >)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:FromJSON:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  >)</p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  >)</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:ToJSON:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+		      >Identity</a
+		      >)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:ToJSON:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:ToJSON:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      >)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:ToJSON:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:Generic:8"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > f)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:Generic:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f) x &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:Show:9"
+		      ></span
+		      > AllBF <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > f <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > f)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:Show:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:NFData:10"
+		      ></span
+		      > AllBF <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > f <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > &#8658; <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > f)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:NFData:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:Eq:11"
+		      ></span
+		      > AllBF <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > f <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > f)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:Eq:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:NoThunks:12"
+		      ></span
+		      > AllBF <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > f <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > &#8658; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > f)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-70" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:NoThunks:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			  >CekMachineCostsBase</a
+			  > f) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:AllB:13"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > AllB (c &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:AllB:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> AllB (c &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+			>Constraint</a
+			>) <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			>CekMachineCostsBase</a
+			> = GAll 0 c (GAllRepB <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			>CekMachineCostsBase</a
+			>)</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CekMachineCostsBase:Rep:14"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+		      >CekMachineCostsBase</a
+		      > f)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:CekMachineCostsBase" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CekMachineCostsBase:Rep:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+			>CekMachineCostsBase</a
+			> f) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;CekMachineCostsBase&quot; &quot;UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts&quot; &quot;plutus-core-1.53.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;CekMachineCostsBase&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekStartupCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekVarCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekConstCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekLamCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekDelayCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>))))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekForceCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekApplyCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekBuiltinCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekConstrCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;cekCaseCost&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (f <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)))))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cekMachineCostsPrefix" class="def"
+	    >cekMachineCostsPrefix</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekMachineCostsPrefix" class="link"
+	    >Source</a
+	    > <a href="#v:cekMachineCostsPrefix" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The prefix of the field names in the CekMachineCosts type, used for
+ extracting the CekMachineCosts component of the ledger's cost model
+ parameters. See Note [Cost model parameters] in CostModelInterface.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unitCekMachineCosts" class="def"
+	    >unitCekMachineCosts</a
+	    > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#unitCekMachineCosts" class="link"
+	    >Source</a
+	    > <a href="#v:unitCekMachineCosts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

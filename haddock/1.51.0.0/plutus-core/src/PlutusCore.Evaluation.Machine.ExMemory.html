@@ -1,0 +1,2787 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.ExMemory</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html#dividedBy"
+	><span class="hs-identifier"
+	  >dividedBy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.html"
+	><span class="hs-identifier"
+	  >Codec.Serialise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	><span class="hs-identifier"
+	  >Serialise</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html"
+	><span class="hs-identifier"
+	  >Data.SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Semigroup.html"
+	><span class="hs-identifier"
+	  >Data.Semigroup</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.Pretty.html"
+	><span class="hs-identifier"
+	  >Text.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.html"
+	><span class="hs-identifier"
+	  >Text.PrettyBy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Memory Usage for Plutus]
+
+The base unit is 'ExMemory', which corresponds to machine words. For primitives,
+we use static values for the size, see the corresponding instances. For
+composite data types, the Generic instance is used, + 1 for the constructor tag.
+For ADTs, the currently selected branch is counted, not the maximum value.
+Memory usage of the annotation is not counted, because this should be
+abstractly specifiable. It's an implementation detail.
+
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Integer types for costing]
+We care about the speed of our integer operations for costing, this has a significant effect on speed.
+But we also need to care about overflow: the cost counters overflowing is a potential attack!
+
+We have a few choices here for what to do with an overflow:
+- Don't (this is what 'Integer' does, it's unbounded)
+- Wrap (this is what 'Int'/'Int64' and friends do)
+- Throw an overflow error (this is what 'Data.SafeInt' does)
+- Saturate (i.e. return max/min bound, this is what 'Data.SatInt does)
+
+In our case
+- Not overflowing would be nice, but 'Integer' is significantly slower than the other types.
+- Wrapping is quite dangerous, as it could lead to us getting attacked by someone wrapping
+their cost around to something that looks below the budget.
+- Throwing would be okay, but we'd have to worry about exception catching.
+- Saturating is actually quite nice: we care about whether `a op b &lt; budget`. So long as `budget &lt; maxBound`,
+  then `a op b &lt; budget` will have the same truth value *regardless* of whether the operation overflows and saturates,
+  since saturating implies `a op b &gt;= maxBound &gt; budget`. Plus, it means we don't need to deal with
+  exceptions.
+
+So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithmetic.
+
+'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know
+why that would be, apart from maybe just the overflow checks), but the wrapping behaviour
+of 'Int64' is unacceptable.
+
+One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
+with platform-dependent size), rather than an 'Int64' since the primops that we
+need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
+would have much less headroom.
+
+However, we don't build on 32bit platforms anyway, so we can ignore that.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Integer types for costing]</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- See also Note [Budgeting units] in ExBudget.hs</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CostingInteger"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	  ><span class="hs-identifier hs-var"
+	    >CostingInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Counts size in machine words.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="ExMemory"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	  ><span class="hs-identifier hs-var"
+	    >ExMemory</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ExMemory"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	  ><span class="hs-identifier hs-var"
+	    >ExMemory</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681819622"
+      ><span id="local-6989586621681819626"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ExMemory -&gt; ExMemory -&gt; Bool
+(ExMemory -&gt; ExMemory -&gt; Bool)
+-&gt; (ExMemory -&gt; ExMemory -&gt; Bool) -&gt; Eq ExMemory
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ExMemory -&gt; ExMemory -&gt; Bool
+== :: ExMemory -&gt; ExMemory -&gt; Bool
+$c/= :: ExMemory -&gt; ExMemory -&gt; Bool
+/= :: ExMemory -&gt; ExMemory -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819633"
+      ><span id="local-6989586621681819637"
+	><span id="local-6989586621681819640"
+	  ><span id="local-6989586621681819644"
+	    ><span id="local-6989586621681819647"
+	      ><span id="local-6989586621681819650"
+		><span id="local-6989586621681819653"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq ExMemory
+Eq ExMemory =&gt;
+(ExMemory -&gt; ExMemory -&gt; Ordering)
+-&gt; (ExMemory -&gt; ExMemory -&gt; Bool)
+-&gt; (ExMemory -&gt; ExMemory -&gt; Bool)
+-&gt; (ExMemory -&gt; ExMemory -&gt; Bool)
+-&gt; (ExMemory -&gt; ExMemory -&gt; Bool)
+-&gt; (ExMemory -&gt; ExMemory -&gt; ExMemory)
+-&gt; (ExMemory -&gt; ExMemory -&gt; ExMemory)
+-&gt; Ord ExMemory
+ExMemory -&gt; ExMemory -&gt; Bool
+ExMemory -&gt; ExMemory -&gt; Ordering
+ExMemory -&gt; ExMemory -&gt; ExMemory
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: ExMemory -&gt; ExMemory -&gt; Ordering
+compare :: ExMemory -&gt; ExMemory -&gt; Ordering
+$c&lt; :: ExMemory -&gt; ExMemory -&gt; Bool
+&lt; :: ExMemory -&gt; ExMemory -&gt; Bool
+$c&lt;= :: ExMemory -&gt; ExMemory -&gt; Bool
+&lt;= :: ExMemory -&gt; ExMemory -&gt; Bool
+$c&gt; :: ExMemory -&gt; ExMemory -&gt; Bool
+&gt; :: ExMemory -&gt; ExMemory -&gt; Bool
+$c&gt;= :: ExMemory -&gt; ExMemory -&gt; Bool
+&gt;= :: ExMemory -&gt; ExMemory -&gt; Bool
+$cmax :: ExMemory -&gt; ExMemory -&gt; ExMemory
+max :: ExMemory -&gt; ExMemory -&gt; ExMemory
+$cmin :: ExMemory -&gt; ExMemory -&gt; ExMemory
+min :: ExMemory -&gt; ExMemory -&gt; ExMemory
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819657"
+      ><span id="local-6989586621681819663"
+	><span id="local-6989586621681819667"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ExMemory -&gt; ShowS
+[ExMemory] -&gt; ShowS
+ExMemory -&gt; String
+(Int -&gt; ExMemory -&gt; ShowS)
+-&gt; (ExMemory -&gt; String) -&gt; ([ExMemory] -&gt; ShowS) -&gt; Show ExMemory
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ExMemory -&gt; ShowS
+showsPrec :: Int -&gt; ExMemory -&gt; ShowS
+$cshow :: ExMemory -&gt; String
+show :: ExMemory -&gt; String
+$cshowList :: [ExMemory] -&gt; ShowS
+showList :: [ExMemory] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819671"
+      ><span id="local-6989586621681819673"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. ExMemory -&gt; Rep ExMemory x)
+-&gt; (forall x. Rep ExMemory x -&gt; ExMemory) -&gt; Generic ExMemory
+forall x. Rep ExMemory x -&gt; ExMemory
+forall x. ExMemory -&gt; Rep ExMemory x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ExMemory -&gt; Rep ExMemory x
+from :: forall x. ExMemory -&gt; Rep ExMemory x
+$cto :: forall x. Rep ExMemory x -&gt; ExMemory
+to :: forall x. Rep ExMemory x -&gt; ExMemory
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819677"
+      ><span id="local-6989586621681819684"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; Code m ExMemory)
+-&gt; Lift ExMemory
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; Code m ExMemory
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; Code m ExMemory
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; ExMemory -&gt; Code m ExMemory
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681819692"
+      ><span id="local-6989586621681819697"
+	><span id="local-6989586621681819701"
+	  ><span id="local-6989586621681819705"
+	    ><span id="local-6989586621681819709"
+	      ><span id="local-6989586621681819713"
+		><span id="local-6989586621681819717"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Integer -&gt; ExMemory
+ExMemory -&gt; ExMemory
+ExMemory -&gt; ExMemory -&gt; ExMemory
+(ExMemory -&gt; ExMemory -&gt; ExMemory)
+-&gt; (ExMemory -&gt; ExMemory -&gt; ExMemory)
+-&gt; (ExMemory -&gt; ExMemory -&gt; ExMemory)
+-&gt; (ExMemory -&gt; ExMemory)
+-&gt; (ExMemory -&gt; ExMemory)
+-&gt; (ExMemory -&gt; ExMemory)
+-&gt; (Integer -&gt; ExMemory)
+-&gt; Num ExMemory
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; Num a
+$c+ :: ExMemory -&gt; ExMemory -&gt; ExMemory
++ :: ExMemory -&gt; ExMemory -&gt; ExMemory
+$c- :: ExMemory -&gt; ExMemory -&gt; ExMemory
+- :: ExMemory -&gt; ExMemory -&gt; ExMemory
+$c* :: ExMemory -&gt; ExMemory -&gt; ExMemory
+* :: ExMemory -&gt; ExMemory -&gt; ExMemory
+$cnegate :: ExMemory -&gt; ExMemory
+negate :: ExMemory -&gt; ExMemory
+$cabs :: ExMemory -&gt; ExMemory
+abs :: ExMemory -&gt; ExMemory
+$csignum :: ExMemory -&gt; ExMemory
+signum :: ExMemory -&gt; ExMemory
+$cfromInteger :: Integer -&gt; ExMemory
+fromInteger :: Integer -&gt; ExMemory
+</span
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Num</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819723"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExMemory -&gt; ()
+(ExMemory -&gt; ()) -&gt; NFData ExMemory
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: ExMemory -&gt; ()
+rnf :: ExMemory -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819730"
+      ><span id="local-6989586621681819735"
+	><span id="local-6989586621681819739"
+	  ><span id="local-6989586621681819743"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>ReadPrec [ExMemory]
+ReadPrec ExMemory
+Int -&gt; ReadS ExMemory
+ReadS [ExMemory]
+(Int -&gt; ReadS ExMemory)
+-&gt; ReadS [ExMemory]
+-&gt; ReadPrec ExMemory
+-&gt; ReadPrec [ExMemory]
+-&gt; Read ExMemory
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS ExMemory
+readsPrec :: Int -&gt; ReadS ExMemory
+$creadList :: ReadS [ExMemory]
+readList :: ReadS [ExMemory]
+$creadPrec :: ReadPrec ExMemory
+readPrec :: ReadPrec ExMemory
+$creadListPrec :: ReadPrec [ExMemory]
+readListPrec :: ReadPrec [ExMemory]
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Read.html#Read"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Read</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819749"
+      ><span id="local-6989586621681819754"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ExMemory
+ExMemory -&gt; ExMemory -&gt; Bounded ExMemory
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: ExMemory
+minBound :: ExMemory
+$cmaxBound :: ExMemory
+maxBound :: ExMemory
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681819760"
+      ><span id="local-6989586621681819765"
+	><span id="local-6989586621681819769"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Maybe ExMemory
+Value -&gt; Parser [ExMemory]
+Value -&gt; Parser ExMemory
+(Value -&gt; Parser ExMemory)
+-&gt; (Value -&gt; Parser [ExMemory])
+-&gt; Maybe ExMemory
+-&gt; FromJSON ExMemory
+forall a.
+(Value -&gt; Parser a)
+-&gt; (Value -&gt; Parser [a]) -&gt; Maybe a -&gt; FromJSON a
+$cparseJSON :: Value -&gt; Parser ExMemory
+parseJSON :: Value -&gt; Parser ExMemory
+$cparseJSONList :: Value -&gt; Parser [ExMemory]
+parseJSONList :: Value -&gt; Parser [ExMemory]
+$comittedField :: Maybe ExMemory
+omittedField :: Maybe ExMemory
+</span
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >FromJSON</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819775"
+      ><span id="local-6989586621681819780"
+	><span id="local-6989586621681819784"
+	  ><span id="local-6989586621681819788"
+	    ><span id="local-6989586621681819792"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[ExMemory] -&gt; Encoding
+[ExMemory] -&gt; Value
+ExMemory -&gt; Bool
+ExMemory -&gt; Encoding
+ExMemory -&gt; Value
+(ExMemory -&gt; Value)
+-&gt; (ExMemory -&gt; Encoding)
+-&gt; ([ExMemory] -&gt; Value)
+-&gt; ([ExMemory] -&gt; Encoding)
+-&gt; (ExMemory -&gt; Bool)
+-&gt; ToJSON ExMemory
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: ExMemory -&gt; Value
+toJSON :: ExMemory -&gt; Value
+$ctoEncoding :: ExMemory -&gt; Encoding
+toEncoding :: ExMemory -&gt; Encoding
+$ctoJSONList :: [ExMemory] -&gt; Value
+toJSONList :: [ExMemory] -&gt; Value
+$ctoEncodingList :: [ExMemory] -&gt; Encoding
+toEncodingList :: [ExMemory] -&gt; Encoding
+$comitField :: ExMemory -&gt; Bool
+omitField :: ExMemory -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819798"
+      ><span id="local-6989586621681819803"
+	><span id="local-6989586621681819807"
+	  ><span id="local-6989586621681819811"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>[ExMemory] -&gt; Encoding
+ExMemory -&gt; Encoding
+(ExMemory -&gt; Encoding)
+-&gt; (forall s. Decoder s ExMemory)
+-&gt; ([ExMemory] -&gt; Encoding)
+-&gt; (forall s. Decoder s [ExMemory])
+-&gt; Serialise ExMemory
+forall s. Decoder s [ExMemory]
+forall s. Decoder s ExMemory
+forall a.
+(a -&gt; Encoding)
+-&gt; (forall s. Decoder s a)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (forall s. Decoder s [a])
+-&gt; Serialise a
+$cencode :: ExMemory -&gt; Encoding
+encode :: ExMemory -&gt; Encoding
+$cdecode :: forall s. Decoder s ExMemory
+decode :: forall s. Decoder s ExMemory
+$cencodeList :: [ExMemory] -&gt; Encoding
+encodeList :: [ExMemory] -&gt; Encoding
+$cdecodeList :: forall s. Decoder s [ExMemory]
+decodeList :: forall s. Decoder s [ExMemory]
+</span
+		><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Serialise</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681819817"
+      ><span id="local-6989586621681819821"
+	><span id="local-6989586621681819827"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Context -&gt; ExMemory -&gt; IO (Maybe ThunkInfo)
+Proxy ExMemory -&gt; String
+(Context -&gt; ExMemory -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; ExMemory -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy ExMemory -&gt; String)
+-&gt; NoThunks ExMemory
+forall a.
+(Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy a -&gt; String)
+-&gt; NoThunks a
+$cnoThunks :: Context -&gt; ExMemory -&gt; IO (Maybe ThunkInfo)
+noThunks :: Context -&gt; ExMemory -&gt; IO (Maybe ThunkInfo)
+$cwNoThunks :: Context -&gt; ExMemory -&gt; IO (Maybe ThunkInfo)
+wNoThunks :: Context -&gt; ExMemory -&gt; IO (Maybe ThunkInfo)
+$cshowTypeOf :: Proxy ExMemory -&gt; String
+showTypeOf :: Proxy ExMemory -&gt; String
+</span
+	      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>NoThunks</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819852"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	  ><span class="hs-identifier hs-type"
+	    >ExMemory</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681819858"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. ExMemory -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681819858"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier hs-type"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681819860"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681819860"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Doc ann
+forall ann. Int -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unSatInt"
+	><span class="hs-identifier hs-var"
+	  >unSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681819860"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819600"
+      ><span id="local-6989586621681819864"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyBy</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681819600"
+	    ><span class="hs-identifier hs-type"
+	      >config</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	    ><span class="hs-identifier hs-type"
+	      >ExMemory</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681819869"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann. config -&gt; ExMemory -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681819869"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681819871"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExMemory
+</span
+	  ><a href="#local-6989586621681819871"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. ExMemory -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory
+</span
+	><a href="#local-6989586621681819871"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Manual Semigroup and Monoid instances for Sum monoids]
+We don't do
+
+    deriving via Sum A Semigroup A
+    deriving via Sum A Monoid A
+
+because the 'Semigroup' and 'Monoid' instances for 'Sum' don't have @INLINE@ pragmas resulting in
+'&lt;&gt;' and 'mempty' appearing in the generated Core.
+
+So instead we implement @Semigroup A@ and @Monoid A@ instances manually for a 'Sum'-like @A@.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Manual Semigroup and Monoid instances for Sum monoids].</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819874"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	  ><span class="hs-identifier hs-type"
+	    >Semigroup</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	  ><span class="hs-identifier hs-type"
+	    >ExMemory</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681819880"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: ExMemory -&gt; ExMemory -&gt; ExMemory
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory -&gt; ExMemory -&gt; ExMemory
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >(+)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681819886"
+      ><span class="annot"
+	><span class="annottext"
+	  >stimes :: forall b. Integral b =&gt; b -&gt; ExMemory -&gt; ExMemory
+</span
+	  ><a href="#local-6989586621681819886"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >stimes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681819888"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621681819888"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681819889"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExMemory
+</span
+	  ><a href="#local-6989586621681819889"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; ExMemory
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621681819888"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory -&gt; ExMemory -&gt; ExMemory
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2A"
+	><span class="hs-operator hs-var"
+	  >*</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory
+</span
+	><a href="#local-6989586621681819889"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#stimes"
+	><span class="hs-pragma hs-type"
+	  >stimes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Manual Semigroup and Monoid instances for Sum monoids].</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819895"
+      ><span id="local-6989586621681819899"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	    ><span class="hs-identifier hs-type"
+	      >Monoid</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	    ><span class="hs-identifier hs-type"
+	      >ExMemory</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681819903"
+      ><span class="annot"
+	><span class="annottext"
+	  >mempty :: ExMemory
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >mempty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; ExMemory
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier hs-var"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-pragma hs-type"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-comment"
+      >-- | Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="hs-comment"
+      >-- appproximately 106 days.</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="ExCPU"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	  ><span class="hs-identifier hs-var"
+	    >ExCPU</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ExCPU"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	  ><span class="hs-identifier hs-var"
+	    >ExCPU</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681819906"
+      ><span id="local-6989586621681819909"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ExCPU -&gt; ExCPU -&gt; Bool
+(ExCPU -&gt; ExCPU -&gt; Bool) -&gt; (ExCPU -&gt; ExCPU -&gt; Bool) -&gt; Eq ExCPU
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ExCPU -&gt; ExCPU -&gt; Bool
+== :: ExCPU -&gt; ExCPU -&gt; Bool
+$c/= :: ExCPU -&gt; ExCPU -&gt; Bool
+/= :: ExCPU -&gt; ExCPU -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819915"
+      ><span id="local-6989586621681819918"
+	><span id="local-6989586621681819921"
+	  ><span id="local-6989586621681819925"
+	    ><span id="local-6989586621681819928"
+	      ><span id="local-6989586621681819931"
+		><span id="local-6989586621681819934"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq ExCPU
+Eq ExCPU =&gt;
+(ExCPU -&gt; ExCPU -&gt; Ordering)
+-&gt; (ExCPU -&gt; ExCPU -&gt; Bool)
+-&gt; (ExCPU -&gt; ExCPU -&gt; Bool)
+-&gt; (ExCPU -&gt; ExCPU -&gt; Bool)
+-&gt; (ExCPU -&gt; ExCPU -&gt; Bool)
+-&gt; (ExCPU -&gt; ExCPU -&gt; ExCPU)
+-&gt; (ExCPU -&gt; ExCPU -&gt; ExCPU)
+-&gt; Ord ExCPU
+ExCPU -&gt; ExCPU -&gt; Bool
+ExCPU -&gt; ExCPU -&gt; Ordering
+ExCPU -&gt; ExCPU -&gt; ExCPU
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: ExCPU -&gt; ExCPU -&gt; Ordering
+compare :: ExCPU -&gt; ExCPU -&gt; Ordering
+$c&lt; :: ExCPU -&gt; ExCPU -&gt; Bool
+&lt; :: ExCPU -&gt; ExCPU -&gt; Bool
+$c&lt;= :: ExCPU -&gt; ExCPU -&gt; Bool
+&lt;= :: ExCPU -&gt; ExCPU -&gt; Bool
+$c&gt; :: ExCPU -&gt; ExCPU -&gt; Bool
+&gt; :: ExCPU -&gt; ExCPU -&gt; Bool
+$c&gt;= :: ExCPU -&gt; ExCPU -&gt; Bool
+&gt;= :: ExCPU -&gt; ExCPU -&gt; Bool
+$cmax :: ExCPU -&gt; ExCPU -&gt; ExCPU
+max :: ExCPU -&gt; ExCPU -&gt; ExCPU
+$cmin :: ExCPU -&gt; ExCPU -&gt; ExCPU
+min :: ExCPU -&gt; ExCPU -&gt; ExCPU
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819937"
+      ><span id="local-6989586621681819941"
+	><span id="local-6989586621681819945"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ExCPU -&gt; ShowS
+[ExCPU] -&gt; ShowS
+ExCPU -&gt; String
+(Int -&gt; ExCPU -&gt; ShowS)
+-&gt; (ExCPU -&gt; String) -&gt; ([ExCPU] -&gt; ShowS) -&gt; Show ExCPU
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ExCPU -&gt; ShowS
+showsPrec :: Int -&gt; ExCPU -&gt; ShowS
+$cshow :: ExCPU -&gt; String
+show :: ExCPU -&gt; String
+$cshowList :: [ExCPU] -&gt; ShowS
+showList :: [ExCPU] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819948"
+      ><span id="local-6989586621681819950"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. ExCPU -&gt; Rep ExCPU x)
+-&gt; (forall x. Rep ExCPU x -&gt; ExCPU) -&gt; Generic ExCPU
+forall x. Rep ExCPU x -&gt; ExCPU
+forall x. ExCPU -&gt; Rep ExCPU x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ExCPU -&gt; Rep ExCPU x
+from :: forall x. ExCPU -&gt; Rep ExCPU x
+$cto :: forall x. Rep ExCPU x -&gt; ExCPU
+to :: forall x. Rep ExCPU x -&gt; ExCPU
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819953"
+      ><span id="local-6989586621681819959"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; Code m ExCPU)
+-&gt; Lift ExCPU
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; Code m ExCPU
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; Code m ExCPU
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; ExCPU -&gt; Code m ExCPU
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681819966"
+      ><span id="local-6989586621681819970"
+	><span id="local-6989586621681819974"
+	  ><span id="local-6989586621681819978"
+	    ><span id="local-6989586621681819982"
+	      ><span id="local-6989586621681819986"
+		><span id="local-6989586621681819990"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Integer -&gt; ExCPU
+ExCPU -&gt; ExCPU
+ExCPU -&gt; ExCPU -&gt; ExCPU
+(ExCPU -&gt; ExCPU -&gt; ExCPU)
+-&gt; (ExCPU -&gt; ExCPU -&gt; ExCPU)
+-&gt; (ExCPU -&gt; ExCPU -&gt; ExCPU)
+-&gt; (ExCPU -&gt; ExCPU)
+-&gt; (ExCPU -&gt; ExCPU)
+-&gt; (ExCPU -&gt; ExCPU)
+-&gt; (Integer -&gt; ExCPU)
+-&gt; Num ExCPU
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; Num a
+$c+ :: ExCPU -&gt; ExCPU -&gt; ExCPU
++ :: ExCPU -&gt; ExCPU -&gt; ExCPU
+$c- :: ExCPU -&gt; ExCPU -&gt; ExCPU
+- :: ExCPU -&gt; ExCPU -&gt; ExCPU
+$c* :: ExCPU -&gt; ExCPU -&gt; ExCPU
+* :: ExCPU -&gt; ExCPU -&gt; ExCPU
+$cnegate :: ExCPU -&gt; ExCPU
+negate :: ExCPU -&gt; ExCPU
+$cabs :: ExCPU -&gt; ExCPU
+abs :: ExCPU -&gt; ExCPU
+$csignum :: ExCPU -&gt; ExCPU
+signum :: ExCPU -&gt; ExCPU
+$cfromInteger :: Integer -&gt; ExCPU
+fromInteger :: Integer -&gt; ExCPU
+</span
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Num</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819995"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExCPU -&gt; ()
+(ExCPU -&gt; ()) -&gt; NFData ExCPU
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: ExCPU -&gt; ()
+rnf :: ExCPU -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681820000"
+      ><span id="local-6989586621681820004"
+	><span id="local-6989586621681820008"
+	  ><span id="local-6989586621681820012"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>ReadPrec [ExCPU]
+ReadPrec ExCPU
+Int -&gt; ReadS ExCPU
+ReadS [ExCPU]
+(Int -&gt; ReadS ExCPU)
+-&gt; ReadS [ExCPU]
+-&gt; ReadPrec ExCPU
+-&gt; ReadPrec [ExCPU]
+-&gt; Read ExCPU
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS ExCPU
+readsPrec :: Int -&gt; ReadS ExCPU
+$creadList :: ReadS [ExCPU]
+readList :: ReadS [ExCPU]
+$creadPrec :: ReadPrec ExCPU
+readPrec :: ReadPrec ExCPU
+$creadListPrec :: ReadPrec [ExCPU]
+readListPrec :: ReadPrec [ExCPU]
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Read.html#Read"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Read</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681820017"
+      ><span id="local-6989586621681820021"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ExCPU
+ExCPU -&gt; ExCPU -&gt; Bounded ExCPU
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: ExCPU
+minBound :: ExCPU
+$cmaxBound :: ExCPU
+maxBound :: ExCPU
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681820026"
+      ><span id="local-6989586621681820030"
+	><span id="local-6989586621681820034"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Maybe ExCPU
+Value -&gt; Parser [ExCPU]
+Value -&gt; Parser ExCPU
+(Value -&gt; Parser ExCPU)
+-&gt; (Value -&gt; Parser [ExCPU]) -&gt; Maybe ExCPU -&gt; FromJSON ExCPU
+forall a.
+(Value -&gt; Parser a)
+-&gt; (Value -&gt; Parser [a]) -&gt; Maybe a -&gt; FromJSON a
+$cparseJSON :: Value -&gt; Parser ExCPU
+parseJSON :: Value -&gt; Parser ExCPU
+$cparseJSONList :: Value -&gt; Parser [ExCPU]
+parseJSONList :: Value -&gt; Parser [ExCPU]
+$comittedField :: Maybe ExCPU
+omittedField :: Maybe ExCPU
+</span
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >FromJSON</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681820039"
+      ><span id="local-6989586621681820043"
+	><span id="local-6989586621681820047"
+	  ><span id="local-6989586621681820051"
+	    ><span id="local-6989586621681820055"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[ExCPU] -&gt; Encoding
+[ExCPU] -&gt; Value
+ExCPU -&gt; Bool
+ExCPU -&gt; Encoding
+ExCPU -&gt; Value
+(ExCPU -&gt; Value)
+-&gt; (ExCPU -&gt; Encoding)
+-&gt; ([ExCPU] -&gt; Value)
+-&gt; ([ExCPU] -&gt; Encoding)
+-&gt; (ExCPU -&gt; Bool)
+-&gt; ToJSON ExCPU
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: ExCPU -&gt; Value
+toJSON :: ExCPU -&gt; Value
+$ctoEncoding :: ExCPU -&gt; Encoding
+toEncoding :: ExCPU -&gt; Encoding
+$ctoJSONList :: [ExCPU] -&gt; Value
+toJSONList :: [ExCPU] -&gt; Value
+$ctoEncodingList :: [ExCPU] -&gt; Encoding
+toEncodingList :: [ExCPU] -&gt; Encoding
+$comitField :: ExCPU -&gt; Bool
+omitField :: ExCPU -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span id="local-6989586621681820060"
+      ><span id="local-6989586621681820064"
+	><span id="local-6989586621681820068"
+	  ><span id="local-6989586621681820072"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>[ExCPU] -&gt; Encoding
+ExCPU -&gt; Encoding
+(ExCPU -&gt; Encoding)
+-&gt; (forall s. Decoder s ExCPU)
+-&gt; ([ExCPU] -&gt; Encoding)
+-&gt; (forall s. Decoder s [ExCPU])
+-&gt; Serialise ExCPU
+forall s. Decoder s [ExCPU]
+forall s. Decoder s ExCPU
+forall a.
+(a -&gt; Encoding)
+-&gt; (forall s. Decoder s a)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (forall s. Decoder s [a])
+-&gt; Serialise a
+$cencode :: ExCPU -&gt; Encoding
+encode :: ExCPU -&gt; Encoding
+$cdecode :: forall s. Decoder s ExCPU
+decode :: forall s. Decoder s ExCPU
+$cencodeList :: [ExCPU] -&gt; Encoding
+encodeList :: [ExCPU] -&gt; Encoding
+$cdecodeList :: forall s. Decoder s [ExCPU]
+decodeList :: forall s. Decoder s [ExCPU]
+</span
+		><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Serialise</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681820077"
+      ><span id="local-6989586621681820081"
+	><span id="local-6989586621681820087"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Context -&gt; ExCPU -&gt; IO (Maybe ThunkInfo)
+Proxy ExCPU -&gt; String
+(Context -&gt; ExCPU -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; ExCPU -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy ExCPU -&gt; String)
+-&gt; NoThunks ExCPU
+forall a.
+(Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy a -&gt; String)
+-&gt; NoThunks a
+$cnoThunks :: Context -&gt; ExCPU -&gt; IO (Maybe ThunkInfo)
+noThunks :: Context -&gt; ExCPU -&gt; IO (Maybe ThunkInfo)
+$cwNoThunks :: Context -&gt; ExCPU -&gt; IO (Maybe ThunkInfo)
+wNoThunks :: Context -&gt; ExCPU -&gt; IO (Maybe ThunkInfo)
+$cshowTypeOf :: Proxy ExCPU -&gt; String
+showTypeOf :: Proxy ExCPU -&gt; String
+</span
+	      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>NoThunks</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681820103"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	  ><span class="hs-identifier hs-type"
+	    >ExCPU</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681820107"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. ExCPU -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier hs-type"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681820108"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681820108"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Doc ann
+forall ann. Int -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unSatInt"
+	><span class="hs-identifier hs-var"
+	  >unSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681820108"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681819615"
+      ><span id="local-6989586621681820111"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyBy</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681819615"
+	    ><span class="hs-identifier hs-type"
+	      >config</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	    ><span class="hs-identifier hs-type"
+	      >ExCPU</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681820115"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann. config -&gt; ExCPU -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681820116"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExCPU
+</span
+	  ><a href="#local-6989586621681820116"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. ExCPU -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU
+</span
+	><a href="#local-6989586621681820116"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Manual Semigroup and Monoid instances for Sum monoids].</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681820119"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	  ><span class="hs-identifier hs-type"
+	    >Semigroup</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	  ><span class="hs-identifier hs-type"
+	    >ExCPU</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681820124"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: ExCPU -&gt; ExCPU -&gt; ExCPU
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU -&gt; ExCPU -&gt; ExCPU
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >(+)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681820129"
+      ><span class="annot"
+	><span class="annottext"
+	  >stimes :: forall b. Integral b =&gt; b -&gt; ExCPU -&gt; ExCPU
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#stimes"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >stimes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681820130"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621681820130"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681820131"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExCPU
+</span
+	  ><a href="#local-6989586621681820131"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; ExCPU
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621681820130"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU -&gt; ExCPU -&gt; ExCPU
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2A"
+	><span class="hs-operator hs-var"
+	  >*</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU
+</span
+	><a href="#local-6989586621681820131"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#stimes"
+	><span class="hs-pragma hs-type"
+	  >stimes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Manual Semigroup and Monoid instances for Sum monoids].</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681820136"
+      ><span id="local-6989586621681820140"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	    ><span class="hs-identifier hs-type"
+	      >Monoid</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	    ><span class="hs-identifier hs-type"
+	      >ExCPU</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681820143"
+      ><span class="annot"
+	><span class="annottext"
+	  >mempty :: ExCPU
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >mempty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; ExCPU
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier hs-var"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-pragma hs-type"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

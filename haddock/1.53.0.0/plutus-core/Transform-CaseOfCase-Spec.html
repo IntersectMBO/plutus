@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Transform.CaseOfCase.Spec</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Transform.CaseOfCase.Spec.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Transform.CaseOfCase.Spec</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:test_caseOfCase"
+	      >test_caseOfCase</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:caseOfCase1"
+	      >caseOfCase1</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:caseOfCase2"
+	      >caseOfCase2</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:caseOfCase3"
+	      >caseOfCase3</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:caseOfCaseWithError"
+	      >caseOfCaseWithError</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:testCaseOfCaseWithError"
+	      >testCaseOfCaseWithError</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evalCaseOfCase"
+	      >evalCaseOfCase</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:evaluateUplc"
+	      >evaluateUplc</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	      >EvaluationResult</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:goldenVsSimplified"
+	      >goldenVsSimplified</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_caseOfCase" class="def"
+	    >test_caseOfCase</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Transform.CaseOfCase.Spec.html#test_caseOfCase" class="link"
+	    >Source</a
+	    > <a href="#v:test_caseOfCase" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCase1" class="def"
+	    >caseOfCase1</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.CaseOfCase.Spec.html#caseOfCase1" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCase1" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCase2" class="def"
+	    >caseOfCase2</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.CaseOfCase.Spec.html#caseOfCase2" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCase2" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This should not simplify, because one of the branches of <code
+	      >ifThenElse</code
+	      > is not a <code
+	      ><a href="../plutus-core/UntypedPlutusCore-Core-Type.html#v:Constr" title="UntypedPlutusCore.Core.Type"
+		>Constr</a
+		></code
+	      >.
+Unless both branches are known constructors, the case-of-case transformation
+may increase the program size.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCase3" class="def"
+	    >caseOfCase3</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.CaseOfCase.Spec.html#caseOfCase3" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCase3" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Similar to <code
+	      ><a href="Transform-CaseOfCase-Spec.html#v:caseOfCase1" title="Transform.CaseOfCase.Spec"
+		>caseOfCase1</a
+		></code
+	      >, but the type of the <code
+	      >true</code
+	      > and <code
+	      >false</code
+	      > branches is
+<code
+	      >[Integer]</code
+	      > rather than Bool (note that <code
+	      >Constr 0</code
+	      > has two parameters, <code
+	      >x</code
+	      > and <code
+	      >xs</code
+	      >).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCaseWithError" class="def"
+	    >caseOfCaseWithError</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.CaseOfCase.Spec.html#caseOfCaseWithError" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCaseWithError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >  case (force ifThenElse) True True False of
+    True -&gt; ()
+    False -&gt; _|_
+</pre
+	    ><p
+	    >Evaluates to <code
+	      >()</code
+	      > because the first case alternative is selected.
+(The _|_ is not evaluated because case alternatives are evaluated lazily).</p
+	    ><p
+	    >After the <code
+	      >CaseOfCase</code
+	      > transformation the program should evaluate to <code
+	      >()</code
+	      > as well.</p
+	    ><pre
+	    >  force ((force ifThenElse) True (delay ()) (delay _|_))
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testCaseOfCaseWithError" class="def"
+	    >testCaseOfCaseWithError</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Transform.CaseOfCase.Spec.html#testCaseOfCaseWithError" class="link"
+	    >Source</a
+	    > <a href="#v:testCaseOfCaseWithError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalCaseOfCase" class="def"
+	    >evalCaseOfCase</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.CaseOfCase.Spec.html#evalCaseOfCase" class="link"
+	    >Source</a
+	    > <a href="#v:evalCaseOfCase" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateUplc" class="def"
+	    >evaluateUplc</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	    >EvaluationResult</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/Transform.CaseOfCase.Spec.html#evaluateUplc" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateUplc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenVsSimplified" class="def"
+	    >goldenVsSimplified</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Transform.CaseOfCase.Spec.html#goldenVsSimplified" class="link"
+	    >Source</a
+	    > <a href="#v:goldenVsSimplified" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
