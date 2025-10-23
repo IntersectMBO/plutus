@@ -5,6 +5,9 @@ days:
   rooms:
     - name: G.03
       talks:
+        - name: Welcome to UPLC 2025
+          time_start: '9:20'
+          time_end: '9:30'
         - name: Fifty-three Years of Plutus
           time_start: '9:30'
           time_end: '10:30'
@@ -42,8 +45,8 @@ days:
     - name: 3.55
       talks:
         - name: Free Space
-          time_start: '9:30'
-          time_end: '17:20'
+          time_start: '11:00'
+          time_end: '16:00'
 
     - name: Common Area
       talks:
@@ -76,7 +79,7 @@ days:
           time_start: '16:30'
           time_end: '17:10'
 
-    - name: 2.55
+    - name: 1.35
       talks:
         - name: Compiling UPLC to RISC-V
           time_start: '14:40'
@@ -84,11 +87,16 @@ days:
         - name: Plutarch Workshop
           time_start: '15:50'
           time_end: '16:50'
+    - name: 2.55
+      talks:
+        - name: Free Space
+          time_start: '11:00'
+          time_end: '15:00'
     - name: 3.55
       talks:
         - name: Free Space
-          time_start: '9:30'
-          time_end: '17:10'
+          time_start: '13:00'
+          time_end: '16:00'
     - name: Common Area
       talks:
         - name: Registration & Coffee
@@ -114,8 +122,8 @@ days:
           time_start: '13:30'
           time_end: '14:10'
         - name: Unconference
-          time_start: '14:30'
-          time_end: '17:00'
+          time_start: '14:20'
+          time_end: '17:15'
     - name: 2.55
       talks:
         - name: A Layered Certifying Compiler Architecture
@@ -125,18 +133,15 @@ days:
           time_start: '13:30'
           time_end: '14:10'
         - name: Unconference
-          time_start: '14:30'
-          time_end: '17:00'
+          time_start: '14:20'
+          time_end: '17:15'
     - name: 3.55
       talks:
-        - name: Free Space
-          time_start: '9:30'
-          time_end: '17:00'
+        - name: Unconference
+          time_start: '11:00'
+          time_end: '17:15'
     - name: Common Area
       talks:
         - name: Registration & Coffee
           time_start: '9:00'
           time_end: '9:30'
-        - name: Unconference
-          time_start: '14:30'
-          time_end: '17:00'
