@@ -29,9 +29,9 @@ days:
 
     - name: 2.55
       talks:
-        - name: 'From Jai to UPLC: An Unlikely Toolchain'
-          time_start: '10:50'
-          time_end: '11:30'
+        - name: Free Space
+          time_start: '11:00'
+          time_end: '14:30'
         - name: UPLC-CAPE
           time_start: '14:40'
           time_end: '15:40'
@@ -44,8 +44,11 @@ days:
 
     - name: 3.55
       talks:
+        - name: 'From Jai to UPLC: An Unlikely Toolchain'
+          time_start: '10:50'
+          time_end: '11:30'
         - name: Free Space
-          time_start: '11:00'
+          time_start: '11:30'
           time_end: '16:00'
 
     - name: Common Area
@@ -81,6 +84,9 @@ days:
 
     - name: 1.35
       talks:
+        - name: Free Space
+          time_start: '11:00'
+          time_end: '14:30'
         - name: Compiling UPLC to RISC-V
           time_start: '14:40'
           time_end: '15:40'
@@ -126,6 +132,11 @@ days:
           time_end: '17:15'
     - name: 2.55
       talks:
+        - name: Unconference
+          time_start: '10:30'
+          time_end: '15:15'
+    - name: 3.55
+      talks:
         - name: A Layered Certifying Compiler Architecture
           time_start: '10:50'
           time_end: '11:30'
@@ -134,11 +145,6 @@ days:
           time_end: '14:10'
         - name: Unconference
           time_start: '14:20'
-          time_end: '17:15'
-    - name: 3.55
-      talks:
-        - name: Unconference
-          time_start: '11:00'
           time_end: '17:15'
     - name: Common Area
       talks:
