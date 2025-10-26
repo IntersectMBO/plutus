@@ -55,7 +55,7 @@ days:
       talks:
         - name: Registration & Coffee
           time_start: '9:00'
-          time_end: '9:30'
+          time_end: '9:20'
 
 - name: Oct 29
   abbr: Wed
