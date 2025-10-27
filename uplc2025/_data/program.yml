@@ -24,8 +24,8 @@ days:
           time_start: '15:20'
           time_end: '16:00'
         - name: 'Atomic Multi-Chain Ops: Consistent cross chain transaction execution'
-          time_start: '16:20'
-          time_end: '17:00'
+          time_start: '16:30'
+          time_end: '17:10'
 
     - name: 2.55
       talks:
