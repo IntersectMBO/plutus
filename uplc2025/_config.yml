@@ -82,10 +82,6 @@ conference:
       - name: Program
         relative_url: /program/
 
-  info_bars:
-    - text: The program is a work in progress. Check back regularly for updates.
-      color: warning
-
   talks:
     # Talk categories
     main_categories:
