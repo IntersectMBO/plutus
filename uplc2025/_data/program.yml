@@ -38,9 +38,6 @@ days:
         - name: 'Aiken Type System: Past, Present, Future'
           time_start: '15:20'
           time_end: '16:20'
-        - name: Hydra Plutus/Aiken Review
-          time_start: '16:25'
-          time_end: '16:45'
         - name: VACATE ROOM AND GO TO GROUND FLOOR BY 16:50 - GATE CLOSES AT 17:00
           time_start: '16:45'
           time_end: '16:55'
