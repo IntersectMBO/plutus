@@ -4,4 +4,5 @@ speakers:
   - Roman Kireev
 categories:
   - Talk
+  - Remote
 ---

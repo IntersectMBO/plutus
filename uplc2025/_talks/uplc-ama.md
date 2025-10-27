@@ -7,4 +7,5 @@ speakers:
   - Philip Wadler
 categories:
   - Panel
+  - Remote
 ---
