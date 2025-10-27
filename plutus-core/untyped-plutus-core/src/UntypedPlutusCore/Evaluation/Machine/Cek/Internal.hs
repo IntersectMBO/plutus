@@ -803,7 +803,7 @@ enterComputeCek = computeCek
         -- Otherwise, we can safely convert the index to an Int and use it
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
-            Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+            Nothing -> throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
             Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
             Right res -> computeCek ctx env res
