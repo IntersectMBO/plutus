@@ -15,32 +15,35 @@ days:
           time_start: '10:50'
           time_end: '11:30'
         - name: Formal Methods at IOG
-          time_start: '13:30'
-          time_end: '14:30'
+          time_start: '13:00'
+          time_end: '14:00'
         - name: Casing on Constants
-          time_start: '14:50'
-          time_end: '15:30'
+          time_start: '14:20'
+          time_end: '15:00'
         - name: How to zk-SNARK on Cardano
-          time_start: '15:50'
-          time_end: '16:30'
-        - name: TBD-Andrew
-          time_start: '16:40'
-          time_end: '17:20'
+          time_start: '15:20'
+          time_end: '16:00'
+        - name: 'Atomic Multi-Chain Ops: Consistent cross chain transaction execution'
+          time_start: '16:20'
+          time_end: '17:00'
 
     - name: 2.55
       talks:
         - name: Free Space
           time_start: '11:00'
-          time_end: '14:30'
+          time_end: '14:00'
         - name: UPLC-CAPE
-          time_start: '14:40'
-          time_end: '15:40'
+          time_start: '14:10'
+          time_end: '15:10'
         - name: 'Aiken Type System: Past, Present, Future'
-          time_start: '15:50'
-          time_end: '16:50'
+          time_start: '15:20'
+          time_end: '16:20'
         - name: Hydra Plutus/Aiken Review
-          time_start: '17:00'
-          time_end: '17:20'
+          time_start: '16:25'
+          time_end: '16:45'
+        - name: VACATE ROOM AND GO TO GROUND FLOOR BY 16:50 - GATE CLOSES AT 17:00
+          time_start: '16:45'
+          time_end: '16:55'
 
     - name: 3.55
       talks:

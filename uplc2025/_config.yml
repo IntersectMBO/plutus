@@ -95,6 +95,8 @@ conference:
         color: info
       - name: Panel
         color: warning
+      - name: Alert
+        color: danger
       - name: Other
         color: dark
 
