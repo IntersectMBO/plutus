@@ -11,7 +11,7 @@ days:
         - name: Fifty-three Years of Plutus
           time_start: '9:30'
           time_end: '10:30'
-        - name: Plutarch Talk
+        - name: Efficient and fun UPLC with Plutarch
           time_start: '10:50'
           time_end: '11:30'
         - name: Formal Methods at IOG

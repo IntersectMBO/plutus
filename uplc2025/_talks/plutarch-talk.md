@@ -1,5 +1,5 @@
 ---
-name: Plutarch Talk
+name: Efficient and fun UPLC with Plutarch
 speakers:
   - Seungheon Oh
 categories:
