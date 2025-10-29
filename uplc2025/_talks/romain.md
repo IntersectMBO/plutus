@@ -1,5 +1,5 @@
 ---
-name: Smart Contract Verification
+name: Automating Formal Verification of Smart Contracts
 speakers:
   - Romain Soulat
 categories:

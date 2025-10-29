@@ -118,7 +118,7 @@ days:
   rooms:
     - name: G.03
       talks:
-        - name: Smart Contract Verification
+        - name: Automating Formal Verification of Smart Contracts
           time_start: '9:30'
           time_end: '10:30'
         - name: Gastronomy UPLC Debugger
