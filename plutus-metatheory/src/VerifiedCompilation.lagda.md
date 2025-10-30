@@ -84,6 +84,7 @@ data Transformation : SimplifierTag → Relation where
   -- FIXME: Inline currently rejects some valid translations so is disabled.
   inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
   isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
+  -- FIXME: ForceCaseDelay is not implemented yet, needs some definition of "well-defined UPLC"
   forceCaseDelayNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where

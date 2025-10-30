@@ -29,8 +29,6 @@ import UntypedPlutusCore.Transform.Simplifier
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
-import Debug.Trace (trace)
-
 type CertName = String
 type CertDir = String
 
@@ -224,10 +222,10 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef uplcAst =
   \\nopen import Data.Bool.Base using (Bool; false; true)\
   \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
   \\n\
-  \\n{-\n" <> uplcAst <> "\n-}\n\
-  \\n\
   \\n" <> agdaAstTy <> "\n\
-  \\n" <> agdaAstDef <> "\n"
+  \\n" <> agdaAstDef <> "\n\
+  \\n{-\n" <> uplcAst <> "\n-}\n\
+  \\n"
 
 mkAgdaOpenImport :: String -> String
 mkAgdaOpenImport agdaModuleName =

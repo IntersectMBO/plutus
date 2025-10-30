@@ -26,6 +26,8 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:preserve-logging #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
+-- {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:certify=LinearVestingCert #-}
+
 module LinearVesting.Validator where
 
 import PlutusTx
