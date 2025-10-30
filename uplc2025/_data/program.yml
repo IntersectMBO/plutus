@@ -125,6 +125,9 @@ days:
           time_start: '10:50'
           time_end: '11:30'
         - name: Certified Compilation
+          time_start: '12:30'
+          time_end: '13:10'
+        - name: JIT-compiling Plutus on the JVM – the fastest UPLC evaluator on the planet
           time_start: '13:30'
           time_end: '14:10'
         - name: Unconference
@@ -140,11 +143,8 @@ days:
         - name: A Layered Certifying Compiler Architecture
           time_start: '10:50'
           time_end: '11:30'
-        - name: JIT-compiling Plutus on the JVM – the fastest UPLC evaluator on the planet
-          time_start: '13:30'
-          time_end: '14:10'
         - name: Unconference
-          time_start: '14:20'
+          time_start: '12:30'
           time_end: '17:15'
     - name: Common Area
       talks:
