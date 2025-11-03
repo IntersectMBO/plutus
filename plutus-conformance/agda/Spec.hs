@@ -190,6 +190,9 @@ failingEvaluationTests =
   , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-neg"
   , "test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive"
   , "test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
   ]
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
@@ -285,6 +288,9 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-neg"
   , "test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive"
   , "test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.

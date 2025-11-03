@@ -733,6 +733,7 @@ defineBuiltinTerms = do
           PLC.ValueContains -> defineBuiltinInl 'Builtins.valueContains
           PLC.ValueData -> defineBuiltinInl 'Builtins.mkValue
           PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
+          PLC.ScaleValue -> defineBuiltinInl 'Builtins.scaleValue
 
 defineBuiltinTypes :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTypes = do

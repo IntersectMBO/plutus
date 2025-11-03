@@ -300,7 +300,7 @@ instance ArbitraryBuiltin Value.Quantity where
 
 instance Arbitrary Value.Quantity where
     arbitrary = arbitraryBuiltin
-    shrink = shrinkBuiltin
+    shrink = const [] -- shrinkBuiltin
 
 {-| A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
 instance for @a@.

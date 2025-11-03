@@ -28,6 +28,7 @@ module PlutusCore.Value (
   maxInnerSize,
   insertCoin,
   deleteCoin,
+  scaleValue,
   lookupCoin,
   valueContains,
   unionValue,
@@ -147,6 +148,11 @@ zeroQuantity = UnsafeQuantity 0
 addQuantity :: Quantity -> Quantity -> Maybe Quantity
 addQuantity (UnsafeQuantity x) (UnsafeQuantity y) = quantity (x + y)
 {-# INLINEABLE addQuantity #-}
+
+-- | Safely scale a quantitie with given integer, checking for overflow.
+scaleQuantity :: Integer -> Quantity -> Maybe Quantity
+scaleQuantity x (UnsafeQuantity y) = quantity (x * y)
+{-# INLINEABLE scaleQuantity #-}
 
 ----------------------------------------------------------------------------------------------------
 -- Builtin Value definition ------------------------------------------------------------------------
@@ -470,3 +476,33 @@ updateSizes old new = dec . inc
       then id
       else IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1)) old
 {-# INLINEABLE updateSizes #-}
+
+-- | \(O(n)\). Scale each tokens by the given constant factor.
+scaleValue :: Integer -> Value -> BuiltinResult Value
+scaleValue c (Value outer sizes size neg)
+  -- When scaling by positive factor, no need to change sizes and number of negative amounts.
+  | c > 0 = do
+    outer' <- go outer
+    BuiltinSuccess $ Value outer' sizes size neg
+  -- When scaling by negative factor, only need to "flip" negative amounts.
+  | c < 0 = do
+    outer' <- go outer
+    -- let
+    --   neg' = Map.foldl' alg 0 outer'
+    --   alg n inner = n + Map.size (Map.filter (< zeroQuantity) inner)
+
+    -- TODO: make sure (size - neg) is correct
+    BuiltinSuccess $ Value outer' sizes size (size - neg)
+  -- Scaling by 0 is always empty value
+  | otherwise = BuiltinSuccess empty
+  where
+    go :: NestedMap -> BuiltinResult NestedMap
+    go x = traverse (traverse goScale) x
+    goScale :: Quantity -> BuiltinResult Quantity
+    goScale x =
+      case scaleQuantity c x of
+        Nothing ->
+          fail $
+            "scaleValue: quantity out of bounds: "
+            <> show c <> " * " <> show (unQuantity x)
+        Just q -> pure q

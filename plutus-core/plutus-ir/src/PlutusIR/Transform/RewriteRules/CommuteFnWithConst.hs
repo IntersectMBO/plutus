@@ -156,3 +156,4 @@ isCommutative = \case
   ValueContains                   -> False
   ValueData                       -> False
   UnValueData                     -> False
+  ScaleValue                      -> False

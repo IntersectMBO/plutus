@@ -1135,6 +1135,10 @@ unsafeDataAsValue (BuiltinData d) =
         Haskell.error "Data to Value conversion errored."
 {-# OPAQUE unsafeDataAsValue #-}
 
+scaleValue :: Integer -> BuiltinValue -> BuiltinValue
+scaleValue c (BuiltinValue v) = BuiltinValue $ Value.scaleValue c v
+{-# OPAQUE scaleValue #-}
+
 caseInteger :: Integer -> [a] -> a
 caseInteger i b = b !! fromIntegral i
 {-# OPAQUE caseInteger #-}

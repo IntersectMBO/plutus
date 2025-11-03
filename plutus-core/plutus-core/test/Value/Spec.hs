@@ -188,6 +188,31 @@ prop_containsEnforcesPositivity v
       (BuiltinFailure{}, BuiltinFailure{}) -> property True
       _                                    -> property False
 
+prop_negateIsInverse :: Value -> Property
+prop_negateIsInverse v =
+  let
+    inverseUnion = do
+      vInv <- V.scaleValue (-1) v
+      V.unionValue v vInv
+  in property $ case inverseUnion of
+       BuiltinSuccess r -> r == V.empty
+       _                -> False
+
+prop_oppositeScaleIsInverse :: Integer -> Value -> Property
+prop_oppositeScaleIsInverse c v =
+  let
+    inverseUnion = do
+      vInv <- V.scaleValue (negate c) v
+      v' <- V.scaleValue c v
+      V.unionValue v' vInv
+    correctlyBound =
+      any
+        (\(_, _, V.unQuantity -> q) -> isNothing $ V.quantity $ q * c)
+        $ V.toFlatList v
+  in property $ case inverseUnion of
+       BuiltinSuccess r -> r == V.empty
+       _                -> correctlyBound
+
 prop_flatRoundtrip :: Value -> Property
 prop_flatRoundtrip v = Flat.unflat (Flat.flat v) === Right v
 
@@ -422,6 +447,12 @@ tests =
     , testProperty
         "unionValueDetectsOverflow"
         prop_unionValueDetectsOverflow
+    , testProperty
+        "negateIsInverse"
+        prop_negateIsInverse
+    , testProperty
+        "oppositeScaleIsInverse"
+        prop_oppositeScaleIsInverse
     , testProperty
         "flatRoundtrip"
         prop_flatRoundtrip
