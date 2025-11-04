@@ -295,7 +295,7 @@ library sop-internal
     , plutus-tx
     , plutus-tx-plugin
 
-benchmark sop
+benchmark sop-exbudget
   import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
@@ -304,6 +304,21 @@ benchmark sop
     , base                         >=4.9 && <5
     , plutus-benchmark-common
     , plutus-core
+    , plutus-tx
+    , plutus-tx:plutus-tx-testlib
+    , sop-internal
+
+benchmark sop
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: sop/bench
+  build-depends:
+    , base                         >=4.9 && <5
+    , criterion
+    , plutus-benchmark-common
+    , plutus-core
+    , plutus-ledger-api
     , plutus-tx
     , plutus-tx:plutus-tx-testlib
     , sop-internal
