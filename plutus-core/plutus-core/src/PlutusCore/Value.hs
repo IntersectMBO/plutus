@@ -487,11 +487,6 @@ scaleValue c (Value outer sizes size neg)
   -- When scaling by negative factor, only need to "flip" negative amounts.
   | c < 0 = do
     outer' <- go outer
-    -- let
-    --   neg' = Map.foldl' alg 0 outer'
-    --   alg n inner = n + Map.size (Map.filter (< zeroQuantity) inner)
-
-    -- TODO: make sure (size - neg) is correct
     BuiltinSuccess $ Value outer' sizes size (size - neg)
   -- Scaling by 0 is always empty value
   | otherwise = BuiltinSuccess empty
