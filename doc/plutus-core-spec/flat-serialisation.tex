@@ -429,7 +429,7 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
   \Dterm(\bits{0111} \cdot s)  &= (s', \Builtin{b}) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
   \Dterm(\bits{1000} \cdot s)  &= (s'', \Constr{i}{l}) &&\quad \text{if } \D_{\N}(s) = (s', i)\ \text{and}\ i < 2^{64} &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)\\
-  \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
+  \Dterm(\bits{1001} \cdot s)  &= (s'', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
 \paragraph{NOTE.} The decoder $\Dterm$ should fail if we are decoding a program
@@ -497,7 +497,7 @@ denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
 \begin{alignat*}{3}
  &\dtype(0 \cdot l) &&= (l, \ty{integer})    \\
  &\dtype(1 \cdot l) &&= (l, \ty{bytestring}) \\
- &\dtype(2 \cdot l) &&= (l, \ty{string}))    \\
+ &\dtype(2 \cdot l) &&= (l, \ty{string})    \\
  &\dtype(3 \cdot l) &&= (l, \ty{unit})       \\
  &\dtype(4 \cdot l) &&= (l, \ty{bool})       \\
  &\dtype([7,5] \cdot l) &&= (l', \listOf{t}) &&\quad \text{if $\dtype(l) = (l', t)$}\\
