@@ -156,10 +156,8 @@ scaleQuantity x (UnsafeQuantity y) = quantity (x * y)
 {-# INLINEABLE scaleQuantity #-}
 
 negateQuantity :: Quantity -> Maybe Quantity
-negateQuantity (UnsafeQuantity x) =
-  if x == -170141183460469231731687303715884105728
-  then Nothing
-  else Just $ UnsafeQuantity (negate x)
+negateQuantity (UnsafeQuantity x) = quantity (negate x)
+{-# INLINE negateQuantity #-}
 
 ----------------------------------------------------------------------------------------------------
 -- Builtin Value definition ------------------------------------------------------------------------
