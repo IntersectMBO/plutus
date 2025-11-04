@@ -197,6 +197,7 @@ data DefaultFun
     | ValueData
     | UnValueData
     | ScaleValue
+    | NegateValue
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2103,6 +2104,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             unValueDataDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
+    toBuiltinMeaning _semvar NegateValue =
+        let unValueDataDenotation :: Value -> BuiltinResult Value
+            unValueDataDenotation = Value.negateValue
+            {-# INLINE unValueDataDenotation #-}
+        in makeBuiltinMeaning
+            unValueDataDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -2261,6 +2270,7 @@ instance Flat DefaultFun where
               ValueData                       -> 98
               UnValueData                     -> 99
               ScaleValue                      -> 100
+              NegateValue  -> 101
 
     decode = go =<< decodeBuiltin
         where go 0   = pure AddInteger
@@ -2364,6 +2374,7 @@ instance Flat DefaultFun where
               go 98  = pure ValueData
               go 99  = pure UnValueData
               go 100 = pure ScaleValue
+              go 101 = pure NegateValue
               go t   = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

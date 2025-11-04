@@ -29,6 +29,7 @@ module PlutusCore.Value (
   insertCoin,
   deleteCoin,
   scaleValue,
+  negateValue,
   lookupCoin,
   valueContains,
   unionValue,
@@ -500,4 +501,20 @@ scaleValue c (Value outer sizes size neg)
           fail $
             "scaleValue: quantity out of bounds: "
             <> show c <> " * " <> show (unQuantity x)
+        Just q -> pure q
+
+negateValue :: Value -> BuiltinResult Value
+negateValue (Value outer sizes size neg) = do
+  outer' <- go outer
+  BuiltinSuccess $ Value outer' sizes size (size - neg)
+  where
+    go :: NestedMap -> BuiltinResult NestedMap
+    go x = traverse (traverse goScale) x
+    goScale :: Quantity -> BuiltinResult Quantity
+    goScale x =
+      case scaleQuantity (-1) x of
+        Nothing ->
+          fail $
+            "scaleValue: quantity out of bounds: "
+            <> "-1 * " <> show (unQuantity x)
         Just q -> pure q
