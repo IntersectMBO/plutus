@@ -1,0 +1,6 @@
+CPU:                10_303_320
+Memory:                 59_418
+AST Size:                   97
+Flat Size:                 109
+
+(constr 0 (constr 0 (con integer 8)) (constr 1))

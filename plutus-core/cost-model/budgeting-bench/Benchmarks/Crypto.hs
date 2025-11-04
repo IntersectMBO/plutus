@@ -193,6 +193,13 @@ benchBls12_381_G1_scalarMul multipliers =
     in createTwoTermBuiltinBenchElementwise name [] $ zip multipliers g1inputsA
 -- linear in x (size of scalar)
 
+benchBls12_381_G1_multiScalarMul :: [[Integer]] -> Benchmark
+benchBls12_381_G1_multiScalarMul scalarLists =
+    let name = Bls12_381_G1_multiScalarMul
+        g1Lists = [ fmap randomG1Element (listOfByteStringsOfLength (length scalars) 20) | scalars <- scalarLists ]
+    in createTwoTermBuiltinBenchElementwise name [] (zip scalarLists g1Lists)
+-- linear in size of the minimum of both lists
+
 benchBls12_381_G1_equal :: Benchmark
 benchBls12_381_G1_equal =
     let name = Bls12_381_G1_equal
@@ -241,6 +248,13 @@ benchBls12_381_G2_scalarMul multipliers =
     in createTwoTermBuiltinBenchElementwise name [] $ zip multipliers g2inputsA
 -- linear in x (size of scalar)
 
+benchBls12_381_G2_multiScalarMul :: [[Integer]] -> Benchmark
+benchBls12_381_G2_multiScalarMul scalarLists =
+    let name = Bls12_381_G2_multiScalarMul
+        g2Lists = [ fmap randomG2Element (listOfByteStringsOfLength (length scalars) 20) | scalars <- scalarLists ]
+    in createTwoTermBuiltinBenchElementwise name [] (zip scalarLists g2Lists)
+-- linear in size of the minimum of both lists
+
 benchBls12_381_G2_equal :: Benchmark
 benchBls12_381_G2_equal =
     let name = Bls12_381_G2_equal
@@ -287,13 +301,22 @@ benchBls12_381_finalVerify =
     in createTwoTermBuiltinBenchElementwise name [] $ zip gtinputsA gtinputsB
 -- constant time
 
+-- A helper function to generate lists of integers of a given sizes
+mkVariableLengthScalarLists :: StdGen -> [Int] -> ([[Integer]], StdGen)
+mkVariableLengthScalarLists gen = foldl go ([], gen)
+  where
+    go (acc, g) size =
+      let (ints, g') = makeSizedIntegers g [1..size]
+      in (acc ++ [ints], g')
 
 blsBenchmarks :: StdGen -> [Benchmark]
 blsBenchmarks gen =
     let multipliers = fst $ makeSizedIntegers gen [1..100] -- Constants for scalar multiplication functions
+        scalarLists = fst $ mkVariableLengthScalarLists gen [1..100] -- Create a list of lists of integers of various sizes between 1 and 100 elements
     in [ benchBls12_381_G1_add
        , benchBls12_381_G1_neg
        , benchBls12_381_G1_scalarMul multipliers
+       , benchBls12_381_G1_multiScalarMul scalarLists
        , benchBls12_381_G1_equal
        , benchBls12_381_G1_hashToGroup
        , benchBls12_381_G1_compress
@@ -301,6 +324,7 @@ blsBenchmarks gen =
        , benchBls12_381_G2_add
        , benchBls12_381_G2_neg
        , benchBls12_381_G2_scalarMul multipliers
+       , benchBls12_381_G2_multiScalarMul scalarLists
        , benchBls12_381_G2_equal
        , benchBls12_381_G2_hashToGroup
        , benchBls12_381_G2_compress

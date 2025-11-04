@@ -121,7 +121,7 @@ number of token names decreases.
 The overall conclusion is that (at least at the time of writing) the vast
 majority of `Value` objects in transaction outputs are quite simple: they
 generally have only a few currency symbols and each currency symbol has only a
-few (often only one) accociated token names.
+few (often only one) associated token names.
 
 
 ## `Value`s minted in transactions

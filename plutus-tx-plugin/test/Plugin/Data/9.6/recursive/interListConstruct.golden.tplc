@@ -1,0 +1,131 @@
+(program
+   1.1.0
+   ((/\(InterList :: * -> * -> *) ->
+       \(InterCons : all a b. a -> b -> InterList b a -> InterList a b)
+        (InterNil : all a b. InterList a b)
+        (InterList_match :
+           all a b.
+             InterList a b ->
+             (all out_InterList.
+                (a -> b -> InterList b a -> out_InterList) ->
+                out_InterList ->
+                out_InterList)) ->
+         InterCons
+           {integer}
+           {bool}
+           0
+           False
+           (InterCons
+              {bool}
+              {integer}
+              False
+              -1
+              (InterCons {integer} {bool} 42 True (InterNil {bool} {integer}))))
+      {\a b ->
+         ifix
+           (\(rec :: ((* -> * -> *) -> *) -> *) (spine :: (* -> * -> *) -> *) ->
+              spine
+                ((\(InterList :: * -> * -> *) a b ->
+                    sop [a, b, (InterList b a)] [])
+                   (\a b -> rec (\(dat :: * -> * -> *) -> dat a b))))
+           (\(dat :: * -> * -> *) -> dat a b)}
+      (/\a b ->
+         \(arg_0 : a)
+          (arg_1 : b)
+          (arg_2 :
+             (\a b ->
+                ifix
+                  (\(rec :: ((* -> * -> *) -> *) -> *)
+                    (spine :: (* -> * -> *) -> *) ->
+                     spine
+                       ((\(InterList :: * -> * -> *) a b ->
+                           sop [a, b, (InterList b a)] [])
+                          (\a b -> rec (\(dat :: * -> * -> *) -> dat a b))))
+                  (\(dat :: * -> * -> *) -> dat a b))
+               b
+               a) ->
+           iwrap
+             (\(rec :: ((* -> * -> *) -> *) -> *)
+               (spine :: (* -> * -> *) -> *) ->
+                spine
+                  ((\(InterList :: * -> * -> *) a b ->
+                      sop [a, b, (InterList b a)] [])
+                     (\a b -> rec (\(dat :: * -> * -> *) -> dat a b))))
+             (\(dat :: * -> * -> *) -> dat a b)
+             (constr
+                (sop
+                   [ a
+                   , b
+                   , ((\a b ->
+                         ifix
+                           (\(rec :: ((* -> * -> *) -> *) -> *)
+                             (spine :: (* -> * -> *) -> *) ->
+                              spine
+                                ((\(InterList :: * -> * -> *) a b ->
+                                    sop [a, b, (InterList b a)] [])
+                                   (\a b ->
+                                      rec (\(dat :: * -> * -> *) -> dat a b))))
+                           (\(dat :: * -> * -> *) -> dat a b))
+                        b
+                        a) ]
+                   [])
+                0
+                [arg_0, arg_1, arg_2]))
+      (/\a b ->
+         iwrap
+           (\(rec :: ((* -> * -> *) -> *) -> *) (spine :: (* -> * -> *) -> *) ->
+              spine
+                ((\(InterList :: * -> * -> *) a b ->
+                    sop [a, b, (InterList b a)] [])
+                   (\a b -> rec (\(dat :: * -> * -> *) -> dat a b))))
+           (\(dat :: * -> * -> *) -> dat a b)
+           (constr
+              (sop
+                 [ a
+                 , b
+                 , ((\a b ->
+                       ifix
+                         (\(rec :: ((* -> * -> *) -> *) -> *)
+                           (spine :: (* -> * -> *) -> *) ->
+                            spine
+                              ((\(InterList :: * -> * -> *) a b ->
+                                  sop [a, b, (InterList b a)] [])
+                                 (\a b ->
+                                    rec (\(dat :: * -> * -> *) -> dat a b))))
+                         (\(dat :: * -> * -> *) -> dat a b))
+                      b
+                      a) ]
+                 [])
+              1
+              []))
+      (/\a b ->
+         \(x :
+             (\a b ->
+                ifix
+                  (\(rec :: ((* -> * -> *) -> *) -> *)
+                    (spine :: (* -> * -> *) -> *) ->
+                     spine
+                       ((\(InterList :: * -> * -> *) a b ->
+                           sop [a, b, (InterList b a)] [])
+                          (\a b -> rec (\(dat :: * -> * -> *) -> dat a b))))
+                  (\(dat :: * -> * -> *) -> dat a b))
+               a
+               b) ->
+           /\out_InterList ->
+             \(case_InterCons :
+                 a ->
+                 b ->
+                 (\a b ->
+                    ifix
+                      (\(rec :: ((* -> * -> *) -> *) -> *)
+                        (spine :: (* -> * -> *) -> *) ->
+                         spine
+                           ((\(InterList :: * -> * -> *) a b ->
+                               sop [a, b, (InterList b a)] [])
+                              (\a b -> rec (\(dat :: * -> * -> *) -> dat a b))))
+                      (\(dat :: * -> * -> *) -> dat a b))
+                   b
+                   a ->
+                 out_InterList)
+              (case_InterNil : out_InterList) ->
+               case out_InterList (unwrap x) [case_InterCons, case_InterNil])))

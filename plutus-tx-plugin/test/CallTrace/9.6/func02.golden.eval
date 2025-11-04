@@ -1,0 +1,10 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: error
+
+Trace:
+-> func (test/CallTrace/Spec.hs:79:1-79:4)
+-> nestedLinear2 (test/CallTrace/Spec.hs:73:1-73:13)
+-> nestedLinear3 (test/CallTrace/Spec.hs:74:1-74:13)
+-> nestedLinear4 (test/CallTrace/Spec.hs:75:1-75:13)
+-> error

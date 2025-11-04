@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE Strict          #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Strictness.Spec where
 
@@ -21,6 +22,7 @@ tests =
       , goldenPirReadable "lambda-default" lambdaDefault
       , goldenUPlcReadable "lambda-default" lambdaDefault
       , -- FIXME: This should not crash, but it currently does.
+        -- https://github.com/IntersectMBO/plutus-private/issues/1728
         goldenEvalCekCatchBudget "lambda-nonstrict" $ lambdaNonStrict `unsafeApplyCode` bot
       , goldenPirReadable "lambda-nonstrict" lambdaNonStrict
       , goldenUPlcReadable "lambda-nonstrict" lambdaNonStrict
@@ -28,6 +30,7 @@ tests =
       , goldenPirReadable "lambda-strict" lambdaStrict
       , goldenUPlcReadable "lambda-strict" lambdaStrict
       , -- FIXME: This should crash (because the `Strict` extension is on), but it currently doesn't.
+        -- https://github.com/IntersectMBO/plutus-private/issues/1728
         goldenEvalCekCatchBudget "let-default" $ letDefault `unsafeApplyCode` one
       , goldenPirReadable "let-default" letDefault
       , goldenUPlcReadable "let-default" letDefault
@@ -35,6 +38,7 @@ tests =
       , goldenPirReadable "let-nonstrict" letNonStrict
       , goldenUPlcReadable "let-nonstrict" letNonStrict
       , -- FIXME: This should crash, but it currently doesn't.
+        -- https://github.com/IntersectMBO/plutus-private/issues/1728
         goldenEvalCekCatchBudget "let-strict" $ letStrict `unsafeApplyCode` one
       , goldenPirReadable "let-strict" letStrict
       , goldenUPlcReadable "let-strict" letStrict

@@ -2,6 +2,7 @@
 
 let
 
+  # plutus-metatheory as an agda-package
   metatheory-agda-package = agda-tools.agda-packages.mkDerivation {
     name = "plutus-metatheory";
     pname = "plutus-metatheory";
@@ -13,6 +14,7 @@ let
     meta = { };
   };
 
+  # Tarball of the Agda library sources for distribution as an artifact.
   metatheory-agda-library = pkgs.stdenv.mkDerivation {
     name = "metatheory-agda-library";
     src = lib.cleanSource (self + /plutus-metatheory);
@@ -26,11 +28,14 @@ let
     '';
   };
 
+  # Developer helper: generates MAlonzo Haskell code from the metatheory.
+  # Used in: `nix/shell.nix` pre-commit hook and common tools.
   generate-malonzo-code = pkgs.writeShellScriptBin "generate-malonzo-code" ''
     cd "$(git rev-parse --show-toplevel)/plutus-metatheory"
     agda-with-stdlib --compile --ghc-dont-call-ghc src/Main.lagda.md
   '';
 
+  # Agda executable wrapper that includes both stdlib and the metatheory package.
   agda-with-stdlib-and-metatheory = pkgs.stdenv.mkDerivation {
     name = "agda-with-stdlib-and-metatheory";
     phases = "installPhase";
@@ -100,7 +105,6 @@ let
       exit 1
     fi
   '';
-
 in
 
 {

@@ -13,7 +13,7 @@ import PlutusTx
 
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (traverse_)
-import Flat (flat, unflat)
+import PlutusCore.Flat (flat, unflat)
 import System.Directory (doesFileExist)
 import System.FilePath ((<.>), (</>))
 

@@ -12,6 +12,8 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , flattenCostRose
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
+    , ValueTotalSize(..)
+    , ValueOuterOrMaxInner(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -20,9 +22,12 @@ import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 
 import Data.ByteString qualified as BS
 import Data.Functor
+import Data.Map.Strict qualified as Map
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
@@ -367,6 +372,24 @@ instance ExMemoryUsage Data where
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
+
+instance ExMemoryUsage Value where
+    memoryUsage = singletonRose . fromIntegral . Value.totalSize
+
+-- | Measure the size of a `Value` by its `Value.totalSize`.
+newtype ValueTotalSize = ValueTotalSize { unValueTotalSize :: Value }
+
+instance ExMemoryUsage ValueTotalSize where
+    memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
+
+-- | Measure the size of a `Value` by taking the max of
+-- (size of the outer map, size of the largest inner map).
+newtype ValueOuterOrMaxInner = ValueOuterOrMaxInner { unValueOuterOrMaxInner :: Value }
+
+instance ExMemoryUsage ValueOuterOrMaxInner where
+    memoryUsage (ValueOuterOrMaxInner v) = singletonRose (fromIntegral size)
+      where
+        size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able

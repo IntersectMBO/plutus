@@ -86,6 +86,7 @@ isCommutative = \case
   Bls12_381_G1_add                -> False
   Bls12_381_G1_neg                -> False
   Bls12_381_G1_scalarMul          -> False
+  Bls12_381_G1_multiScalarMul     -> False
   Bls12_381_G1_equal              -> False
   Bls12_381_G1_hashToGroup        -> False
   Bls12_381_G1_compress           -> False
@@ -93,6 +94,7 @@ isCommutative = \case
   Bls12_381_G2_add                -> False
   Bls12_381_G2_neg                -> False
   Bls12_381_G2_scalarMul          -> False
+  Bls12_381_G2_multiScalarMul     -> False
   Bls12_381_G2_equal              -> False
   Bls12_381_G2_hashToGroup        -> False
   Bls12_381_G2_compress           -> False
@@ -146,5 +148,11 @@ isCommutative = \case
   RotateByteString                -> False
   CountSetBits                    -> False
   FindFirstSetBit                 -> False
-  ExpModInteger           -> False
-  DropList -> False
+  ExpModInteger                   -> False
+  DropList                        -> False
+  InsertCoin                      -> False
+  LookupCoin                      -> False
+  UnionValue                      -> True
+  ValueContains                   -> False
+  ValueData                       -> False
+  UnValueData                     -> False

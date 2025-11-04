@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NegativeLiterals      #-}
@@ -10,10 +9,11 @@
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Spec.Budget where
 
-import Test.Tasty (TestName, TestTree)
+import Test.Tasty (TestTree)
 import Test.Tasty.Extras
 
 import Data.Bifunctor
@@ -31,12 +31,7 @@ tests =
   runTestNested ["test-plugin", "Spec", "Budget"] . pure . testNestedGhc $
       [ goldenPirReadable "gt" compiledGt
       , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
-      ]
-        ++ concatMap
-          ( \(TestCase name code) ->
-              [ goldenEvalCekCatchBudget name code ]
-          )
-          testCases
+      ] ++ testCases
 
 compiledGt :: CompiledCode (Value -> Value -> Bool)
 compiledGt = $$(compile [||gt||])
@@ -90,71 +85,69 @@ value3 =
     , (5, [(500, 501), (502, 503), (504, 505), (506, 507), (508, 509)])
     ]
 
-data TestCase = forall a. TestCase TestName (CompiledCode a)
-
-testCases :: [TestCase]
+testCases :: [TestNested]
 testCases =
-  [ TestCase
+  [ goldenEvalCekCatchBudget
       "gt1"
       ( compiledGt
           `unsafeApplyCode` liftCodeDef value1
           `unsafeApplyCode` liftCodeDef value1
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "gt2"
       ( compiledGt
           `unsafeApplyCode` liftCodeDef value1
           `unsafeApplyCode` liftCodeDef value2
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "gt3"
       ( compiledGt
           `unsafeApplyCode` liftCodeDef value2
           `unsafeApplyCode` liftCodeDef value1
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "gt4"
       ( compiledGt
           `unsafeApplyCode` liftCodeDef value1
           `unsafeApplyCode` liftCodeDef value3
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "gt5"
       ( compiledGt
           `unsafeApplyCode` liftCodeDef value3
           `unsafeApplyCode` liftCodeDef value1
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "geq1"
       ( compiledGeq
           `unsafeApplyCode` liftCodeDef value1
           `unsafeApplyCode` liftCodeDef value1
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "geq2"
       ( compiledGeq
           `unsafeApplyCode` liftCodeDef value1
           `unsafeApplyCode` liftCodeDef value2
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "geq3"
       ( compiledGeq
           `unsafeApplyCode` liftCodeDef value2
           `unsafeApplyCode` liftCodeDef value1
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "geq4"
       ( compiledGeq
           `unsafeApplyCode` liftCodeDef value1
           `unsafeApplyCode` liftCodeDef value3
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "geq5"
       ( compiledGeq
           `unsafeApplyCode` liftCodeDef value3
           `unsafeApplyCode` liftCodeDef value1
       )
-  , TestCase
+  , goldenEvalCekCatchBudget
       "currencySymbolValueOf"
       ( compiledCurrencySymbolValueOf
           `unsafeApplyCode` liftCodeDef value2

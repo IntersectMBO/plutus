@@ -23,7 +23,7 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Maybe
 import Data.Singletons.Decide
 import Data.Text.Encoding qualified as T
-import Flat
+import PlutusCore.Flat
 import Prettyprinter
 import Prettyprinter.Render.Text
 import System.IO

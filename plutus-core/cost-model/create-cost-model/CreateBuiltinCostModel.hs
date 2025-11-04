@@ -94,6 +94,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramBls12_381_G1_add                = "bls12_381_G1_addModel"
   , paramBls12_381_G1_neg                = "bls12_381_G1_negModel"
   , paramBls12_381_G1_scalarMul          = "bls12_381_G1_scalarMulModel"
+  , paramBls12_381_G1_multiScalarMul     = "bls12_381_G1_multiScalarMulModel"
   , paramBls12_381_G1_equal              = "bls12_381_G1_equalModel"
   , paramBls12_381_G1_compress           = "bls12_381_G1_compressModel"
   , paramBls12_381_G1_uncompress         = "bls12_381_G1_uncompressModel"
@@ -101,6 +102,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramBls12_381_G2_add                = "bls12_381_G2_addModel"
   , paramBls12_381_G2_neg                = "bls12_381_G2_negModel"
   , paramBls12_381_G2_scalarMul          = "bls12_381_G2_scalarMulModel"
+  , paramBls12_381_G2_multiScalarMul     = "bls12_381_G2_multiScalarMulModel"
   , paramBls12_381_G2_equal              = "bls12_381_G2_equalModel"
   , paramBls12_381_G2_compress           = "bls12_381_G2_compressModel"
   , paramBls12_381_G2_uncompress         = "bls12_381_G2_uncompressModel"
@@ -235,6 +237,7 @@ createBuiltinCostModel bmfile rfile = do
   paramBls12_381_G1_add                <- getParams readCF2 paramBls12_381_G1_add
   paramBls12_381_G1_neg                <- getParams readCF1 paramBls12_381_G1_neg
   paramBls12_381_G1_scalarMul          <- getParams readCF2 paramBls12_381_G1_scalarMul
+  paramBls12_381_G1_multiScalarMul     <- getParams readCF2 paramBls12_381_G1_multiScalarMul
   paramBls12_381_G1_equal              <- getParams readCF2 paramBls12_381_G1_equal
   paramBls12_381_G1_compress           <- getParams readCF1 paramBls12_381_G1_compress
   paramBls12_381_G1_uncompress         <- getParams readCF1 paramBls12_381_G1_uncompress
@@ -242,6 +245,7 @@ createBuiltinCostModel bmfile rfile = do
   paramBls12_381_G2_add                <- getParams readCF2 paramBls12_381_G2_add
   paramBls12_381_G2_neg                <- getParams readCF1 paramBls12_381_G2_neg
   paramBls12_381_G2_scalarMul          <- getParams readCF2 paramBls12_381_G2_scalarMul
+  paramBls12_381_G2_multiScalarMul     <- getParams readCF2 paramBls12_381_G2_multiScalarMul
   paramBls12_381_G2_equal              <- getParams readCF2 paramBls12_381_G2_equal
   paramBls12_381_G2_compress           <- getParams readCF1 paramBls12_381_G2_compress
   paramBls12_381_G2_uncompress         <- getParams readCF1 paramBls12_381_G2_uncompress

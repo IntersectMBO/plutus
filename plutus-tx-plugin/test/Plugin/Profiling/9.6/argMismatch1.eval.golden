@@ -1,6 +1,0 @@
-[ -> runIdentity
-, <- runIdentity
-, -> newtypeFunction (test/Plugin/Profiling/Spec.hs:175:1-175:15)
-, <- newtypeFunction (test/Plugin/Profiling/Spec.hs:175:1-175:15)
-, -> $fFoldableIdentity2
-, <- $fFoldableIdentity2 ]

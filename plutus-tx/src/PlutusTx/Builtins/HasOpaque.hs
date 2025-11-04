@@ -15,13 +15,13 @@ module PlutusTx.Builtins.HasOpaque where
 
 import Control.DeepSeq (NFData (..))
 import PlutusCore.Pretty (Pretty (..))
-import PlutusTx.Base (id, ($))
+import PlutusTx.Base (id)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
-                                   BuiltinBLS12_381_MlResult, BuiltinBool, BuiltinByteString (..),
-                                   BuiltinData, BuiltinInteger, BuiltinList (..), BuiltinPair,
-                                   BuiltinString (..), BuiltinUnit, caseList', chooseUnit, false,
-                                   fst, ifThenElse, mkCons, mkPairData, snd, true, unitval)
+                                   BuiltinBLS12_381_MlResult, BuiltinByteString (..), BuiltinData,
+                                   BuiltinInteger, BuiltinList (..), BuiltinPair,
+                                   BuiltinString (..), BuiltinUnit, BuiltinValue, caseList',
+                                   casePair, chooseUnit, mkCons, mkPairData, unitval)
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
@@ -252,12 +252,8 @@ instance HasFromOpaque BuiltinUnit () where
   fromOpaque u = chooseUnit u ()
   {-# INLINEABLE fromOpaque #-}
 
-instance HasToOpaque Bool BuiltinBool where
-  toOpaque b = if b then true else false
-  {-# INLINEABLE toOpaque #-}
-instance HasFromOpaque BuiltinBool Bool where
-  fromOpaque b = ifThenElse b True False
-  {-# INLINEABLE fromOpaque #-}
+instance HasToOpaque Bool Bool
+instance HasFromOpaque Bool Bool
 
 {-| The empty list of elements of the given type that gets spotted by the plugin (grep for
 'mkNilOpaque' in the plugin code) and replaced by the actual empty list constant for types that
@@ -272,8 +268,11 @@ class MkNil arep where
   mkNil = mkNilOpaque
   {-# INLINEABLE mkNil #-}
 instance MkNil BuiltinInteger
-instance MkNil BuiltinBool
+instance MkNil Bool
 instance MkNil BuiltinData
+instance MkNil BuiltinValue
+instance MkNil BuiltinBLS12_381_G1_Element
+instance MkNil BuiltinBLS12_381_G2_Element
 instance (MkNil a) => MkNil (BuiltinList a)
 instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 
@@ -302,11 +301,13 @@ instance
   (HasFromOpaque arep a, HasFromOpaque brep b)
   => HasFromOpaque (BuiltinPair arep brep) (a, b)
   where
-  fromOpaque p = (fromOpaque $ fst p, fromOpaque $ snd p)
+  fromOpaque p = casePair p (\l r -> (fromOpaque l, fromOpaque r))
   {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque BuiltinData BuiltinData
 instance HasFromOpaque BuiltinData BuiltinData
+instance HasToOpaque BuiltinValue BuiltinValue
+instance HasFromOpaque BuiltinValue BuiltinValue
 
 instance HasToOpaque BuiltinBLS12_381_G1_Element BuiltinBLS12_381_G1_Element
 instance HasFromOpaque BuiltinBLS12_381_G1_Element BuiltinBLS12_381_G1_Element

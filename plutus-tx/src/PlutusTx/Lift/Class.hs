@@ -5,6 +5,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PolyKinds             #-}
@@ -29,11 +30,12 @@ import PlutusCore.Crypto.BLS12_381.G2 (Element)
 import PlutusCore.Crypto.BLS12_381.Pairing (MlResult)
 import PlutusCore.Data
 import PlutusCore.Quote
+import PlutusCore.Value
 import PlutusIR.MkPir
 import PlutusTx.Builtins
 import PlutusTx.Builtins.HasBuiltin (FromBuiltin, HasFromBuiltin)
-import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinInteger, BuiltinList, BuiltinPair,
-                                   BuiltinUnit)
+import PlutusTx.Builtins.Internal (BuiltinInteger, BuiltinList, BuiltinPair, BuiltinUnit,
+                                   BuiltinValue)
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
@@ -174,12 +176,13 @@ instance (uni `PLC.HasTermLevel` ()) => Lift uni BuiltinUnit where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` Bool) => Typeable uni BuiltinBool where
+instance (uni `PLC.HasTypeLevel` Bool) => Typeable uni Bool where
   typeRep _ = typeRepBuiltin (Proxy @Bool)
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` Bool) => Lift uni BuiltinBool where
+instance (uni `PLC.HasTermLevel` Bool) => Lift uni Bool where
   lift = liftBuiltin . fromBuiltin
+
 
 -- See Note [Lift and Typeable instances for builtins]
 instance (uni `PLC.HasTypeLevel` []) => Typeable uni BuiltinList where
@@ -222,7 +225,15 @@ instance (uni `PLC.HasTypeLevel` Data) => Typeable uni BuiltinData where
   typeRep _ = typeRepBuiltin (Proxy @Data)
 
 -- See Note [Lift and Typeable instances for builtins]
+instance (uni `PLC.HasTypeLevel` Value) => Typeable uni BuiltinValue where
+  typeRep _ = typeRepBuiltin (Proxy @Value)
+
+-- See Note [Lift and Typeable instances for builtins]
 instance (uni `PLC.HasTermLevel` Data) => Lift uni BuiltinData where
+  lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance (uni `PLC.HasTermLevel` Value) => Lift uni BuiltinValue where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]

@@ -20,6 +20,7 @@ import PlutusCore.Rename
 import PlutusCore.Test qualified as T
 
 import Hedgehog
+import Hedgehog.Gen qualified as Gen
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
@@ -28,9 +29,10 @@ test_mangle :: TestTree
 test_mangle =
   testPropertyNamed "equality does not survive mangling" "equality_mangling" $
       withDiscards 1000000 . T.mapTestLimitAtLeast 300 (`div` 3) . property $ do
-          (term, termMangled) <- forAll . runAstGen $ do
+          (term, termMangled) <- forAll . runAstGen . Gen.justT $ do
             term <- genTerm
-            (,) term <$> mangleNames term
+            mayTermMang <- mangleNames term
+            pure $ (,) term <$> mayTermMang
           term /== termMangled
           termMangled /== term
 

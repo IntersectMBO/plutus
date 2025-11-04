@@ -1,6 +1,0 @@
-CPU:                 6_476_521
-Memory:                 22_832
-Term Size:                 257
-Flat Size:                 294
-
-(constr 1 (constr 0 (constr 0 (constr 0) (con integer 1) (constr 1))))

@@ -3,9 +3,9 @@
 {-# LANGUAGE BangPatterns #-}
 module Main where
 
-import Common (benchWith, unsafeUnflat)
 import PlutusBenchmark.Agda.Common (benchTermAgdaCek)
 import PlutusBenchmark.Common (toNamedDeBruijnTerm)
+import PlutusBenchmark.Validation.Common (benchWith, unsafeUnflat)
 import UntypedPlutusCore qualified as UPLC
 
 import Control.DeepSeq (force)

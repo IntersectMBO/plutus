@@ -16,7 +16,7 @@ import Control.Monad.Writer.Strict (WriterT (runWriterT))
 import Data.Either (isRight)
 import Data.Foldable (for_)
 import Data.List.Extra (enumerate)
-import Data.Set (isProperSubsetOf, isSubsetOf)
+import Data.Set (isSubsetOf)
 import Data.Set qualified as Set
 import Data.Text qualified as Text
 import Test.Tasty.Extras (TestNested, embed, nestedGoldenVsTextPredM, testNestedNamed)
@@ -28,9 +28,9 @@ tests =
     "CostModelParams"
     "costModelParams"
     [ embed $ testCase "length" do
-        166 @=? length v1_ParamNames
-        185 @=? length v2_ParamNames
-        297 @=? length v3_ParamNames
+        301 @=? length v1_ParamNames
+        301 @=? length v2_ParamNames
+        319 @=? length v3_ParamNames
     , embed $ testCase "tripping paramname" do
         for_ v1_ParamNames \p ->
           assertBool "tripping v1 cm params failed" $
@@ -71,10 +71,10 @@ tests =
           $ V3.mkEvaluationContext
           $ costValuesForTesting ++ [1] -- dummy param value appended
     , embed $ testCase "cost model parameters" do
-        -- v1 is missing some cost model parameters
-        -- because new builtins are added in v2
-        assertBool "v1 params is not a proper subset of v2 params" $
-          v1_ParamNames `paramProperSubset` v2_ParamNames
+        -- From PV11, the v1 and v2 parameter names are identical; before PV11
+        -- the v1 parameter names were a subset of the v2 ones.
+        assertBool "v1 params is not equal to v2 params" $
+          v1_ParamNames `paramEqual` v2_ParamNames
         -- v1/v2 and v3 cost models are not comparable because we added
         -- new builtins in v3 but also removed some superseded cost model
         -- parameters.
@@ -100,13 +100,11 @@ tests =
       | testExpected == cmExpected && testActual == cmActual = True
   hasWarnMoreParams _ _ _ = False
 
-  paramProperSubset pA pB =
-    Set.fromList (showParamName <$> pA)
-      `isProperSubsetOf` Set.fromList (showParamName <$> pB)
-
   paramSubset pA pB =
     Set.fromList (showParamName <$> pA)
       `isSubsetOf` Set.fromList (showParamName <$> pB)
+
+  paramEqual pA pB = paramSubset pA pB && paramSubset pB pA
 
   v1_ParamNames = enumerate @V1.ParamName
   v2_ParamNames = enumerate @V2.ParamName

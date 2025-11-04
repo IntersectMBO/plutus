@@ -23,6 +23,7 @@ import Normalization.Type
 import Parser.Spec qualified as Parser
 import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
+import Value.Spec qualified as Value
 
 import PlutusCore
 import PlutusCore.Check.Uniques qualified as Uniques
@@ -36,15 +37,17 @@ import PlutusCore.Test
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
+import Data.List (isPrefixOf)
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
-import Flat qualified
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import PlutusCore.Flat qualified as Flat
 import Prelude hiding (readFile)
+import System.FilePath
 import Test.Tasty
 import Test.Tasty.Golden
 import Test.Tasty.Hedgehog
@@ -53,10 +56,10 @@ import Test.Tasty.Options
 
 main :: IO ()
 main = do
-  plcFiles <- findByExtension [".plc"] "plutus-core/test/data"
-  rwFiles <- findByExtension [".plc"] "plutus-core/test/scopes"
-  typeFiles <- findByExtension [".plc"] "plutus-core/test/types"
-  typeErrorFiles <- findByExtension [".plc"] "plutus-core/test/type-errors"
+  plcFiles <- findByExtNoGolden [".plc"] "plutus-core/test/data"
+  rwFiles <- findByExtNoGolden [".plc"] "plutus-core/test/scopes"
+  typeFiles <- findByExtNoGolden [".plc"] "plutus-core/test/types"
+  typeErrorFiles <- findByExtNoGolden [".plc"] "plutus-core/test/type-errors"
   defaultMainWithIngredients
     defaultIngredientsExtra
     (allTests plcFiles rwFiles typeFiles typeErrorFiles)
@@ -64,6 +67,13 @@ main = do
     defaultIngredientsExtra =
       includingOptions [Option $ Proxy @NEAT.GenMode, Option $ Proxy @NEAT.GenDepth]
         : defaultIngredients
+
+    isGolden :: FilePath -> Bool
+    isGolden path = ".golden." `isPrefixOf` takeExtensions path
+
+    findByExtNoGolden :: [String] -> FilePath -> IO [FilePath]
+    findByExtNoGolden exts dir =
+      filter (not . isGolden) <$> findByExtension exts dir
 
 propFlat :: Property
 propFlat = property $ do
@@ -166,7 +176,9 @@ errorgen :: (PrettyPlc a) => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcSimple
 
 asGolden :: TestFunction -> TestName -> TestTree
-asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
+asGolden f file = goldenVsString file (base ++ ".golden" ++ ext) (asIO f file)
+  where
+    (base, ext) = splitExtension file
 
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
@@ -257,5 +269,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Check.tests
     , NEAT.tests
     , Parser.tests
+    , Value.tests
     , test_utils
     ]

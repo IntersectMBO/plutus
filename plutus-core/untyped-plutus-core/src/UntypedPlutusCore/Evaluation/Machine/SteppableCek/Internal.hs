@@ -50,8 +50,7 @@ import PlutusPrelude
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn,
-                                                          transferArgStack)
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
@@ -59,8 +58,8 @@ import Control.Monad
 import Control.Monad.Primitive
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
+import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
-import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word (Word64)
 import GHC.TypeNats
@@ -84,7 +83,7 @@ data CekState uni fun ann =
     -- the next state is returning
     | Returning (Context uni fun ann) (CekValue uni fun ann)
     -- evaluation finished
-    | Terminating (NTerm uni fun ())
+    | Terminating (DischargeResult uni fun)
 
 instance Pretty (CekState uni fun ann) where
     pretty = \case
@@ -97,7 +96,8 @@ instance Pretty (CekState uni fun ann) where
 data Context uni fun ann
     = FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
-    | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFunConN ann !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
+    | FrameAwaitFunValueN ann !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
@@ -105,17 +105,6 @@ data Context uni fun ann
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (Context uni fun ann)
-
--- | Transfers an 'ArgStack' to a series of 'Context' frames.
-transferArgStack :: ann -> ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
-transferArgStack ann = go
-  where
-    go EmptyStack c           = c
-    go (ConsStack arg rest) c = go rest (FrameAwaitFunValue ann arg c)
-
--- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
-transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
-transferConstantSpine ann args ctx = foldr (FrameAwaitFunValue ann . VCon) ctx args
 
 computeCek
     :: forall uni fun ann s
@@ -158,7 +147,7 @@ computeCek !ctx !_ (Builtin _ bn) = do
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     pure $ case es of
-        (t : rest) -> Computing (FrameConstr ann env i rest EmptyStack ctx) env t
+        (t : rest) -> Computing (FrameConstr ann env i rest NilStack ctx) env t
         []         -> Returning ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
@@ -186,18 +175,31 @@ returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
     -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
     pure $ Computing (FrameAwaitArg (termAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
--- FIXME: add rule for VBuiltin once it's in the specification.
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1878):
+-- add rule for VBuiltin once it's in the specification.
 returnCek (FrameAwaitArg _ fun ctx) arg =
     applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameAwaitFunValue _ arg ctx) fun =
-    applyEvaluate ctx fun arg
+returnCek (FrameAwaitFunConN ann args ctx) fun =
+  case args of
+    SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
+    SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN ann rest ctx) fun (VCon arg)
+-- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+returnCek (FrameAwaitFunValueN ann args ctx) fun =
+    case args of
+      LastStackNonEmpty arg ->
+        applyEvaluate ctx fun arg
+      ConsStackNonEmpty arg rest ->
+        applyEvaluate (FrameAwaitFunValueN ann rest ctx) fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
-    let done' = ConsStack e done
     case todo of
-        (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        []             -> returnCek ctx $ VConstr i done'
+        (next : todo') ->
+          pure $ Computing (FrameConstr ann env i todo' (ConsStack e done) ctx) env next
+        []             ->
+          let go acc NilStack         = acc
+              go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
+          in pure $ Returning ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
     -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -208,13 +210,14 @@ returnCek (FrameCases ann env cs ctx) e = case e of
                     throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
-              let ctx' = transferArgStack ann args ctx
-              in computeCek ctx' env t
+          case args of
+            EmptyStack      -> computeCek ctx env t
+            MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
         Right (HeadOnly fX) -> pure $ Computing ctx env fX
-        Right (HeadSpine f xs) -> pure $ Computing (transferConstantSpine ann xs ctx) env f
+        Right (HeadSpine f xs) -> pure $ Computing (FrameAwaitFunConN ann xs ctx) env f
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
@@ -266,7 +269,7 @@ applyEvaluate !ctx (VLamAbs _ body env) arg =
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
 applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
-    let argTerm = dischargeCekValue arg
+    let argTerm = dischargeResultToTerm $ dischargeCekValue arg
         -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
         -- in a 'VBuiltin'.
         term' = Apply () term argTerm
@@ -286,7 +289,7 @@ runCekDeBruijn
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
+    -> CekReport cost NamedDeBruijn uni fun
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudget BStartup $ runIdentity $ cekStartupCost ?cekCosts
@@ -300,10 +303,10 @@ enterComputeCek
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
-    -> CekM uni fun s (NTerm uni fun ())
+    -> CekM uni fun s (DischargeResult uni fun)
 enterComputeCek ctx env term = iterToFinalState $ Computing ctx env term
  where
-   iterToFinalState :: CekState uni fun ann -> CekM uni fun s (NTerm uni fun ())
+   iterToFinalState :: CekState uni fun ann -> CekM uni fun s (DischargeResult uni fun)
    iterToFinalState = cekTrans
                       >=>
                       \case
@@ -386,7 +389,8 @@ contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
     FrameAwaitArg ann _ _       -> pure ann
     FrameAwaitFunTerm ann _ _ _ -> pure ann
-    FrameAwaitFunValue ann _ _  -> pure ann
+    FrameAwaitFunConN ann _ _  -> pure ann
+    FrameAwaitFunValueN ann _ _  -> pure ann
     FrameForce ann _            -> pure ann
     FrameConstr ann _ _ _ _ _   -> pure ann
     FrameCases ann _ _ _        -> pure ann
@@ -399,7 +403,8 @@ lenContext = go 0
       go !n = \case
               FrameAwaitArg _ _ k       -> go (n+1) k
               FrameAwaitFunTerm _ _ _ k -> go (n+1) k
-              FrameAwaitFunValue _ _ k  -> go (n+1) k
+              FrameAwaitFunConN _ _ k  -> go (n+1) k
+              FrameAwaitFunValueN _ _ k  -> go (n+1) k
               FrameForce _ k            -> go (n+1) k
               FrameConstr _ _ _ _ _ k   -> go (n+1) k
               FrameCases _ _ _ k        -> go (n+1) k
@@ -407,7 +412,8 @@ lenContext = go 0
 
 
 -- * Duplicated functions from Cek.Internal module
--- FIXME: share these functions with Cek.Internal
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1879):
+-- share these functions with Cek.Internal
 -- preliminary testing shows that sharing slows down original cek
 
 cekStepCost :: CekMachineCosts -> StepKind -> ExBudget
@@ -429,7 +435,7 @@ throwErrorDischarged
   => EvaluationError (MachineError fun) CekUserError
   -> CekValue uni fun ann
   -> CekM uni fun s x
-throwErrorDischarged err = throwErrorWithCause err . dischargeCekValue
+throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dischargeCekValue
 
 -- | Look up a variable name in the environment.
 lookupVarName
@@ -437,10 +443,11 @@ lookupVarName
        ThrowableBuiltins uni fun
     => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.indexOne` coerce varIx of
-        Nothing  ->
-          throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) (Var () varName)
-        Just val -> pure val
+    Env.contIndexOne
+        (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
+        pure
+        varEnv
+        (coerce varIx)
 
 -- | Take a possibly partial builtin application and
 --

@@ -15,9 +15,12 @@ module PlutusCore.Pretty.PrettyConst where
 
 import PlutusCore.Data
 import PlutusCore.Pretty.Readable
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 
 import Control.Lens hiding (List)
 import Data.ByteString qualified as BS
+import Data.Char qualified as Char
 import Data.Coerce
 import Data.List.NonEmpty
 import Data.Proxy
@@ -104,9 +107,19 @@ instance Show a => DefaultPrettyBy ConstConfig (PrettyAny a) where
 prettyConst :: PrettyConst a => RenderContext -> a -> Doc ann
 prettyConst = prettyBy . ConstConfig
 
--- This instance for String quotes control characters (which is what we want)
--- but also Unicode characters (\8704 and so on).
-deriving via PrettyAny T.Text  instance NonDefaultPrettyBy ConstConfig T.Text
+-- This instance for Text quotes control characters (which is what we want)
+-- but doesn't escape Unicode characters (\8704 and so on).
+instance NonDefaultPrettyBy ConstConfig T.Text where
+    nonDefaultPrettyListBy conf = Prettyprinter.list . Prelude.map (nonDefaultPrettyBy conf)
+    nonDefaultPrettyBy = inContextM $ \t -> pure $ pretty $ "\"" <> escape t <> "\""
+        where
+            escape = T.foldr' prettyChar ""
+            prettyChar c acc
+                | c == '"' = "\\\"" <> acc -- Not handled by 'showLitChar'
+                | c == '\\' = "\\\\" <> acc -- Not handled by 'showLitChar'
+                | Char.isPrint c = [c] <> acc
+                | otherwise = Char.showLitChar c acc
+
 deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
 deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
 deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer
@@ -145,6 +158,15 @@ instance PrettyBy ConstConfig Data where
         List ds     ->  "List" :| [prettyArg ds]
         I i         ->  ("I" <+> prettyArg i) :| []
         B b         ->  ("B" <+> prettyArg b) :| []
+
+instance PrettyBy ConstConfig Value.K where
+    prettyBy config = prettyBy config . Value.unK
+
+instance PrettyBy ConstConfig Value.Quantity where
+    prettyBy config = prettyBy config . Value.unQuantity
+
+instance PrettyBy ConstConfig Value where
+    prettyBy config = prettyBy config . Value.toList
 
 instance PrettyBy ConstConfig BS.ByteString where
     prettyBy _ b = "#" <> toBytes b

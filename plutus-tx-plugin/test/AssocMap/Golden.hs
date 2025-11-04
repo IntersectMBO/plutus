@@ -16,6 +16,7 @@
 -- CSE is very unstable and produces different output, likely depending on the version of either
 -- @unordered-containers@ or @hashable@.
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module AssocMap.Golden where
 

@@ -50,8 +50,8 @@ import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
-import Flat qualified
 import GHC.IO.Encoding (setLocaleEncoding)
+import PlutusCore.Flat qualified as Flat
 import System.Directory
 import System.FilePath
 import System.IO
@@ -79,7 +79,7 @@ getConfig limit = do
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
     case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
-      (_res, Cek.TallyingSt _ budget, _logs) ->
+      Cek.CekReport _res (Cek.TallyingSt _ budget) _logs ->
           let ExBudget (ExCPU cpu)(ExMemory mem) = budget
           in (fromSatInt cpu, fromSatInt mem)
 
@@ -119,12 +119,11 @@ evaluateCekLikeInProd
     -> Either
             (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
             (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
-evaluateCekLikeInProd evalCtx term = do
-    let (getRes, _, _) =
-            let -- The validation benchmarks were all created from PlutusV1 scripts
-                pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
-            in LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
-    getRes
+evaluateCekLikeInProd evalCtx term =
+    let -- The validation benchmarks were all created from PlutusV1 scripts
+        pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
+    in Cek.cekResultToEither . Cek._cekReportResult $
+        LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
 
 -- | Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
 -- Useful for benchmarking.

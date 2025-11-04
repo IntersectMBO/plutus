@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.49.0.0
+version:         1.54.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -80,15 +80,13 @@ library
     , containers
     , either
     , extra
-    , flat                   ^>=0.6
     , ghc
     , lens
-    , megaparsec
     , mtl
-    , plutus-core            ^>=1.49
+    , plutus-core            ^>=1.54
+    , plutus-core:flat
     , plutus-core:plutus-ir
-    , plutus-metatheory      ^>=1.49
-    , plutus-tx              ^>=1.49
+    , plutus-tx              ^>=1.54
     , prettyprinter
     , template-haskell
     , text
@@ -104,7 +102,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.49
+    , plutus-tx-plugin      ^>=1.54
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -190,14 +188,14 @@ test-suite plutus-tx-plugin-tests
     , containers
     , deepseq
     , filepath
-    , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.54
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.49
-    , plutus-tx-plugin                 ^>=1.49
+    , plutus-tx                        ^>=1.54
+    , plutus-tx-plugin                 ^>=1.54
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , serialise
@@ -225,13 +223,13 @@ test-suite size
   ghc-options:        -Wno-unused-packages
   type:               exitcode-stdio-1.0
   main-is:            Main.hs
-  hs-source-dirs:     test/size
+  hs-source-dirs:     test/AstSize
   build-depends:
     , base                             >=4.9   && <5.0
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.54
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.49
-    , plutus-tx-plugin                 ^>=1.49
+    , plutus-tx                        ^>=1.54
+    , plutus-tx-plugin                 ^>=1.54
     , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty

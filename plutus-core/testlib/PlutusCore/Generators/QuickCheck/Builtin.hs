@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
@@ -20,8 +21,13 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
+import PlutusCore.Generators.QuickCheck.Utils (uniqueVectorOf)
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 
 import Data.ByteString (ByteString, empty)
+import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Char8 qualified as BC
 import Data.Int
 import Data.Kind qualified as GHC
 import Data.Maybe
@@ -242,6 +248,98 @@ instance Arbitrary Data where
     arbitrary = arbitraryBuiltin
     shrink = shrinkBuiltin
 
+---------------Generator for Builtin Value---------------
+
+{-| Return how many candidates to randomly choose from to fill the given number of cells. For
+example, if we only need to fill a single cell, we choose from 6 different candidates, and if we
+need to fill 5 cells, we choose from 11 candidates.
+
+>>> map (\i -> (i, toCellCandidatesNumber i)) [1..13]
+[(1,6),(2,6),(3,6),(4,8),(5,11),(6,14),(7,18),(8,22),(9,27),(10,31),(11,36),(12,41),(13,46)]
+-}
+toCellCandidatesNumber :: Int -> Int
+toCellCandidatesNumber i = max 6 . floor @Double $ fromIntegral i ** 1.5
+
+{-| Generate a 'ByteString' by picking one of the predetermined ones, given a number of
+cells to fill (see 'toCellCandidatesNumber'). The idea is that we want to occasionally generate
+the same 'CurrencySymbol' or 'TokenName' for different 'Value's to have decent test coverage,
+hence to make name clashing more likely we pick from a predetermined set of
+'ByteString's. Otherwise the chance of generating the same 'ByteString' for two
+different 'Value's would be virtually zero.
+-}
+genShortHex :: Int -> Gen Value.K
+genShortHex i =
+  (Base16.encode . BC.pack . show <$> elements [0 .. toCellCandidatesNumber i])
+    `suchThatMap`
+    Value.k
+
+{-| Annotate each element of the give list with a @name@, given a function turning
+'ByteString' into names.
+-}
+uniqueNames :: (Eq name) => (Value.K -> name) -> [b] -> Gen [(name, b)]
+uniqueNames wrap ys = do
+  let len = length ys
+  -- We always generate unique 'CurrencySymbol's within a single 'Value' and 'TokenName' within a
+  -- single 'CurrencySymbol', because functions over 'Value' don't handle duplicated names anyway.
+  -- Note that we can generate the same 'TokenName' within different 'CurrencySymbol's within the
+  -- same 'Value'.
+  xs <- uniqueVectorOf len $ wrap <$> genShortHex len
+  pure $ zip xs ys
+
+instance ArbitraryBuiltin Value.K where
+  arbitraryBuiltin = arbitraryBuiltin `suchThatMap` Value.k
+
+instance Arbitrary Value.K where
+    arbitrary = arbitraryBuiltin
+    shrink = shrinkBuiltin
+
+instance ArbitraryBuiltin Value.Quantity where
+  arbitraryBuiltin =
+    chooseInteger (Value.unQuantity minBound, Value.unQuantity maxBound)
+      `suchThatMap` Value.quantity
+
+instance Arbitrary Value.Quantity where
+    arbitrary = arbitraryBuiltin
+    shrink = shrinkBuiltin
+
+{-| A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
+instance for @a@.
+-}
+newtype NoArbitrary a = NoArbitrary
+  { unNoArbitrary :: a
+  }
+
+-- | 'arbitrary' throws, 'shrink' neither throws nor shrinks.
+instance Arbitrary (NoArbitrary a) where
+  arbitrary = error "arbitrary @(NoArbitrary a)"
+  shrink _ = []
+
+instance ArbitraryBuiltin Value where
+  arbitraryBuiltin = do
+    -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
+    -- list of lists.
+    quantities <- multiSplit0 0.2 =<< arbitraryBuiltin
+    -- Generate 'TokenName's and 'CurrencySymbol's.
+    currencies <- uniqueNames id =<< traverse (uniqueNames id) quantities
+    case Value.fromList currencies of
+      BuiltinSuccess v           -> pure v
+      BuiltinSuccessWithLogs _ v -> pure v
+      BuiltinFailure logs _      -> error $ "Failed to generate valid Value: " <> show logs
+
+  shrinkBuiltin =
+    mapMaybe
+      ( \keys -> case Value.fromList keys of
+          BuiltinSuccess v           -> Just v
+          BuiltinSuccessWithLogs _ v -> Just v
+          BuiltinFailure{}           -> Nothing
+      )
+      . coerce (shrink @[(NoArbitrary Value.K, [(NoArbitrary Value.K, Value.Quantity)])])
+      . Value.toList
+
+instance Arbitrary Value where
+    arbitrary = arbitraryBuiltin
+    shrink = shrinkBuiltin
+
 instance ArbitraryBuiltin BLS12_381.G1.Element where
     arbitraryBuiltin =
       BLS12_381.G1.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
@@ -416,6 +514,7 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                , JustSomeType DefaultUniBLS12_381_G1_Element
                , JustSomeType DefaultUniBLS12_381_G2_Element
                , JustSomeType DefaultUniBLS12_381_MlResult
+               , JustSomeType DefaultUniValue
                ]
            SingType `SingKindArrow` SingType ->
                 [ genDefaultUniApply | size > 10 ]

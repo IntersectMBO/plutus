@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               cardano-constitution
-version:            1.49.0.0
+version:            1.54.0.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -86,10 +86,10 @@ library
     , base               >=4.9   && <5
     , containers
     , filepath
-    , plutus-core        ^>=1.49
-    , plutus-ledger-api  ^>=1.49
-    , plutus-tx          ^>=1.49
-    , plutus-tx-plugin   ^>=1.49
+    , plutus-core        ^>=1.54
+    , plutus-ledger-api  ^>=1.54
+    , plutus-tx          ^>=1.54
+    , plutus-tx-plugin   ^>=1.54
     , regex-tdfa
     , safe
     , template-haskell
@@ -132,10 +132,10 @@ test-suite cardano-constitution-test
     , containers
     , directory
     , filepath
-    , plutus-core                      ^>=1.49
+    , plutus-core                      ^>=1.54
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                ^>=1.49
-    , plutus-tx                        ^>=1.49
+    , plutus-ledger-api                ^>=1.54
+    , plutus-tx                        ^>=1.54
     , QuickCheck
     , serialise
     , tasty
@@ -152,4 +152,4 @@ executable create-json-envelope
   build-depends:
     , base
     , cardano-constitution
-    , plutus-ledger-api     ^>=1.49
+    , plutus-ledger-api     ^>=1.54

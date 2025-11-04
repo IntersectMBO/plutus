@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE ViewPatterns       #-}
 
 module PlutusTx.Eval where
 
@@ -21,7 +22,8 @@ import PlutusCore.Pretty
 import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import Prettyprinter (dot, indent, plural, vsep, (<+>))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CountingSt (..), counting,
+import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CekReport (..),
+                                                 CountingSt (..), cekResultToEither, counting,
                                                  logEmitter)
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
@@ -100,7 +102,7 @@ evaluateCompiledCode'
 evaluateCompiledCode' params code = EvalResult{..}
  where
   Program _ann _version term = getPlcNoAnn code
-  (evalResult, CountingSt evalResultBudget, evalResultTraces) =
+  CekReport (cekResultToEither -> evalResult) (CountingSt evalResultBudget) evalResultTraces =
     runCekDeBruijn params counting logEmitter term
 
 evaluatesToError :: CompiledCode a -> Bool

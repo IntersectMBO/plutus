@@ -3,6 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Spec.ScriptSize where
 
@@ -25,7 +26,8 @@ import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, assertEqual, assertFailure, testCase)
 import UntypedPlutusCore.Core.Type (progTerm)
-import UntypedPlutusCore.Evaluation.Machine.Cek (counting, noEmitter)
+import UntypedPlutusCore.Evaluation.Machine.Cek (_cekReportResult, cekResultToEither, counting,
+                                                 noEmitter)
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
 tests :: TestTree
@@ -37,7 +39,7 @@ tests =
         assertBool "Size V2 script" $ sizeV2 Haskell.< 100
     , testCase "V3 Script Size" do
         let sizeV3 = SBS.length (V3.serialiseCompiledCode codeV3)
-        assertBool "Size V3 script" $ sizeV3 Haskell.> 2000
+        assertBool "Size V3 script" $ sizeV3 Haskell.> 1700
     , testCase "V3 Script Size (lazy decoding)" do
         let sizeV3s = SBS.length (V3.serialiseCompiledCode codeV3lazy)
         assertBool "Size V3 script with a lazy decoding" $ sizeV3s Haskell.< 100
@@ -196,8 +198,9 @@ dummyScriptContext =
 assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
 assertResult expectedResult code = do
   let plc = getPlc code ^. progTerm
-  case runCekDeBruijn defaultCekParametersForTesting counting noEmitter plc of
-    (Left ex, _counting, _logs) ->
+      tidy = cekResultToEither . _cekReportResult
+  case tidy $ runCekDeBruijn defaultCekParametersForTesting counting noEmitter plc of
+    Left ex ->
       assertFailure $ Haskell.show ex
-    (Right actualResult, _counting, _logs) ->
+    Right actualResult ->
       assertEqual "Evaluation has succeeded" expectedResult actualResult

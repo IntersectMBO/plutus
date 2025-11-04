@@ -60,6 +60,7 @@ echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF .
 2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-PR.log
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
+# merge-base finds the fork point, which is the true parent of the first PR commit.
 git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 

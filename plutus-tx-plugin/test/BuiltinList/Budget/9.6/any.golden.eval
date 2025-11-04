@@ -1,0 +1,6 @@
+CPU:                10_287_320
+Memory:                 59_318
+AST Size:                   96
+Flat Size:                 107
+
+(constr 0 (con bool True) (con bool False))

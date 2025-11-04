@@ -80,7 +80,7 @@ If you use Nix, these tools are provided for you via `nix develop`, and you do *
 [WARNING]
 ====
 * We rely on forked or new versions of some system libraries.
-** You can read the https://developers.cardano.org/docs/get-started/cardano-node/installing-cardano-node/[Cardano node documentation] to find out how to install these.
+** You can read the https://developers.cardano.org/docs/operate-a-stake-pool/node-operations/installing-cardano-node/[Cardano node documentation] to find out how to install these.
 * You may get different versions of packages.
 ** This *shouldn't* happen, but we can't guarantee it.
 * We are not currently enabling the Nix integration for these tools, so
@@ -612,7 +612,7 @@ We have two sources of CI checks at the moment:
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
 
-NOTE: This isn't strictly true: repository admins (notably Michael) can force-merge PRs without the checks being green
+NOTE: This isn't strictly true: repository admins (notably Lorenzo) can force-merge PRs without the checks being green
 If you really need this, ask.
 
 ==== Hydra
@@ -624,10 +624,10 @@ Hydra builds jobs based on the `hydraJobs` flake output.
 
 Hydra can be a bit flaky, unfortunately:
 - If evaluation fails saying "out of memory" or "unexpected EOF reading line", then this is likely a transient failure.
-These will be automatically retried, but if you're in a hurry Michael has permissions to force a new evaluation.
+These will be automatically retried, but if you're in a hurry Lorenzo has permissions to force a new evaluation.
 - If a build fails spuriously, this is a _problem_: please report it to whoever is responsible for that build and we should try and iron it out.
 Nondeterministic failures are very annoying.
-Michael also has permissions to restart failed builds.
+Lorenzo also has permissions to restart failed builds.
 
 ==== Docusaurus
 

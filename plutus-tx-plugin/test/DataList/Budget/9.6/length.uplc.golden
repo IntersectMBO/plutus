@@ -1,5 +1,0 @@
-(program
-   1.1.0
-   ((\go ds -> go ds)
-      ((\s -> s s)
-         (\s xs -> case xs [0, (\ds eta -> addInteger 1 (s s eta))]))))

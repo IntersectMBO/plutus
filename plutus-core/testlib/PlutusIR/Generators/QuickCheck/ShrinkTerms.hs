@@ -28,6 +28,7 @@ import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltinOf)
 import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)
+import PlutusCore.Value qualified as Value
 import PlutusIR
 import PlutusIR.Subst
 
@@ -119,6 +120,7 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go DefaultUniString                                                 = ""
     go DefaultUniByteString                                             = ""
     go DefaultUniData                                                   = I 0
+    go DefaultUniValue                                                  = Value.empty
     go (DefaultUniProtoList `DefaultUniApply` _)                        = []
     go (DefaultUniProtoArray `DefaultUniApply` _)                       = Vector.empty
     go (DefaultUniProtoPair `DefaultUniApply` a `DefaultUniApply` b)    = (go a, go b)

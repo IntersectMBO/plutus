@@ -5,12 +5,12 @@ import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
-import Common
 import Control.DeepSeq (force)
 import Control.Exception
 import Criterion
 import Data.ByteString as BS
 import Data.Functor
+import PlutusBenchmark.Validation.Common
 
 {-|
 for each data/*.flat validation script, it benchmarks

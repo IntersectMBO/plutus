@@ -1,22 +1,25 @@
-{-# LANGUAGE BlockArguments         #-}
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE BlockArguments           #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DefaultSignatures        #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE FunctionalDependencies   #-}
+{-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 
-{-# LANGUAGE StrictData             #-}
+{-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.KnownType
     ( BuiltinError
+    , GEqL (..)
+    , LoopBreaker (..)
     , KnownBuiltinTypeIn
     , KnownBuiltinType
     , BuiltinResult (..)
@@ -48,6 +51,7 @@ import Control.Monad.Except
 import Data.Bifunctor
 import Data.Either.Extras
 import Data.Functor.Identity
+import Data.Kind qualified as GHC
 import Data.String
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
@@ -55,10 +59,44 @@ import Prettyprinter
 import Text.PrettyBy.Internal
 import Universe
 
+-- | A version of 'GEq' that fixes @a@ in place, which allows us to create an inlinable recursive
+-- implementation of 'geqL'.
+--
+-- The way it works is that whenever there's recursion, we look up the recursive case in the current
+-- context (i.e. the dictionary) instead of actually calling 'geqL' recursively (even though it's
+-- gonna look like we do exactly that, because there's no way to distinguish between a recursive
+-- call and a dictionary lookup as the two share the same name, although to help GHC choose a lookup
+-- we sprinkle the perhaps unreliable 'LoopBreaker' in the 'DefaultUni' instance of this class).
+--
+-- Alligning things this way allows us to inline arbitrarily deep recursion for as long as types
+-- keep being monomorphic.
+--
+-- For example, the 'MapData' builtin accepts a @[(Data, Data)]@ and with 'geqL' matching on all of
+-- 'DefaultUniProtoList', 'DefaultUniProtoPair' and 'DefaultUniData' gets inlined in the denotation
+-- of the builtin. For the 'Constr' builtin that resulted in a 4.3% speedup at the time this comment
+-- was written.
+type GEqL :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
+class GEqL f a where
+    geqL :: f (Esc a) -> f (Esc b) -> EvaluationResult (a :~: b)
+
+-- | In @f = ... f ...@ where @f@ is a class method, how do you know if @f@ is going to be a
+-- recursive call or a type class method call? If both type check, then you don't really know how
+-- GHC is going to play it. So we add this data type to make sure that the RHS @f@ will have to
+-- become a type class method call.
+--
+-- Can GHC turn that method call into a recursive one once type classes are resolved? Dunno, but at
+-- least we've introduced an obstacle preventing GHC from immediately creating a non-inlinable
+-- recursive definition.
+newtype LoopBreaker uni a = LoopBreaker (uni a)
+
+instance GEqL uni a => GEqL (LoopBreaker uni) a where
+    geqL = coerce $ geqL @uni
+    {-# INLINE geqL #-}
+
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
 type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
+    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEqL uni a, uni `HasTermLevel` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".
@@ -262,8 +300,8 @@ typeMismatchError uniExp uniAct =
 -- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
 -- make 'ReadKnownM' a type synonym for convenience: that way we don't need to derive all the
 -- instances (and add new ones whenever we need them), wrap and unwrap all the time (including in
--- user code), which can be non-trivial for such performance-sensitive code (see e.g. 'coerceVia'
--- and 'coerceArg') and there is no abstraction barrier anyway.
+-- user code), which can be non-trivial for such performance-sensitive code (see e.g. '(#.)' and
+-- 'coerceArg') and there is no abstraction barrier anyway.
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either BuiltinError
 
@@ -277,9 +315,10 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- 'geq' matches on its first argument first, so we make the type tag that will be known
         -- statically (because this function will be inlined) go first in order for GHC to
         -- optimize some of the matching away.
-        case uniExp `geq` uniAct of
-            Just Refl -> pure x
-            Nothing   -> throwError $ BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
+        case uniExp `geqL` uniAct of
+            EvaluationSuccess Refl -> pure x
+            EvaluationFailure ->
+                throwError . BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
@@ -385,7 +424,8 @@ makeKnownOrFail x = case makeKnown x of
 readKnownSelf
     :: (ReadKnown val a, BuiltinErrorToEvaluationError structural operational)
     => val -> Either (ErrorWithCause (EvaluationError structural operational) val) a
-readKnownSelf val = fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
+readKnownSelf val =
+    fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
@@ -424,7 +464,7 @@ instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
-    readKnown = coerceVia (fmap SomeConstant .) asConstant
+    readKnown = fmap SomeConstant #. asConstant
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where

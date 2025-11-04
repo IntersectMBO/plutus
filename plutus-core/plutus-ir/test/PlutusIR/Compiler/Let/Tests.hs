@@ -27,7 +27,8 @@ test_lets =
         , goldenPlcFromPir pTermAsProg "letDep"
         ]
 
--- FIXME: this fails because some of the let passes expect certain things to be
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1876):
+-- this fails because some of the let passes expect certain things to be
 -- gone, e.g. non-strict bindings. We should a) add pre-/post-conditions for these,
 -- and b) set up the tests to establish what is needed
 test_propLets :: TestTree

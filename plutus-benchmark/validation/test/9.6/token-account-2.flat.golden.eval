@@ -1,0 +1,6 @@
+CPU:               355_866_023
+Memory:              1_826_496
+AST Size:                4_181
+Flat Size:               4_117
+
+(delay (lam i i))

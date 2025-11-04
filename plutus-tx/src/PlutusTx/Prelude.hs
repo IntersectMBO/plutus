@@ -119,7 +119,6 @@ module PlutusTx.Prelude (
   round,
 
   -- * Other builtin Types
-  BI.BuiltinBool,
   BuiltinData,
   BI.BuiltinList,
   BI.BuiltinPair,
@@ -234,7 +233,7 @@ modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
 {-# INLINEABLE modulo #-}
 
--- | FIXME
+-- | FIXME (https://github.com/IntersectMBO/plutus-private/issues/1729)
 expMod :: Integer -> Integer -> Integer -> Integer
 expMod = Builtins.expModInteger
 {-# INLINEABLE expMod #-}

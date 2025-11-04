@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall #-}
+
 module FFI.SimplifierTrace (
     mkFfiSimplifierTrace,
 ) where

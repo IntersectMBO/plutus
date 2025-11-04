@@ -1,8 +1,0 @@
-(program
-   1.1.0
-   (\xs ->
-      case
-        xs
-        [ (\ds -> (\x -> error) (force trace "PT23" (constr 0 [])))
-        , (\x xs ds -> x) ]
-        (constr 0 [])))

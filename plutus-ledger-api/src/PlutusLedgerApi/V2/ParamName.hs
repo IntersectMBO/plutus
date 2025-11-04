@@ -190,6 +190,8 @@ data ParamName =
   | VerifySchnorrSecp256k1Signature'cpu'arguments'intercept
   | VerifySchnorrSecp256k1Signature'cpu'arguments'slope
   | VerifySchnorrSecp256k1Signature'memory'arguments
+  -- End of original cost model parameters
+  -- `integerToByteString` and `byteStringToInteger` enabled in V2 at Plomin
   | IntegerToByteString'cpu'arguments'c0
   | IntegerToByteString'cpu'arguments'c1
   | IntegerToByteString'cpu'arguments'c2
@@ -200,5 +202,123 @@ data ParamName =
   | ByteStringToInteger'cpu'arguments'c2
   | ByteStringToInteger'memory'arguments'intercept
   | ByteStringToInteger'memory'arguments'slope
+  -- Remaining parameters to be deployed in PV11
+  | CekConstrCost'exBudgetCPU
+  | CekConstrCost'exBudgetMemory
+  | CekCaseCost'exBudgetCPU
+  | CekCaseCost'exBudgetMemory
+  | Bls12_381_G1_add'cpu'arguments
+  | Bls12_381_G1_add'memory'arguments
+  | Bls12_381_G1_compress'cpu'arguments
+  | Bls12_381_G1_compress'memory'arguments
+  | Bls12_381_G1_equal'cpu'arguments
+  | Bls12_381_G1_equal'memory'arguments
+  | Bls12_381_G1_hashToGroup'cpu'arguments'intercept
+  | Bls12_381_G1_hashToGroup'cpu'arguments'slope
+  | Bls12_381_G1_hashToGroup'memory'arguments
+  | Bls12_381_G1_neg'cpu'arguments
+  | Bls12_381_G1_neg'memory'arguments
+  | Bls12_381_G1_scalarMul'cpu'arguments'intercept
+  | Bls12_381_G1_scalarMul'cpu'arguments'slope
+  | Bls12_381_G1_scalarMul'memory'arguments
+  | Bls12_381_G1_uncompress'cpu'arguments
+  | Bls12_381_G1_uncompress'memory'arguments
+  | Bls12_381_G2_add'cpu'arguments
+  | Bls12_381_G2_add'memory'arguments
+  | Bls12_381_G2_compress'cpu'arguments
+  | Bls12_381_G2_compress'memory'arguments
+  | Bls12_381_G2_equal'cpu'arguments
+  | Bls12_381_G2_equal'memory'arguments
+  | Bls12_381_G2_hashToGroup'cpu'arguments'intercept
+  | Bls12_381_G2_hashToGroup'cpu'arguments'slope
+  | Bls12_381_G2_hashToGroup'memory'arguments
+  | Bls12_381_G2_neg'cpu'arguments
+  | Bls12_381_G2_neg'memory'arguments
+  | Bls12_381_G2_scalarMul'cpu'arguments'intercept
+  | Bls12_381_G2_scalarMul'cpu'arguments'slope
+  | Bls12_381_G2_scalarMul'memory'arguments
+  | Bls12_381_G2_uncompress'cpu'arguments
+  | Bls12_381_G2_uncompress'memory'arguments
+  | Bls12_381_finalVerify'cpu'arguments
+  | Bls12_381_finalVerify'memory'arguments
+  | Bls12_381_millerLoop'cpu'arguments
+  | Bls12_381_millerLoop'memory'arguments
+  | Bls12_381_mulMlResult'cpu'arguments
+  | Bls12_381_mulMlResult'memory'arguments
+  | Keccak_256'cpu'arguments'intercept
+  | Keccak_256'cpu'arguments'slope
+  | Keccak_256'memory'arguments
+  | Blake2b_224'cpu'arguments'intercept
+  | Blake2b_224'cpu'arguments'slope
+  | Blake2b_224'memory'arguments
+  | AndByteString'cpu'arguments'intercept
+  | AndByteString'cpu'arguments'slope1
+  | AndByteString'cpu'arguments'slope2
+  | AndByteString'memory'arguments'intercept
+  | AndByteString'memory'arguments'slope
+  | OrByteString'cpu'arguments'intercept
+  | OrByteString'cpu'arguments'slope1
+  | OrByteString'cpu'arguments'slope2
+  | OrByteString'memory'arguments'intercept
+  | OrByteString'memory'arguments'slope
+  | XorByteString'cpu'arguments'intercept
+  | XorByteString'cpu'arguments'slope1
+  | XorByteString'cpu'arguments'slope2
+  | XorByteString'memory'arguments'intercept
+  | XorByteString'memory'arguments'slope
+  | ComplementByteString'cpu'arguments'intercept
+  | ComplementByteString'cpu'arguments'slope
+  | ComplementByteString'memory'arguments'intercept
+  | ComplementByteString'memory'arguments'slope
+  | ReadBit'cpu'arguments
+  | ReadBit'memory'arguments
+  | WriteBits'cpu'arguments'intercept
+  | WriteBits'cpu'arguments'slope
+  | WriteBits'memory'arguments'intercept
+  | WriteBits'memory'arguments'slope
+  | ReplicateByte'cpu'arguments'intercept
+  | ReplicateByte'cpu'arguments'slope
+  | ReplicateByte'memory'arguments'intercept
+  | ReplicateByte'memory'arguments'slope
+  | ShiftByteString'cpu'arguments'intercept
+  | ShiftByteString'cpu'arguments'slope
+  | ShiftByteString'memory'arguments'intercept
+  | ShiftByteString'memory'arguments'slope
+  | RotateByteString'cpu'arguments'intercept
+  | RotateByteString'cpu'arguments'slope
+  | RotateByteString'memory'arguments'intercept
+  | RotateByteString'memory'arguments'slope
+  | CountSetBits'cpu'arguments'intercept
+  | CountSetBits'cpu'arguments'slope
+  | CountSetBits'memory'arguments
+  | FindFirstSetBit'cpu'arguments'intercept
+  | FindFirstSetBit'cpu'arguments'slope
+  | FindFirstSetBit'memory'arguments
+  | Ripemd_160'cpu'arguments'intercept
+  | Ripemd_160'cpu'arguments'slope
+  | Ripemd_160'memory'arguments
+  -- To be deployed in PV11
+  | ExpModInteger'cpu'arguments'coefficient00
+  | ExpModInteger'cpu'arguments'coefficient11
+  | ExpModInteger'cpu'arguments'coefficient12
+  | ExpModInteger'memory'arguments'intercept
+  | ExpModInteger'memory'arguments'slope
+  | DropList'cpu'arguments'intercept
+  | DropList'cpu'arguments'slope
+  | DropList'memory'arguments
+  | LengthOfArray'cpu'arguments
+  | LengthOfArray'memory'arguments
+  | ListToArray'cpu'arguments'intercept
+  | ListToArray'cpu'arguments'slope
+  | ListToArray'memory'arguments'intercept
+  | ListToArray'memory'arguments'slope
+  | IndexArray'cpu'arguments
+  | IndexArray'memory'arguments
+  | Bls12_381_G1_multiScalarMul'cpu'arguments'intercept
+  | Bls12_381_G1_multiScalarMul'cpu'arguments'slope
+  | Bls12_381_G1_multiScalarMul'memory'arguments
+  | Bls12_381_G2_multiScalarMul'cpu'arguments'intercept
+  | Bls12_381_G2_multiScalarMul'cpu'arguments'slope
+  | Bls12_381_G2_multiScalarMul'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)

@@ -140,6 +140,7 @@ encoders $\E_1, \E_2, \E_3, \ldots$ and decoders $\D_1, \D_2, \D_3\ldots$.
 
 
 \subsection{Lists}
+\label{sec:flat:lists}
 Suppose that we have a set $X$ for which we have defined an encoder $\E_X$ and a
 decoder $\D_X$; we define an encoder $\Elist_X$ which encodes lists of elements
 of $X$ by emitting the encodings of the elements of the list, each preceded by a
@@ -155,57 +156,37 @@ $\bits{1}$ bit, then emitting a $\bits{0}$ bit to mark the end of the list.
 \Dlist_X(\bits{1} \cdot s) &= (s'', x \cdot l) \quad \text{if $D_X(s) = (s', x)$ and $\Dlist_X(s') = (s'', l).$}
 \end{align*}
 
-\subsection{Arrays}
-Arrays are encoded as a sequence of blocks of up to 255 elements.
-Each block is preceded by a single unsigned byte containing the count of elements in the block, 
-and the end of the encoding is marked by a zero-length block. 
-
-Let $X$ be the set of elements in the array for which we have defined an encoder $\E_X$ and a 
-decoder $\D_X$. We define an encoder $\Earray_X$ which encodes arrays of elements of $X$:
-
-$$
-\Earray_X(s, [x_1, \ldots, x_n]) =
-\begin{cases}
-  s \cdot \E_8(0) & \text{if } n = 0 \\
-  \text{let } k = \min(n, 255) \text{ in } \\
-  \Earray_X(s \cdot \E_8(k) \cdot \E_X(x_1) \cdots \E_X(x_k), [x_{k+1}, \ldots, x_n])
-    & \text{if } n > 0
-\end{cases}
-$$
-
-The corresponding decoder is given by:
-
-$$
-\Darray_X(s) =
-\begin{cases}
-  (s', []) & \text{if } \D_8(s) = (s', 0) \\
-  \text{let } (s', k) = \D_8(s) \text{ in } \\
-  \text{let } (s'', x_1) = \D_X(s') \text{ and } \ldots \text{ and } (s^{(k)}, x_k) = \D_X(s^{(k-1)}) \text{ in } \\
-  \text{let } (s''', l) = \Darray_X(s^{(k)}) \text{ in } \\
-  (s''', [x_1, \ldots, x_k] \cdot l) & \text{if } 1 \leq k \leq 255
-\end{cases}
-$$
-
-The decoder reads the initial byte to determine the length of the subsequent block. 
-If the length $k$ is greater than 0 and no more bytes are available to decode $k$ 
-elements of type $X$, the decoder would fail as per the general behaviour of decoders 
-described in Section~\ref{sec:encoding-and-decoding}. 
-The concatenation of the decoded block $[x_1, \ldots, x_k]$ with the recursively 
-decoded list $l$ (from the remainder $s^{(k)}$) forms the final result.
-
 \subsection{Natural numbers}
-We encode natural numbers by splitting their binary representations into
-sequences of 7-bit blocks, then emitting these as a list with the \textbf{least
-  significant block first}:
+Every natural number $m$ can be uniquely written in the form
 
 $$
-\E_{\N} (s, \sum_{i=0}^{n-1}k_i2^{7i}) = \Elist_7(s, [k_0, \ldots, k_{n-1}])
+m = \sum_{i=0}^{n}k_i2^{7i}
 $$
-\noindent(where $k_i \in \Z$ and $0 \leq k_i \leq 127$).
+with $n \geq 0$, $0 \leq k_i \leq 127$ for $0 \leq i \leq n$, and $k_n \ne 0$.
+Each $k_i$ is 7 bit binary block, $k_0$ being the least significant block.
+
+\medskip
+\noindent With this representation, the encoder for natural numbers is 
+
+$$
+\E_{\N} (s, \sum_{i=0}^{n}k_i2^{7i}) =
+\begin{cases}
+  \E_7(\Elist_7(s, []), k_{0}) & \text{if } n = 0 \\
+  \E_7(\Elist_7(s, [k_0, \ldots, k_{n-1}]), k_{n}) & \text{if } n \ne 0.
+\end{cases}
+$$
+
 \noindent The decoder is
 $$
-\D_{\N}(s) = (s', \sum_{i=0}^{n-1}k_i2^{7i}) \quad \text{if $\Dlist_7(s) = (s', [k_0, \ldots, k_{n-1}])$}.
+\D_{\N}(s) =
+\begin{cases}
+  D_7(s') & \text{if $\Dlist_7(s) = (s',[])$} \\
+  (s'', \sum_{i=0}^{n}k_i2^{7i}) & \text{if $\Dlist_7(s) = (s', [k_0, \ldots, k_{n-1}])$ and $\D_7(s') = (s'', k_{n})$ with $n\geq 1$}.
+\end{cases}
 $$
+
+\noindent Intuitively, every 7 bit block except for the last one is prefixed by 1
+and the last block is prefixed by 0.
 
 \subsection{Integers}
 Signed integers are encoded by converting them to natural numbers using the
@@ -448,7 +429,7 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
   \Dterm(\bits{0111} \cdot s)  &= (s', \Builtin{b}) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
   \Dterm(\bits{1000} \cdot s)  &= (s'', \Constr{i}{l}) &&\quad \text{if } \D_{\N}(s) = (s', i)\ \text{and}\ i < 2^{64} &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)\\
-  \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
+  \Dterm(\bits{1001} \cdot s)  &= (s'', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
 \paragraph{NOTE.} The decoder $\Dterm$ should fail if we are decoding a program
@@ -516,7 +497,7 @@ denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
 \begin{alignat*}{3}
  &\dtype(0 \cdot l) &&= (l, \ty{integer})    \\
  &\dtype(1 \cdot l) &&= (l, \ty{bytestring}) \\
- &\dtype(2 \cdot l) &&= (l, \ty{string}))    \\
+ &\dtype(2 \cdot l) &&= (l, \ty{string})    \\
  &\dtype(3 \cdot l) &&= (l, \ty{unit})       \\
  &\dtype(4 \cdot l) &&= (l, \ty{bool})       \\
  &\dtype([7,5] \cdot l) &&= (l', \listOf{t}) &&\quad \text{if $\dtype(l) = (l', t)$}\\
@@ -544,26 +525,7 @@ $$
 \subsection{Constants}
 \label{sec:flat-constants}
 Values of built-in types can mostly be encoded quite simply by using encoders
-already defined.  Note that the unit value \texttt{(con unit ())} does not have
-an explicit encoding: the type has only one possible value, so there is no need
-to use any space to serialise it.
-
-The $\ty{data}$ type is encoded by converting to a bytestring using the CBOR
-encoder $\eData$ described in Appendix~\ref{appendix:data-cbor-encoding} and
-then using $\E_{\B^*}$.  The decoding process is the opposite of this: a
-bytestring is obtained using $\D_{\B^*}$ and this is then decoded from CBOR
-using $\dData$ to obtain a $\ty{data}$ object.
-
-We do not provide serialisation and deserialisation for constants of type
-$\ty{bls12\_381\_G1\_element}$, $\ty{bls12\_381\_G2\_element}$, or
-$\ty{bls12\_381\_mlresult}$.  We have specified tags for these types, but if one
-of these tags is encountered during deserialisation then deserialisation fails
-and any subsequent input is ignored.  Note however that constants of the first
-two types can be serialised by using the compression functions defined in
-Section~\ref{sec:bls-builtins-4} and serialising the resulting bytestrings.
-Decoding can similarly be performed indirectly by using
-\texttt{bls12\_381\_G1\_uncompress} and \texttt{bls12\_381\_G2\_uncompress} on
-bytestring constants during program execution.
+already defined:
 
 \begin{alignat*}{2}
   & \Econstant{\ty{integer}}(s,n)                  &&= \E_{\Z}(s, n) \\
@@ -573,7 +535,7 @@ bytestring constants during program execution.
   & \Econstant{\ty{bool}}(s, \texttt{False})       &&= s \cdot \bits{0}\\
   & \Econstant{\ty{bool}}(s, \texttt{True})        &&= s \cdot \bits{1}\\
   & \Econstant{\listOf{\tn}}(s,l)                  &&= \Elist^{\tn}_{\mathsf{constant}}(s, l) \\
-  & \Econstant{\arrayOf{\tn}}(s,l)                 &&= \Earray^{\tn}_{\mathsf{constant}}(s, l) \\
+  & \Econstant{\arrayOf{\tn}}(s,a)                 &&= \Earray^{\tn}_{\mathsf{constant}}(s, a) \\
   & \Econstant{\pairOf{\tn_1}{\tn_2}}(s,(c_1,c_2)) &&= \Econstant{\tn_2}(\Econstant{\tn_1}(s, c_1), c_2)\\
   & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d))
 \end{alignat*}
@@ -585,8 +547,8 @@ bytestring constants during program execution.
   &\dConstant{\ty{unit}}(s)                 &&= s  \\
   &\dConstant{\ty{bool}}(\bits{0} \cdot s)  &&= (s, \texttt{False}) \\
   &\dConstant{\ty{bool}}(\bits{1} \cdot s)  &&= (s, \texttt{True}) \\
-  &\dConstant{\listOf{\tn}}(s)              &&= \Dlist^{\tn}_{\mathsf{constant}}(s, l) \\
-  &\dConstant{\arrayOf{\tn}}(s)             &&= \Darray^{\tn}_{\mathsf{constant}}(s, l) \\
+  &\dConstant{\listOf{\tn}}(s)              &&= \Dlist^{\tn}_{\mathsf{constant}}(s) \\
+  &\dConstant{\arrayOf{\tn}}(s)             &&= \Darray^{\tn}_{\mathsf{constant}}(s) \\
   &\dConstant{\pairOf{\tn_1}{\tn_2}}(s)     &&= (s'', (c_1, c_2))
   && \begin{cases}
        \text{if}  & \dConstant{\tn_1}(s) = (s', c_1) \\
@@ -594,8 +556,39 @@ bytestring constants during program execution.
      \end{cases}\\
   &\dConstant{\ty{data}}(s)                  &&= (s', d) &&
                                            \text{if $\D_{\B*}(s) = (s', t)$
-                                            and $\dData(t) = (t', d)$ for some $t'$}
+                                            and $\dData(t) = (t', d)$ for some $t'$}.
 \end{alignat*}
+
+\paragraph{Units.} The unit value \texttt{(con unit ())} does not have
+an explicit encoding: the type has only one possible value, so there is no need
+to use any space to serialise it.
+
+\paragraph{Data.} The $\ty{data}$ type is encoded by converting to a bytestring using the CBOR
+encoder $\eData$ described in Appendix~\ref{appendix:data-cbor-encoding} and
+then using $\E_{\B^*}$.  The decoding process is the opposite of this: a
+bytestring is obtained using $\D_{\B^*}$ and this is then decoded from CBOR
+using $\dData$ to obtain a $\ty{data}$ object.
+
+\paragraph{Arrays.} Arrays use the same encoders and decoders as lists (see
+Section~\ref{sec:flat:lists}): given a set $X$ for which we have defined an
+encoder $\E_X$ and a decoder $\D_X$, arrays of elements of $X$ are encoded using
+$\Elist_X$ and decoded using $\Dlist_X$.  In practice the run-time
+implementations of lists and arrays may differ and some extra work may be
+required to convert arrays to lists before encoding and lists to arrays after
+decoding.
+
+\paragraph{BLS12-381 elements.}
+We do not provide serialisation and deserialisation methods for constants of type
+$\ty{bls12\_381\_G1\_element}$, $\ty{bls12\_381\_G2\_element}$, or
+$\ty{bls12\_381\_mlresult}$.  We have specified tags for these types, but if one
+of these tags is encountered during deserialisation then deserialisation fails
+and any subsequent input is ignored.  Note however that constants of the first
+two types can be serialised by using the compression functions defined in
+Section~\ref{sec:bls-builtins-4} and serialising the resulting bytestrings.
+Decoding can similarly be performed indirectly by using
+\texttt{bls12\_381\_G1\_uncompress} and \texttt{bls12\_381\_G2\_uncompress} on
+bytestring constants during program execution.
+
 
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
@@ -742,12 +735,14 @@ and forth between builtin names and their tags.
   \Strut
   Builtin & Binary & Decimal\\
   \hline
- \TT{expModInteger}   & $\bits{1010111}$  & 87 \\
- \TT{dropList}        & $\bits{1011000}$  & 88 \\
- \TT{lengthOfArray}   & $\bits{1011001}$  & 89 \\
- \TT{listToArray}     & $\bits{1011010}$  & 90 \\
- \TT{indexArray}      & $\bits{1011011}$  & 91 \\
-\hline
+  \TT{expModInteger}                  & $\bits{1010111}$  & 87 \\
+  \TT{dropList}                       & $\bits{1011000}$  & 88 \\
+  \TT{lengthOfArray}                  & $\bits{1011001}$  & 89 \\
+  \TT{listToArray}                    & $\bits{1011010}$  & 90 \\
+  \TT{indexArray}                     & $\bits{1011011}$  & 91 \\
+  \TT{bls12\_381\_G1\_multiScalarMul} & $\bits{1011100}$  & 92 \\
+  \TT{bls12\_381\_G2\_multiScalarMul} & $\bits{1011101}$  & 93 \\
+  \hline
 \end{tabular}
 \caption{Tags for built-in functions (Batch 6)}
 \label{table:builtin-tags-batch-6}

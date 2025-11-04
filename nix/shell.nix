@@ -2,6 +2,7 @@
 
 let
 
+  # Toolchain versions used in dev shells. Consumed by `project.shellFor`.
   tools = project.tools {
     # "latest" cabal would be 3.14.1.0 which breaks haddock generation.
     # TODO update cabal version once haddock generation is fixed upstream.
@@ -14,6 +15,7 @@ let
     stylish-haskell = "latest";
   };
 
+  # Pre-commit hooks for the repo. Injects into shell via shellHook.
   pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
     src = ../.;
     hooks = {
@@ -63,12 +65,14 @@ let
     };
   };
 
+  # Add extra Linux-only packages to the dev shell here.
   linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
     pkgs.papi
+    pkgs.util-linux
   ];
 
+  # Common packages/tools available in all shells.
   common-pkgs = [
-    pkgs.ghcid
     agda-tools.agda
     agda-tools.agda-with-stdlib
     agda-tools.agda-mode
@@ -86,6 +90,7 @@ let
     tools.hlint
     tools.cabal-fmt
 
+    pkgs.ghcid
     pkgs.texliveFull
     pkgs.jekyll
     pkgs.plantuml
@@ -110,10 +115,12 @@ let
     pkgs.nodejs_20
   ];
 
+  # Locale archive setup for glibc hosts. Needed to fix cabal build issues on some hosts.
   locale-archive-hook =
     lib.optionalString (pkgs.stdenv.hostPlatform.libc == "glibc")
       "export LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive";
 
+  # Full developer shell with many tools.
   full-shell = project.shellFor {
     name = "plutus-shell-${project.args.compiler-nix-name}";
 
@@ -135,6 +142,7 @@ let
   };
 
 
+  # Lightweight shell with minimal tools.
   quick-shell = project.shellFor {
     name = "plutus-shell-${project.args.compiler-nix-name}";
     tools = { cabal = "latest"; };
@@ -146,6 +154,7 @@ let
   };
 
 
+  # Select shell by compiler used in the project variant.
   shell = {
     ghc967 = full-shell;
     ghc984 = quick-shell;

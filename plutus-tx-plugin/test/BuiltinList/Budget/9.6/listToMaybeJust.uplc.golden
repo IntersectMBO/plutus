@@ -1,1 +1,0 @@
-(program 1.1.0 (\xs -> case xs [(constr 1 []), (\x ds -> constr 0 [x])]))

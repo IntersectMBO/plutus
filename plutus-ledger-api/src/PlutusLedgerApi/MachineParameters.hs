@@ -1,7 +1,6 @@
 module PlutusLedgerApi.MachineParameters where
 
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.ProtocolVersions (futurePV)
 
 import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
@@ -16,7 +15,7 @@ machineParametersFor
   -> DefaultMachineParameters
 machineParametersFor ledgerLang majorPV =
   MachineParameters
-      (if majorPV < futurePV
+      (if majorPV < pv11PV
         then unavailableCaserBuiltin $ getMajorProtocolVersion majorPV
         else CaserBuiltin caseBuiltin)
       (mkMachineVariantParameters builtinSemVar $ cekCostModelForVariant builtinSemVar)

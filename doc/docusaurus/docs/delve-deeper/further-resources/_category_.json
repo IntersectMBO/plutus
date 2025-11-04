@@ -1,0 +1,8 @@
+{
+  "label": "Further Resources",
+  "position": 40,
+  "link": {
+    "type": "generated-index",
+    "description": "Essential resources for understanding Plutus Core, including the formal specification, Cardano Improvement Proposals (CIPs) related to Plutus, and academic papers on the Extended UTXO model and smart contract development."
+  }
+}

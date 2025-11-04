@@ -1,7 +1,7 @@
 # This workflow builds and deploys the Docusaurus site.
 # 
 # On pull requests, this workflow builds the site and deploys a temporary preview
-# to gh-pages.
+# to gh-pages, but only if the relevant files have changed.
 #
 # On push to master or on workflow dispatch it deploys the site to: 
 # https://plutus.cardano.intersectmbo.org/docs
@@ -15,6 +15,9 @@ on:
       - master 
   workflow_dispatch:
   pull_request:
+    paths:
+      - 'doc/docusaurus/**'
+      - '.github/workflows/docusaurus-site.yml'
 
 jobs:
   run:
@@ -27,7 +30,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.0
 
       - name: Build Site 
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -47,16 +50,17 @@ jobs:
         working-directory: doc/docusaurus
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}" 
-          # These match the URL expected by rossjrw/pr-preview-action@v1:
+          # These match the URL expected by rossjrw/pr-preview-action@v1.6.2:
           export DOCUSAURUS_URL="https://plutus.cardano.intersectmbo.org"
-          export DOCUSAURUS_BASE_URL="/pr-preview/pr-${PR_NUMBER}"
+          export DOCUSAURUS_BASE_URL="/pr-preview/docs/pr-${PR_NUMBER}"
           nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
       - name: Deploy Preview Site 
-        if: github.event_name == 'pull_request' && github.event.action != 'closed'
-        uses: rossjrw/pr-preview-action@v1
+        if: github.event_name == 'pull_request'
+        uses: rossjrw/pr-preview-action@v1.6.2
         with:
           source-dir: doc/docusaurus/build
+          umbrella-dir: pr-preview/docs
 
 
       

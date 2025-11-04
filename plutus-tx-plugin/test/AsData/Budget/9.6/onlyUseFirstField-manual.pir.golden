@@ -1,6 +1,0 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
-\(d : data) ->
-  unIData (headList {data} (sndPair {integer} {list data} (unConstrData d)))

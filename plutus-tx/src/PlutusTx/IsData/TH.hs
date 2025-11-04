@@ -14,10 +14,13 @@ module PlutusTx.IsData.TH (
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
   AsDataProdType (..),
+
+  fromDataClause,
 ) where
 
 import Data.Foldable as Foldable (foldl')
 import Data.Functor ((<&>))
+import Data.List qualified as Li
 import Data.Traversable (for)
 
 import Language.Haskell.TH qualified as TH
@@ -250,22 +253,46 @@ unsafeFromDataClause indexedCons = do
   argsName <- TH.newName "args"
   -- Call the clause for each constructor, falling through to the next one, until we get to the end in which case we call 'error'
   let
-    conCases :: [TH.MatchQ]
-    conCases = (fmap (\ixCon -> unsafeReconstructCase ixCon) indexedCons)
     finalCase :: TH.MatchQ
     finalCase = TH.match TH.wildP (TH.normalB [|traceError reconstructCaseError|]) []
-    cases = conCases ++ [finalCase]
-    kase :: TH.ExpQ
-    kase = TH.caseE [|($(TH.varE indexName), $(TH.varE argsName))|] cases
-  let body =
-        [|
-          -- See Note [Bang patterns in TH quotes]
-          let $(TH.bangP $ TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
-              $(TH.bangP $ TH.varP indexName) = BI.fst $(TH.varE tupName)
-              $(TH.bangP $ TH.varP argsName) = BI.snd $(TH.varE tupName)
-           in $kase
-          |]
-  TH.clause [TH.varP dName] (TH.normalB body) []
+
+    indexedConsSorted =
+      Li.sortBy (\(_, x) (_, y) -> compare x y) indexedCons
+
+    intCasingEligible =
+      let idxs = snd <$> indexedConsSorted
+      in [0..(length idxs - 1)] == idxs
+
+  if intCasingEligible
+    then do
+      let
+        kases =
+          TH.listE $
+            (\(conInfo, _) -> TH.lamCaseE [unsafeReconstructListCase conInfo, finalCase])
+            <$> indexedConsSorted
+        body =
+          [| BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
+               \($(TH.varP indexName)) ($(TH.varP argsName)) ->
+                 (caseInteger $(TH.varE indexName) $kases) $(TH.varE argsName)
+           |]
+
+      TH.clause [TH.varP dName] (TH.normalB body) []
+    else do
+      let
+        conCases :: [TH.MatchQ]
+        conCases = (fmap (\ixCon -> unsafeReconstructCase ixCon) indexedCons)
+        cases = conCases ++ [finalCase]
+        kase :: TH.ExpQ
+        kase = TH.caseE [|($(TH.varE indexName), $(TH.varE argsName))|] cases
+      let body =
+            [|
+              -- See Note [Bang patterns in TH quotes]
+              let $(TH.bangP $ TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
+                  $(TH.bangP $ TH.varP indexName) = BI.fst $(TH.varE tupName)
+                  $(TH.bangP $ TH.varP argsName) = BI.snd $(TH.varE tupName)
+               in $kase
+              |]
+      TH.clause [TH.varP dName] (TH.normalB body) []
 
 unsafeFromDataListClause :: TH.ConstructorInfo -> TH.Q TH.Clause
 unsafeFromDataListClause cons = do

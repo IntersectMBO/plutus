@@ -27,6 +27,7 @@ import Control.Monad.Except (modifyError)
 import Data.String (IsString (fromString))
 import Data.Text qualified as Text
 import Hedgehog (Gen, Property, forAll, property, tripping, (/==), (===))
+import Hedgehog.Gen qualified as Gen
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
@@ -53,9 +54,10 @@ test_DeBruijnInteresting =
 test_mangle :: TestTree
 test_mangle =
   testPropertyNamed "equality does not survive mangling" "equality_mangling" . property $ do
-    (term, termMangled) <- forAll . runAstGen $ do
+    (term, termMangled) <- forAll . runAstGen . Gen.justT $ do
       term <- AST.genTerm
-      (,) term <$> mangleNames term
+      mayTermMang <- mangleNames term
+      pure $ (,) term <$> mayTermMang
     term /== termMangled
     termMangled /== term
 

@@ -121,7 +121,10 @@ instance Ord Name where
 instance Hashable Name where
   hashWithSalt s = hashWithSalt s . _nameUnique
 
--- | A unique identifier
+{-| A unique identifier
+This is normally a positive integral number, except
+in `LetFloatOut.topUnique` where we make use of a negative unique to signify top-level.
+-}
 newtype Unique = Unique {unUnique :: Int}
   deriving stock (Eq, Show, Ord, Lift)
   deriving newtype (Enum, NFData, Pretty, Hashable)

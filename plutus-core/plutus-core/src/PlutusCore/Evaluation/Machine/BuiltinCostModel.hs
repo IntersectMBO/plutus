@@ -151,6 +151,7 @@ data BuiltinCostModelBase f =
     , paramBls12_381_G1_add                :: f ModelTwoArguments
     , paramBls12_381_G1_neg                :: f ModelOneArgument
     , paramBls12_381_G1_scalarMul          :: f ModelTwoArguments
+    , paramBls12_381_G1_multiScalarMul     :: f ModelTwoArguments
     , paramBls12_381_G1_equal              :: f ModelTwoArguments
     , paramBls12_381_G1_compress           :: f ModelOneArgument
     , paramBls12_381_G1_uncompress         :: f ModelOneArgument
@@ -159,6 +160,7 @@ data BuiltinCostModelBase f =
     , paramBls12_381_G2_neg                :: f ModelOneArgument
     , paramBls12_381_G2_scalarMul          :: f ModelTwoArguments
     , paramBls12_381_G2_equal              :: f ModelTwoArguments
+    , paramBls12_381_G2_multiScalarMul     :: f ModelTwoArguments
     , paramBls12_381_G2_compress           :: f ModelOneArgument
     , paramBls12_381_G2_uncompress         :: f ModelOneArgument
     , paramBls12_381_G2_hashToGroup        :: f ModelTwoArguments

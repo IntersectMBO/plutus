@@ -1,17 +1,14 @@
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module FFI.Untyped where
 
-import PlutusCore.Data hiding (Constr)
 import PlutusCore.Default
 import UntypedPlutusCore
 
-import Data.ByteString as BS hiding (map)
 import Data.Text as T hiding (map)
-import Data.Word (Word64)
 import GHC.Exts (IsList (..))
-import Universe
 
 -- Untyped (Raw) syntax
 
@@ -45,6 +42,7 @@ conv (Force _ t)     = UForce (conv t)
 conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))
 conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
 
+tmnames :: String
 tmnames = ['a' .. 'z']
 
 uconv ::  Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun ()
@@ -58,9 +56,9 @@ uconv i (ULambda t)  = LamAbs
   (NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex)
   (uconv (i+1) t)
 uconv i (UApp t u)     = Apply () (uconv i t) (uconv i u)
-uconv i (UCon c)       = Constant () c
-uconv i UError         = Error ()
-uconv i (UBuiltin b)   = Builtin () b
+uconv _ (UCon c)       = Constant () c
+uconv _ UError         = Error ()
+uconv _ (UBuiltin b)   = Builtin () b
 uconv i (UDelay t)     = Delay () (uconv i t)
 uconv i (UForce t)     = Force () (uconv i t)
 uconv i (UConstr j xs) = Constr () (fromInteger j) (fmap (uconv i) xs)

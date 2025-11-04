@@ -45,6 +45,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
+import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
@@ -57,11 +58,14 @@ import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Names (safeFreshName)
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Core.Type (Term (..))
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381_G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381_G2
 import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.StdLib.Data.Function qualified
@@ -635,24 +639,30 @@ hoistExpr var t = do
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
   maybeDef <- PIR.lookupTerm lexName
-  let addSpan = case getVarSourceSpan var of
+  let varSpan = getVarSourceSpan var
+      addSpan = case varSpan of
         Nothing  -> id
         Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
+      varSpanMsg = case varSpan of
+        Nothing  -> ""
+        Just src -> ", located at" GHC.<+> GHC.ppr src
   case maybeDef of
     Just term -> pure term
     -- See Note [Dependency tracking]
-    Nothing -> withCurDef lexName . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-      var' <- compileVarFresh ann var
-      -- See Note [Occurrences of recursive names]
-      PIR.defineTerm
-        lexName
-        (PIR.Def var' (PIR.mkVar var', PIR.Strict))
-        mempty
+    Nothing -> withCurDef lexName
+      . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var GHC.<> varSpanMsg)
+      $ do
+        var' <- compileVarFresh ann var
+        -- See Note [Occurrences of recursive names]
+        PIR.defineTerm
+          lexName
+          (PIR.Def var' (PIR.mkVar var', PIR.Strict))
+          mempty
 
-      t' <- maybeProfileRhs var var' =<< addSpan (compileExpr t)
-      -- See Note [Non-strict let-bindings]
-      PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
-      pure $ PIR.mkVar var'
+        t' <- maybeProfileRhs var var' =<< addSpan (compileExpr t)
+        -- See Note [Non-strict let-bindings]
+        PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
+        pure $ PIR.mkVar var'
 
 -- 'GHC.Var' in argument is only for extracting srcspan and accurate name.
 maybeProfileRhs
@@ -852,6 +862,37 @@ entryExitTracing lamName displayName e ty =
    an unfolding.
 -}
 
+compileHaskellList
+  :: forall uni fun m ann
+   . (CompilingDefault uni fun m ann)
+  => GHC.CoreExpr
+  -> m [PIRTerm uni fun]
+compileHaskellList = buildList . strip
+  where
+    err =
+      throwPlain $
+        CompilationError "Unexpected expression where a list constructor was expected"
+
+    -- This is when the list is a single element and GHC will specialize list builder directly.
+    -- GHC will generate core that looks like below:
+    -- (:) @resTy e ([] @resTy)
+    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = traverse compileExpr [e]
+    -- This is when the list has more than one elements. GHC will generate core that looks like below:
+    -- build @resTy (\con nil -> con e1 (con e2 (... nil)))
+    -- 'build' is some special function that abstracts the list type.
+    buildList (GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam con (GHC.Lam nil li)))) =
+      let
+        consume :: GHC.CoreExpr -> m [GHC.CoreExpr]
+        consume (GHC.App (GHC.App (GHC.Var con') e) rest)
+          | con' == con = (e:) <$> consume rest
+          | otherwise = err
+        consume (GHC.Var nil')
+          | nil' == nil = pure []
+          | otherwise = err
+        consume _ = err
+      in consume li >>= traverse compileExpr
+    buildList _ = err
+
 compileExpr :: (CompilingDefault uni fun m ann) => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
@@ -860,14 +901,16 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     , ccModBreaks = maybeModBreaks
     , ccBuiltinsInfo = binfo
     , ccSafeToInline = safeToInline
+    , ccOpts = opts
     } <-
     ask
 
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
-  builtinBoolTyCon <- lookupGhcTyCon ''BI.BuiltinBool
   builtinDataTyCon <- lookupGhcTyCon ''Builtins.BuiltinData
   builtinPairTyCon <- lookupGhcTyCon ''BI.BuiltinPair
+  builtinBLS12_G1_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G1_Element
+  builtinBLS12_G2_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G2_Element
   stringTyName <- lookupGhcName ''Builtins.BuiltinString
   stringToBuiltinStringName <- lookupGhcName 'Builtins.stringToBuiltinString
   builtinByteStringTyName <- lookupGhcName ''Builtins.BuiltinByteString
@@ -883,7 +926,25 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
 
+  caseIntegerName <- lookupGhcName 'Builtins.caseInteger
+  listIndexId <- lookupGhcId '(PlutusTx.List.!!)
+
   case e of
+    -- case integer
+    GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
+      | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
+        resTy' <- compileTypeNorm resTy
+        scrut' <- compileExpr scrut
+        branches <- compileHaskellList li
+        pure $ PIR.kase annAlwaysInline resTy' scrut' branches
+      | GHC.getName var == caseIntegerName ->
+        -- This is when we don't have bultin casing. We have to use something
+        -- else. Currently, it will use PlutusTx.List.!!, but this will be quite a bit
+        -- less efficient since it will also build the list and than index on the built
+        -- list.  Ideally, It is possible to have some custom PIR here that will generate
+        -- chain of if-statements so that can skip the list construction work if we want
+        -- to optimize more here.
+        compileExpr $ GHC.App (GHC.App (GHC.App (GHC.Var listIndexId) (GHC.Type resTy)) li) scrut
     {- Note [Lazy boolean operators]
       (||) and (&&) have a special treatment: we want them lazy in the second argument,
       as this is the behavior in Haskell and other PLs.
@@ -1033,8 +1094,11 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           GHC.TyConApp tyCon []
             | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
                 pure $ PLC.mkConstant annMayInline ([] @Integer)
-            | tyCon == builtinBoolTyCon -> pure $ PLC.mkConstant annMayInline ([] @Bool)
             | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
+            | tyCon == builtinBLS12_G1_TyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @BLS12_381_G1.Element)
+            | tyCon == builtinBLS12_G2_TyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @BLS12_381_G2.Element)
           GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
             | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
                 pure $ PLC.mkConstant annMayInline ([] @(PLC.Data, PLC.Data))
@@ -1300,7 +1364,6 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
 
         -- it's important to instantiate the match before alts compilation
         match <- getMatchInstantiated scrutineeType
-        let matched = PIR.Apply annMayInline match scrutinee'
 
         let (rest, mdef) = GHC.findDefault alts
         -- This does two things:
@@ -1341,9 +1404,8 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
         -- See Note [Scott encoding of datatypes]
         -- we're going to delay the body, so the matcher needs to be instantiated at the delayed type
         resultType <- maybeDelayType lazyCase originalResultType
-        let instantiated = PIR.TyInst annMayInline matched resultType
 
-        let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
+        let applied = match scrutinee' resultType branches
         -- See Note [Case expressions and laziness]
         mainCase <- maybeForce lazyCase applied
 
@@ -1556,7 +1618,11 @@ compileExprWithDefs
   => GHC.CoreExpr
   -> m (PIRTerm uni fun)
 compileExprWithDefs e = do
+  -- Order matters here. Generlly, Once that define types should go before anything that defines
+  -- terms. Otherwise, type definitions might get ignored if they appear in types of term definitions.
+  defineBoolType
   defineBuiltinTypes
+
   defineBuiltinTerms
   defineIntegerNegate
   defineFix

@@ -115,11 +115,10 @@ module PlutusCore
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
-    , termSize
-    , typeSize
-    , kindSize
-    , programSize
-    , serialisedSize
+    , termAstSize
+    , typeAstSize
+    , kindAstSize
+    , programAstSize
     ) where
 
 
@@ -130,7 +129,7 @@ import PlutusCore.DeBruijn
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.Ck
-import PlutusCore.Flat ()
+import PlutusCore.FlatInstances ()
 import PlutusCore.Name.Unique
 import PlutusCore.Name.UniqueMap
 import PlutusCore.Name.UniqueSet
@@ -138,7 +137,7 @@ import PlutusCore.Normalize
 import PlutusCore.Parser
 import PlutusCore.Quote
 import PlutusCore.Rename
-import PlutusCore.Size
+import PlutusCore.AstSize
 import PlutusCore.Subst
 import PlutusCore.TypeCheck as TypeCheck
 

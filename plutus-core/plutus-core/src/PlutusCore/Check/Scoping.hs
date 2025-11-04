@@ -18,10 +18,12 @@ import Data.Bifunctor
 import Data.Coerce
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
-import Data.Map.Strict as Map
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.Proxy
-import Data.Set as Set
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Text.Pretty
 import Text.PrettyBy
 

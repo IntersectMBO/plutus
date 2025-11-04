@@ -1,0 +1,30 @@
+CPU:                67_859_382
+Memory:                197_990
+AST Size:                  425
+Flat Size:                 455
+
+(constr
+  1
+  (constr 0 (con integer 105) (con integer 5))
+  (constr
+    1
+    (constr 0 (con integer 104) (con integer 48))
+    (constr
+      1
+      (constr 0 (con integer 103) (con integer 36))
+      (constr
+        1
+        (constr 0 (con integer 102) (con integer 2))
+        (constr
+          1
+          (constr 0 (con integer 101) (con integer 1))
+          (constr
+            1
+            (constr 0 (con integer 106) (con integer 66))
+            (constr 1 (constr 0 (con integer 107) (con integer 77)) (constr 0))
+          )
+        )
+      )
+    )
+  )
+)

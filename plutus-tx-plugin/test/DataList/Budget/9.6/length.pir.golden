@@ -1,9 +1,0 @@
-letrec
-  !go : list data -> integer
-    = \(xs : list data) ->
-        case
-          integer
-          xs
-          [0, (\(ds : data) (eta : list data) -> addInteger 1 (go eta))]
-in
-\(ds : (\a -> list data) integer) -> go ds

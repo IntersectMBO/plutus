@@ -22,7 +22,7 @@ check_links() {
 
 grep_links() {
     for file in $(find "${TARGETS[@]}"); do
-        grep -oE "\b(https?://|www\.)[^\[\(\)\"]+\b" "${file}"
+        grep -oE "\b(https?://|www\.)[^\[\(\)\"\ ]+\b" "${file}"
     done
 }
 

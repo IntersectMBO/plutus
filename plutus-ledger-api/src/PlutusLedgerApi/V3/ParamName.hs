@@ -313,19 +313,28 @@ data ParamName =
   | Ripemd_160'cpu'arguments'intercept
   | Ripemd_160'cpu'arguments'slope
   | Ripemd_160'memory'arguments
---  not enabled yet:
---   | ExpModInteger'cpu'arguments
---   | ExpModInteger'memory'arguments
---   | DropList'cpu'arguments'intercept
---   | DropList'cpu'arguments'slope
---   | DropList'memory'arguments'intercept
---   | DropList'memory'arguments'slope
---   | LengthOfArray'cpu'arguments
---   | LengthOfArray'memory'arguments
---   | ListToArray'cpu'arguments
---   | ListToArray'memory'arguments
---   | IndexArray'cpu'arguments
---   | IndexArray'memory'arguments
-
+  -- To be deployed in PV11
+  | ExpModInteger'cpu'arguments'coefficient00
+  | ExpModInteger'cpu'arguments'coefficient11
+  | ExpModInteger'cpu'arguments'coefficient12
+  | ExpModInteger'memory'arguments'intercept
+  | ExpModInteger'memory'arguments'slope
+  | DropList'cpu'arguments'intercept
+  | DropList'cpu'arguments'slope
+  | DropList'memory'arguments
+  | LengthOfArray'cpu'arguments
+  | LengthOfArray'memory'arguments
+  | ListToArray'cpu'arguments'intercept
+  | ListToArray'cpu'arguments'slope
+  | ListToArray'memory'arguments'intercept
+  | ListToArray'memory'arguments'slope
+  | IndexArray'cpu'arguments
+  | IndexArray'memory'arguments
+  | Bls12_381_G1_multiScalarMul'cpu'arguments'intercept
+  | Bls12_381_G1_multiScalarMul'cpu'arguments'slope
+  | Bls12_381_G1_multiScalarMul'memory'arguments
+  | Bls12_381_G2_multiScalarMul'cpu'arguments'intercept
+  | Bls12_381_G2_multiScalarMul'cpu'arguments'slope
+  | Bls12_381_G2_multiScalarMul'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)

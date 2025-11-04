@@ -267,13 +267,13 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{fstPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to a_\#$       & $(x,y) \mapsto x$ & No & \\[2mm]
     \TT{sndPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to b_\#$       & $(x,y) \mapsto y$ & No & \\[2mm]
     \TT{chooseList}               & $[\forall a_\#, \forall\star, \listOf{a_\#}, \star, \star] \to \star$
-                                              & \text{$([], t_1, t_2) \mapsto t_1$,} \text{$([x_1,\ldots,x_n],t_1,t_2) \mapsto t_2\ (n \geq 1)$}. & No & \\[2mm]
-    \TT{mkCons}                   & $[\forall a_\#, a_\#, \listOf{a_\#}] \to \listOf{a _\#}$  & $(x,[x_1,\ldots,x_n]) \mapsto [x,x_1,\ldots,x_n]$ & No & \\[2mm]
-    \TT{headList}                 & $[\forall a_\#, \listOf{a_\#}] \to a_\#$               & $[]\mapsto \errorX, [x_1,x_2, \ldots, x_n] \mapsto x_1$ & Yes & \\[2mm]
+                                              & \text{$([], t_1, t_2) \mapsto t_1$,} \text{$([x_1,\ldots,x_n],t_1,t_2) \mapsto t_2\ (n \geq 1)$}. & No & \ref{note:list-semantics}\\[2mm]
+    \TT{mkCons}                   & $[\forall a_\#, a_\#, \listOf{a_\#}] \to \listOf{a _\#}$  & $(x,[x_1,\ldots,x_n]) \mapsto [x,x_1,\ldots,x_n]$ & No & \ref{note:list-semantics}\\[2mm]
+    \TT{headList}                 & $[\forall a_\#, \listOf{a_\#}] \to a_\#$               & $[]\mapsto \errorX, [x_1,x_2, \ldots, x_n] \mapsto x_1$ & Yes & \ref{note:list-semantics}\\[2mm]
     \TT{tailList}                 & $[\forall a_\#, \listOf{a_\#}] \to \listOf{a_\#}$
-                                        &  \text{$[] \mapsto \errorX$,} \text{$ [x_1,x_2, \ldots, x_n] \mapsto [x_2, \ldots, x_n]$} & Yes & \\[2mm]
+                                        &  \text{$[] \mapsto \errorX$,} \text{$ [x_1,x_2, \ldots, x_n] \mapsto [x_2, \ldots, x_n]$} & Yes & \ref{note:list-semantics}\\[2mm]
     \TT{nullList}                 & $[\forall a_\#, \listOf{a_\#}] \to \ty{bool}$            & $ [] \mapsto \true,
-                                                                                                    [x_1,\ldots, x_n] \mapsto \false$ & No & \\[2mm]
+                                                                                                    [x_1,\ldots, x_n] \mapsto \false$ & No & \ref{note:list-semantics} \\[2mm]
     \TT{chooseData}               & $[\forall\star, \ty{data}, \star, \star, \star, \star, \star] \to \star$
     & $ (d,t_C, t_M, t_L, t_I, t_B) $
     \smallskip
@@ -476,4 +476,11 @@ any Plutus Core value) returns $v$.  We do not specify the semantics any
 further.  An implementation may choose to discard $s$ or to perform some
 side-effect such as writing it to a terminal or log file.
 
+\note{Semantics of lists.}
+\label{note:list-semantics}
+The mathematical denotation of lists is as finite seqeunces of elements.  We
+expect that in practice they will be implemented in such a way (for example as
+linked lists)
+that \texttt{chooseList}, \texttt{mkCons}, \texttt{headList}, \texttt{tailList},
+and \texttt{nullList} are all constant-time operations.
 \newpage

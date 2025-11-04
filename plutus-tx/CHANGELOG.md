@@ -1,4 +1,33 @@
 
+<a id='changelog-1.54.0.0'></a>
+# 1.54.0.0 — 2025-09-18
+
+## Added
+
+- Added the bls MSM built-in to plutus-core in #4255
+
+<a id='changelog-1.53.0.0'></a>
+# 1.53.0.0 — 2025-09-04
+
+## Added
+
+- Added Plinth builtin `caseInteger :: forall a. Integer -> [a] -> a`. Which will generate `Case` node that will case with the given integer as scrutinee and list as branches. This function expects it's second argument to be the Haskell list constructors. For example, `caseInteger 1 [1, 2, 3, 4]` will work, but `caseInteger 1 (id [1, 2, 3, 4])` won't work because the second argument is not a Haskell list constructor.
+
+<a id='changelog-1.51.0.0'></a>
+# 1.51.0.0 — 2025-07-30
+
+## Changed
+
+- Renamed `PlutusTx.Test.Util.compiledCodeToHask` to `PlutusTx.Test.Util.applyCodeN`
+- Renamed `PlutusTx.Test.Util.compiledCodeToHaskUnsafe` to `PlutusTx.Test.Util.unsafeApplyCodeN`
+
+<a id='changelog-1.50.0.0'></a>
+# 1.50.0.0 — 2025-07-22
+
+## Added
+
+- Module 'PlutusTx.Test.Util.Compiled' of the 'plutus-tx-testlib' package got a new function 'countFlatBytes' that counts the size of a 'CompiledCode' in Flat bytes.
+
 <a id='changelog-1.49.0.0'></a>
 # 1.49.0.0 — 2025-07-08
 

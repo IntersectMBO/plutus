@@ -1,1 +1,0 @@
-(program 1.1.0 (\xs -> case (force nullList xs) [(constr 1 []), (constr 0 [])]))

@@ -12,9 +12,9 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char (ord)
 import Data.Word
-import Flat
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
+import PlutusCore.Flat
 import PlutusCore.Generators.QuickCheck.Builtin ()
 import Test.Tasty
 import Test.Tasty.HUnit

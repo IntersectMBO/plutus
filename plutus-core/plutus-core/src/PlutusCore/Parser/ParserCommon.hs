@@ -1,4 +1,7 @@
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE RecursiveDo       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -11,6 +14,7 @@ import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (StateT, evalStateT)
 import Data.Map qualified as M
 import Data.Text (Text)
+import Data.Text qualified as Text
 import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
@@ -87,6 +91,69 @@ leadingWhitespace = (whitespace *>)
 trailingWhitespace :: Parser a -> Parser a
 trailingWhitespace = (<* whitespace)
 
+-- This is samething from @Text.Megaparsec.Stream@.
+reachOffsetNoLine' ::
+  forall s.
+  (Stream s) =>
+  -- | How to split input stream at given offset
+  (Int -> s -> (Tokens s, s)) ->
+  -- | How to fold over input stream
+  (forall b. (b -> Token s -> b) -> b -> Tokens s -> b) ->
+  -- | Newline token and tab token
+  (Token s, Token s) ->
+  -- | Offset to reach
+  -- | Increment in column position for a token
+  (Token s -> Pos) ->
+  Int ->
+  -- | Initial 'PosState' to use
+  PosState s ->
+  -- | Updated 'PosState'
+  PosState s
+reachOffsetNoLine'
+  splitAt'
+  foldl''
+  (newlineTok, tabTok)
+  columnIncrement
+  o
+  PosState {..} =
+    ( PosState
+        { pstateInput = post,
+          pstateOffset = max pstateOffset o,
+          pstateSourcePos = spos,
+          pstateTabWidth = pstateTabWidth,
+          pstateLinePrefix = pstateLinePrefix
+        }
+    )
+    where
+      spos = foldl'' go pstateSourcePos pre
+      (pre, post) = splitAt' (o - pstateOffset) pstateInput
+      go (SourcePos n l c) ch =
+        let c' = unPos c
+            w = unPos pstateTabWidth
+         in if
+              | ch == newlineTok ->
+                  SourcePos n (l <> pos1) pos1
+              | ch == tabTok ->
+                  SourcePos n l (mkPos $ c' + w - ((c' - 1) `rem` w))
+              | otherwise ->
+                  SourcePos n l (c <> columnIncrement ch)
+{-# INLINE reachOffsetNoLine' #-}
+
+getSourcePos' :: MonadParsec e Text m => m SourcePos
+getSourcePos' = do
+  st <- getParserState
+  let
+    pst =
+      reachOffsetNoLine'
+        Text.splitAt
+        Text.foldl'
+        ('\n', '\t')
+        (const pos1)
+        (stateOffset st)
+        (statePosState st)
+  setParserState st {statePosState = pst}
+  return (pstateSourcePos pst)
+
 {- | Returns a parser for @a@ by calling the supplied function on the starting
 and ending positions of @a@.
 
@@ -96,15 +163,15 @@ trailing whitespaces.
 -}
 withSpan' :: (SrcSpan -> Parser a) -> Parser a
 withSpan' f = mdo
-  start <- getSourcePos
+  start <- getSourcePos'
   res <- f sp
-  end <- getSourcePos
+  end <- getSourcePos'
   let sp = toSrcSpan start end
   pure res
 
 {- | Like `withSpan'`, but the result parser consumes whitespaces.
 
-@withSpan = (<* whitespace) . withSpan'
+@withSpan = (<* whitespace) . withSpan'@
 -}
 withSpan :: (SrcSpan -> Parser a) -> Parser a
 withSpan = (<* whitespace) . withSpan'

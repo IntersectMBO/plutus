@@ -35,8 +35,8 @@ import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
-import Flat (unflat)
 import Options.Applicative
+import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
 import System.Exit (ExitCode (..), exitFailure, exitSuccess, exitWith)
 import System.IO (hPrint, stderr)
@@ -353,7 +353,8 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
       cekparams = PLC.defaultCekParametersForVariant semvar
-      getResult (x,_,_) = either (error . show) (const ()) x  -- Extract an evaluation result
+      -- Extract an evaluation result
+      getResult = either (error . show) (const ()) . Cek.cekResultToEither . Cek._cekReportResult
       evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
@@ -392,8 +393,8 @@ runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
     case budgetM of
        SomeBudgetMode bm ->
             do
-              let (res, budget, logs) = Cek.runCek cekparams bm emitM term
-              case res of
+              let Cek.CekReport res budget logs = Cek.runCek cekparams bm emitM term
+              case Cek.cekResultToEither res of
                 Left err -> hPrint stderr err
                 Right v  ->
                   case nameFormat of
@@ -405,7 +406,7 @@ runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
               case traceMode of
                 None -> pure ()
                 _    -> writeToOutput outp (T.intercalate "\n" logs)
-              case res of
+              case Cek.cekResultToEither res of
                 Left _  -> exitFailure
                 Right _ -> pure ()
 

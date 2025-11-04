@@ -1,6 +1,0 @@
-CPU:                 5_114_972
-Memory:                 25_176
-Term Size:                  95
-Flat Size:                 104
-
-(con (list integer) [1,2,3,4,5])

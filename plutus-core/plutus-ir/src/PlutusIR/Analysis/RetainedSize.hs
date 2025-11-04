@@ -4,7 +4,7 @@
 
 module PlutusIR.Analysis.RetainedSize
     ( RetainedSize (..)
-    , Size (..)
+    , AstSize (..)
     , termRetentionMap
     , annotateWithRetainedSize
     ) where
@@ -12,7 +12,7 @@ module PlutusIR.Analysis.RetainedSize
 import PlutusPrelude
 
 import PlutusIR.Analysis.Dependencies
-import PlutusIR.Analysis.Size
+import PlutusIR.AstSize
 import PlutusIR.Core
 
 import PlutusCore qualified as PLC
@@ -87,7 +87,7 @@ retains. But there doesn't seem to be a sensible way of doing that. Should it be
 
     rootSize :: Term tyname name uni fun ann -> Size
     rootSize (Let _ _ _ term) = rootSize term
-    rootSize term             = termSize term
+    rootSize term             = termAstSize term
 
 ? But what about bindings inside the final non-let term? However we don't need that directly
 retained size of the root for anything that is not "don't throw an error on encountering the root
@@ -98,7 +98,7 @@ we know there's a bug somewhere and if it doesn't, we don't care about it.
 -}
 
 data RetainedSize
-    = Retains Size
+    = Retains AstSize
     | NotARetainer
     deriving stock (Show)
 
@@ -117,14 +117,14 @@ nodeToInt (Variable (PLC.Unique i)) = i
 nodeToInt Root                      = rootInt
 
 -- | A mapping from the index of a binding to what it directly retains.
-newtype DirectionRetentionMap = DirectionRetentionMap (IntMap Size)
+newtype DirectionRetentionMap = DirectionRetentionMap (IntMap AstSize)
 
-lookupSize :: Int -> DirectionRetentionMap -> Size
+lookupSize :: Int -> DirectionRetentionMap -> AstSize
 lookupSize i (DirectionRetentionMap ss) = ss IntMap.! i
 
 -- | Annotate the dominator tree with the retained size of each entry. The retained size is computed
 -- as the size directly retained by the binding plus the size of all its dependencies.
-annotateWithSizes :: DirectionRetentionMap -> Tree Int -> Tree (Int, Size)
+annotateWithSizes :: DirectionRetentionMap -> Tree Int -> Tree (Int, AstSize)
 annotateWithSizes sizeInfo = go where
     go (Node i ts) = Node (i, sizeI) rs where
         rs = map go ts
@@ -135,29 +135,29 @@ toDomTree :: C.Graph Node -> Tree Int
 toDomTree = domTree . (,) rootInt . adjacencyIntMap . fmap nodeToInt
 
 -- | Compute the retention map of a graph.
-depsRetentionMap :: DirectionRetentionMap -> C.Graph Node -> IntMap Size
+depsRetentionMap :: DirectionRetentionMap -> C.Graph Node -> IntMap AstSize
 depsRetentionMap sizeInfo = IntMap.fromList . flatten . annotateWithSizes sizeInfo . toDomTree
 
 -- | Construct a 'UniqueMap' having size information for each individual part of a 'Binding'.
 bindingSize
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Binding tyname name uni fun ann -> PLC.UniqueMap Unique Size
+    => Binding tyname name uni fun ann -> PLC.UniqueMap Unique AstSize
 bindingSize (TermBind _ _ var term) =
-    UMap.insertByNameIndex var (varDeclSize var <> termSize term) mempty
+    UMap.insertByNameIndex var (varDeclAstSize var <> termAstSize term) mempty
 bindingSize (TypeBind _ tyVar ty) =
-    UMap.insertByNameIndex tyVar (tyVarDeclSize tyVar <> typeSize ty) mempty
+    UMap.insertByNameIndex tyVar (tyVarDeclAstSize tyVar <> typeAstSize ty) mempty
 bindingSize (DatatypeBind _ (Datatype _ dataDecl params matchName constrs))
-    = UMap.insertByNameIndex dataDecl (tyVarDeclSize dataDecl)
-    . flip (foldr $ \param -> UMap.insertByNameIndex param $ tyVarDeclSize param) params
-    . UMap.insertByNameIndex matchName (Size 1)
-    . flip (foldr $ \constr -> UMap.insertByNameIndex constr $ varDeclSize constr) constrs
+    = UMap.insertByNameIndex dataDecl (tyVarDeclAstSize dataDecl)
+    . flip (foldr $ \param -> UMap.insertByNameIndex param $ tyVarDeclAstSize param) params
+    . UMap.insertByNameIndex matchName (AstSize 1)
+    . flip (foldr $ \constr -> UMap.insertByNameIndex constr $ varDeclAstSize constr) constrs
     $ mempty
 
 -- | Construct a 'UniqueMap' having size information for each individual part of every 'Binding'
 -- in a term.
 bindingSizes
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Term tyname name uni fun ann -> PLC.UniqueMap Unique Size
+    => Term tyname name uni fun ann -> PLC.UniqueMap Unique AstSize
 bindingSizes (Let _ _ binds term) = foldMap bindingSize binds <> bindingSizes term
 bindingSizes term                 = term ^. termSubterms . to bindingSizes
 
@@ -168,7 +168,7 @@ toDirectionRetentionMap
 toDirectionRetentionMap term =
     DirectionRetentionMap . IntMap.insert rootInt rootSize . PLC.unUniqueMap $ bindingSizes term where
         -- See Note [Handling the root].
-        rootSize = Size (- 10 ^ (10::Int))
+        rootSize = AstSize (- 10 ^ (10::Int))
 
 -- | Check if a 'Node' appears in 'DirectionRetentionMap'.
 hasSizeIn :: DirectionRetentionMap -> Node -> Bool
@@ -181,7 +181,7 @@ termRetentionMap
     => BuiltinsInfo uni fun
     -> VarsInfo tyname name uni ann
     -> Term tyname name uni fun ann
-    -> IntMap Size
+    -> IntMap AstSize
 termRetentionMap binfo vinfo term = depsRetentionMap sizeInfo deps where
     sizeInfo = toDirectionRetentionMap term
     deps = C.induce (hasSizeIn sizeInfo) $ runTermDeps binfo vinfo term
@@ -230,4 +230,4 @@ annotateWithRetainedSize binfo term = reannotateBindings (upd . unUnique) $ NotA
     retentionMap = termRetentionMap binfo vinfo term
     vinfo = termVarInfo term
     -- If a binding is not in the retention map, then it's still a retainer, just retains zero size.
-    upd i _ = Retains $ IntMap.findWithDefault (Size 0) i retentionMap
+    upd i _ = Retains $ IntMap.findWithDefault (AstSize 0) i retentionMap

@@ -1,0 +1,74 @@
+[ -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:100:1-100:3) ]

@@ -2,6 +2,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusTx.Test.Run.Uplc where
 
@@ -51,7 +52,7 @@ runPlcCekTrace
        )
 runPlcCekTrace value = do
   term <- toUPlc value
-  let (result, UPLC.TallyingSt tally _, logOut) =
+  let UPLC.CekReport (UPLC.cekResultToEither -> result) (UPLC.TallyingSt tally _) logOut =
         UPLC.runCek
           PLC.defaultCekParametersForTesting
           UPLC.tallying

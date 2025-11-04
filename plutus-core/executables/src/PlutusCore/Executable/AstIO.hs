@@ -32,7 +32,7 @@ import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens (traverseOf)
 import Data.ByteString.Lazy qualified as BSL
-import Flat (Flat, flat, unflat)
+import PlutusCore.Flat (Flat, flat, unflat)
 
 type UplcProgDB ann = UPLC.Program PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
 type UplcProgNDB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann

@@ -1,6 +1,0 @@
-CPU:                   216_462
-Memory:                  1_032
-Term Size:                   9
-Flat Size:                  28
-
-(con (list integer) [42])

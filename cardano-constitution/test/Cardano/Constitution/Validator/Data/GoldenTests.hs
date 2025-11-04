@@ -1,4 +1,6 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE GADTs #-}
+
 module Cardano.Constitution.Validator.Data.GoldenTests
     ( tests
     ) where
@@ -7,6 +9,7 @@ import Cardano.Constitution.Config
 import Cardano.Constitution.Data.Validator
 import Cardano.Constitution.Validator.TestsCommon
 import Helpers.TestBuilders
+import PlutusCore.Default as UPLC
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Pretty (prettyPlcReadableSimple)
@@ -77,7 +80,7 @@ tests = testGroup' "Golden" $ fmap const
 -- HELPERS
 
 mkPath :: String -> [String] -> FilePath
-mkPath vName exts = foldl1 (</>) ["test","Cardano","Constitution","Validator","Data","GoldenTests", foldl (<.>) vName (exts++["golden"])]
+mkPath vName exts = foldl1 (</>) ["test","Cardano","Constitution","Validator","Data","GoldenTests", foldl (<.>) vName ("golden" : exts)]
 
 runForBudget :: (ToData ctx)
              => CompiledCode ConstitutionValidator
@@ -89,5 +92,5 @@ runForBudget v ctx =
         in case UPLC.runCekDeBruijn defaultCekParametersForTesting counting noEmitter vPs of
                 -- Here, we guard against the case that a ConstitutionValidator **FAILS EARLY** (for some reason),
                 -- resulting in misleading low budget costs.
-                (Left _, _, _) -> error "For safety, we only compare budget of succesful executions."
-                (Right _ , UPLC.CountingSt budget, _) -> budget
+                UPLC.CekReport (UPLC.CekSuccessConstant (UPLC.Some (UPLC.ValueOf UPLC.DefaultUniUnit ()))) (UPLC.CountingSt budget) _ -> budget
+                _ -> error "For safety, we only compare budgets of successful executions."

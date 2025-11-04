@@ -40,6 +40,8 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
                                                     NumBytesCostedAsNumWords)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
 
@@ -127,6 +129,7 @@ smallConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.Pairing.MlResult) =
                     SomeConst $ BLS12_381.Pairing.millerLoop
                                   BLS12_381.G1.offchain_zero BLS12_381.G2.offchain_zero
+    | Just HRefl <- eqTypeRep tr (typeRep @Value) = SomeConst $ Value.empty
     | trPair `App` tr1 `App` tr2 <- tr
     , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
         case (smallConstant tr1, smallConstant tr2) of
@@ -199,7 +202,8 @@ genArgs semvar bn = case meaning of
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning semvar bn
 
--- FIXME: this doesn't work in some cases: for example if we have a costing
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1733):
+-- this doesn't work in some cases: for example if we have a costing
 -- function 10-2*size we'll only test it on for a small value of size (0 or 1)
 -- so we won't spot that it can give you a negative result.  We do want to check
 -- small sizes, but we should also check larger ones.
@@ -247,4 +251,3 @@ test_costModelSafety =
             ]
   in testGroup "Cost model safety test" $
      map mkTest $ enumerate @(BuiltinSemanticsVariant DefaultFun)
-

@@ -12,6 +12,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Redundant if" #-}
@@ -159,4 +160,3 @@ integerMatchFunction _ = 42
 
 integerPatternMatch :: CompiledCode Integer
 integerPatternMatch = plc (Proxy @"integerPatternMatch") (integerMatchFunction 2)
-

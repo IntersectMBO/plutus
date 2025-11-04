@@ -115,6 +115,7 @@ arity <- function(name) {
         "Bls12_381_G1_add" = 2 ,
         "Bls12_381_G1_neg" = 1,
         "Bls12_381_G1_scalarMul" = 2,
+        "Bls12_381_G1_multiScalarMul" = 2,
         "Bls12_381_G1_equal" = 2,
         "Bls12_381_G1_hashToGroup" = 2,
         "Bls12_381_G1_compress" = 1,
@@ -122,6 +123,7 @@ arity <- function(name) {
         "Bls12_381_G2_add" = 2,
         "Bls12_381_G2_neg" = 1,
         "Bls12_381_G2_scalarMul" = 2,
+        "Bls12_381_G2_multiScalarMul" = 2,
         "Bls12_381_G2_equal" = 2,
         "Bls12_381_G2_hashToGroup" = 2,
         "Bls12_381_G2_compress" = 1,
@@ -725,6 +727,7 @@ modelFun <- function(path) {
     bls12_381_G1_addModel            <- constantModel ("Bls12_381_G1_add")
     bls12_381_G1_negModel            <- constantModel ("Bls12_381_G1_neg")
     bls12_381_G1_scalarMulModel      <- linearInX     ("Bls12_381_G1_scalarMul")
+    bls12_381_G1_multiScalarMulModel <- linearInX     ("Bls12_381_G1_multiScalarMul")
     bls12_381_G1_equalModel          <- constantModel ("Bls12_381_G1_equal")
     bls12_381_G1_hashToGroupModel    <- linearInX     ("Bls12_381_G1_hashToGroup")
     bls12_381_G1_compressModel       <- constantModel ("Bls12_381_G1_compress")
@@ -733,6 +736,7 @@ modelFun <- function(path) {
 
     bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
     bls12_381_G2_scalarMulModel      <- linearInX     ("Bls12_381_G2_scalarMul")
+    bls12_381_G2_multiScalarMulModel <- linearInX     ("Bls12_381_G2_multiScalarMul")
     bls12_381_G2_equalModel          <- constantModel ("Bls12_381_G2_equal")
     bls12_381_G2_hashToGroupModel    <- linearInX     ("Bls12_381_G2_hashToGroup")
     bls12_381_G2_compressModel       <- constantModel ("Bls12_381_G2_compress")
@@ -864,6 +868,7 @@ modelFun <- function(path) {
         bls12_381_G1_addModel                = bls12_381_G1_addModel,
         bls12_381_G1_negModel                = bls12_381_G1_negModel,
         bls12_381_G1_scalarMulModel          = bls12_381_G1_scalarMulModel,
+        bls12_381_G1_multiScalarMulModel     = bls12_381_G1_multiScalarMulModel,
         bls12_381_G1_equalModel              = bls12_381_G1_equalModel,
         bls12_381_G1_hashToGroupModel        = bls12_381_G1_hashToGroupModel,
         bls12_381_G1_compressModel           = bls12_381_G1_compressModel,
@@ -871,6 +876,7 @@ modelFun <- function(path) {
         bls12_381_G2_addModel                = bls12_381_G2_addModel,
         bls12_381_G2_negModel                = bls12_381_G2_negModel,
         bls12_381_G2_scalarMulModel          = bls12_381_G2_scalarMulModel,
+        bls12_381_G2_multiScalarMulModel     = bls12_381_G2_multiScalarMulModel,
         bls12_381_G2_equalModel              = bls12_381_G2_equalModel,
         bls12_381_G2_hashToGroupModel        = bls12_381_G2_hashToGroupModel,
         bls12_381_G2_compressModel           = bls12_381_G2_compressModel,

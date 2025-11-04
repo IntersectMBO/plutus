@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -14,6 +15,7 @@ module PlutusTx.Compiler.Builtins (
   builtinNames,
   defineBuiltinTypes,
   defineBuiltinTerms,
+  defineBoolType,
   lookupBuiltinTerm,
   lookupBuiltinType,
   errorFunc,
@@ -42,6 +44,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.Value (Value)
 
 import GHC.Plugins qualified as GHC
 
@@ -52,6 +55,7 @@ import Control.Monad.Reader (asks)
 import Data.ByteString qualified as BS
 import Data.Functor
 import Data.Proxy
+import Data.Set qualified as Set
 import Data.Text (Text)
 import PlutusPrelude (enumerate, for_)
 
@@ -199,6 +203,7 @@ builtinNames =
   , 'Builtins.lessThanInteger
   , 'Builtins.lessThanEqualsInteger
   , 'Builtins.equalsInteger
+  , 'Builtins.caseInteger
   , 'Builtins.error
   , ''Builtins.BuiltinString
   , 'Builtins.appendString
@@ -210,16 +215,14 @@ builtinNames =
   , -- This one is special
     'Builtins.stringToBuiltinString
   , 'Builtins.trace
-  , ''Builtins.BuiltinBool
   , 'Builtins.ifThenElse
-  , 'Builtins.true
-  , 'Builtins.false
   , ''Builtins.BuiltinUnit
   , 'Builtins.unitval
   , 'Builtins.chooseUnit
   , ''Builtins.BuiltinPair
   , 'Builtins.fst
   , 'Builtins.snd
+  , 'Builtins.casePair
   , 'Builtins.mkPairData
   , ''Builtins.BuiltinList
   , 'Builtins.null
@@ -254,6 +257,7 @@ builtinNames =
   , 'Builtins.bls12_381_G1_add
   , 'Builtins.bls12_381_G1_neg
   , 'Builtins.bls12_381_G1_scalarMul
+  , 'Builtins.bls12_381_G1_multiScalarMul
   , 'Builtins.bls12_381_G1_compress
   , 'Builtins.bls12_381_G1_uncompress
   , 'Builtins.bls12_381_G1_hashToGroup
@@ -264,6 +268,7 @@ builtinNames =
   , 'Builtins.bls12_381_G2_add
   , 'Builtins.bls12_381_G2_neg
   , 'Builtins.bls12_381_G2_scalarMul
+  , 'Builtins.bls12_381_G2_multiScalarMul
   , 'Builtins.bls12_381_G2_compress
   , 'Builtins.bls12_381_G2_uncompress
   , 'Builtins.bls12_381_G2_hashToGroup
@@ -287,6 +292,13 @@ builtinNames =
   , 'Builtins.countSetBits
   , 'Builtins.findFirstSetBit
   , 'Builtins.expModInteger
+  , ''Builtins.BuiltinValue
+  , 'Builtins.insertCoin
+  , 'Builtins.lookupCoin
+  , 'Builtins.unionValue
+  , 'Builtins.valueContains
+  , 'Builtins.mkValue
+  , 'Builtins.unsafeDataAsValue
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -309,6 +321,41 @@ defineBuiltinType name ty = do
   -- these are all aliases for now
   PIR.recordAlias (LexName $ GHC.getName tc)
 
+defineBoolType :: forall uni fun m ann. (CompilingDefault uni fun m ann) => m ()
+defineBoolType = do
+  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
+
+  defineBuiltinType ''Bool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
+
+  builtinBoolName <- LexName . GHC.getName <$> lookupGhcTyCon ''Bool
+  boolTyCon <- lookupGhcTyCon ''Bool
+
+  let
+    -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
+    -- changes definintion of `Bool`, of course). Similarly, we can expect we always
+    -- get correct number of branches, two.
+    caseMatcher :: PIR.ManualMatcher uni fun Ann
+    caseMatcher _tyArgs scrut resTy branches =
+      case datatypeStyle of
+        style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+          -- For IfThenElse, true branch comes first hence we reverse brenches
+          PIR.mkIterApp
+            (PIR.tyInst annMayInline
+               (PIR.builtin annMayInline PLC.IfThenElse)
+               resTy)
+            ((annMayInline, ) <$> (scrut : reverse branches))
+        _BuiltinCasing ->
+          PIR.kase annMayInline resTy scrut branches
+
+  PIR.defineManualDatatype
+    (LexName $ GHC.getName boolTyCon)
+    (PIR.ManualDatatype
+        [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
+        caseMatcher
+        []
+    )
+    (Set.fromList [builtinBoolName])
+
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTerms = do
@@ -321,10 +368,6 @@ defineBuiltinTerms = do
 
   -- Unit constant
   defineBuiltinTerm annMayInline 'Builtins.unitval $ PIR.mkConstant annMayInline ()
-
-  -- Bool constants
-  defineBuiltinTerm annMayInline 'Builtins.true $ PIR.mkConstant annMayInline True
-  defineBuiltinTerm annMayInline 'Builtins.false $ PIR.mkConstant annMayInline False
 
   -- ByteString constant
   defineBuiltinTerm annMayInline 'Builtins.emptyByteString $ PIR.mkConstant annMayInline BS.empty
@@ -343,6 +386,71 @@ defineBuiltinTerms = do
     PIR.mkConstant annMayInline BLS12_381.G2.compressed_generator
   defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compressed_zero $
     PIR.mkConstant annMayInline BLS12_381.G2.compressed_zero
+
+  defineBuiltinTerm annMayInline 'Builtins.casePair $ case datatypeStyle of
+    style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+      -- > /\a b r ->
+      -- >   \(p : pair a b) (f : a -> b -> r) ->
+      -- >     f (fstPair {a} {b} p) (sndPair {a} {b} p)
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        b <- freshTyName "b"
+        r <- freshTyName "r"
+        p <- freshName "p"
+        f <- freshName "f"
+        let
+          pairTy =
+            PLC.TyApp ()
+              (PLC.TyApp ()
+                 (PLC.mkTyBuiltin @_ @(,) ())
+                  (PLC.TyVar () a))
+              (PLC.TyVar () b)
+          contTy =
+            PLC.TyFun () (PLC.TyVar () a) $
+            PLC.TyFun () (PLC.TyVar () b) (PLC.TyVar () r)
+
+          instFstOrSnd x =
+            PIR.tyInst () (PIR.tyInst () (PIR.builtin () x) (PLC.TyVar () a)) (PLC.TyVar () b)
+
+        pure $
+          PIR.tyAbs () a (PLC.Type ()) $
+          PIR.tyAbs () b (PLC.Type ()) $
+          PIR.tyAbs () r (PLC.Type ()) $
+          PIR.lamAbs () p pairTy $
+          PIR.lamAbs () f contTy $
+          PIR.apply ()
+            (PIR.apply ()
+              (PIR.var () f)
+              (PIR.apply () (instFstOrSnd PLC.FstPair) (PIR.var () p)))
+            (PIR.apply () (instFstOrSnd PLC.SndPair) (PIR.var () p))
+    _BuiltinCasing ->
+      -- > /\a b r ->
+      -- >   \(p : pair a b) (f : a -> b -> r) ->
+      -- >     (case r p f)
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        b <- freshTyName "b"
+        r <- freshTyName "r"
+        p <- freshName "p"
+        f <- freshName "f"
+        let
+          pairTy =
+            PLC.TyApp ()
+              (PLC.TyApp ()
+                 (PLC.mkTyBuiltin @_ @(,) ())
+                  (PLC.TyVar () a))
+              (PLC.TyVar () b)
+          contTy =
+            PLC.TyFun () (PLC.TyVar () a) $
+            PLC.TyFun () (PLC.TyVar () b) (PLC.TyVar () r)
+
+        pure $
+          PIR.tyAbs () a (PLC.Type ()) $
+          PIR.tyAbs () b (PLC.Type ()) $
+          PIR.tyAbs () r (PLC.Type ()) $
+          PIR.lamAbs () p pairTy $
+          PIR.lamAbs () f contTy $
+          PIR.kase () (PLC.TyVar () r) (PIR.Var () p) [PIR.Var () f]
 
   defineBuiltinTerm annMayInline 'Builtins.caseList' $ case datatypeStyle of
     style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
@@ -398,7 +506,7 @@ defineBuiltinTerms = do
     _BuiltinCasing ->
       -- > /\a r ->
       -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
-      -- >     (case r xs z f)
+      -- >     (case r xs f z)
       fmap (const annMayInline) . runQuote $ do
         a <- freshTyName "a"
         r <- freshTyName "r"
@@ -416,7 +524,7 @@ defineBuiltinTerms = do
             ()
             (PLC.TyVar () r)
             (PIR.var () xs)
-            [PIR.var () z, PIR.var () f]
+            [PIR.var () f, PIR.var () z]
 
 
   -- See Note [Builtin terms and values]
@@ -441,7 +549,22 @@ defineBuiltinTerms = do
                               (PLC.TyVar () a)
                               (PIR.Var () b)
                               [PIR.Var () y, PIR.Var () x]
-          PLC.ChooseUnit -> defineBuiltinInl 'Builtins.chooseUnit
+          PLC.ChooseUnit -> case datatypeStyle of
+              PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.chooseUnit
+              PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.chooseUnit
+              PIR.BuiltinCasing  -> defineBuiltinTerm annMayInline 'Builtins.chooseUnit $
+                  fmap (const annMayInline) . runQuote $ do
+                      r <- freshTyName "r"
+                      unit <- freshName "unit"
+                      x <- freshName "x"
+                      return $
+                        PIR.tyAbs () r (PLC.Type ()) $
+                        PIR.lamAbs () unit (PLC.mkTyBuiltin @_ @() ()) $
+                        PIR.lamAbs () x (PLC.TyVar () r) $
+                        PIR.kase ()
+                          (PLC.TyVar () r)
+                          (PIR.Var () unit)
+                          [ PIR.var () x ]
           -- Bytestrings
           PLC.AppendByteString -> defineBuiltinInl 'Builtins.appendByteString
           PLC.ConsByteString -> defineBuiltinInl 'Builtins.consByteString
@@ -480,8 +603,64 @@ defineBuiltinTerms = do
           -- Tracing
           PLC.Trace -> defineBuiltinInl 'Builtins.trace
           -- Pairs
-          PLC.FstPair -> defineBuiltinInl 'Builtins.fst
-          PLC.SndPair -> defineBuiltinInl 'Builtins.snd
+          PLC.FstPair -> case datatypeStyle of
+              PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.fst
+              PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.fst
+              PIR.BuiltinCasing  -> defineBuiltinTerm annMayInline 'Builtins.fst $
+                  fmap (const annMayInline) . runQuote $ do
+                      a <- freshTyName "a"
+                      b <- freshTyName "b"
+                      x <- freshName "x"
+                      l <- freshName "l"
+                      r <- freshName "r"
+                      let
+                        pairTy =
+                          PLC.TyApp ()
+                            (PLC.TyApp ()
+                               (PLC.mkTyBuiltin @_ @(,) ())
+                               (PLC.TyVar () a)
+                            )
+                            (PLC.TyVar () b)
+                      return $
+                        PIR.tyAbs () a (PLC.Type ()) $
+                        PIR.tyAbs () b (PLC.Type ()) $
+                        PIR.lamAbs () x pairTy $
+                        PIR.kase ()
+                          (PLC.TyVar () a)
+                          (PIR.Var () x)
+                          [ PIR.lamAbs () l (PLC.TyVar () a) $
+                            PIR.lamAbs () r (PLC.TyVar () b) $
+                            PIR.var () l
+                          ]
+          PLC.SndPair -> case datatypeStyle of
+              PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.snd
+              PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.snd
+              PIR.BuiltinCasing  -> defineBuiltinTerm annMayInline 'Builtins.snd $
+                  fmap (const annMayInline) . runQuote $ do
+                      a <- freshTyName "a"
+                      b <- freshTyName "b"
+                      x <- freshName "x"
+                      l <- freshName "l"
+                      r <- freshName "r"
+                      let
+                        pairTy =
+                          PLC.TyApp ()
+                            (PLC.TyApp ()
+                               (PLC.mkTyBuiltin @_ @(,) ())
+                               (PLC.TyVar () a)
+                            )
+                            (PLC.TyVar () b)
+                      return $
+                        PIR.tyAbs () a (PLC.Type ()) $
+                        PIR.tyAbs () b (PLC.Type ()) $
+                        PIR.lamAbs () x pairTy $
+                        PIR.kase ()
+                          (PLC.TyVar () b)
+                          (PIR.Var () x)
+                          [ PIR.lamAbs () l (PLC.TyVar () a) $
+                            PIR.lamAbs () r (PLC.TyVar () b) $
+                            PIR.var () r
+                          ]
           PLC.MkPairData -> defineBuiltinInl 'Builtins.mkPairData
           -- List
           PLC.NullList -> defineBuiltinInl 'Builtins.null
@@ -515,12 +694,14 @@ defineBuiltinTerms = do
           PLC.Bls12_381_G1_add -> defineBuiltinInl 'Builtins.bls12_381_G1_add
           PLC.Bls12_381_G1_neg -> defineBuiltinInl 'Builtins.bls12_381_G1_neg
           PLC.Bls12_381_G1_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G1_scalarMul
+          PLC.Bls12_381_G1_multiScalarMul -> defineBuiltinInl 'Builtins.bls12_381_G1_multiScalarMul
           PLC.Bls12_381_G1_compress -> defineBuiltinInl 'Builtins.bls12_381_G1_compress
           PLC.Bls12_381_G1_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G1_uncompress
           PLC.Bls12_381_G1_hashToGroup -> defineBuiltinInl 'Builtins.bls12_381_G1_hashToGroup
           PLC.Bls12_381_G2_equal -> defineBuiltinInl 'Builtins.bls12_381_G2_equals
           PLC.Bls12_381_G2_add -> defineBuiltinInl 'Builtins.bls12_381_G2_add
           PLC.Bls12_381_G2_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G2_scalarMul
+          PLC.Bls12_381_G2_multiScalarMul -> defineBuiltinInl 'Builtins.bls12_381_G2_multiScalarMul
           PLC.Bls12_381_G2_neg -> defineBuiltinInl 'Builtins.bls12_381_G2_neg
           PLC.Bls12_381_G2_compress -> defineBuiltinInl 'Builtins.bls12_381_G2_compress
           PLC.Bls12_381_G2_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G2_uncompress
@@ -545,6 +726,13 @@ defineBuiltinTerms = do
           PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
           PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
           PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
+          -- Value
+          PLC.InsertCoin -> defineBuiltinInl 'Builtins.insertCoin
+          PLC.LookupCoin -> defineBuiltinInl 'Builtins.lookupCoin
+          PLC.UnionValue -> defineBuiltinInl 'Builtins.unionValue
+          PLC.ValueContains -> defineBuiltinInl 'Builtins.valueContains
+          PLC.ValueData -> defineBuiltinInl 'Builtins.mkValue
+          PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
 
 defineBuiltinTypes :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTypes = do
@@ -552,7 +740,6 @@ defineBuiltinTypes = do
     PLC.toTypeAst $
       Proxy @BS.ByteString
   defineBuiltinType ''Integer . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Integer
-  defineBuiltinType ''Builtins.BuiltinBool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
   defineBuiltinType ''Builtins.BuiltinUnit . ($> annMayInline) $ PLC.toTypeAst $ Proxy @()
   defineBuiltinType ''Builtins.BuiltinString . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Text
   defineBuiltinType ''Builtins.BuiltinData . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data
@@ -571,6 +758,7 @@ defineBuiltinTypes = do
   defineBuiltinType ''Builtins.BuiltinBLS12_381_MlResult . ($> annMayInline) $
     PLC.toTypeAst $
       Proxy @BLS12_381.Pairing.MlResult
+  defineBuiltinType ''Builtins.BuiltinValue . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Value
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
 lookupBuiltinTerm :: (Compiling uni fun m ann) => TH.Name -> m (PIRTerm uni fun)

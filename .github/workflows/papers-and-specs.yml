@@ -1,5 +1,8 @@
 # This workflow builds and deploys various papers.
 # 
+# On pull requests, this workflow builds the papers and deploys a temporary preview
+# to gh-pages, but only if the relevant files have changed.
+#
 # This workflow runs on all push to master and can also be triggered manually.
 # It deploys the artifacts to: https://plutus.cardano.intersectmbo.org/resources
 
@@ -10,6 +13,10 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    paths:
+      - 'doc'
+      - '!doc/docusaurus/**'
 
 jobs:
   deploy:
@@ -21,7 +28,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.0
 
       - name: Build Papers
         run: | 
@@ -42,8 +49,16 @@ jobs:
           done 
 
       - name: Publish Papers
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           folder: _resources
           target-folder: resources
           single-commit: true
+
+      - name: Publish Preview Papers 
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        uses: rossjrw/pr-preview-action@v1.6.2
+        with:
+          source-dir: _resources
+          umbrella-dir: pr-preview/resources

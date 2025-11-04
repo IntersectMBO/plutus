@@ -40,6 +40,10 @@ let
     plutus-ir-test = project.flake'.packages."plutus-core:test:plutus-ir-test";
     cardano-constitution-test = project.flake'.packages."cardano-constitution:test:cardano-constitution-test"; # editorconfig-checker-disable-line
     cost-model-budgeting-bench = project.flake'.packages."plutus-core:exe:cost-model-budgeting-bench"; # editorconfig-checker-disable-line
+    uplc = project.flake'.packages."plutus-executables:exe:uplc";
+    plc = project.flake'.packages."plutus-executables:exe:plc";
+    pir = project.flake'.packages."plutus-executables:exe:pir";
+    plutus = project.flake'.packages."plutus-core:exe:plutus";
   };
 
   static-haskell-packages = {
@@ -82,8 +86,8 @@ let
   };
 
   packages =
+    lib.optionalAttrs pkgs.stdenv.isLinux static-haskell-packages //
     exposed-haskell-packages //
-    static-haskell-packages //
     extra-artifacts;
 
   non-profiled-shells = rec {
@@ -93,11 +97,22 @@ let
     ghc910 = mkShell project.projectVariants.ghc910;
   };
 
+  # The default shell contains the agda-with-stdlib-and-metatheory package which will
+  # break on `nix develop` if the .lagda files are broken. In order to escape this
+  # situation we introduce a shell that doesn't contain that executable.
+  metatheory-jailbreak-shell = non-profiled-shells.default.overrideAttrs (attrs: {
+    buildInputs =
+      lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.buildInputs;
+    nativeBuildInputs =
+      lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
+  });
+
   devShells =
     (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.ghc96-profiled; };
+    { profiled = mkShell project.projectVariants.ghc96-profiled; } //
+    { metatheory-jailbreak = metatheory-jailbreak-shell; };
 
-  nested-ci-jobs = {
+  full-nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
       (windows-hydra-jobs) //
@@ -116,9 +131,30 @@ let
       { required = hydra-required-job; };
   };
 
-  flattened-ci-jobs = utils.flattenDerivationTree ":" nested-ci-jobs;
+  small-nested-ci-jobs = {
+    "x86_64-linux" =
+      (windows-hydra-jobs) //
+      (packages) //
+      { ghc96 = project-variants-hydra-jobs.ghc96; } //
+      { devShells.default = non-profiled-shells.default; } //
+      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      { required = hydra-required-job; };
+    "x86_64-darwin" =
+      { ghc96 = project-variants-hydra-jobs.ghc96; } //
+      { devShells.default = non-profiled-shells.default; } //
+      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      { required = hydra-required-job; };
+    "aarch64-linux" =
+      { };
+    "aarch64-darwin" =
+      { devShells.default = non-profiled-shells.default; } //
+      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      { required = hydra-required-job; };
+  };
 
-  ciJobs = utils.flattenDerivationTree ":" nested-ci-jobs.${system};
+  flattened-ci-jobs = utils.flattenDerivationTree ":" small-nested-ci-jobs;
+
+  ciJobs = utils.flattenDerivationTree ":" small-nested-ci-jobs.${system};
 
   checks = ciJobs;
 
@@ -136,7 +172,8 @@ let
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
-    inherit nested-ci-jobs;
+    inherit full-nested-ci-jobs;
+    inherit small-nested-ci-jobs;
     inherit metatheory;
     inherit project-coverage-report;
   };
@@ -151,3 +188,5 @@ in
   inherit checks;
   inherit hydraJobs;
 }
+
+

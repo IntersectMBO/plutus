@@ -386,7 +386,7 @@ d_decRTm_188 v0 v1
                 C_builtin_48 v4
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
-                       (coe MAlonzo.Code.Builtin.d_decBuiltin_418 (coe v3) (coe v4))
+                       (coe MAlonzo.Code.Builtin.d_decBuiltin_426 (coe v3) (coe v4))
                 _ -> coe v2
          C_wrap_50 v3 v4 v5
            -> case coe v1 of

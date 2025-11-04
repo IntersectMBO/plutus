@@ -13,6 +13,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2 (Element)
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (MlResult)
 import PlutusCore.Data (Data)
 import PlutusCore.Default qualified as PLC
+import PlutusCore.Value (Value)
 import PlutusTx.Builtins.Internal
 
 import Data.ByteString (ByteString)
@@ -83,11 +84,11 @@ instance HasFromBuiltin BuiltinUnit where
   fromBuiltin (BuiltinUnit u) = u
 
 instance HasToBuiltin Bool where
-  type ToBuiltin Bool = BuiltinBool
-  toBuiltin = useToOpaque BuiltinBool
-instance HasFromBuiltin BuiltinBool where
-  type FromBuiltin BuiltinBool = Bool
-  fromBuiltin (BuiltinBool b) = b
+  type ToBuiltin Bool = Bool
+  toBuiltin = useToOpaque id
+instance HasFromBuiltin Bool where
+  type FromBuiltin Bool = Bool
+  fromBuiltin = id
 
 instance (HasToBuiltin a) => HasToBuiltin [a] where
   type ToBuiltin [a] = BuiltinList (ToBuiltin a)
@@ -116,6 +117,13 @@ instance HasToBuiltin Data where
 instance HasFromBuiltin BuiltinData where
   type FromBuiltin BuiltinData = Data
   fromBuiltin (BuiltinData t) = t
+
+instance HasToBuiltin Value where
+  type ToBuiltin Value = BuiltinValue
+  toBuiltin = useToOpaque BuiltinValue
+instance HasFromBuiltin BuiltinValue where
+  type FromBuiltin BuiltinValue = Value
+  fromBuiltin (BuiltinValue t) = t
 
 instance HasToBuiltin BLS12_381.G1.Element where
   type ToBuiltin BLS12_381.G1.Element = BuiltinBLS12_381_G1_Element

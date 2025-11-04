@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module BuiltinList.Budget.Spec where
 
@@ -142,10 +143,10 @@ mapMaybe = $$(compile [||\xs -> L.mapMaybe (\x -> if odd x then Just x else Noth
 length :: CompiledCode (L.BuiltinList Integer -> Integer)
 length = $$(compile [||\xs -> L.length xs||])
 
-and :: CompiledCode (L.BuiltinList BuiltinBool -> Bool)
+and :: CompiledCode (L.BuiltinList Bool -> Bool)
 and = $$(compile [||\xs -> L.and xs||])
 
-or :: CompiledCode (L.BuiltinList BuiltinBool -> Bool)
+or :: CompiledCode (L.BuiltinList Bool -> Bool)
 or = $$(compile [||\xs -> L.or xs||])
 
 notElem :: CompiledCode (L.BuiltinList Integer -> Bool)
@@ -226,7 +227,7 @@ nubBy = $$(compile [||\xs -> L.nubBy (<=) xs||])
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
 
-l2 :: CompiledCode (L.BuiltinList BuiltinBool)
+l2 :: CompiledCode (L.BuiltinList Bool)
 l2 = liftCodeDef $ toBuiltin ([True, False, True, False] :: [Bool])
 
 l3 :: CompiledCode (L.BuiltinList (BuiltinPair Integer Integer))

@@ -2,6 +2,8 @@
 
 let
 
+  # Agda standard library pinned to v2.1.1.
+  # Used in: `nix/metatheory.nix` (as a build input) and `nix/shell.nix` (via agda-with-stdlib).
   agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
     version = "2.1.1";
@@ -26,6 +28,8 @@ let
     '';
   });
 
+  # Compose a tailored Agda toolchain and expose it via agdaPackages.
+  # Used in: `nix/metatheory.nix` (to build agda-with-stdlib-and-metatheory) and `nix/shell.nix`.
   # We want to keep control of which version of Agda we use, so we supply our own and override
   # the one from nixpkgs.
   #
@@ -68,6 +72,8 @@ let
       pkgs = frankenPkgs;
     };
 
+  # Patches Agda's build to compile interface files post-install.
+  # Used in: `agda-project` below via `modules`.
   # Agda is a huge pain. They have a special custom setup that compiles the
   # interface files for the Agda that ships with the compiler. These go in
   # the data files for the *library*, but they require the *executable* to
@@ -101,16 +107,21 @@ let
     '';
   };
 
+  # Default patch module (native toolchain).
   agda-project-module-patch-default =
     agda-project-module-patch { compiler-nix-name = "ghc"; };
 
+  # Patch module for static musl64 toolchain.
   agda-project-module-patch-musl64 =
     agda-project-module-patch { compiler-nix-name = "x86_64-unknown-linux-musl-ghc"; };
 
+  # The Agda executable from the built project.
   agda = agda-project.hsPkgs.Agda.components.exes.agda;
 
+  # The Agda mode executable.
   agda-mode = agda-project.hsPkgs.Agda.components.exes.agda-mode;
 
+  # Convenience wrapper providing `agda-with-stdlib` binary.
   agda-with-stdlib = pkgs.stdenv.mkDerivation {
     name = "agda-with-stdlib";
     phases = "installPhase";
@@ -121,6 +132,7 @@ let
     '';
   };
 
+  # The Agda hackage project used to produce the tools above.
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
     version = "2.7.0";
@@ -129,8 +141,8 @@ let
     modules = [ agda-project-module-patch-default ];
   };
 
-  NIX_AGDA_STDLIB = "${agda-stdlib}/stadard-library.agda-lib";
-
+  # Path to the stdlib .agda-lib file for shell export.
+  NIX_AGDA_STDLIB = "${agda-stdlib}/standard-library.agda-lib";
 in
 
 {

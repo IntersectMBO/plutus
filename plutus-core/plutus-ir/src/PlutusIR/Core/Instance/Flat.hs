@@ -7,9 +7,8 @@ module PlutusIR.Core.Instance.Flat () where
 import PlutusIR.Core.Type
 
 import PlutusCore qualified as PLC
-import PlutusCore.Flat ()
-
-import Flat (Flat)
+import PlutusCore.Flat (Flat)
+import PlutusCore.FlatInstances ()
 
 {- Note [Serialization of PIR]
 The serialized version of Plutus-IR will be included in  the final

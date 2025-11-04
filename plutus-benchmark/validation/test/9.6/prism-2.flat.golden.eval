@@ -1,0 +1,6 @@
+CPU:               407_908_488
+Memory:              2_066_140
+AST Size:                9_267
+Flat Size:               8_672
+
+(delay (lam i i))

@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE ViewPatterns           #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -38,7 +39,7 @@ module PlutusCore.Test (
   goldenUEvalProfile,
   goldenUEvalProfile',
   goldenUEvalBudget,
-  goldenSize,
+  goldenAstSize,
   initialSrcSpan,
   topSrcSpan,
   NoMarkRenameT (..),
@@ -163,6 +164,7 @@ isSerialisable (Some (ValueOf uni0 x0)) = go uni0 x0 where
     go (f `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _) _ =
         noMoreTypeFunctions f
     go TPLC.DefaultUniData _ = True
+    go TPLC.DefaultUniValue _ = True
     go TPLC.DefaultUniBLS12_381_G1_Element _ = False
     go TPLC.DefaultUniBLS12_381_G2_Element _ = False
     go TPLC.DefaultUniBLS12_381_MlResult _ = False
@@ -265,7 +267,7 @@ runUPlcFull ::
 runUPlcFull values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-      (res, UPLC.CountingSt budget, logs) =
+      UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt budget) logs =
         UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logEmitter t
   case res of
     Left err   -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
@@ -316,7 +318,7 @@ runUPlcProfile ::
 runUPlcProfile values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-      (res, UPLC.CountingSt budget, logs) =
+      UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt budget) logs =
         UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logWithTimeEmitter t
   case res of
     Left err -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
@@ -334,7 +336,7 @@ runUPlcProfile' ::
 runUPlcProfile' values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-      (res, UPLC.CountingSt _, logs) =
+      UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt _) logs =
         UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logWithBudgetEmitter t
   case res of
     Left err -> throwError (SomeException err)
@@ -436,9 +438,9 @@ goldenUEvalProfile name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ run
 goldenUEvalBudget :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> [a] -> TestNested
 goldenUEvalBudget name values = nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
 
-goldenSize :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> a -> TestNested
-goldenSize name value =
-  nestedGoldenVsDocM name ".size" $ pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
+goldenAstSize :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> a -> TestNested
+goldenAstSize name value =
+  nestedGoldenVsDocM name ".astsize" $ pure . pretty . UPLC.programAstSize =<< rethrow (toUPlc value)
 
 -- | This is mostly useful for profiling a test that is normally
 -- tested with one of the other functions, as it's a drop-in

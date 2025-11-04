@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2025-07-16T09:24:19Z
+  , hackage.haskell.org 2025-09-21T21:31:06Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2025-07-02T14:54:39Z
+  , cardano-haskell-packages 2025-09-18T12:21:32Z
 
 packages: cardano-constitution
           plutus-benchmark
@@ -85,8 +85,6 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
-allow-newer:
-  -- https://github.com/phadej/vec/issues/121
-  ral:QuickCheck,
-  fin:QuickCheck,
-  bin:QuickCheck,
+-- https://github.com/IntersectMBO/plutus/pull/7236
+constraints: setup.optparse-applicative >=0.19.0.0
+allow-newer: turtle:optparse-applicative

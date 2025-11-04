@@ -1,0 +1,19 @@
+instance PlutusTx.IsData.Class.ToData Plugin.Data.Spec.MyMonoRecord
+    where {{-# INLINABLE PlutusTx.IsData.Class.toBuiltinData #-};
+           PlutusTx.IsData.Class.toBuiltinData (Plugin.Data.Spec.MyMonoRecord arg_0
+                                                                              arg_1) = PlutusTx.Builtins.Internal.mkConstr (0 :: GHC.Num.Integer.Integer) (PlutusTx.Builtins.Internal.mkCons (PlutusTx.IsData.Class.toBuiltinData arg_0) (PlutusTx.Builtins.Internal.mkCons (PlutusTx.IsData.Class.toBuiltinData arg_1) (PlutusTx.Builtins.Internal.mkNilData PlutusTx.Builtins.Internal.unitval)))}
+instance PlutusTx.IsData.Class.FromData Plugin.Data.Spec.MyMonoRecord
+    where {{-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-};
+           PlutusTx.IsData.Class.fromBuiltinData d_2 = let constrFun_3 (!index_4) (!args_5) = case (index_4,
+                                                                                                    args_5) of
+                                                                                              {(((PlutusTx.Eq.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
+                                                                                                (PlutusTx.Builtins.uncons -> GHC.Maybe.Just ((PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_6),
+                                                                                                                                             (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_7))))) -> GHC.Maybe.Just (Plugin.Data.Spec.MyMonoRecord arg_6 arg_7);
+                                                                                               _ -> GHC.Maybe.Nothing}
+                                                        in PlutusTx.Builtins.matchData' d_2 constrFun_3 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}
+instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoRecord
+    where {{-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-};
+           PlutusTx.IsData.Class.unsafeFromBuiltinData d_8 = PlutusTx.Builtins.Internal.casePair (PlutusTx.Builtins.Internal.unsafeDataAsConstr d_8) GHC.Base.$ (\index_9 args_10 -> PlutusTx.Builtins.Internal.caseInteger index_9 [\case
+                                                                                                                                                                                                                                     {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ((PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_11),
+                                                                                                                                                                                                                                                                                     (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_12)))) -> Plugin.Data.Spec.MyMonoRecord arg_11 arg_12;
+                                                                                                                                                                                                                                      _ -> PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}] args_10)}

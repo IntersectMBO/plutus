@@ -7,7 +7,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -30,8 +29,8 @@ import Data.ByteString.Lazy qualified as LBS
 import Data.Kind (Type)
 import Data.Type.Equality ((:~:) (Refl))
 import Data.Void (Void)
-import Flat qualified
 import GHC.Generics (Generic)
+import PlutusCore.Flat qualified as Flat
 import PlutusTx.AsData (asData)
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), Unrolled, definitionIdFromTypeK,

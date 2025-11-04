@@ -96,6 +96,7 @@ isScramblable (PLC.Some (PLC.ValueOf uni0 x0)) = go uni0 x0 where
     go (f `PLC.DefaultUniApply` _ `PLC.DefaultUniApply` _ `PLC.DefaultUniApply` _) _  =
         noMoreTypeFunctions f
     go PLC.DefaultUniData _ = True
+    go PLC.DefaultUniValue _ = True
     go PLC.DefaultUniBLS12_381_G1_Element _ = False
     go PLC.DefaultUniBLS12_381_G2_Element _ = False
     go PLC.DefaultUniBLS12_381_MlResult _ = False
