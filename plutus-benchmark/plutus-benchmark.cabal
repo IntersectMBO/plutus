@@ -277,6 +277,37 @@ benchmark casing
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.54
 
+---------------- casing ----------------
+
+library sop-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  sop/src
+  exposed-modules:
+    PlutusBenchmark.SOP.Big.Scott
+    PlutusBenchmark.SOP.Big.SOP
+    PlutusBenchmark.SOP.Common
+    PlutusBenchmark.SOP.List.Scott
+    PlutusBenchmark.SOP.List.SOP
+
+  build-depends:
+    , base              >=4.9   && <5
+    , plutus-core       ^>=1.54
+    , plutus-tx
+    , plutus-tx-plugin
+
+benchmark sop
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: sop/exe
+  build-depends:
+    , base                         >=4.9 && <5
+    , plutus-benchmark-common
+    , plutus-core
+    , plutus-tx
+    , plutus-tx:plutus-tx-testlib
+    , sop-internal
+
 ---------------- data ----------------
 
 library data-internal
