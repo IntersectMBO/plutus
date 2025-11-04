@@ -16,7 +16,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
     \centering
     \[\begin{array}{lrclr}
 
-        \textrm{Name}          & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]\textsuperscript{*}}   & \textrm{name}\\
+        \textrm{Name}          & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]\textsuperscript{*}(-[0-9]\textsuperscript{+})?}   & \textrm{name}\\
 
         \textrm{Var}           & x      & ::= & n & \textrm{term variable}\\
         \textrm{BuiltinName}   & bn     & ::= & n & \textrm{built-in function name}\\
@@ -171,6 +171,13 @@ a variable, but in order to re-use our existing syntax we arbitrarily use 0 for
 the bound variable, so that all $\lambda$-expressions are of the form
 \texttt{(lam 0 $M$)}; other variables (ie, those not appearing immediately after
 a \texttt{lam} binder) are represented by natural number greater than zero.
+
+\paragraph{Name suffixes.}
+Names may include an optional numeric suffix consisting of a dash followed by
+one or more digits (for example, \texttt{x-0}, \texttt{name-42}, or
+\texttt{variable-12345}). This suffix provides a mechanism for disambiguating
+variables that share the same base name, allowing multiple distinct variables
+with identical textual representations to coexist within a program.
 
 \paragraph{Lists in constructor and case terms.}
 The grammar defines constructor and case terms to have a variable number of
