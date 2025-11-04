@@ -155,6 +155,12 @@ scaleQuantity :: Integer -> Quantity -> Maybe Quantity
 scaleQuantity x (UnsafeQuantity y) = quantity (x * y)
 {-# INLINEABLE scaleQuantity #-}
 
+negateQuantity :: Quantity -> Maybe Quantity
+negateQuantity (UnsafeQuantity x) =
+  if x == -170141183460469231731687303715884105728
+  then Nothing
+  else Just $ UnsafeQuantity (negate x)
+
 ----------------------------------------------------------------------------------------------------
 -- Builtin Value definition ------------------------------------------------------------------------
 
@@ -512,7 +518,7 @@ negateValue (Value outer sizes size neg) = do
     go x = traverse (traverse goScale) x
     goScale :: Quantity -> BuiltinResult Quantity
     goScale x =
-      case scaleQuantity (-1) x of
+      case negateQuantity x of
         Nothing ->
           fail $
             "scaleValue: quantity out of bounds: "

@@ -3,7 +3,7 @@
 # This is ai code
 
 args <- commandArgs(trailingOnly = TRUE)
-csv_path <- if (length(args) > 0) args[[1]] else "negatevsscalevalue.csv"
+csv_path <- if (length(args) > 0) args[[1]] else "negatevsscalevalue-betternegate.csv"
 default_png <- paste0(tools::file_path_sans_ext(csv_path), ".png")
 output_path <- if (length(args) > 1) args[[2]] else default_png
 
