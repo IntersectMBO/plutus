@@ -115,14 +115,21 @@ check-and-open-plutus-pr() {
 
 
 open-plutus-pr() {
-  local PR_BRANCH="release/$VERSION"
+  BASE_BRANCH="$(ask "Type the name of the base branch, press enter to use the default (master), or press 0/q/CTRL+C to exit: ")"
+  case $BASE_BRANCH in
+    [0q]) exit 0 ;;
+    "") BASE_BRANCH="master" ;;
+    *) ;;
+  esac
 
-  tell "I will stash your changes and create a new branch $PR_BRANCH from master"
+  local PR_BRANCH="release/$VERSION"
+  tell "I will stash your changes and create a new branch $PR_BRANCH from $BASE_BRANCH"
 
   git stash
+  git fetch --all
   git branch -D $PR_BRANCH || true
   git checkout -b $PR_BRANCH || true
-  git pull --rebase origin master
+  git pull --rebase origin $BASE_BRANCH
 
   local RELEASE_PACKAGES=(
     "plutus-core"
@@ -159,7 +166,7 @@ open-plutus-pr() {
     --body "Release $VERSION" \
     --label "No Changelog Required" \
     --head $PR_BRANCH \
-    --base master \
+    --base $BASE_BRANCH \
     | grep "https://")
 
   tell "The release PR has been created at $PR_URL"
