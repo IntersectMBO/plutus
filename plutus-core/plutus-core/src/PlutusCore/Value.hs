@@ -149,7 +149,7 @@ addQuantity :: Quantity -> Quantity -> Maybe Quantity
 addQuantity (UnsafeQuantity x) (UnsafeQuantity y) = quantity (x + y)
 {-# INLINEABLE addQuantity #-}
 
--- | Safely scale a quantitie with given integer, checking for overflow.
+-- | Safely scale a quantity with given integer, checking for overflow.
 scaleQuantity :: Integer -> Quantity -> Maybe Quantity
 scaleQuantity x (UnsafeQuantity y) = quantity (x * y)
 {-# INLINEABLE scaleQuantity #-}
@@ -477,7 +477,7 @@ updateSizes old new = dec . inc
       else IntMap.update (\n -> if n <= 1 then Nothing else Just (n - 1)) old
 {-# INLINEABLE updateSizes #-}
 
--- | \(O(n)\). Scale each tokens by the given constant factor.
+-- | \(O(n)\). Scale each token by the given constant factor.
 scaleValue :: Integer -> Value -> BuiltinResult Value
 scaleValue c (Value outer sizes size neg)
   -- When scaling by positive factor, no need to change sizes and number of negative amounts.

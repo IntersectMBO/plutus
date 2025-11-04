@@ -188,8 +188,8 @@ prop_containsEnforcesPositivity v
       (BuiltinFailure{}, BuiltinFailure{}) -> property True
       _                                    -> property False
 
-scaleCorrectlyBound :: Integer -> Value -> Bool
-scaleCorrectlyBound factor val =
+scaleIncorrectlyBound :: Integer -> Value -> Bool
+scaleIncorrectlyBound factor val =
   any
     (\(_, _, V.unQuantity -> q) -> isNothing $ V.quantity $ q * factor)
     $ V.toFlatList val
@@ -198,19 +198,25 @@ prop_scaleBookKeeping :: Integer -> Value -> Property
 prop_scaleBookKeeping factor v =
   case V.scaleValue factor v of
     BuiltinSuccess r -> checkBookkeeping r
-    _                -> property $ scaleCorrectlyBound factor v
+    _                -> property $ scaleIncorrectlyBound factor v
 
 prop_scaleByOneIsId :: Value -> Property
 prop_scaleByOneIsId v =
   property $ case V.scaleValue 1 v of
     BuiltinSuccess r -> r == v
-    _                -> scaleCorrectlyBound 1 v
+    _                -> scaleIncorrectlyBound 1 v
 
 prop_negateInvolutive :: Value -> Property
 prop_negateInvolutive v =
   property $ case V.scaleValue (-1) v >>= V.scaleValue (-1) of
     BuiltinSuccess r -> r == v
-    _                -> scaleCorrectlyBound (-1) v
+    _                -> scaleIncorrectlyBound (-1) v
+
+prop_scaleZeroIsZero :: Value -> Property
+prop_scaleZeroIsZero v =
+  property $ case V.scaleValue 0 v of
+    BuiltinSuccess r -> r == V.empty
+    _                -> scaleIncorrectlyBound 0 v
 
 prop_negateIsInverse :: Value -> Property
 prop_negateIsInverse v =
@@ -220,7 +226,7 @@ prop_negateIsInverse v =
       V.unionValue v vInv
   in property $ case inverseUnion of
        BuiltinSuccess r -> r == V.empty
-       _                -> scaleCorrectlyBound (-1) v
+       _                -> scaleIncorrectlyBound (-1) v
 
 prop_oppositeScaleIsInverse :: Integer -> Value -> Property
 prop_oppositeScaleIsInverse c v =
@@ -231,7 +237,7 @@ prop_oppositeScaleIsInverse c v =
       V.unionValue v' vInv
   in property $ case scaledValue of
        BuiltinSuccess r -> r == V.empty
-       _                -> scaleCorrectlyBound c v
+       _                -> scaleIncorrectlyBound c v
 
 prop_flatRoundtrip :: Value -> Property
 prop_flatRoundtrip v = Flat.unflat (Flat.flat v) === Right v
@@ -474,8 +480,8 @@ tests =
         "scaleByOneIsId"
         prop_scaleByOneIsId
     , testProperty
-        "scaleByOneIsId"
-        prop_scaleByOneIsId
+        "scaleZeroIsZero"
+        prop_scaleZeroIsZero
     , testProperty
         "negateInvolutive"
         prop_negateInvolutive
