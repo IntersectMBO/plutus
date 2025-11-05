@@ -299,6 +299,7 @@ builtinNames =
   , 'Builtins.valueContains
   , 'Builtins.mkValue
   , 'Builtins.unsafeDataAsValue
+  , 'Builtins.scaleValue
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
