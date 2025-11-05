@@ -119,6 +119,7 @@ open-plutus-pr() {
   local PR_BRANCH="release/$VERSION"
   tell "I will stash your changes and create a new branch $PR_BRANCH from $BASE_BRANCH"
 
+  exit 1 
   git stash
   git fetch --all
   git branch -D $PR_BRANCH || true
