@@ -6,6 +6,9 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=40 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=40 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=40 #-}
 
 module PlutusBenchmark.Coop.Scripts where
 
@@ -21,7 +24,7 @@ import PlutusLedgerApi.V1.Data.Value qualified as Value
 
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap qualified as AssocMap
-import PlutusTx.Data.List (cons, elem, foldl, null)
+import PlutusTx.Data.List (elem, foldl)
 import PlutusTx.List qualified as BIList
 
 import PlutusBenchmark.Coop.Types
@@ -115,7 +118,7 @@ fsMp'
                   shouldbeBurned' =
                     shouldBeBurned
                     <> Value.singleton ap'authTokenCs (TokenName $ getLedgerBytes cert'id) (-1)
-                in (cons txIn validAuthInputs'', shouldbeBurned')
+                in (txIn : validAuthInputs'', shouldbeBurned')
           else acc
 
         (validAuthInputs', authTokensToBurn) = foldl go' (mempty, mempty) txInfoInputs
@@ -142,17 +145,17 @@ fsMp'
                in if (Value $ AssocMap.singleton ownCs ownCurrValue)
                      == Value.singleton ownCs fsTokenName 1
                   then (Just fsTokenName, unusedAuthInputs'')
-                  else (Nothing, cons authInput unusedAuthInputs'')
+                  else (Nothing, authInput : unusedAuthInputs'')
              matchWithAuth (myFsTn', unusedAuthInputs'') authInput =
-               (myFsTn', (cons authInput unusedAuthInputs''))
+               (myFsTn', (authInput : unusedAuthInputs''))
 
-             (mayFsTn, unusedAuthInputs') = foldl matchWithAuth (Nothing, mempty) unusedAuthInputs
+             (mayFsTn, unusedAuthInputs') = BIList.foldl matchWithAuth (Nothing, mempty) unusedAuthInputs
            in case mayFsTn of
                  Nothing -> traceError "$FS must have a token name formed from a matching $AUTH input"
                  Just fsTn -> (fsToMint' <> Value.singleton ownCs fsTn 1, unusedAuthInputs')
 
     (fsToMint, restAuths) = foldl go (mempty, validAuthInputs) txInfoOutputs
-    !_checkAuthUse = errorIfFalse "Auth inputs must ALL be used" $ null restAuths
+    !_checkAuthUse = errorIfFalse "Auth inputs must ALL be used" $ BIList.null restAuths
     !_checkBurn =
       errorIfFalse "" $
         currencyValue ownCs txInfoMint == fsToMint
