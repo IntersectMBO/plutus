@@ -1,4 +1,4 @@
--- This would add up to (-2^-127 - 1), which is under the allowed minimum value of a
+-- This would add up to (-2^-127 - 1), which is less than the allowed minimum value of a
 -- token
 (program 1.0.0
   [ (builtin unionValue)
