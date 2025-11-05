@@ -264,6 +264,8 @@ certMp'
    (Minting ownCs)
   ) =
   let
+    inputSum =
+      foldl (\acc (TxInInfo _ (TxOut {txOutValue})) -> acc + txOutValue) mempty txInfoInputs
     go shouldBurn' (TxInInfo _ (TxOut {txOutValue = txInVal, txOutDatum = txOutDatum})) =
       if hasCurrency ownCs txInVal
       then
@@ -275,8 +277,6 @@ certMp'
             (Interval (LowerBound certValidUntil False) (UpperBound PosInf True))
             txInfoValidRange
           (redeemerCs, redeemerName) = unAssetClass cert'redeemerAc
-          inputSum =
-            foldl (\acc (TxInInfo _ (TxOut {txOutValue})) -> acc + txOutValue) mempty txInfoInputs
           !_spendAtLeast =
             errorIfFalse
               "Not have at least one token specified by redeemer spent"
