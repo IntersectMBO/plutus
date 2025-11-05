@@ -11,6 +11,7 @@ import PlutusLedgerApi.V1 (Datum (Datum), DatumHash)
 import PlutusLedgerApi.V1.Data.Value
 import PlutusLedgerApi.V2.Data.Contexts
 import PlutusLedgerApi.V2.Data.Tx
+import PlutusTx.BuiltinList qualified as BIList
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap (Map, lookup)
 import PlutusTx.Data.AssocMap qualified as AssocMap
@@ -50,8 +51,8 @@ currencyValue :: CurrencySymbol -> Value -> Value
 currencyValue cs val = withCurrencySymbol cs val mempty (\v -> Value $ AssocMap.singleton cs v)
 {-# INLINE currencyValue #-}
 
-unsafeMergeMap :: (ToData k, ToData v, UnsafeFromData k, UnsafeFromData v) => AssocMap.Map k v -> AssocMap.Map k v -> AssocMap.Map k v
-unsafeMergeMap x y = AssocMap.unsafeFromSOPList (AssocMap.toSOPList x <> AssocMap.toSOPList y)
+unsafeMergeMap :: AssocMap.Map k v -> AssocMap.Map k v -> AssocMap.Map k v
+unsafeMergeMap x y = AssocMap.unsafeFromBuiltinList (BIList.append (AssocMap.toBuiltinList x) (AssocMap.toBuiltinList y))
 {-# INLINE unsafeMergeMap #-}
 
 hashInput :: TxInInfo -> BuiltinByteString
