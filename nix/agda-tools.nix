@@ -53,6 +53,7 @@ let
         name = "agda";
         version = Agda.identifier.version;
         paths = [ Agda.components.exes.agda Agda.components.exes.agda-mode ];
+        meta.mainProgram = "agda";
       };
 
       frankenAgda = frankenAgdaBin // {
@@ -152,5 +153,6 @@ in
     agda-packages
     agda-stdlib
     agda-with-stdlib
+    agda-project
     NIX_AGDA_STDLIB;
 }
