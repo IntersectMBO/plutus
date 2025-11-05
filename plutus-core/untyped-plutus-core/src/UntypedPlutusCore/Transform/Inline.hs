@@ -57,7 +57,7 @@ import UntypedPlutusCore.MkUPlc (Def (..), UTermDef, UVarDecl (..))
 import UntypedPlutusCore.Purity (EvalTerm (EvalTerm, Unknown), Purity (MaybeImpure, Pure), isPure,
                                  termEvaluationOrder, unEvalOrder)
 import UntypedPlutusCore.Rename ()
-import UntypedPlutusCore.Size (Size, termSize)
+import UntypedPlutusCore.AstSize (AstSize, termAstSize)
 import UntypedPlutusCore.Subst (termSubstNamesM)
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (Inline), SimplifierT,
                                                recordSimplification)
@@ -142,7 +142,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiHints                   :: InlineHints name a
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants         :: Bool
-  , _iiInlineCallsiteGrowth    :: Size
+  , _iiInlineCallsiteGrowth    :: AstSize
   , _iiPreserveLogging         :: Bool
   }
 
@@ -197,7 +197,7 @@ See Note [Inlining and global uniqueness]
 inline
   :: forall name uni fun m a
    . (ExternalConstraints name uni fun m)
-  => Size
+  => AstSize
   -- ^ inline threshold
   -> Bool
   -- ^ inline constants
@@ -608,7 +608,7 @@ inlineSaturatedApp t
                 -- Inline only if the size is no bigger than
                 -- not inlining plus threshold.
                 sizeIsOk =
-                  termSize fullyApplied <= termSize t + max 0 thresh
+                  termAstSize fullyApplied <= termAstSize t + max 0 thresh
                 rhs = varInfo ^. varRhs
                 -- Cost is always OK if the RHS is a LamAbs,
                 -- but may not be otherwise.

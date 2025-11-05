@@ -1,0 +1,8 @@
+{
+  "label": "Upcoming Features",
+  "position": 75,
+  "link": {
+    "type": "generated-index",
+    "description": "Features that are being developed and will be available in future versions of Plutus."
+  }
+}

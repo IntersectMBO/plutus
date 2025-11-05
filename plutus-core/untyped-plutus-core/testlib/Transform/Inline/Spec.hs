@@ -17,7 +17,7 @@ import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, testCase)
 import UntypedPlutusCore.Core (Term (..))
-import UntypedPlutusCore.Size (Size (..))
+import UntypedPlutusCore.AstSize (AstSize (..))
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), InlineInfo (..), InlineM, S (..),
                                            Subst (..), TermEnv (..), effectSafe,
                                            isFirstVarBeforeEffects, isStrictIn)
@@ -157,7 +157,7 @@ runInlineM preserveLogging m = result
       , _iiHints = InlineHints \_ann _name -> MayInline
       , _iiBuiltinSemanticsVariant = def
       , _iiInlineConstants = True
-      , _iiInlineCallsiteGrowth = Size 1_000_000
+      , _iiInlineCallsiteGrowth = AstSize 1_000_000
       , _iiPreserveLogging = preserveLogging
       }
   initialState :: S Name DefaultUni DefaultFun ()

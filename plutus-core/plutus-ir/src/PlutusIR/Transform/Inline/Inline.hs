@@ -16,10 +16,9 @@ import PlutusCore.Annotation
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
-import PlutusCore.Size (Size)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.Size (termSize)
+import PlutusIR.AstSize (AstSize, termAstSize)
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
@@ -160,7 +159,7 @@ supply, and the performance cost does not currently seem relevant. So it's fine.
 inlinePassSC
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Size
+    => AstSize
     -- ^ inline threshold
     -> Bool
     -- ^ should we inline constants?
@@ -174,7 +173,7 @@ inlinePassSC thresh ic tcconfig hints binfo =
 inlinePass
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Size
+    => AstSize
     -- ^ inline threshold
     -> Bool
     -- ^ should we inline constants?
@@ -194,7 +193,7 @@ inlinePass thresh ic tcconfig hints binfo =
 inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => Size
+    => AstSize
     -- ^ inline threshold
     -> Bool
     -- ^ should we inline constants?
@@ -291,7 +290,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                 Just varInfo -> do
                                     maybeInlined <-
                                         callSiteInline
-                                            (termSize reconstructed)
+                                            (termAstSize reconstructed)
                                             varInfo
                                             args'
                                     pure $ fromMaybe reconstructed maybeInlined

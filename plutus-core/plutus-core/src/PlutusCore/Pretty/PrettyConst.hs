@@ -113,7 +113,7 @@ instance NonDefaultPrettyBy ConstConfig T.Text where
     nonDefaultPrettyListBy conf = Prettyprinter.list . Prelude.map (nonDefaultPrettyBy conf)
     nonDefaultPrettyBy = inContextM $ \t -> pure $ pretty $ "\"" <> escape t <> "\""
         where
-            escape t = T.foldr' prettyChar "" t
+            escape = T.foldr' prettyChar ""
             prettyChar c acc
                 | c == '"' = "\\\"" <> acc -- Not handled by 'showLitChar'
                 | c == '\\' = "\\\\" <> acc -- Not handled by 'showLitChar'
@@ -158,6 +158,12 @@ instance PrettyBy ConstConfig Data where
         List ds     ->  "List" :| [prettyArg ds]
         I i         ->  ("I" <+> prettyArg i) :| []
         B b         ->  ("B" <+> prettyArg b) :| []
+
+instance PrettyBy ConstConfig Value.K where
+    prettyBy config = prettyBy config . Value.unK
+
+instance PrettyBy ConstConfig Value.Quantity where
+    prettyBy config = prettyBy config . Value.unQuantity
 
 instance PrettyBy ConstConfig Value where
     prettyBy config = prettyBy config . Value.toList

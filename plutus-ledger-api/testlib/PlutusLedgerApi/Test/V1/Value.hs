@@ -45,8 +45,8 @@ instance Arbitrary Value where
         -- list of lists.
         faceValues <- multiSplit0 0.2 . map unFaceValue =<< arbitrary
         -- Generate 'TokenName's and 'CurrencySymbol's.
-        currencies <- uniqueNames (CurrencySymbol . toBuiltin) =<<
-            traverse (uniqueNames (TokenName . toBuiltin)) faceValues
+        currencies <- uniqueNames (CurrencySymbol . toBuiltin . PLC.unK) =<<
+            traverse (uniqueNames (TokenName . toBuiltin . PLC.unK)) faceValues
         pure $ listsToValue currencies
 
     shrink
@@ -57,8 +57,8 @@ instance Arbitrary Value where
 valueFromBuiltin :: PLC.Value -> Value
 valueFromBuiltin =
   listsToValue
-    . fmap (bimap (CurrencySymbol . toBuiltin) inner)
+    . fmap (bimap (CurrencySymbol . toBuiltin . PLC.unK) inner)
     . Map.toList
     . PLC.unpack
  where
-  inner = fmap (first (TokenName . toBuiltin)) . Map.toList
+  inner = fmap (bimap (TokenName . toBuiltin . PLC.unK) PLC.unQuantity) . Map.toList

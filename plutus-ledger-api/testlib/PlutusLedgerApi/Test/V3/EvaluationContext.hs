@@ -95,6 +95,8 @@ clearBuiltinCostModel r = r
                , paramLengthOfArray = mempty
                , paramListToArray = mempty
                , paramIndexArray = mempty
+               , paramBls12_381_G1_multiScalarMul = mempty
+               , paramBls12_381_G2_multiScalarMul = mempty
                }
 
 

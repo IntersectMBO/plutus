@@ -82,12 +82,10 @@ library
     , extra
     , ghc
     , lens
-    , megaparsec
     , mtl
     , plutus-core            ^>=1.54
     , plutus-core:flat
     , plutus-core:plutus-ir
-    , plutus-metatheory      ^>=1.54
     , plutus-tx              ^>=1.54
     , prettyprinter
     , template-haskell
@@ -225,7 +223,7 @@ test-suite size
   ghc-options:        -Wno-unused-packages
   type:               exitcode-stdio-1.0
   main-is:            Main.hs
-  hs-source-dirs:     test/size
+  hs-source-dirs:     test/AstSize
   build-depends:
     , base                             >=4.9   && <5.0
     , plutus-core                      ^>=1.54

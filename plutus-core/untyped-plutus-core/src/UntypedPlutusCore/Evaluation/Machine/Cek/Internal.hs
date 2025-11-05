@@ -881,7 +881,8 @@ enterComputeCek = computeCek
     returnCek (FrameAwaitFunTerm argVarEnv arg ctx) fun =
         computeCek (FrameAwaitArg fun ctx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
-    -- FIXME: add rule for VBuiltin once it's in the specification.
+    -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1878):
+    -- add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
     -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M

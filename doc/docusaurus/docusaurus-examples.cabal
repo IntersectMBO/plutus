@@ -78,6 +78,27 @@ executable example-evaluation
     -fno-spec-constr -fno-specialise -fno-strictness
     -fno-unbox-small-strict-fields -fno-unbox-strict-fields
 
+executable example-builtin-array
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Builtin/Array/Main.hs
+  hs-source-dirs:   static/code
+  default-language: Haskell2010
+  other-modules:    Paths_docusaurus_examples
+  build-depends:
+    , base                         ^>=4.18
+    , colourista
+    , plutus-core                  ^>=1.54
+    , plutus-tx                    ^>=1.54
+    , plutus-tx-plugin             ^>=1.54
+    , plutus-tx:plutus-tx-testlib
+    , text
+
+  ghc-options:
+    -Wno-missing-signatures -fno-full-laziness
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -fno-spec-constr -fno-specialise -fno-strictness
+    -fno-unbox-small-strict-fields -fno-unbox-strict-fields
+
 executable quickstart
   import:           lang, ghc-version-support, os-support
   main-is:          QuickStart.hs

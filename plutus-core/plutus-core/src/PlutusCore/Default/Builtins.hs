@@ -196,6 +196,7 @@ data DefaultFun
     | ValueContains
     | ValueData
     | UnValueData
+    | ScaleValue
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -844,12 +845,12 @@ Our final example is this:
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
-              (SomeConstant (Some (ValueOf uniListA xs))) = do
+              (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
                         Just Refl ->                                       -- [2]
                             pure . fromValueOf uniListA $ x : xs           -- [3]
-                        _ -> throwError $ structuralUnliftingError
+                        Nothing -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
@@ -1425,7 +1426,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
                         Just Refl -> pure . fromValueOf uniListA $ x : xs
-                        _         -> throwError $ structuralUnliftingError
+                        Nothing   -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
@@ -2047,7 +2048,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramBls12_381_G2_multiScalarMul)
 
     toBuiltinMeaning _semvar InsertCoin =
-      let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> Value
+      let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
           insertCoinDenotation = Value.insertCoin
           {-# INLINE insertCoinDenotation #-}
        in makeBuiltinMeaning
@@ -2063,7 +2064,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunThreeArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar UnionValue =
-      let unionValueDenotation :: Value -> Value -> Value
+      let unionValueDenotation :: Value -> Value -> BuiltinResult Value
           unionValueDenotation = Value.unionValue
           {-# INLINE unionValueDenotation #-}
        in makeBuiltinMeaning
@@ -2071,7 +2072,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ValueContains =
-      let valueContainsDenotation :: Value -> Value -> Bool
+      let valueContainsDenotation :: Value -> Value -> BuiltinResult Bool
           valueContainsDenotation = Value.valueContains
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning
@@ -2093,6 +2094,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             unValueDataDenotation
             (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ScaleValue =
+        let unValueDataDenotation :: Integer -> Value -> BuiltinResult Value
+            unValueDataDenotation = Value.scaleValue
+            {-# INLINE unValueDataDenotation #-}
+        in makeBuiltinMeaning
+            unValueDataDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
@@ -2251,109 +2260,111 @@ instance Flat DefaultFun where
               ValueContains                   -> 97
               ValueData                       -> 98
               UnValueData                     -> 99
+              ScaleValue                      -> 100
 
     decode = go =<< decodeBuiltin
-        where go 0  = pure AddInteger
-              go 1  = pure SubtractInteger
-              go 2  = pure MultiplyInteger
-              go 3  = pure DivideInteger
-              go 4  = pure QuotientInteger
-              go 5  = pure RemainderInteger
-              go 6  = pure ModInteger
-              go 7  = pure EqualsInteger
-              go 8  = pure LessThanInteger
-              go 9  = pure LessThanEqualsInteger
-              go 10 = pure AppendByteString
-              go 11 = pure ConsByteString
-              go 12 = pure SliceByteString
-              go 13 = pure LengthOfByteString
-              go 14 = pure IndexByteString
-              go 15 = pure EqualsByteString
-              go 16 = pure LessThanByteString
-              go 17 = pure LessThanEqualsByteString
-              go 18 = pure Sha2_256
-              go 19 = pure Sha3_256
-              go 20 = pure Blake2b_256
-              go 21 = pure VerifyEd25519Signature
-              go 22 = pure AppendString
-              go 23 = pure EqualsString
-              go 24 = pure EncodeUtf8
-              go 25 = pure DecodeUtf8
-              go 26 = pure IfThenElse
-              go 27 = pure ChooseUnit
-              go 28 = pure Trace
-              go 29 = pure FstPair
-              go 30 = pure SndPair
-              go 31 = pure ChooseList
-              go 32 = pure MkCons
-              go 33 = pure HeadList
-              go 34 = pure TailList
-              go 35 = pure NullList
-              go 36 = pure ChooseData
-              go 37 = pure ConstrData
-              go 38 = pure MapData
-              go 39 = pure ListData
-              go 40 = pure IData
-              go 41 = pure BData
-              go 42 = pure UnConstrData
-              go 43 = pure UnMapData
-              go 44 = pure UnListData
-              go 45 = pure UnIData
-              go 46 = pure UnBData
-              go 47 = pure EqualsData
-              go 48 = pure MkPairData
-              go 49 = pure MkNilData
-              go 50 = pure MkNilPairData
-              go 51 = pure SerialiseData
-              go 52 = pure VerifyEcdsaSecp256k1Signature
-              go 53 = pure VerifySchnorrSecp256k1Signature
-              go 54 = pure Bls12_381_G1_add
-              go 55 = pure Bls12_381_G1_neg
-              go 56 = pure Bls12_381_G1_scalarMul
-              go 57 = pure Bls12_381_G1_equal
-              go 58 = pure Bls12_381_G1_compress
-              go 59 = pure Bls12_381_G1_uncompress
-              go 60 = pure Bls12_381_G1_hashToGroup
-              go 61 = pure Bls12_381_G2_add
-              go 62 = pure Bls12_381_G2_neg
-              go 63 = pure Bls12_381_G2_scalarMul
-              go 64 = pure Bls12_381_G2_equal
-              go 65 = pure Bls12_381_G2_compress
-              go 66 = pure Bls12_381_G2_uncompress
-              go 67 = pure Bls12_381_G2_hashToGroup
-              go 68 = pure Bls12_381_millerLoop
-              go 69 = pure Bls12_381_mulMlResult
-              go 70 = pure Bls12_381_finalVerify
-              go 71 = pure Keccak_256
-              go 72 = pure Blake2b_224
-              go 73 = pure IntegerToByteString
-              go 74 = pure ByteStringToInteger
-              go 75 = pure AndByteString
-              go 76 = pure OrByteString
-              go 77 = pure XorByteString
-              go 78 = pure ComplementByteString
-              go 79 = pure ReadBit
-              go 80 = pure WriteBits
-              go 81 = pure ReplicateByte
-              go 82 = pure ShiftByteString
-              go 83 = pure RotateByteString
-              go 84 = pure CountSetBits
-              go 85 = pure FindFirstSetBit
-              go 86 = pure Ripemd_160
-              go 87 = pure ExpModInteger
-              go 88 = pure DropList
-              go 89 = pure LengthOfArray
-              go 90 = pure ListToArray
-              go 91 = pure IndexArray
-              go 92 = pure Bls12_381_G1_multiScalarMul
-              go 93 = pure Bls12_381_G2_multiScalarMul
-              go 94 = pure InsertCoin
-              go 95 = pure LookupCoin
-              go 96 = pure UnionValue
-              go 97 = pure ValueContains
-              go 98 = pure ValueData
-              go 99 = pure UnValueData
-              go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
+        where go 0   = pure AddInteger
+              go 1   = pure SubtractInteger
+              go 2   = pure MultiplyInteger
+              go 3   = pure DivideInteger
+              go 4   = pure QuotientInteger
+              go 5   = pure RemainderInteger
+              go 6   = pure ModInteger
+              go 7   = pure EqualsInteger
+              go 8   = pure LessThanInteger
+              go 9   = pure LessThanEqualsInteger
+              go 10  = pure AppendByteString
+              go 11  = pure ConsByteString
+              go 12  = pure SliceByteString
+              go 13  = pure LengthOfByteString
+              go 14  = pure IndexByteString
+              go 15  = pure EqualsByteString
+              go 16  = pure LessThanByteString
+              go 17  = pure LessThanEqualsByteString
+              go 18  = pure Sha2_256
+              go 19  = pure Sha3_256
+              go 20  = pure Blake2b_256
+              go 21  = pure VerifyEd25519Signature
+              go 22  = pure AppendString
+              go 23  = pure EqualsString
+              go 24  = pure EncodeUtf8
+              go 25  = pure DecodeUtf8
+              go 26  = pure IfThenElse
+              go 27  = pure ChooseUnit
+              go 28  = pure Trace
+              go 29  = pure FstPair
+              go 30  = pure SndPair
+              go 31  = pure ChooseList
+              go 32  = pure MkCons
+              go 33  = pure HeadList
+              go 34  = pure TailList
+              go 35  = pure NullList
+              go 36  = pure ChooseData
+              go 37  = pure ConstrData
+              go 38  = pure MapData
+              go 39  = pure ListData
+              go 40  = pure IData
+              go 41  = pure BData
+              go 42  = pure UnConstrData
+              go 43  = pure UnMapData
+              go 44  = pure UnListData
+              go 45  = pure UnIData
+              go 46  = pure UnBData
+              go 47  = pure EqualsData
+              go 48  = pure MkPairData
+              go 49  = pure MkNilData
+              go 50  = pure MkNilPairData
+              go 51  = pure SerialiseData
+              go 52  = pure VerifyEcdsaSecp256k1Signature
+              go 53  = pure VerifySchnorrSecp256k1Signature
+              go 54  = pure Bls12_381_G1_add
+              go 55  = pure Bls12_381_G1_neg
+              go 56  = pure Bls12_381_G1_scalarMul
+              go 57  = pure Bls12_381_G1_equal
+              go 58  = pure Bls12_381_G1_compress
+              go 59  = pure Bls12_381_G1_uncompress
+              go 60  = pure Bls12_381_G1_hashToGroup
+              go 61  = pure Bls12_381_G2_add
+              go 62  = pure Bls12_381_G2_neg
+              go 63  = pure Bls12_381_G2_scalarMul
+              go 64  = pure Bls12_381_G2_equal
+              go 65  = pure Bls12_381_G2_compress
+              go 66  = pure Bls12_381_G2_uncompress
+              go 67  = pure Bls12_381_G2_hashToGroup
+              go 68  = pure Bls12_381_millerLoop
+              go 69  = pure Bls12_381_mulMlResult
+              go 70  = pure Bls12_381_finalVerify
+              go 71  = pure Keccak_256
+              go 72  = pure Blake2b_224
+              go 73  = pure IntegerToByteString
+              go 74  = pure ByteStringToInteger
+              go 75  = pure AndByteString
+              go 76  = pure OrByteString
+              go 77  = pure XorByteString
+              go 78  = pure ComplementByteString
+              go 79  = pure ReadBit
+              go 80  = pure WriteBits
+              go 81  = pure ReplicateByte
+              go 82  = pure ShiftByteString
+              go 83  = pure RotateByteString
+              go 84  = pure CountSetBits
+              go 85  = pure FindFirstSetBit
+              go 86  = pure Ripemd_160
+              go 87  = pure ExpModInteger
+              go 88  = pure DropList
+              go 89  = pure LengthOfArray
+              go 90  = pure ListToArray
+              go 91  = pure IndexArray
+              go 92  = pure Bls12_381_G1_multiScalarMul
+              go 93  = pure Bls12_381_G2_multiScalarMul
+              go 94  = pure InsertCoin
+              go 95  = pure LookupCoin
+              go 96  = pure UnionValue
+              go 97  = pure ValueContains
+              go 98  = pure ValueData
+              go 99  = pure UnValueData
+              go 100 = pure ScaleValue
+              go t   = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
 

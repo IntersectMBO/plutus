@@ -175,7 +175,8 @@ returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
     -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
     pure $ Computing (FrameAwaitArg (termAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
--- FIXME: add rule for VBuiltin once it's in the specification.
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1878):
+-- add rule for VBuiltin once it's in the specification.
 returnCek (FrameAwaitArg _ fun ctx) arg =
     applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
@@ -412,7 +413,8 @@ lenContext = go 0
 
 
 -- * Duplicated functions from Cek.Internal module
--- FIXME: share these functions with Cek.Internal
+-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1879):
+-- share these functions with Cek.Internal
 -- preliminary testing shows that sharing slows down original cek
 
 cekStepCost :: CekMachineCosts -> StepKind -> ExBudget

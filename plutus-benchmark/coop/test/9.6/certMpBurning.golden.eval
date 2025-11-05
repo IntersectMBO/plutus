@@ -1,6 +1,6 @@
 CPU:             1_842_342_144
 Memory:             10_767_218
-Term Size:               3_160
+AST Size:                3_160
 Flat Size:               8_041
 
 (con unit ())

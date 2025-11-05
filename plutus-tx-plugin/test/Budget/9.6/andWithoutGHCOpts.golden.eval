@@ -1,6 +1,6 @@
 CPU:                   285_390
 Memory:                  1_601
-Term Size:                  21
+AST Size:                   21
 Flat Size:                  28
 
 (con bool False)

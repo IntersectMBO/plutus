@@ -299,6 +299,7 @@ builtinNames =
   , 'Builtins.valueContains
   , 'Builtins.mkValue
   , 'Builtins.unsafeDataAsValue
+  , 'Builtins.scaleValue
   ]
 
 defineBuiltinTerm :: (CompilingDefault uni fun m ann) => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -733,6 +734,7 @@ defineBuiltinTerms = do
           PLC.ValueContains -> defineBuiltinInl 'Builtins.valueContains
           PLC.ValueData -> defineBuiltinInl 'Builtins.mkValue
           PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
+          PLC.ScaleValue -> defineBuiltinInl 'Builtins.scaleValue
 
 defineBuiltinTypes :: (CompilingDefault uni fun m ann) => m ()
 defineBuiltinTypes = do

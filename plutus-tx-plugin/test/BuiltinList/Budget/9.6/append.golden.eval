@@ -1,6 +1,6 @@
 CPU:                 5_107_720
 Memory:                 27_820
-Term Size:                  68
+AST Size:                   68
 Flat Size:                  76
 
 (con (list integer) [1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10])

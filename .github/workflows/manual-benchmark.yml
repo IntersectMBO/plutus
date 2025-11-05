@@ -29,8 +29,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.3.0
         with:
-          # We need at least one commit before master to compare against
-          fetch-depth: 5
+          # It's possible that new commits get merged into master since the PR 
+          # was opened. We need a safe buffer to make sure that our use of merge-head 
+          # leter always finds the true parent of the first PR commit.
+          fetch-depth: 100
 
       - name: React With Rocket 
         uses: actions/github-script@v7.1.0

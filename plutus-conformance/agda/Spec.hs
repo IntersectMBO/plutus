@@ -124,23 +124,10 @@ agdaEvalUplcProg WithoutCosting =
 -}
 failingEvaluationTests :: [FilePath]
 failingEvaluationTests =
-  [ -- These "array" tests fail because the Agda code doesn't know about arrays yet
-    -- TODO: remove these tests once "Add new array type and builtins to Agda
-    -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465
-    "test-cases/uplc/evaluation/builtin/constant/array/emptyArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/simpleArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
-  -- These "constant casing" tests fail because Agda metatheory does not yet
-  -- implement casing on constant values.
-  -- TODO: remove these tests once casing on constant is added to Agda metatheory.
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
+  [ -- These "constant casing" tests fail because Agda metatheory does not yet
+    -- implement casing on constant values.
+    -- TODO: remove these tests once casing on constant is added to Agda metatheory.
+    "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-02"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-03"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-04"
@@ -166,6 +153,46 @@ failingEvaluationTests =
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
+
+  -- The following are failing because the metatheory needs to be updated with
+  -- Value built-in functions
+  , "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
+  , "test-cases/uplc/evaluation/builtin/constant/value/empty-tokens"
+  , "test-cases/uplc/evaluation/builtin/constant/value/empty"
+  , "test-cases/uplc/evaluation/builtin/constant/value/ill-formed"
+  , "test-cases/uplc/evaluation/builtin/constant/value/multi"
+  , "test-cases/uplc/evaluation/builtin/constant/value/unordered"
+  , "test-cases/uplc/evaluation/builtin/constant/value/zero-asset"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-1"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-2"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-nonempty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-token"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/negative-empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive"
+  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent"
+  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/present"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/combine"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitl"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-sufficient"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-eq"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-gt"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-lt"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-pos"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-neg"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
   ]
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
@@ -196,21 +223,6 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  , -- These "array" tests fail because the Agda code doesn't know about arrays yet
-    -- TODO: remove these tests once "Add new array type and builtins to Agda
-    -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465
-    "test-cases/uplc/evaluation/builtin/constant/array/emptyArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/simpleArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
-  , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-01"
-  , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
   -- These "constant casing" tests fail because Agda metatheory does not yet
   -- implement casing on constant values.
   -- TODO: remove these tests once casing on constant is added to Agda metatheory.
@@ -240,6 +252,45 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
+  -- The following are failing because the metatheory needs to be updated with
+  -- Value built-in functions
+  , "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
+  , "test-cases/uplc/evaluation/builtin/constant/value/empty-tokens"
+  , "test-cases/uplc/evaluation/builtin/constant/value/empty"
+  , "test-cases/uplc/evaluation/builtin/constant/value/ill-formed"
+  , "test-cases/uplc/evaluation/builtin/constant/value/multi"
+  , "test-cases/uplc/evaluation/builtin/constant/value/unordered"
+  , "test-cases/uplc/evaluation/builtin/constant/value/zero-asset"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-1"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-2"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-nonempty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-token"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/negative-empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty"
+  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive"
+  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent"
+  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/present"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/combine"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitl"
+  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/empty"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-sufficient"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-eq"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-gt"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-lt"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-pos"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-neg"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive"
+  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.

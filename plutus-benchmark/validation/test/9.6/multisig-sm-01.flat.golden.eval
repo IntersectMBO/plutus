@@ -1,6 +1,6 @@
 CPU:               385_936_325
 Memory:              2_022_360
-Term Size:              10_264
+AST Size:               10_264
 Flat Size:               9_268
 
 (delay (lam i i))

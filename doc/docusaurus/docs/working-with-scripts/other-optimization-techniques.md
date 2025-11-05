@@ -128,6 +128,11 @@ Traces can be expensive especially in terms of script sizes.
 It is advisable to use traces during development, but to remove them when deploying your scripts on mainnet.
 Traces can be removed via the `remove-trace` plugin flag.
 
+## Using `BuiltinArray` for index-based lookups
+
+For optimizing multiple index-based lookups, see the upcoming [Builtin Arrays](../upcoming-features/builtin-arrays.md) feature.
+
+
 ## Using `error` for faster failure
 
 Plutus scripts have access to one impure effect, `error`, which immediately terminates the script evaluation and will fail validation.

@@ -215,10 +215,14 @@ batch5 =
   , Ripemd_160
   ]
 
+-- Add new builtins for release in PV11 here.  Once PV11 has happened (by which
+-- time we should have replaced pv11PV by the real name), mark this as not to be
+-- changed and open a new batch.
 batch6 :: [DefaultFun]
 batch6 =
   [ ExpModInteger, DropList
   , LengthOfArray, ListToArray, IndexArray
+  , Bls12_381_G1_multiScalarMul, Bls12_381_G2_multiScalarMul
   ]
 
 {-| Given a ledger language, return a map indicating which builtin functions were
@@ -270,12 +274,12 @@ plcVersionsIntroducedIn =
       ]
     PlutusV2 ->
       Map.fromList
-      [ (alonzoPV, Set.fromList [ plcVersion100 ])
+      [ (vasilPV,  Set.fromList [ plcVersion100 ])
       , (pv11PV,   Set.fromList [ plcVersion110 ])
       ]
     PlutusV3 ->
       Map.fromList
-      [(changPV, Set.fromList [ plcVersion110 ])
+      [ (changPV,  Set.fromList [ plcVersion100, plcVersion110 ])
       ]
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'

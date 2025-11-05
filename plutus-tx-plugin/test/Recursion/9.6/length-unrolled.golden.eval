@@ -1,6 +1,6 @@
 CPU:                 3_092_180
 Memory:                 13_120
-Term Size:                  61
+AST Size:                   61
 Flat Size:                  91
 
 (con integer 10)

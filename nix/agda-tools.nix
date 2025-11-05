@@ -53,6 +53,7 @@ let
         name = "agda";
         version = Agda.identifier.version;
         paths = [ Agda.components.exes.agda Agda.components.exes.agda-mode ];
+        meta.mainProgram = "agda";
       };
 
       frankenAgda = frankenAgdaBin // {
@@ -143,7 +144,6 @@ let
 
   # Path to the stdlib .agda-lib file for shell export.
   NIX_AGDA_STDLIB = "${agda-stdlib}/standard-library.agda-lib";
-
 in
 
 {
@@ -153,5 +153,6 @@ in
     agda-packages
     agda-stdlib
     agda-with-stdlib
+    agda-project
     NIX_AGDA_STDLIB;
 }

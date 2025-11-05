@@ -1,6 +1,6 @@
 CPU:               854_776_937
 Memory:              3_808_101
-Term Size:                  57
+AST Size:                   57
 Flat Size:                  65
 
 (con integer 500500)

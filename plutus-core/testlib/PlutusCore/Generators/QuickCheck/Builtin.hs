@@ -267,14 +267,16 @@ hence to make name clashing more likely we pick from a predetermined set of
 'ByteString's. Otherwise the chance of generating the same 'ByteString' for two
 different 'Value's would be virtually zero.
 -}
-genShortHex :: Int -> Gen ByteString
+genShortHex :: Int -> Gen Value.K
 genShortHex i =
-  Base16.encode . BC.pack . show <$> elements [0 .. toCellCandidatesNumber i]
+  (Base16.encode . BC.pack . show <$> elements [0 .. toCellCandidatesNumber i])
+    `suchThatMap`
+    Value.k
 
 {-| Annotate each element of the give list with a @name@, given a function turning
 'ByteString' into names.
 -}
-uniqueNames :: (Eq name) => (ByteString -> name) -> [b] -> Gen [(name, b)]
+uniqueNames :: (Eq name) => (Value.K -> name) -> [b] -> Gen [(name, b)]
 uniqueNames wrap ys = do
   let len = length ys
   -- We always generate unique 'CurrencySymbol's within a single 'Value' and 'TokenName' within a
@@ -284,11 +286,21 @@ uniqueNames wrap ys = do
   xs <- uniqueVectorOf len $ wrap <$> genShortHex len
   pure $ zip xs ys
 
-newtype ValueAmount = ValueAmount {unValueAmount :: Integer}
-  deriving newtype (Num, Show)
+instance ArbitraryBuiltin Value.K where
+  arbitraryBuiltin = arbitraryBuiltin `suchThatMap` Value.k
 
-instance Arbitrary ValueAmount where
-  arbitrary = ValueAmount <$> arbitraryBuiltin
+instance Arbitrary Value.K where
+    arbitrary = arbitraryBuiltin
+    shrink = shrinkBuiltin
+
+instance ArbitraryBuiltin Value.Quantity where
+  arbitraryBuiltin =
+    chooseInteger (Value.unQuantity minBound, Value.unQuantity maxBound)
+      `suchThatMap` Value.quantity
+
+instance Arbitrary Value.Quantity where
+    arbitrary = arbitraryBuiltin
+    shrink = const [] -- shrinkBuiltin
 
 {-| A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
 instance for @a@.
@@ -306,14 +318,22 @@ instance ArbitraryBuiltin Value where
   arbitraryBuiltin = do
     -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
     -- list of lists.
-    amts <- multiSplit0 0.2 . map unValueAmount =<< arbitrary
+    quantities <- multiSplit0 0.2 =<< arbitraryBuiltin
     -- Generate 'TokenName's and 'CurrencySymbol's.
-    currencies <- uniqueNames id =<< traverse (uniqueNames id) amts
-    pure $ Value.fromList currencies
+    currencies <- uniqueNames id =<< traverse (uniqueNames id) quantities
+    case Value.fromList currencies of
+      BuiltinSuccess v           -> pure v
+      BuiltinSuccessWithLogs _ v -> pure v
+      BuiltinFailure logs _      -> error $ "Failed to generate valid Value: " <> show logs
 
   shrinkBuiltin =
-    map Value.fromList
-      . coerce (shrink @[(NoArbitrary ByteString, [(NoArbitrary ByteString, Integer)])])
+    mapMaybe
+      ( \keys -> case Value.fromList keys of
+          BuiltinSuccess v           -> Just v
+          BuiltinSuccessWithLogs _ v -> Just v
+          BuiltinFailure{}           -> Nothing
+      )
+      . coerce (shrink @[(NoArbitrary Value.K, [(NoArbitrary Value.K, Value.Quantity)])])
       . Value.toList
 
 instance Arbitrary Value where

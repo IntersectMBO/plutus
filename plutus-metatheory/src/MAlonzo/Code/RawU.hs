@@ -357,7 +357,7 @@ du_decTagCon''_124 v0 v1 v2 v3
                 _ -> coe v4
          C_bytestring_32
            -> case coe v2 of
-                C_bytestring_32 -> coe MAlonzo.Code.Builtin.d_equals_342 v1 v3
+                C_bytestring_32 -> coe MAlonzo.Code.Builtin.d_equals_346 v1 v3
                 _ -> coe v4
          C_string_34
            -> case coe v2 of
