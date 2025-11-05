@@ -6,9 +6,6 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=40 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=40 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=40 #-}
 
 module PlutusBenchmark.Coop.Scripts where
 
@@ -22,6 +19,7 @@ import PlutusLedgerApi.V1.Data.Interval (contains)
 import PlutusLedgerApi.V1.Data.Value (isZero, unAssetClass, valueOf, withCurrencySymbol)
 import PlutusLedgerApi.V1.Data.Value qualified as Value
 
+import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap qualified as AssocMap
 import PlutusTx.Data.List (elem, foldl)
@@ -208,13 +206,11 @@ authMp'
            "Must mint at least one $AUTH token:\n"
            <> "Must have a specified CurrencySymbol in the Value"
        Just tokenNameMap ->
-         case AssocMap.toSOPList tokenNameMap of
-           [(k, v)] | k == (TokenName authId) ->
-                      errorIfFalse "Must mint at least one $AUTH token" (0 < v)
-           _ ->
-             traceError $
-               "Must mint at least one $AUTH token: \n"
-               <> "Must have exactly one TokenName under specified CurrencySymbol"
+         let
+           (kv, rest) = Builtins.unsafeUncons (AssocMap.toBuiltinList tokenNameMap)
+           k = BI.unsafeDataAsB $ BI.fst kv
+           v = BI.unsafeDataAsI $ BI.snd kv
+         in errorIfFalse "Must mint at least one $AUTH token" (0 < v && BI.null rest && k == authId)
 authMp' _ _ _ = traceError "incorrect purpose"
 {-# INLINE authMp' #-}
 
