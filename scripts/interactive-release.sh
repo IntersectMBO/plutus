@@ -115,13 +115,7 @@ check-and-open-plutus-pr() {
 
 
 open-plutus-pr() {
-  BASE_BRANCH="$(ask "Type the name of the base branch, press enter to use the default (master), or press 0/q/CTRL+C to exit: ")"
-  case $BASE_BRANCH in
-    [0q]) exit 0 ;;
-    "") BASE_BRANCH="master" ;;
-    *) ;;
-  esac
-
+  local BASE_BRANCH=$(compute-base-branch)
   local PR_BRANCH="release/$VERSION"
   tell "I will stash your changes and create a new branch $PR_BRANCH from $BASE_BRANCH"
 
@@ -398,6 +392,18 @@ print-status() {
 detect-old-version() {
   local OLD_VERSION=$(grep "^version:" plutus-core/plutus-core.cabal)
   echo ${OLD_VERSION##* }
+}
+
+
+compute-base-branch() {
+  # If we are releasing a major.minor.0.0 version, we branch off master
+  # Otherwise, we branch off the latest major.minor.0.0 release branch
+  IFS='.' read -r MAJOR MINOR PATCH BUILD <<< $VERSION
+  if [[ $PATCH -eq 0 && $BUILD -eq 0 ]]; then
+    echo "master"
+  else 
+    echo "release/$MAJOR.$MINOR.0.0"
+  fi 
 }
 
 
