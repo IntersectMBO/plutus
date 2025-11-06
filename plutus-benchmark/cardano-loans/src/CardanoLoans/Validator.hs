@@ -41,7 +41,6 @@ module CardanoLoans.Validator
   tokenAsPubKey,
   adaSymbol,
   adaToken,
-  fromGHC,
   unsafeRatio,
   (-),(*),(+),
   loanValidatorCode,

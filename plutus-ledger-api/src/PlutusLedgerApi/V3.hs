@@ -121,10 +121,10 @@ module PlutusLedgerApi.V3 (
   V2.strictUpperBound,
 
   -- *** Ratio
-  Ratio.Rational,
   Ratio.ratio,
-  Ratio.fromGHC,
-  Ratio.toGHC,
+  Ratio.unsafeRatio,
+  Ratio.numerator,
+  Ratio.denominator,
 
   -- *** Association maps
   V2.Map,
