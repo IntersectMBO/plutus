@@ -229,8 +229,11 @@ module PlutusLedgerApi.Data.V3 (
   -- *** Ratio
   Ratio.Rational,
   Ratio.ratio,
-  Ratio.fromGHC,
-  Ratio.toGHC,
+  Ratio.unsafeRatio,
+  Ratio.numerator,
+  Ratio.denominator,
+  Ratio.fromHaskellRatio,
+  Ratio.toHaskellRatio,
 
   -- *** Association maps
   V2.Map,

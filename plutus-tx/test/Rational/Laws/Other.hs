@@ -141,13 +141,15 @@ propRoundHalf = property $ do
     (1, False)  -> rounded === n Plutus.+ Plutus.one
     _           -> rounded === n
  where
+  half = Ratio.unsafeRatio 1 2
+
   go :: Gen (Integer, Plutus.Rational)
   go = do
     n <- genInteger
     f <- case signum n of
-      (-1) -> pure . Ratio.negate $ Ratio.half
-      0    -> Gen.element [Ratio.half, Ratio.negate Ratio.half]
-      _    -> pure Ratio.half
+      (-1) -> pure . Ratio.negate $ half
+      0    -> Gen.element [half, Ratio.negate half]
+      _    -> pure half
     pure (n, f)
 
 propRoundLow :: Property
