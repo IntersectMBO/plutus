@@ -1,5 +1,6 @@
 {-# LANGUAGE BlockArguments      #-}
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE TupleSections       #-}
 
@@ -10,14 +11,19 @@ import Prelude
 import Common
 import Control.Monad (replicateM)
 import Criterion.Main (Benchmark)
+import Data.Bits (shiftR, (.&.))
 import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
 import Data.Int (Int64)
+import Data.Word (Word8)
+import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
+import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterOrMaxInner (..),
                                                     ValueTotalSize (..))
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformByteStringM, uniformRM)
+import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformRM)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -90,10 +96,11 @@ valueContainsArgs gen = runStateGen_ gen \g -> replicateM 100 do
 
   -- Group selected entries back by policy
   let contained =
-        Value.fromList
-          [ (policyId, [(tokenName, quantity)])
-          | (policyId, tokenName, quantity) <- selectedEntries
-          ]
+        unsafeFromBuiltinResult $
+          Value.fromList
+            [ (policyId, [(tokenName, quantity)])
+            | (policyId, tokenName, quantity) <- selectedEntries
+            ]
 
   pure (container, contained)
 
@@ -162,25 +169,75 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
   policyIds <- replicateM numPolicies (generateKey g)
   tokenNames <- replicateM tokensPerPolicy (generateKey g)
 
-  let quantity :: Integer
-      quantity = fromIntegral (maxBound :: Int64)
+  let
+    qty :: Value.Quantity
+    qty = case Value.quantity (fromIntegral (maxBound :: Int64)) of
+      Just q  -> q
+      Nothing -> error "generateConstrainedValue: Int64 maxBound should be valid Quantity"
 
-      nestedMap :: [(K, [(K, Integer)])]
-      nestedMap = (,(,quantity) <$> tokenNames) <$> policyIds
+    nestedMap :: [(K, [(K, Value.Quantity)])]
+    nestedMap = (,(,qty) <$> tokenNames) <$> policyIds
 
-  pure $ Value.fromList nestedMap
+  pure $ unsafeFromBuiltinResult $ Value.fromList nestedMap
 
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
 
--- | Generate random key (always maxKeyLen bytes for Cardano compliance)
+{-| Generate a worst-case key for benchmarking ByteString comparisons.
+
+ByteString comparison is lexicographic and short-circuits on the first differing byte.
+Random keys typically differ in the first 1-2 bytes, making comparisons artificially cheap.
+
+For accurate worst-case costing, we generate keys with a common prefix (0xFF bytes) that
+differ only in the last bytes. This forces full-length comparisons during Map lookups,
+providing conservative cost estimates for adversarial on-chain scenarios.
+
+We use a random integer to ensure uniqueness while maintaining the worst-case prefix pattern.
+-}
 generateKey :: (StatefulGen g m) => g -> m K
 generateKey g = do
-  bs <- uniformByteStringM Value.maxKeyLen g
-  case Value.k bs of
+  -- Generate a random integer for uniqueness
+  n <- uniformRM (0, maxBound :: Int) g
+  case Value.k (mkWorstCaseKey n) of
     Just key -> pure key
     Nothing  -> error "Internal error: maxKeyLen key should always be valid"
 
--- | Generate random key as ByteString (for lookup arguments)
+{-| Generate worst-case key as ByteString (for lookup arguments).
+
+Like generateKey, but returns ByteString directly for use in lookup operations.
+Uses BS.copy to ensure physical distinctness for worst-case equality testing.
+-}
 generateKeyBS :: (StatefulGen g m) => g -> m ByteString
-generateKeyBS = uniformByteStringM Value.maxKeyLen
+generateKeyBS g = BS.copy . mkWorstCaseKey <$> uniformRM (0, maxBound :: Int) g
+
+{-| Helper: Create a worst-case ByteString key from an integer
+The key has maxKeyLen-4 bytes of 0xFF prefix, followed by 4 bytes encoding the integer
+-}
+mkWorstCaseKey :: Int -> ByteString
+mkWorstCaseKey n =
+  let prefixLen = Value.maxKeyLen - 4
+      prefix = BS.replicate prefixLen (0xFF :: Word8)
+      -- Encode the integer in big-endian format (last 4 bytes)
+      b0 = fromIntegral $ (n `shiftR` 24) .&. 0xFF
+      b1 = fromIntegral $ (n `shiftR` 16) .&. 0xFF
+      b2 = fromIntegral $ (n `shiftR` 8) .&. 0xFF
+      b3 = fromIntegral $ n .&. 0xFF
+      suffix = BS.pack [b0, b1, b2, b3]
+   in prefix <> suffix
+
+----------------------------------------------------------------------------------------------------
+-- Helper Functions --------------------------------------------------------------------------------
+
+{-| Extract value from BuiltinResult for benchmark data generation.
+
+This function is intended for use in test and benchmark code where BuiltinResult
+failures indicate bugs in the generator code, not runtime errors.
+
+Errors if BuiltinResult indicates failure (should never happen with valid inputs).
+The call stack will provide context about where the error occurred.
+-}
+unsafeFromBuiltinResult :: (HasCallStack) => BuiltinResult a -> a
+unsafeFromBuiltinResult = \case
+  BuiltinSuccess x -> x
+  BuiltinSuccessWithLogs _ x -> x
+  BuiltinFailure _ err -> error $ "BuiltinResult failed: " <> show err
