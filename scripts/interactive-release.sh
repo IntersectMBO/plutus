@@ -115,14 +115,16 @@ check-and-open-plutus-pr() {
 
 
 open-plutus-pr() {
+  local BASE_BRANCH=$(compute-base-branch)
   local PR_BRANCH="release/$VERSION"
+  tell "I will stash your changes and create a new branch $PR_BRANCH from $BASE_BRANCH"
 
-  tell "I will stash your changes and create a new branch $PR_BRANCH from master"
-
+  exit 1 
   git stash
+  git fetch --all
   git branch -D $PR_BRANCH || true
   git checkout -b $PR_BRANCH || true
-  git pull --rebase origin master
+  git pull --rebase origin $BASE_BRANCH
 
   local RELEASE_PACKAGES=(
     "plutus-core"
@@ -159,7 +161,7 @@ open-plutus-pr() {
     --body "Release $VERSION" \
     --label "No Changelog Required" \
     --head $PR_BRANCH \
-    --base master \
+    --base $BASE_BRANCH \
     | grep "https://")
 
   tell "The release PR has been created at $PR_URL"
@@ -391,6 +393,18 @@ print-status() {
 detect-old-version() {
   local OLD_VERSION=$(grep "^version:" plutus-core/plutus-core.cabal)
   echo ${OLD_VERSION##* }
+}
+
+
+compute-base-branch() {
+  # If we are releasing a major.minor.0.0 version, we branch off master
+  # Otherwise, we branch off the latest major.minor.0.0 release branch
+  IFS='.' read -r MAJOR MINOR PATCH BUILD <<< $VERSION
+  if [[ $PATCH -eq 0 && $BUILD -eq 0 ]]; then
+    echo "master"
+  else 
+    echo "release/$MAJOR.$MINOR.0.0"
+  fi 
 }
 
 
