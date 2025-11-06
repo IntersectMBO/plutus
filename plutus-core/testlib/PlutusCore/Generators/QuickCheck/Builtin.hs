@@ -297,10 +297,12 @@ instance ArbitraryBuiltin Value.Quantity where
   arbitraryBuiltin =
     chooseInteger (Value.unQuantity minBound, Value.unQuantity maxBound)
       `suchThatMap` Value.quantity
+  shrinkBuiltin =
+    mapMaybe Value.quantity . shrinkIntegralFast @Integer . Value.unQuantity
 
 instance Arbitrary Value.Quantity where
     arbitrary = arbitraryBuiltin
-    shrink = const [] -- shrinkBuiltin
+    shrink = shrinkBuiltin
 
 {-| A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
 instance for @a@.
