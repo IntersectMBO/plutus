@@ -205,6 +205,10 @@ failingEvaluationTests =
   , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
   , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
   , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/overflow"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/underflow"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-overflow"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-underflow"
   ]
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
@@ -315,6 +319,10 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
   , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
   , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/overflow"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/underflow"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-overflow"
+  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-underflow"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
