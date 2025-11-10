@@ -225,7 +225,34 @@ batch6 =
   , Bls12_381_G1_multiScalarMul, Bls12_381_G2_multiScalarMul
   ]
 
-{-| Given a ledger language, return a map indicating which builtin functions were
+plutusV1builtins :: Map.Map MajorProtocolVersion (Set.Set DefaultFun)
+plutusV1builtins =
+  Map.fromList
+  [ (alonzoPV, Set.fromList batch1)
+  , (pv11PV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+  ]
+{-# OPAQUE plutusV1builtins #-}
+
+plutusV2builtins :: Map.Map MajorProtocolVersion (Set.Set DefaultFun)
+plutusV2builtins =
+  Map.fromList
+  [ (vasilPV,     Set.fromList (batch1 ++ batch2))
+  , (valentinePV, Set.fromList batch3)
+  , (plominPV,    Set.fromList batch4b)
+  , (pv11PV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
+      ]
+{-# OPAQUE plutusV2builtins #-}
+
+plutusV3builtins :: Map.Map MajorProtocolVersion (Set.Set DefaultFun)
+plutusV3builtins =
+  Map.fromList
+  [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
+  , (plominPV, Set.fromList batch5)
+  , (pv11PV,   Set.fromList batch6)
+  ]
+{-# OPAQUE plutusV3builtins #-}
+
+  {-| Given a ledger language, return a map indicating which builtin functions were
   introduced in which 'MajorProtocolVersion'.  This __must__ be updated when new
   builtins are added.  It is not necessary to add entries for protocol versions
   where no new builtins are added.  See Note [New builtins/language versions and
@@ -234,24 +261,9 @@ batch6 =
 builtinsIntroducedIn :: PlutusLedgerLanguage -> Map.Map MajorProtocolVersion (Set.Set DefaultFun)
 builtinsIntroducedIn =
   \case
-    PlutusV1 ->
-      Map.fromList
-      [ (alonzoPV, Set.fromList batch1)
-      , (pv11PV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
-      ]
-    PlutusV2 ->
-      Map.fromList
-      [ (vasilPV,     Set.fromList (batch1 ++ batch2))
-      , (valentinePV, Set.fromList batch3)
-      , (plominPV,    Set.fromList batch4b)
-      , (pv11PV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
-      ]
-    PlutusV3 ->
-      Map.fromList
-      [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
-      , (plominPV, Set.fromList batch5)
-      , (pv11PV,   Set.fromList batch6)
-      ]
+    PlutusV1 -> plutusV1builtins
+    PlutusV2 -> plutusV2builtins
+    PlutusV3 -> plutusV3builtins
 
 {- | Return a set containing the builtins which are available in a given LL in a
 given PV.  All builtins are available in all LLs from `pv11PV` onwards. -}
