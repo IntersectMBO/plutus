@@ -82,10 +82,12 @@ library
     , extra
     , ghc
     , lens
+    , megaparsec
     , mtl
     , plutus-core            ^>=1.54
     , plutus-core:flat
     , plutus-core:plutus-ir
+    , plutus-metatheory      ^>=1.54
     , plutus-tx              ^>=1.54
     , prettyprinter
     , template-haskell
