@@ -30,11 +30,16 @@ benchmarks ctx =
       , mkBMs "integer" Casing.casingInteger
       , mkBMs "list" Casing.casingList
       , mkBMs "list one branch" Casing.casingListOneBranch
+      , mkBMsSmall "regularApply" Casing.regularApply
+      , mkBMsSmall "caseApply" Casing.caseApply
       ]
     ]
     where
       mkBMs name f =
         bgroup name $ [2000, 4000..12000] <&> \n ->
+          bench (show n) $ benchTermCek ctx (f n)
+      mkBMsSmall name f =
+        bgroup name $ [3, 10, 30, 100, 500, 1000] <&> \n ->
           bench (show n) $ benchTermCek ctx (f n)
 
 main :: IO ()

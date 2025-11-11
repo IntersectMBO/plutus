@@ -3,6 +3,7 @@
 
 module PlutusBenchmark.Casing where
 
+import Control.Monad (replicateM)
 import Control.Monad.Except
 import Data.Either
 import PlutusBenchmark.Common (Term)
@@ -203,3 +204,23 @@ headListCasing i =
         apply ()
           (lamAbs () x intTy t)
         (kase () intTy listVal [lamAbs () y intTy $ lamAbs () ys intListTy $ var () y])
+
+regularApply :: Integer -> Term
+regularApply i =
+  debruijnTermUnsafe $
+    foldl (apply ()) lam (replicate (fromIntegral i) unitVal)
+  where
+    unitTy = PLC.mkTyBuiltin @_ @() ()
+    unitVal = mkConstant @() () ()
+    lam = runQuote $ do
+      foldr (\x -> lamAbs () x unitTy) unitVal <$> replicateM (fromIntegral i) (freshName "x")
+
+caseApply :: Integer -> Term
+caseApply i =
+  debruijnTermUnsafe $
+    kase () unitTy (constr () unitTy 0 (replicate (fromIntegral i) unitVal)) [lam]
+  where
+    unitTy = PLC.mkTyBuiltin @_ @() ()
+    unitVal = mkConstant @() () ()
+    lam = runQuote $ do
+      foldr (\x -> lamAbs () x unitTy) unitVal <$> replicateM (fromIntegral i) (freshName "x")
