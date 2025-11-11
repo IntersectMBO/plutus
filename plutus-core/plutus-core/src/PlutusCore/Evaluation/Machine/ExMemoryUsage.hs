@@ -13,6 +13,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , IntegerCostedLiterally(..)
     , ValueTotalSize(..)
     , ValueLogOuterOrMaxInner(..)
+    , ValueLogOuterSizeAddLogMaxInnerSize(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -395,6 +396,37 @@ instance ExMemoryUsage ValueLogOuterOrMaxInner where
       let size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
           logSize = integerLog2 (toInteger size)
       in singletonRose $ max 1 (fromIntegral (logSize + 1))
+    {-# INLINE memoryUsage #-}
+
+{- Note [ValueLogOuterSizeAddLogMaxInnerSize]
+This newtype wrapper measures the sum of logarithms of outer and max inner sizes
+for two-level map structures like Value.
+
+For a Value (Map PolicyId (Map TokenName Quantity)), the lookup cost is:
+O(log m + log k) where:
+  - m is the number of policies (outer map size)
+  - k is the maximum number of tokens in any policy (max inner map size)
+
+This is based on experimental evidence showing that two-level map lookup time
+scales linearly with the sum of depths (log m + log k), not their maximum.
+
+Used for builtins like lookupCoin where worst-case performance requires
+traversing both the outer map to find the policy AND the largest inner map
+to find the token.
+
+If this is used to wrap an argument in the denotation of a builtin then it *MUST* also
+be used to wrap the same argument in the relevant budgeting benchmark.
+-}
+newtype ValueLogOuterSizeAddLogMaxInnerSize =
+  ValueLogOuterSizeAddLogMaxInnerSize { unValueLogOuterSizeAddLogMaxInnerSize :: Value }
+
+instance ExMemoryUsage ValueLogOuterSizeAddLogMaxInnerSize where
+    memoryUsage (ValueLogOuterSizeAddLogMaxInnerSize v) =
+      let outerSize = Map.size (Value.unpack v)
+          innerSize = Value.maxInnerSize v
+          logOuter = if outerSize > 0 then integerLog2 (toInteger outerSize) + 1 else 0
+          logInner = if innerSize > 0 then integerLog2 (toInteger innerSize) + 1 else 0
+      in singletonRose $ fromIntegral (logOuter + logInner)
     {-# INLINE memoryUsage #-}
 
 {- Note [Costing constant-size types]

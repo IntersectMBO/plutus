@@ -20,6 +20,7 @@ import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterOrMaxInner (..),
+                                                    ValueLogOuterSizeAddLogMaxInnerSize (..),
                                                     ValueTotalSize (..))
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
@@ -42,36 +43,77 @@ makeBenchmarks gen =
 lookupCoinBenchmark :: StdGen -> Benchmark
 lookupCoinBenchmark gen =
   createThreeTermBuiltinBenchElementwiseWithWrappers
-    (id, id, ValueLogOuterOrMaxInner) -- Wrap Value argument to report outer/max inner size with log
+    (id, id, ValueLogOuterSizeAddLogMaxInnerSize) -- Wrap Value argument to report sum of log sizes
     LookupCoin -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
     (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
 
 lookupCoinArgs :: StdGen -> [(ByteString, ByteString, Value)]
 lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
-  -- Add search keys to common test values
-  let testValues = generateTestValues gen
-  commonWithKeys <- mapM (withSearchKeys g . pure) testValues
+  -- Add worst-case search keys to common test values (filter out empty values)
+  let testValues = filter (not . null . Value.toList) (generateTestValues gen)
+      commonWithKeys = map (\v -> let (k1, k2) = extractWorstCaseKeys v in (k1, k2, v)) testValues
 
-  -- Additional tests specific to lookupCoin
-  let valueSizes = [(100, 10), (500, 20), (1_000, 50), (2_000, 100)]
+  {- Worst-case size combinations for BST lookup benchmarking.
+     These test specific (policies, tokens) pairs chosen to:
+     1. Cover depths 10-18 evenly (every 2-3 levels)
+     2. Use balanced distributions to maximize nodes at each depth
+     3. Test variety of skewed distributions per experimental findings
+
+     | Combination  | log₂(outer) | log₂(inner) | Total Depth | Total Entries |
+     |--------------|-------------|-------------|-------------|---------------|
+     | (32, 32)     | 5           | 5           | 10          | 1,024         |
+     | (64, 128)    | 6           | 7           | 13          | 8,192         |
+     | (256, 256)   | 8           | 8           | 16          | 65,536        |
+     | (512, 512)   | 9           | 9           | 18          | 262,144       |
+     | (1024, 128)  | 10          | 7           | 17          | 131,072       |
+     | (2048, 64)   | 11          | 6           | 17          | 131,072       |
+  -}
+  let valueSizes =
+        [ (32, 32)     -- Balanced, depth 10
+        , (64, 128)    -- Slight inner skew, depth 13
+        , (256, 256)   -- Balanced, depth 16
+        , (512, 512)   -- Balanced worst case, depth 18
+        , (1024, 128)  -- Heavy outer skew, depth 17
+        , (2048, 64)   -- Very heavy outer skew, depth 17
+        ]
   additionalTests <-
     sequence $
       -- Value size tests (number of policies × tokens per policy)
-      [ withSearchKeys g (generateConstrainedValue numPolicies tokensPerPolicy g)
+      [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g)
       | (numPolicies, tokensPerPolicy) <- valueSizes
       ]
-        -- Additional random tests for parameter spread
-        <> replicate 100 (withSearchKeys g (generateValue g))
+        -- Additional random tests for parameter spread with worst-case targeting
+        <> replicate 100 (do
+             value <- generateValue g
+             pure $ let (k1, k2) = extractWorstCaseKeys value in (k1, k2, value))
   pure $ commonWithKeys ++ additionalTests
 
--- | Add random search keys to a Value (keys may or may not exist in the Value)
-withSearchKeys :: (StatefulGen g m) => g -> m Value -> m (ByteString, ByteString, Value)
-withSearchKeys g genValue = do
-  value <- genValue
-  key1 <- generateKeyBS g
-  key2 <- generateKeyBS g
-  pure (key1, key2, value)
+-- | Add worst-case search keys targeting the max-size inner map
+withWorstCaseSearchKeys :: (Monad m) => m (Value, K, K) -> m (ByteString, ByteString, Value)
+withWorstCaseSearchKeys genValueWithKeys = do
+  (value, maxPolicyId, deepestToken) <- genValueWithKeys
+  pure (Value.unK maxPolicyId, Value.unK deepestToken, value)
+
+-- | Extract worst-case keys from an existing Value (for random values)
+extractWorstCaseKeys :: Value -> (ByteString, ByteString)
+extractWorstCaseKeys value =
+  let valueList = Value.toList value
+   in case valueList of
+        [] -> error "extractWorstCaseKeys: empty value"
+        _ ->
+          -- Find the policy with the maximum number of tokens
+          let (maxPolicy, maxTokens) =
+                foldr1
+                  ( \(p1, ts1) (p2, ts2) ->
+                      if length ts1 >= length ts2 then (p1, ts1) else (p2, ts2)
+                  )
+                  valueList
+              -- Get the last token in that policy (deepest in binary tree)
+              deepestToken = case maxTokens of
+                [] -> error "extractWorstCaseKeys: empty token list"
+                _  -> fst (last maxTokens)
+           in (Value.unK maxPolicy, Value.unK deepestToken)
 
 ----------------------------------------------------------------------------------------------------
 -- ValueContains -----------------------------------------------------------------------------------
@@ -158,14 +200,14 @@ generateValueMaxEntries maxEntries g = do
 
   generateConstrainedValue numPolicies tokensPerPolicy g
 
--- | Generate constrained Value
-generateConstrainedValue
+-- | Generate constrained Value with information about max-size policy
+generateConstrainedValueWithMaxPolicy
   :: (StatefulGen g m)
   => Int -- Number of policies
   -> Int -- Number of tokens per policy
   -> g
-  -> m Value
-generateConstrainedValue numPolicies tokensPerPolicy g = do
+  -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
+generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g = do
   policyIds <- replicateM numPolicies (generateKey g)
   tokenNames <- replicateM tokensPerPolicy (generateKey g)
 
@@ -173,12 +215,31 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
     qty :: Value.Quantity
     qty = case Value.quantity (fromIntegral (maxBound :: Int64)) of
       Just q  -> q
-      Nothing -> error "generateConstrainedValue: Int64 maxBound should be valid Quantity"
+      Nothing -> error "generateConstrainedValueWithMaxPolicy: Int64 maxBound should be valid Quantity"
 
     nestedMap :: [(K, [(K, Value.Quantity)])]
     nestedMap = (,(,qty) <$> tokenNames) <$> policyIds
 
-  pure $ unsafeFromBuiltinResult $ Value.fromList nestedMap
+    value = unsafeFromBuiltinResult $ Value.fromList nestedMap
+
+    -- All policies have the same number of tokens in this uniform distribution,
+    -- so we pick the first policy as the max-size policy for worst-case targeting
+    maxPolicyId = head policyIds
+    -- Pick the last token (deepest in binary search tree) for worst-case inner lookup
+    deepestToken = last tokenNames
+
+  pure (value, maxPolicyId, deepestToken)
+
+-- | Generate constrained Value (legacy interface for other builtins)
+generateConstrainedValue
+  :: (StatefulGen g m)
+  => Int -- Number of policies
+  -> Int -- Number of tokens per policy
+  -> g
+  -> m Value
+generateConstrainedValue numPolicies tokensPerPolicy g = do
+  (value, _, _) <- generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
+  pure value
 
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
@@ -201,14 +262,6 @@ generateKey g = do
   case Value.k (mkWorstCaseKey n) of
     Just key -> pure key
     Nothing  -> error "Internal error: maxKeyLen key should always be valid"
-
-{-| Generate worst-case key as ByteString (for lookup arguments).
-
-Like generateKey, but returns ByteString directly for use in lookup operations.
-Uses BS.copy to ensure physical distinctness for worst-case equality testing.
--}
-generateKeyBS :: (StatefulGen g m) => g -> m ByteString
-generateKeyBS g = BS.copy . mkWorstCaseKey <$> uniformRM (0, maxBound :: Int) g
 
 {-| Helper: Create a worst-case ByteString key from an integer
 The key has maxKeyLen-4 bytes of 0xFF prefix, followed by 4 bytes encoding the integer

@@ -26,6 +26,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..),
                                                     ValueLogOuterOrMaxInner (..),
+                                                    ValueLogOuterSizeAddLogMaxInnerSize (..),
                                                     ValueTotalSize (..), memoryUsage, singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
 import PlutusCore.Value (Value)
@@ -2057,8 +2058,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunFourArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar LookupCoin =
-      let lookupCoinDenotation :: ByteString -> ByteString -> ValueLogOuterOrMaxInner -> Integer
-          lookupCoinDenotation p t (ValueLogOuterOrMaxInner v) = Value.lookupCoin p t v
+      let lookupCoinDenotation :: ByteString -> ByteString -> ValueLogOuterSizeAddLogMaxInnerSize -> Integer
+          lookupCoinDenotation p t (ValueLogOuterSizeAddLogMaxInnerSize v) = Value.lookupCoin p t v
           {-# INLINE lookupCoinDenotation #-}
        in makeBuiltinMeaning
             lookupCoinDenotation
