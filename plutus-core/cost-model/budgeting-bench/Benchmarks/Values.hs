@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Benchmarks.Values (makeBenchmarks) where
 
@@ -50,70 +51,46 @@ lookupCoinBenchmark gen =
 
 lookupCoinArgs :: StdGen -> [(ByteString, ByteString, Value)]
 lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
-  -- Add worst-case search keys to common test values (filter out empty values)
-  let testValues = filter (not . null . Value.toList) (generateTestValues gen)
-      commonWithKeys = map (\v -> let (k1, k2) = extractWorstCaseKeys v in (k1, k2, v)) testValues
+  {- Exhaustive power-of-2 combinations for BST worst-case benchmarking.
 
-  {- Worst-case size combinations for BST lookup benchmarking.
-     These test specific (policies, tokens) pairs chosen to:
-     1. Cover depths 10-18 evenly (every 2-3 levels)
-     2. Use balanced distributions to maximize nodes at each depth
-     3. Test variety of skewed distributions per experimental findings
+     Tests all combinations of sizes from powers and half-powers of 2.
+     For each integer n ∈ {1..10}, includes both 2^n and 2^(n+0.5) ≈ 2^n * √2.
 
-     | Combination  | log₂(outer) | log₂(inner) | Total Depth | Total Entries |
-     |--------------|-------------|-------------|-------------|---------------|
-     | (32, 32)     | 5           | 5           | 10          | 1,024         |
-     | (64, 128)    | 6           | 7           | 13          | 8,192         |
-     | (256, 256)   | 8           | 8           | 16          | 65,536        |
-     | (512, 512)   | 9           | 9           | 18          | 262,144       |
-     | (1024, 128)  | 10          | 7           | 17          | 131,072       |
-     | (2048, 64)   | 11          | 6           | 17          | 131,072       |
+     This provides:
+     - 400 total test points (20 × 20 grid)
+     - Complete systematic coverage of depth range 2 to 21
+     - Finer granularity between powers of 2
+     - All distribution patterns (balanced, outer-heavy, inner-heavy)
+
+     Size values: 2, 3, 4, 6, 8, 11, 16, 23, 32, 45, 64, 91, 128, 181,
+                  256, 362, 512, 724, 1024, 1448
+
+     Depth coverage:
+     - Minimum depth: log₂(2) + log₂(2) ≈ 2
+     - Maximum depth: log₂(1448) + log₂(1448) ≈ 21
   -}
-  let valueSizes =
-        [ (32, 32)     -- Balanced, depth 10
-        , (64, 128)    -- Slight inner skew, depth 13
-        , (256, 256)   -- Balanced, depth 16
-        , (512, 512)   -- Balanced worst case, depth 18
-        , (1024, 128)  -- Heavy outer skew, depth 17
-        , (2048, 64)   -- Very heavy outer skew, depth 17
-        ]
-  additionalTests <-
-    sequence $
-      -- Value size tests (number of policies × tokens per policy)
-      [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g)
-      | (numPolicies, tokensPerPolicy) <- valueSizes
+  let
+    -- Generate powers of 2 and their geometric means (half-powers)
+    sizes =
+      [ 2 ^ n -- 2^n
+      | n <- [1 .. 10 :: Int]
       ]
-        -- Additional random tests for parameter spread with worst-case targeting
-        <> replicate 100 (do
-             value <- generateValue g
-             pure $ let (k1, k2) = extractWorstCaseKeys value in (k1, k2, value))
-  pure $ commonWithKeys ++ additionalTests
+        ++ [ round @Double (2 ^ n * sqrt 2) -- 2^(n+0.5)
+           | n <- [1 .. 10 :: Int]
+           ]
+
+  sequence
+    -- Generate worst-case lookups for each size combination
+    [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g)
+    | numPolicies <- sizes
+    , tokensPerPolicy <- sizes
+    ]
 
 -- | Add worst-case search keys targeting the max-size inner map
 withWorstCaseSearchKeys :: (Monad m) => m (Value, K, K) -> m (ByteString, ByteString, Value)
 withWorstCaseSearchKeys genValueWithKeys = do
   (value, maxPolicyId, deepestToken) <- genValueWithKeys
   pure (Value.unK maxPolicyId, Value.unK deepestToken, value)
-
--- | Extract worst-case keys from an existing Value (for random values)
-extractWorstCaseKeys :: Value -> (ByteString, ByteString)
-extractWorstCaseKeys value =
-  let valueList = Value.toList value
-   in case valueList of
-        [] -> error "extractWorstCaseKeys: empty value"
-        _ ->
-          -- Find the policy with the maximum number of tokens
-          let (maxPolicy, maxTokens) =
-                foldr1
-                  ( \(p1, ts1) (p2, ts2) ->
-                      if length ts1 >= length ts2 then (p1, ts1) else (p2, ts2)
-                  )
-                  valueList
-              -- Get the last token in that policy (deepest in binary tree)
-              deepestToken = case maxTokens of
-                [] -> error "extractWorstCaseKeys: empty token list"
-                _  -> fst (last maxTokens)
-           in (Value.unK maxPolicy, Value.unK deepestToken)
 
 ----------------------------------------------------------------------------------------------------
 -- ValueContains -----------------------------------------------------------------------------------
@@ -214,7 +191,7 @@ generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g = do
   let
     qty :: Value.Quantity
     qty = case Value.quantity (fromIntegral (maxBound :: Int64)) of
-      Just q  -> q
+      Just q -> q
       Nothing -> error "generateConstrainedValueWithMaxPolicy: Int64 maxBound should be valid Quantity"
 
     nestedMap :: [(K, [(K, Value.Quantity)])]
