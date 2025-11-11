@@ -1,4 +1,15 @@
 
+<a id='changelog-1.55.0.0'></a>
+# 1.55.0.0 — 2025-11-11
+
+## Removed
+
+- Removed the experimental compiler certification option temporarily due to ghc issues regarding the profiling build of `plutus-metatheory`.
+
+## Changed
+
+- Renamed 'Size' types functions to AstSize
+
 <a id='changelog-1.54.0.0'></a>
 # 1.54.0.0 — 2025-09-18
 
