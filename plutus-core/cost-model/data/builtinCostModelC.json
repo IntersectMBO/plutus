@@ -1227,8 +1227,8 @@
   "lookupCoin": {
     "cpu": {
       "arguments": {
-        "intercept": 204546,
-        "slope": 7423
+        "intercept": 252573,
+        "slope": 4734
       },
       "type": "linear_in_z"
     },
@@ -1241,7 +1241,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 96034
+        "slope": 94269
       },
       "type": "linear_in_y"
     },
