@@ -53,7 +53,6 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..),
-                                                    ValueLogOuterOrMaxInner (..),
                                                     ValueLogOuterSizeAddLogMaxInnerSize (..),
                                                     ValueTotalSize (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
@@ -632,17 +631,6 @@ instance KnownBuiltinTypeIn DefaultUni term Value =>
     {-# INLINE makeKnown #-}
 instance KnownBuiltinTypeIn DefaultUni term Value =>
         ReadKnownIn DefaultUni term ValueTotalSize where
-    readKnown = readKnownCoerce @Value
-    {-# INLINE readKnown #-}
-
-deriving newtype instance
-        KnownTypeAst tyname DefaultUni ValueLogOuterOrMaxInner
-instance KnownBuiltinTypeIn DefaultUni term Value =>
-        MakeKnownIn DefaultUni term ValueLogOuterOrMaxInner where
-    makeKnown = makeKnownCoerce @Value
-    {-# INLINE makeKnown #-}
-instance KnownBuiltinTypeIn DefaultUni term Value =>
-        ReadKnownIn DefaultUni term ValueLogOuterOrMaxInner where
     readKnown = readKnownCoerce @Value
     {-# INLINE readKnown #-}
 

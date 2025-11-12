@@ -12,7 +12,6 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
     , ValueTotalSize(..)
-    , ValueLogOuterOrMaxInner(..)
     , ValueLogOuterSizeAddLogMaxInnerSize(..)
     ) where
 
@@ -378,25 +377,6 @@ newtype ValueTotalSize = ValueTotalSize { unValueTotalSize :: Value }
 
 instance ExMemoryUsage ValueTotalSize where
     memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
-
-{-| A combined wrapper for Value that measures size using outer/max inner map sizes
-with logarithmic transformation. This is equivalent to @Logarithmic ValueOuterOrMaxInner@
-but defined as a single newtype for simpler type instances and better error messages.
-
-Used for builtins like lookupCoin and valueContains where the cost depends on
-O(log max(m, k)) where m is the number of policies and k is the max tokens per policy.
-
-If this is used to wrap an argument in the denotation of a builtin then it *MUST* also
-be used to wrap the same argument in the relevant budgeting benchmark.
--}
-newtype ValueLogOuterOrMaxInner = ValueLogOuterOrMaxInner { unLogValueOuterOrMaxInner :: Value }
-
-instance ExMemoryUsage ValueLogOuterOrMaxInner where
-    memoryUsage (ValueLogOuterOrMaxInner v) =
-      let size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
-          logSize = integerLog2 (toInteger size)
-      in singletonRose $ max 1 (fromIntegral (logSize + 1))
-    {-# INLINE memoryUsage #-}
 
 {- Note [ValueLogOuterSizeAddLogMaxInnerSize]
 This newtype wrapper measures the sum of logarithms of outer and max inner sizes

@@ -25,7 +25,6 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..),
-                                                    ValueLogOuterOrMaxInner (..),
                                                     ValueLogOuterSizeAddLogMaxInnerSize (..),
                                                     ValueTotalSize (..), memoryUsage, singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
@@ -2074,8 +2073,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ValueContains =
-      let valueContainsDenotation :: ValueLogOuterOrMaxInner -> ValueTotalSize -> BuiltinResult Bool
-          valueContainsDenotation (ValueLogOuterOrMaxInner v1) (ValueTotalSize v2) =
+      let valueContainsDenotation :: ValueLogOuterSizeAddLogMaxInnerSize -> ValueTotalSize -> BuiltinResult Bool
+          valueContainsDenotation (ValueLogOuterSizeAddLogMaxInnerSize v1) (ValueTotalSize v2) =
             Value.valueContains v1 v2
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning

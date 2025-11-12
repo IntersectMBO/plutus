@@ -20,8 +20,7 @@ import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterOrMaxInner (..),
-                                                    ValueLogOuterSizeAddLogMaxInnerSize (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterSizeAddLogMaxInnerSize (..),
                                                     ValueTotalSize (..))
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
@@ -98,8 +97,8 @@ withWorstCaseSearchKeys genValueWithKeys = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueLogOuterOrMaxInner, ValueTotalSize)
-    -- Container: outer/maxInner with log, Contained: totalSize
+    (ValueLogOuterSizeAddLogMaxInnerSize, ValueTotalSize)
+    -- Container: sum of log sizes, Contained: totalSize
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
     (valueContainsArgs gen) -- the argument combos to generate benchmarks for
