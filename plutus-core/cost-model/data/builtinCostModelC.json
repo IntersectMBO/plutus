@@ -1233,7 +1233,7 @@
       "type": "linear_in_z"
     },
     "memory": {
-      "arguments": 10,
+      "arguments": 1,
       "type": "constant_cost"
     }
   },
