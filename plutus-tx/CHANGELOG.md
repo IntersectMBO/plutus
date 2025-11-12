@@ -1,4 +1,11 @@
 
+<a id='changelog-1.55.0.0'></a>
+# 1.55.0.0 — 2025-11-11
+
+## Changed
+
+- Renamed 'Size' types functions to AstSize
+
 <a id='changelog-1.54.0.0'></a>
 # 1.54.0.0 — 2025-09-18
 

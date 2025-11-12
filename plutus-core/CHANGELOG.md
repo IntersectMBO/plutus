@@ -1,4 +1,19 @@
 
+<a id='changelog-1.55.0.0'></a>
+# 1.55.0.0 — 2025-11-11
+
+## Added
+
+- Implementations of `ScaleValue` primitives.
+
+## Changed
+
+- Renamed 'Size' types functions to AstSize
+
+- In #7323 made the `Constr`, `List` and `Map` builtins 7+% faster.
+
+- Updated the Plutus Core specification to allow names with optional numeric suffixes (e.g., `name-42`) in #7396, resolving the discrepancy between the formal grammar and the parser implementation.
+
 <a id='changelog-1.54.0.0'></a>
 # 1.54.0.0 — 2025-09-18
 
