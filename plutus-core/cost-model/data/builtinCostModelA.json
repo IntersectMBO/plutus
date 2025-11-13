@@ -1223,9 +1223,9 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 94269
+        "slope": 6548
       },
-      "type": "linear_in_y"
+      "type": "multiplied_sizes"
     },
     "memory": {
       "arguments": 1,

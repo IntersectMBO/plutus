@@ -818,9 +818,16 @@ modelFun <- function(path) {
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
     lookupCoinModel           <- linearInZ ("LookupCoin")    
 
-    # X wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    # Y wrapped with `ValueTotalSize`
-    valueContainsModel        <- linearInY ("ValueContains")         
+    # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)
+    # Y wrapped with `ValueTotalSize` (contained value size)
+    valueContainsModel        <- {
+        fname <- "ValueContains"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ I(x_mem * y_mem), filtered)
+        mk.result(m, "multiplied_sizes")
+    }         
 
     # Sizes of parameters are used as is (unwrapped):
     valueDataModel            <- constantModel ("ValueData")
