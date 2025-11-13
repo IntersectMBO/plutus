@@ -16,6 +16,7 @@ import Data.Bits (shiftR, (.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
+import Data.List (find)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
@@ -104,23 +105,87 @@ valueContainsBenchmark gen =
     (valueContainsArgs gen) -- the argument combos to generate benchmarks for
 
 valueContainsArgs :: StdGen -> [(Value, Value)]
-valueContainsArgs gen = runStateGen_ gen \g -> replicateM 100 do
-  -- Generate a random container value
-  container <- generateValue g
-  -- Select a random subset of entries from the container to ensure contained ⊆ container
-  containedSize <- uniformRM (0, Value.totalSize container) g
-  -- Take the first containedSize entries to ensure contained ⊆ container
-  let selectedEntries = take containedSize (Value.toFlatList container)
+valueContainsArgs gen = runStateGen_ gen \g -> do
+  {- ValueContains performs multiple LookupCoin operations (one per entry in contained).
+     Worst case: All lookups succeed at maximum depth with many entries to check.
 
-  -- Group selected entries back by policy
-  let contained =
-        unsafeFromBuiltinResult $
-          Value.fromList
-            [ (policyId, [(tokenName, quantity)])
-            | (policyId, tokenName, quantity) <- selectedEntries
+     Strategy:
+     1. Generate container with worst-case BST structure (uniform, power-of-2 sizes)
+     2. Select entries FROM container (maintain subset relationship for no early exit)
+     3. Include deepest entry to force maximum BST traversal
+     4. Test multiple contained sizes to explore iteration count dimension
+
+     Result: ~1000 systematic worst-case benchmarks vs 100 random cases previously
+  -}
+
+  -- Use power-of-2 grid (without half-powers) for systematic coverage
+  -- ValueContains does multiple lookups, so we don't need as fine-grained
+  -- size variation as LookupCoin
+  let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]] -- [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+
+  -- Generate test cases for all container size combinations
+  concat
+    <$> sequence
+      [ do
+          -- Generate container with worst-case BST structure:
+          -- - Uniform distribution (all policies have same token count)
+          -- - Worst-case keys (long common prefix, differ in last 4 bytes)
+          -- - Returns metadata about the deepest entry
+          (container, maxPolicyId, deepestToken) <-
+            generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
+
+          -- Extract all entries from container as a flat list
+          -- This maintains the subset relationship: contained ⊆ container
+          let allEntries = Value.toFlatList container
+              totalEntries = length allEntries
+
+          -- Find the worst-case entry (deepest in both BSTs)
+          -- This entry forces maximum depth lookup:
+          -- - maxPolicyId: first in outer BST (but all equal size, so any works)
+          -- - deepestToken: last token in sorted order (maximum inner BST depth)
+          let worstCaseEntry =
+                find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
+
+          -- Generate test cases for different contained sizes (powers of 2)
+          -- Each size tests the same container with different iteration counts
+          let containedSizes =
+                [2 ^ n | n <- [0 .. 9 :: Int], let size = 2 ^ n, size > 0, size <= totalEntries]
+
+          -- Create one test case per contained size
+          pure
+            [ let
+                -- Select entries ensuring worst-case is included
+                -- Place worst-case entry at END so it's checked (not early-exit)
+                selectedEntries =
+                  case worstCaseEntry of
+                    Just worst ->
+                      -- Take (containedSize - 1) entries, then add worst-case
+                      -- This ensures: 1) subset relationship maintained
+                      --               2) worst-case depth is hit
+                      --               3) no early exit (all lookups succeed)
+                      let numOthers = min (containedSize - 1) (totalEntries - 1)
+                          others = take numOthers allEntries
+                       in others ++ [worst]
+                    Nothing ->
+                      -- Fallback if worst-case entry somehow not found
+                      -- (shouldn't happen, but defensive programming)
+                      take containedSize allEntries
+
+                -- Build contained Value from selected entries
+                -- This maintains the Value structure while ensuring subset
+                contained =
+                  unsafeFromBuiltinResult $
+                    Value.fromList
+                      [ (policyId, [(tokenName, quantity)])
+                      | (policyId, tokenName, quantity) <- selectedEntries
+                      ]
+               in
+                (container, contained)
+            | containedSize <- containedSizes
             ]
-
-  pure (container, contained)
+      | numPolicies <- containerSizes
+      , tokensPerPolicy <- containerSizes
+      ]
 
 ----------------------------------------------------------------------------------------------------
 -- ValueData ---------------------------------------------------------------------------------------
