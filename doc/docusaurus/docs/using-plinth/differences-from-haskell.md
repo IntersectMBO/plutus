@@ -11,7 +11,7 @@ sidebar_position: 15
 Unlike in Haskell, function applications in Plinth are strict.
 In other words, when evaluating `(\x -> 42) (3 + 4)` the expression `3 + 4` is evaluated first, before evaluating the function body (`42`), even though `x` is not used in the function body.
 
-Using lazy patterns on function parameters does not change this behavior: : `(\(~x) -> 42) (3 + 4)` still evaluates `3 + 4` strictly.
+Using lazy patterns on function parameters does not change this behavior: `(\(~x) -> 42) (3 + 4)` still evaluates `3 + 4` strictly.
 At this time, it is not possible to make function applications non-strict in Plinth.
 
 ### Bindings
@@ -28,6 +28,8 @@ Conversely, in modules with the `Strict` language extension on, bindings are by 
 The Plinth compiler provides good support for basic Haskell features, including regular algebraic data types, type classes, higher order functions, parametric polymorphism, etc.
 However, it doesn’t support many of Haskell’s more advanced features.
 A good rule of thumb for writing Plinth is to stick with simple Haskell (which is also typically good advice for Haskell development in general).
+
+## Unsupported Haskell Features
 
 Some notable Haskell features _not_ supported by Plinth include:
 
