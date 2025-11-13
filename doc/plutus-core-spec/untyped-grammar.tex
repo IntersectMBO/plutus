@@ -16,11 +16,11 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
     \centering
     \[\begin{array}{lrclr}
 
-        \textrm{Name}          & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]\textsuperscript{*}(-[0-9]\textsuperscript{+})?}   & \textrm{name}\\
+        \textrm{Name}          & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]*(-[0-9]+)?}   & \textrm{name}\\
 
         \textrm{Var}           & x      & ::= & n & \textrm{term variable}\\
         \textrm{BuiltinName}   & bn     & ::= & n & \textrm{built-in function name}\\
-        \textrm{Version} & v & ::= & \texttt{[0-9]\textsuperscript{+}.[0-9]\textsuperscript{+}.[0-9]\textsuperscript{+}}& \textrm{version}\\
+        \textrm{Version} & v & ::= & \texttt{[0-9]+.[0-9]+.[0-9]+}& \textrm{version}\\
         \textrm{Natural}  & k      & ::= & \texttt{[0-9]+} & \textrm{a natural number}\\
         \textrm{Constant} & c & ::= & \langle{\textrm{literal constant}}\rangle& \\
 
