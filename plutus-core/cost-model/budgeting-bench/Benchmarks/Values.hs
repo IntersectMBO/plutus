@@ -146,10 +146,18 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
           let worstCaseEntry =
                 find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
 
-          -- Generate test cases for different contained sizes (powers of 2)
+          -- Generate test cases for different contained sizes (uniform linear distribution)
           -- Each size tests the same container with different iteration counts
-          let containedSizes =
-                [2 ^ n | n <- [0 .. 9 :: Int], let size = 2 ^ n, size > 0, size <= totalEntries]
+          -- Use uniform spacing from 1 to min(1000, totalEntries) for better distribution
+          let maxContainedSize = min 1000 totalEntries
+              numSamples = 10
+              containedSizes =
+                if totalEntries < numSamples
+                  then [1 .. totalEntries] -- Test all sizes for small containers
+                  else
+                    let step = maxContainedSize `div` numSamples
+                     in [i * step | i <- [1 .. numSamples], i * step > 0]
+                          ++ [maxContainedSize | maxContainedSize `notElem` [i * step | i <- [1 .. numSamples]]]
 
           -- Create one test case per contained size
           pure
