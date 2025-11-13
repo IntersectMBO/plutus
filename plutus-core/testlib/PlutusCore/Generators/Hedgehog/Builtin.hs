@@ -19,7 +19,9 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
-                                                    NumBytesCostedAsNumWords)
+                                                    NumBytesCostedAsNumWords,
+                                                    ValueLogOuterSizeAddLogMaxInnerSize,
+                                                    ValueTotalSize)
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Value (Value)
@@ -109,6 +111,8 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.Pairing.MlResult) =
           genArbitraryBuiltin @BLS12_381.Pairing.MlResult
     | Just HRefl <- eqTypeRep tr (typeRep @Value) = genArbitraryBuiltin @Value
+    | Just HRefl <- eqTypeRep tr (typeRep @ValueTotalSize) = genArbitraryBuiltin @Value
+    | Just HRefl <- eqTypeRep tr (typeRep @ValueLogOuterSizeAddLogMaxInnerSize) = genArbitraryBuiltin @Value
     | trPair `App` tr1 `App` tr2 <- tr
     , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
         -- We can perhaps use the @QuickCheck@ generator here too, but this seems rather hard.
