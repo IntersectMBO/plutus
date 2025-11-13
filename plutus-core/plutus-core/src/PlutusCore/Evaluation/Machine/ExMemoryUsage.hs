@@ -1,6 +1,5 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE MagicHash            #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -13,7 +12,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
     , ValueTotalSize(..)
-    , ValueOuterOrMaxInner(..)
+    , ValueLogOuterSizeAddLogMaxInnerSize(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -34,11 +33,8 @@ import Data.Text qualified as T
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
-import GHC.Exts (Int (I#))
-import GHC.Integer
-import GHC.Integer.Logarithms
 import GHC.Natural
-import GHC.Prim
+import GHC.Num.Integer (integerLog2)
 import Universe
 
 {-
@@ -235,12 +231,12 @@ instance ExMemoryUsage () where
 64-bit words.  This is the default size measure for `Integer`s.
 -}
 memoryUsageInteger :: Integer -> CostingInteger
--- integerLog2# is unspecified for 0 (but in practice returns -1)
+-- integerLog2 is unspecified for 0 (but in practice returns -1)
 -- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
 -- keep this special case for the time being though.
 memoryUsageInteger 0 = 1
--- Assume 64 Int
-memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
+-- Assume 64-bit words
+memoryUsageInteger i = fromIntegral (integerLog2 (abs i) `div` 64 + 1)
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
 {-# OPAQUE memoryUsageInteger #-}
@@ -382,14 +378,36 @@ newtype ValueTotalSize = ValueTotalSize { unValueTotalSize :: Value }
 instance ExMemoryUsage ValueTotalSize where
     memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
 
--- | Measure the size of a `Value` by taking the max of
--- (size of the outer map, size of the largest inner map).
-newtype ValueOuterOrMaxInner = ValueOuterOrMaxInner { unValueOuterOrMaxInner :: Value }
+{- Note [ValueLogOuterSizeAddLogMaxInnerSize]
+This newtype wrapper measures the sum of logarithms of outer and max inner sizes
+for two-level map structures like Value.
 
-instance ExMemoryUsage ValueOuterOrMaxInner where
-    memoryUsage (ValueOuterOrMaxInner v) = singletonRose (fromIntegral size)
-      where
-        size = Map.size (Value.unpack v) `max` Value.maxInnerSize v
+For a Value (Map PolicyId (Map TokenName Quantity)), the lookup cost is:
+O(log m + log k) where:
+  - m is the number of policies (outer map size)
+  - k is the maximum number of tokens in any policy (max inner map size)
+
+This is based on experimental evidence showing that two-level map lookup time
+scales linearly with the sum of depths (log m + log k), not their maximum.
+
+Used for builtins like lookupCoin where worst-case performance requires
+traversing both the outer map to find the policy AND the largest inner map
+to find the token.
+
+If this is used to wrap an argument in the denotation of a builtin then it *MUST* also
+be used to wrap the same argument in the relevant budgeting benchmark.
+-}
+newtype ValueLogOuterSizeAddLogMaxInnerSize =
+  ValueLogOuterSizeAddLogMaxInnerSize { unValueLogOuterSizeAddLogMaxInnerSize :: Value }
+
+instance ExMemoryUsage ValueLogOuterSizeAddLogMaxInnerSize where
+    memoryUsage (ValueLogOuterSizeAddLogMaxInnerSize v) =
+      let outerSize = Map.size (Value.unpack v)
+          innerSize = Value.maxInnerSize v
+          logOuter = if outerSize > 0 then integerLog2 (toInteger outerSize) + 1 else 0
+          logInner = if innerSize > 0 then integerLog2 (toInteger innerSize) + 1 else 0
+      in singletonRose $ fromIntegral (logOuter + logInner)
+    {-# INLINE memoryUsage #-}
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
