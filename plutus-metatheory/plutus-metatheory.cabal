@@ -58,12 +58,25 @@ common ghc-version-support
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
+-- GHC 9.6 and 9.8 have a bug where profiling ticks cause a panic in
+-- CoreToStg. We disable automatic cost centre generation to work around this.
+--
+-- If you need automatic cost centres, you have to manually edit the
+-- Agda-generated file src/MAlonzo/RTE.hs
+--
+-- See https://github.com/IntersectMBO/plutus/issues/7415
+common workaround-issue-7415
+  if (impl(ghc >=9.6) && impl(ghc <9.10))
+    ghc-prof-options: -fno-prof-auto
+
 common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
 library
-  import:          lang, os-support, ghc-version-support
+  import:
+    lang, os-support, ghc-version-support, workaround-issue-7415
+
   hs-source-dirs:  src
   build-depends:
     , aeson
