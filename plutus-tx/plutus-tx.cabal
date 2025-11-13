@@ -123,7 +123,6 @@ library
     PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
-    SimpleValidator
 
   build-depends:
     , aeson                  >=2.2
