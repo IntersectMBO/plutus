@@ -126,7 +126,7 @@ state.
  s;\rho & \compute \delay{M}                         &~\mapsto~& s\return \VDelay{M}{\rho}\\
  s;\rho & \compute \force{M}                         &~\mapsto~& \inForceFrame{} \cons s;\rho \compute M \\
  s;\rho & \compute \appU{M}{N}                       &~\mapsto~& \inAppLeftFrame{(N,\rho)} \cons s ;\rho \compute M\\
- s;\rho & \compute \constr{i}{M \cons \repetition{M}} &~\mapsto~& \inConstrFrame{i}{}{(\repetition{M},\rho)} \cons s ;\rho \compute M\\
+  s;\rho & \compute \constr{i}{M \cons \repetition{M}} &~\mapsto~& \inConstrFrame{i}{[]}{(\repetition{M},\rho)} \cons s ;\rho \compute M\\
  s;\rho & \compute \constr{i}{[]} &~\mapsto~&  s \return \VConstr{i}{[]}\\
  s;\rho & \compute \kase{N}{\repetition{M}} &~\mapsto~&  \inCaseFrame{(\repetition{M},\rho)} \cons s ;\rho \compute N\\
 % No nullary builtins (yet)
