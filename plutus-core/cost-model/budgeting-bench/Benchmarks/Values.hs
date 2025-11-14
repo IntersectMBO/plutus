@@ -171,8 +171,11 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
                       -- This ensures: 1) subset relationship maintained
                       --               2) worst-case depth is hit
                       --               3) no early exit (all lookups succeed)
-                      let numOthers = min (containedSize - 1) (totalEntries - 1)
-                          others = take numOthers allEntries
+                      -- IMPORTANT: Filter out worst from allEntries first to prevent duplicates
+                      -- (worst might be at a low position for small tokensPerPolicy values)
+                      let allEntriesWithoutWorst = filter (/= worst) allEntries
+                          numOthers = min (containedSize - 1) (totalEntries - 1)
+                          others = take numOthers allEntriesWithoutWorst
                        in others ++ [worst]
                     Nothing ->
                       -- Fallback if worst-case entry somehow not found
