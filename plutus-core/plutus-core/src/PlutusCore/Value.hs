@@ -50,7 +50,6 @@ import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.Monoid (All (..))
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 import GHC.Stack (HasCallStack, callStack, getCallStack)
@@ -387,13 +386,7 @@ valueContains :: Value -> Value -> BuiltinResult Bool
 valueContains v1 v2
   | negativeAmounts v1 > 0 = fail "valueContains: first value contains negative amounts"
   | negativeAmounts v2 > 0 = fail "valueContains: second value contains negative amounts"
-  | otherwise = BuiltinSuccess . getAll $ Map.foldrWithKey go mempty (unpack v2)
- where
-  go :: K -> Map K Quantity -> All -> All
-  go c inner = (<>) (Map.foldrWithKey goInner mempty inner)
-   where
-    goInner :: K -> Quantity -> All -> All
-    goInner t a2 = (<>) (All (lookupCoin (unK c) (unK t) v1 >= unQuantity a2))
+  | otherwise = BuiltinSuccess $ Map.isSubmapOfBy (Map.isSubmapOfBy (<=)) (unpack v2) (unpack v1)
 {-# INLINEABLE valueContains #-}
 
 {-| \(O(n_{1}) + O(n_{2})\), where \(n_{1}\) and \(n_{2}\) are the total sizes
