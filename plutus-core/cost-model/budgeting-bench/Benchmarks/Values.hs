@@ -16,7 +16,7 @@ import Data.Bits (shiftR, (.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
-import Data.List (find)
+import Data.List (find, sort)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
@@ -269,16 +269,30 @@ generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g = do
       Just q -> q
       Nothing -> error "generateConstrainedValueWithMaxPolicy: Int64 maxBound should be valid Quantity"
 
+    -- Sort policy IDs to establish BST ordering
+    sortedPolicyIds = sort policyIds
+
+    -- Select the maximum policy ID (rightmost/deepest in BST) for worst-case outer lookup
+    maxPolicyId = last sortedPolicyIds
+
+    -- Sort token names to establish BST ordering within the max policy
+    sortedTokenNames = sort tokenNames
+
+    -- Select the maximum token (rightmost/deepest in inner BST) for worst-case inner lookup
+    deepestToken = last sortedTokenNames
+
+    -- Build nestedMap with optimized structure:
+    -- 1. Max policy gets full token list (for worst-case inner BST depth)
+    -- 2. All other policies get minimal (single-token) maps to minimize off-path cost
     nestedMap :: [(K, [(K, Value.Quantity)])]
-    nestedMap = (,(,qty) <$> tokenNames) <$> policyIds
+    nestedMap =
+      [ if policyId == maxPolicyId
+          then (policyId, (,qty) <$> sortedTokenNames) -- Full map for max policy
+          else (policyId, [(head sortedTokenNames, qty)]) -- Minimal map for others
+      | policyId <- sortedPolicyIds
+      ]
 
     value = unsafeFromBuiltinResult $ Value.fromList nestedMap
-
-    -- All policies have the same number of tokens in this uniform distribution,
-    -- so we pick the first policy as the max-size policy for worst-case targeting
-    maxPolicyId = head policyIds
-    -- Pick the last token (deepest in binary search tree) for worst-case inner lookup
-    deepestToken = last tokenNames
 
   pure (value, maxPolicyId, deepestToken)
 
