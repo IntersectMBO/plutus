@@ -5,4 +5,4 @@ Caused by: error
 Trace:
 -> functionFromOtherModule (test/CallTrace/Spec.hs:94:1-94:23)
 -> $
--> errorWhenTrue
+-> errorWhenTrue (test/CallTrace/OtherModule.hs:9:1-9:13)
