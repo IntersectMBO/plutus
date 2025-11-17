@@ -223,24 +223,21 @@ generateTestValues gen = runStateGen_ gen \g ->
     -- Random tests for parameter spread (100 combinations)
     replicateM 100 (generateValue g)
 
--- | Generate Value with random budget between 1 and 30,000 bytes
+-- | Generate Value with random number of entries between 1 and maxValueEntries
 generateValue :: (StatefulGen g m) => g -> m Value
 generateValue g = do
-  maxEntries <- uniformRM (1, maxValueEntries maxValueInBytes) g
-  generateValueMaxEntries maxEntries g
- where
-  -- Maximum budget for Value generation (30,000 bytes)
-  maxValueInBytes :: Int
-  maxValueInBytes = 30_000
+  numEntries <- uniformRM (1, maxValueEntries) g
+  generateValueMaxEntries numEntries g
 
-  -- Calculate maximum possible number of entries with maximal key sizes that fits in the budget
-  maxValueEntries :: Int -> Int
-  maxValueEntries budget =
-    let bytesPerEntry =
-          {- bytes per policy -} Value.maxKeyLen
-            {- bytes per token -} + Value.maxKeyLen
-            {- bytes per quantity (Int64 takes up 8 bytes) -} + 8
-     in budget `div` bytesPerEntry
+-- | Maximum number of (policyId, tokenName, quantity) entries for Value generation.
+-- This represents the practical limit based on execution budget constraints.
+-- Scripts can programmatically generate large Values, so we benchmark based on
+-- what's achievable within CPU execution budget, not ledger storage limits.
+--
+-- Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
+-- consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity)
+maxValueEntries :: Int
+maxValueEntries = 100_000
 
 -- | Generate Value within total size budget
 generateValueMaxEntries :: (StatefulGen g m) => Int -> g -> m Value
