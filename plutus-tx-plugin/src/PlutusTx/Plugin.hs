@@ -1,21 +1,21 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 -- For some reason this module is very slow to compile otherwise
 {-# OPTIONS_GHC -O0 #-}
 
 module PlutusTx.Plugin (plugin, plc) where
 
+import Data.Bifunctor
 import PlutusPrelude
 import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool ((&&), (||))
-import PlutusTx.Builtins (equalsInteger, mkNilOpaque, useFromOpaque, useToOpaque)
+import PlutusTx.Builtins (mkNilOpaque, useFromOpaque, useToOpaque)
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -24,7 +24,6 @@ import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
-import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
@@ -66,16 +65,14 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
-import PlutusCore.Flat (Flat, flat, unflat)
+import Flat (Flat, flat, unflat)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
-import Data.Maybe (mapMaybe)
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
-import Data.Text qualified as Text
 import GHC.Num.Integer qualified
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -87,10 +84,10 @@ import System.IO (openBinaryTempFile)
 import System.IO.Unsafe (unsafePerformIO)
 
 data PluginCtx = PluginCtx
-  { pcOpts            :: PluginOptions
-  , pcFamEnvs         :: GHC.FamInstEnvs
-  , pcMarkerName      :: GHC.Name
-  , pcModuleName      :: GHC.ModuleName
+  { pcOpts :: PluginOptions
+  , pcFamEnvs :: GHC.FamInstEnvs
+  , pcMarkerName :: GHC.Name
+  , pcModuleName :: GHC.ModuleName
   , pcModuleModBreaks :: Maybe GHC.ModBreaks
   }
 
@@ -221,8 +218,8 @@ mkSimplPass dflags =
       }
 
 {- Note [Marker resolution]
-We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as explained in:
-<https://hackage.haskell.org/package/ghc-9.6.6/docs/GHC-Plugins.html#v:thNameToGhcName>
+We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as
+explained in: <http://hackage.haskell.org/package/ghc-8.10.1/docs/GhcPlugins.html#v:thNameToGhcName>
 
 The GHC haddock suggests that the "exact syntax" will always succeed because it is statically
 resolved here (inside this Plugin module);
@@ -406,7 +403,6 @@ compileMarkedExpr locStr codeTy origE = do
            , 'GHC.Num.Integer.integerNegate
            , '(PlutusTx.Bool.&&)
            , '(PlutusTx.Bool.||)
-           , '(PlutusTx.List.!!)
            , 'PlutusTx.AsData.Internal.wrapTail
            , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
            , 'PlutusTx.Function.fix
@@ -414,7 +410,6 @@ compileMarkedExpr locStr codeTy origE = do
            , 'useToOpaque
            , 'useFromOpaque
            , 'mkNilOpaque
-           , 'PlutusTx.Builtins.equalsInteger
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =
@@ -428,10 +423,6 @@ compileMarkedExpr locStr codeTy origE = do
               CompileOptions
                 { coProfile = _posProfile opts
                 , coCoverage = coverage
-                , coDatatypeStyle =
-                    if _posPlcTargetVersion opts < PLC.plcVersion110
-                      then PIR.ScottEncoding
-                      else PIR._dcoStyle $ _posDatatypes opts
                 , coRemoveTrace = _posRemoveTrace opts
                 , coInlineFix = _posInlineFix opts
                 }
@@ -491,33 +482,11 @@ runCompiler
   -> GHC.CoreExpr
   -> m (PIRProgram uni fun, UPLCProgram uni fun)
 runCompiler moduleName opts expr = do
-  GHC.DynFlags {GHC.extensions = extensions} <- asks ccFlags
-  let
-    enabledExtensions =
-      mapMaybe
-        (\case
-            GHC.On a -> Just a
-            GHC.Off _ -> Nothing)
-        extensions
-    extensionBlacklist =
-      [ GADTs
-      , PolyKinds
-      ]
-    unsupportedExtensions =
-      filter (`elem` extensionBlacklist) enabledExtensions
-
-  when (not $ null unsupportedExtensions) $
-    throwPlain $ UnsupportedError $
-      "Following extensions are not supported: "
-      <> Text.intercalate ", " (Text.pack . show <$> unsupportedExtensions)
-
   -- Plc configuration
-  plcTcConfig <-
-    modifyError (NoContext . PIRError . PIR.PLCTypeError) $
-      PLC.getDefTypeCheckConfig PIR.noProvenance
-  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
+  plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
   let plcVersion = opts ^. posPlcTargetVersion
-      hints = UPLC.InlineHints $ \ann _ -> case ann of
+
+  let hints = UPLC.InlineHints $ \ann _ -> case ann of
         -- See Note [The problem of inlining destructors]
         -- We want to inline destructors, but even in UPLC our inlining heuristics
         -- aren't quite smart enough to tell that they're good inlining candidates,
@@ -582,7 +551,16 @@ runCompiler moduleName opts expr = do
             (PIR.ccOpts . PIR.coCaseOfCaseConservative)
             (opts ^. posCaseOfCaseConservative)
           & set (PIR.ccOpts . PIR.coPreserveLogging) (opts ^. posPreserveLogging)
-          & set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle) datatypeStyle
+          -- We could make this configurable with an option, but:
+          -- 1. The only other choice you can make is new version + Scott encoding, and
+          -- there's really no reason to pick that
+          -- 2. This is consistent with what we do in Lift
+          & set
+            (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle)
+            ( if plcVersion < PLC.plcVersion110
+                then PIR.ScottEncoding
+                else PIR.SumsOfProducts
+            )
           -- TODO: ensure the same as the one used in the plugin
           & set PIR.ccBuiltinsInfo def
           & set PIR.ccBuiltinCostModel def
@@ -605,44 +583,43 @@ runCompiler moduleName opts expr = do
           & set
             (PLC.coSimplifyOpts . UPLC.soInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
-          & set
-            (PLC.coSimplifyOpts . UPLC.soPreserveLogging)
-            (opts ^. posPreserveLogging)
 
   -- GHC.Core -> Pir translation.
-  pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
+  pirT <-
+    {-# SCC "plinth-plugin-core-to-pir-step" #-}
+    original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
   let pirP = PIR.Program noProvenance plcVersion pirT
   when (opts ^. posDumpPir) . liftIO $
     dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
   -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
   spirP <-
-    flip runReaderT pirCtx $
-      modifyError (NoContext . PIRError) $
-        PIR.compileToReadable pirP
+    {-# SCC "plinth-plugin-pir-to-simp-step" #-}
+    flip runReaderT pirCtx $ PIR.compileToReadable pirP
   when (opts ^. posDumpPir) . liftIO $
-      dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
+    dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
   -- (Simplified) Pir -> Plc translation.
-  plcP <- flip runReaderT pirCtx $
-    modifyError (NoContext . PIRError) $
-      PIR.compileReadableToPlc spirP
+  plcP <-
+    {-# SCC "plinth-plugin-simp-to-plc-step" #-}
+    flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
   when (opts ^. posDumpPlc) . liftIO $
-      dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
+    dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
 
   -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
   when (opts ^. posDoTypecheck) . void $
-      liftExcept $
-        modifyError PLC.TypeErrorE $
-          PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
+    liftExcept $
+      PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-  (uplcP, _) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
-  dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
+  uplcP <-
+    {-# SCC "plinth-plugin-plc-to-uplc-step" #-}
+    flip runReaderT plcOpts $ PLC.compileProgram plcP
+  dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
-      dumpFlat
-          (UPLC.UnrestrictedProgram $ void dbP)
-          "untyped PLC program"
-          (moduleName ++ ".uplc-flat")
+    dumpFlat
+      (UPLC.UnrestrictedProgram $ void dbP)
+      "untyped PLC program"
+      (moduleName ++ ".uplc-flat")
   -- Discard the Provenance information at this point, just keep the SrcSpans
   -- TODO: keep it and do something useful with it
   pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
@@ -650,7 +627,11 @@ runCompiler moduleName opts expr = do
   -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it
   --  using our 'CompileError'
   liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun Ann) m b -> m b
-  liftExcept = modifyError (NoContext . PLCError)
+  liftExcept act = do
+    plcTcError <- runExceptT act
+    -- also wrap the PLC Error annotations into Original provenances, to match our expected
+    -- 'CompileError'
+    liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) plcTcError
 
   dumpFlat :: (Flat t) => t -> String -> String -> IO ()
   dumpFlat t desc fileName = do
@@ -666,7 +647,7 @@ thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name
 thNameToGhcNameOrFail name = do
   maybeName <- lift . lift $ GHC.thNameToGhcName name
   case maybeName of
-    Just n  -> pure n
+    Just n -> pure n
     Nothing -> throwError . NoContext $ CoreNameLookupError name
 
 -- | Create a GHC Core expression that will evaluate to the given ByteString at runtime.
