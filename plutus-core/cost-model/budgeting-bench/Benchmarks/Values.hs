@@ -12,7 +12,6 @@ import Prelude
 import Common
 import Control.Monad (replicateM)
 import Criterion.Main (Benchmark)
-import Data.Bits (shiftR, (.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
@@ -313,33 +312,18 @@ ByteString comparison is lexicographic and short-circuits on the first differing
 Random keys typically differ in the first 1-2 bytes, making comparisons artificially cheap.
 
 For accurate worst-case costing, we generate keys with a common prefix (0xFF bytes) that
-differ only in the last bytes. This forces full-length comparisons during Map lookups,
+differ only in the last 4 bytes. This forces full-length comparisons during Map lookups,
 providing conservative cost estimates for adversarial on-chain scenarios.
-
-We use a random integer to ensure uniqueness while maintaining the worst-case prefix pattern.
 -}
 generateKey :: (StatefulGen g m) => g -> m K
 generateKey g = do
-  -- Generate a random integer for uniqueness
-  n <- uniformRM (0, maxBound :: Int) g
-  case Value.k (mkWorstCaseKey n) of
-    Just key -> pure key
-    Nothing  -> error "Internal error: maxKeyLen key should always be valid"
-
-{-| Helper: Create a worst-case ByteString key from an integer
-The key has maxKeyLen-4 bytes of 0xFF prefix, followed by 4 bytes encoding the integer
--}
-mkWorstCaseKey :: Int -> ByteString
-mkWorstCaseKey n =
   let prefixLen = Value.maxKeyLen - 4
       prefix = BS.replicate prefixLen (0xFF :: Word8)
-      -- Encode the integer in big-endian format (last 4 bytes)
-      b0 = fromIntegral $ (n `shiftR` 24) .&. 0xFF
-      b1 = fromIntegral $ (n `shiftR` 16) .&. 0xFF
-      b2 = fromIntegral $ (n `shiftR` 8) .&. 0xFF
-      b3 = fromIntegral $ n .&. 0xFF
-      suffix = BS.pack [b0, b1, b2, b3]
-   in prefix <> suffix
+  -- Generate 4 random bytes for the suffix
+  suffix <- BS.pack <$> replicateM 4 (uniformRM (0, 255) g)
+  case Value.k (prefix <> suffix) of
+    Just key -> pure key
+    Nothing  -> error "Internal error: maxKeyLen key should always be valid"
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
