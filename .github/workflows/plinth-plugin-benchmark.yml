@@ -1,0 +1,45 @@
+name: "ƛ Plinth Plugin Benchmark"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - 'release/*'
+
+permissions:
+  deployments: write
+  contents: write
+
+jobs:
+  run:
+    if: !always()
+    name: Run
+    runs-on: [self-hosted, plutus-benchmark]
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@main 
+
+      - name: Run Benchmarks
+        run: nix develop .#profiled --no-warn-dirty --accept-flake-config --command \
+          bash ./scripts/run-plinth-plugin-benchmarks.sh
+
+      # We need this otherwise the next step will fail with:
+      # `pre-commit` not found. Did you forget to activate your virtualenv?
+      # This is because github-action-benchmark will call git commit outside nix develop.
+      - name: Disable Git Hooks
+        run: git config core.hooksPath no-hooks
+
+      - name: Deploy Results
+        uses: benchmark-action/github-action-benchmark@v1.20.4
+        with:
+          name: Plutus Benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: output.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@IntersectMBO/plutus-core'
+          alert-threshold: '105%'
