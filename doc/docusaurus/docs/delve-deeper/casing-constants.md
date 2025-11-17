@@ -5,41 +5,65 @@ sidebar_position: 26
 # Casing on built-in types in UPLC
 
 Starting with _intra-era hard fork_, UPLC supports a new way of processing
-values of built-in types, such as `Integer` and `Data`. The `Case` construct,
-which was originally introduced for [sums-of-products](), can now also be used
-to case-split on such values.
+values of some built-in types, such as `Integer` and `Data`. The `case`
+construct, which was originally introduced for [sums-of-products](), can also be
+used to case-split on such values.
 
-Using `Case` in UPLC programs can make processing of built-in types more
+Using `case` in UPLC programs can make processing of built-in types more
 efficient, for example when dealing with `ScriptContext`, which is encoded using
-`Data`.
+`Data`. Even types like `Bool`
 
-Depending on the built-in type, a certain order of branches is expected, and not
-necessarily all values can be matched using `Case`.
+Depending on the built-in type, a certain order and amount of branches is
+expected, and not necessarily all values can be matched using `case`.
 
 ## Bool
 
-For booleans, there are two ways how `Case` may be used. Either with two
-branches, where the first is the false branch, and the second the true branch.
+Booleans can be used in `case` with one or two branches, where the first is the
+false branch. Boolean negation can be written as:
 
 ```
-case b
-  <false-branch>
-  <true-branch>
+\b ->
+  case b
+    false
+    true
 ```
 
+When only one branch is provided, script execution will fail when the boolean
+evaluates to `true`.
 
-□ does case evaluate its branches?
+## Unit
 
+Needs exactly one branch. If the expression being cased on evaluates to a unit
+value, evaluation will continue with the expression in that branch.
 
+## Pair
 
-
-, Pair, Uni
-
-
+A built-in pair expects a single branch that is a function with two arguments
 
 ## Integer
 
+Casing on integers can be used for non-negative integers only, and a variable
+amount of branches may be given:
+
+```
+case e
+  branch_0
+  branch_1
+  ...
+  branch_n
+```
+
+If the expression e evaluates to an integer `i`, `branch_i` will be evaluated.
+If that branch is not given (or `i` is negative), execution will fail.
+
+Note that there is no way to provide a "catch-all" case.
+
 ## List
+
+A `case` on built-in lists may be given one or two branches (similar to
+booleans), where the first one deals with the cons case, and the second one with
+the empty list. If no second branch is given, execution will fail when the list
+turns out to be empty.
 
 ## Data
 
