@@ -1234,7 +1234,7 @@
   },
   "valueData": {
     "cpu": {
-      "arguments": 199831,
+      "arguments": 194713,
       "type": "constant_cost"
     },
     "memory": {
@@ -1246,7 +1246,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 16782
+        "slope": 43200
       },
       "type": "linear_in_x"
     },
