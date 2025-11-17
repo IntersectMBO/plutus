@@ -51,7 +51,7 @@ if [[ $TFLAG -eq 1 ]]; then
     file=""; seen=0;
   }
   # new file header: reset seen flag, store filename
-  /^--- a\/.*\.eval\.golden/ {
+  /^--- a\/.*\.golden\.eval/ {
     file = substr($2,3)
     seen = 0
     next
@@ -99,7 +99,7 @@ else
     file=""; seen=0;
   }
   # new file header: reset seen flag, store filename
-  /^--- a\/.*\.eval\.golden/ {
+  /^--- a\/.*\.golden\.eval/ {
     file = substr($2,3)
     seen = 0
     next
