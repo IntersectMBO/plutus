@@ -1,19 +1,19 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE MagicHash           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE UnboxedTuples       #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Plugin.Functions.Spec where
 
@@ -74,7 +74,7 @@ sumDirect =
   plc
     (Proxy @"sumDirect")
     ( let sum :: [Integer] -> Integer
-          sum []       = 0
+          sum [] = 0
           sum (x : xs) = Builtins.addInteger x (sum xs)
        in sum
     )
@@ -92,15 +92,15 @@ evenMutual =
 
 lengthStrict :: [a] -> Integer
 lengthStrict l = go 0 l
- where
-  go !acc []       = acc
-  go !acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
+  where
+    go !acc [] = acc
+    go !acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
 
 lengthLazy :: [a] -> Integer
 lengthLazy l = go 0 l
- where
-  go acc []       = acc
-  go acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
+  where
+    go acc [] = acc
+    go acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
 
 strictLength :: CompiledCode ([Integer] -> Integer)
 strictLength = plc (Proxy @"strictLength") (lengthStrict @Integer)
@@ -150,7 +150,7 @@ andPlcExternal = plc (Proxy @"andPlcExternal") (andExternal True False)
 -- self-recursion
 allDirect :: (a -> Bool) -> [a] -> Bool
 allDirect p l = case l of
-  []    -> True
+  [] -> True
   h : t -> andDirect (p h) (allDirect p t)
 
 allPlcDirect :: CompiledCode Bool
@@ -167,7 +167,7 @@ recordSelectorExternal = plc (Proxy @"recordSelectorExternal") (\(x :: MyExterna
 
 mapDirect :: (a -> b) -> [a] -> [b]
 mapDirect f l = case l of
-  []     -> []
+  [] -> []
   x : xs -> f x : mapDirect f xs
 
 polyMap :: CompiledCode ([Integer])

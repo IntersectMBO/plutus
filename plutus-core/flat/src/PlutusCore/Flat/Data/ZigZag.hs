@@ -1,23 +1,23 @@
-{-# LANGUAGE DefaultSignatures      #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
--- |<https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba ZigZag encoding> of signed integrals.
-module PlutusCore.Flat.Data.ZigZag (ZigZag(..)) where
+-- | <https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba ZigZag encoding> of signed integrals.
+module PlutusCore.Flat.Data.ZigZag (ZigZag (..)) where
 
 import Data.Bits (Bits (shiftL, shiftR, xor, (.&.)), FiniteBits (finiteBitSize))
 import Data.Int (Int16, Int32, Int64, Int8)
 import Data.Word (Word16, Word32, Word64, Word8)
 import Numeric.Natural (Natural)
 
--- $setup
--- >>> :set -XNegativeLiterals -XScopedTypeVariables -XFlexibleContexts
--- >>> import Data.Word
--- >>> import Data.Int
--- >>> import Numeric.Natural
--- >>> import Test.QuickCheck.Arbitrary
--- >>> instance Arbitrary Natural where arbitrary = arbitrarySizedNatural; shrink    = shrinkIntegral
+{-$setup
+>>> :set -XNegativeLiterals -XScopedTypeVariables -XFlexibleContexts
+>>> import Data.Word
+>>> import Data.Int
+>>> import Numeric.Natural
+>>> import Test.QuickCheck.Arbitrary
+>>> instance Arbitrary Natural where arbitrary = arbitrarySizedNatural; shrink    = shrinkIntegral -}
 
 {-|
 Convert between a signed integral and the corresponding ZigZag encoded unsigned integral (e.g. between Int8 and Word8 or Integral and Natural).
@@ -91,20 +91,22 @@ prop> \(s::Int64) -> zigZag s == fromIntegral (zigZag (fromIntegral s :: Integer
 +++ OK, passed 100 tests.
 
 prop> \(u::Word64) -> zagZig u == fromIntegral (zagZig (fromIntegral u :: Natural))
-+++ OK, passed 100 tests.
--}
-class (Integral signed, Integral unsigned)
-  => ZigZag signed unsigned | unsigned -> signed, signed -> unsigned where
++++ OK, passed 100 tests. -}
+class
+  (Integral signed, Integral unsigned) =>
+  ZigZag signed unsigned
+    | unsigned -> signed
+    , signed -> unsigned
+  where
   zigZag :: signed -> unsigned
   default zigZag :: FiniteBits signed => signed -> unsigned
-  zigZag s = fromIntegral
-    ((s `shiftL` 1) `xor` (s `shiftR` (finiteBitSize s - 1)))
-
+  zigZag s =
+    fromIntegral
+      ((s `shiftL` 1) `xor` (s `shiftR` (finiteBitSize s - 1)))
   {-# INLINE zigZag #-}
   zagZig :: unsigned -> signed
-  default zagZig :: (Bits unsigned) => unsigned -> signed
+  default zagZig :: Bits unsigned => unsigned -> signed
   zagZig u = fromIntegral ((u `shiftR` 1) `xor` negate (u .&. 1))
-
   -- default zagZig :: (Bits signed) => unsigned -> signed
   -- zagZig u = let (s::signed) = fromIntegral u in ((s `shiftR` 1) `xor` (negate (s .&. 1)))
   {-# INLINE zagZig #-}
@@ -122,5 +124,6 @@ instance ZigZag Integer Natural where
     | x >= 0 = fromIntegral $ x `shiftL` 1
     | otherwise = fromIntegral $ negate (x `shiftL` 1) - 1
 
-  zagZig u = let s = fromIntegral u
-             in ((s `shiftR` 1) `xor` negate (s .&. 1))
+  zagZig u =
+    let s = fromIntegral u
+     in ((s `shiftR` 1) `xor` negate (s .&. 1))

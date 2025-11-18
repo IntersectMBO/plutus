@@ -1,7 +1,7 @@
-module Cardano.Constitution.DataFilePaths
-    ( defaultConstitutionConfigFile
-    , defaultConstitutionJSONSchemaFile
-    ) where
+module Cardano.Constitution.DataFilePaths (
+  defaultConstitutionConfigFile,
+  defaultConstitutionJSONSchemaFile,
+) where
 
 import System.FilePath
 

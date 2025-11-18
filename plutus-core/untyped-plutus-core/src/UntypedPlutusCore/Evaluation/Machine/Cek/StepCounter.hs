@@ -1,14 +1,15 @@
-{-# LANGUAGE AllowAmbiguousTypes      #-}
-{-# LANGUAGE BangPatterns             #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE KindSignatures           #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 module UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter where
 
 import Control.Monad.Primitive
@@ -22,8 +23,8 @@ import GHC.TypeNats (KnownNat, Nat, natVal, type (-))
 -- See Note [Step counter data structure]
 -- You might think that since we can store whatever we like in here we might as well
 -- use machine words (i.e. 'Word64'), but that is actually slower.
--- | A set of 'Word8' counters that is used in the CEK machine
--- to count steps.
+{-| A set of 'Word8' counters that is used in the CEK machine
+to count steps. -}
 newtype StepCounter (n :: Nat) s = StepCounter (P.MutablePrimArray s Word8)
 
 -- | Make a new 'StepCounter' with the given number of counters.
@@ -36,34 +37,34 @@ newCounter p = do
 {-# INLINE newCounter #-}
 
 -- | Reset all the counters in the given 'StepCounter' to zero.
-resetCounter :: forall n m . (KnownNat n, PrimMonad m) => StepCounter n (PrimState m) -> m ()
+resetCounter :: forall n m. (KnownNat n, PrimMonad m) => StepCounter n (PrimState m) -> m ()
 resetCounter (StepCounter arr) =
   let sz = fromIntegral $ natVal (Proxy @n)
-  in P.setPrimArray arr 0 sz 0
+   in P.setPrimArray arr 0 sz 0
 {-# INLINE resetCounter #-}
 
 -- | Read the value of a counter.
-readCounter :: forall m n . PrimMonad m => StepCounter n (PrimState m) -> Int -> m Word8
+readCounter :: forall m n. PrimMonad m => StepCounter n (PrimState m) -> Int -> m Word8
 readCounter =
   coerce
-  @(P.MutablePrimArray (PrimState m) Word8 -> Int -> m Word8)
-  @(StepCounter n (PrimState m) -> Int -> m Word8)
-  P.readPrimArray
+    @(P.MutablePrimArray (PrimState m) Word8 -> Int -> m Word8)
+    @(StepCounter n (PrimState m) -> Int -> m Word8)
+    P.readPrimArray
 {-# INLINE readCounter #-}
 
 -- | Write to a counter.
 writeCounter
   :: forall m n
-  . PrimMonad m
+   . PrimMonad m
   => StepCounter n (PrimState m)
   -> Int
   -> Word8
   -> m ()
 writeCounter =
   coerce
-  @(P.MutablePrimArray (PrimState m) Word8 -> Int -> Word8 -> m ())
-  @(StepCounter n (PrimState m) -> Int -> Word8 -> m ())
-  P.writePrimArray
+    @(P.MutablePrimArray (PrimState m) Word8 -> Int -> Word8 -> m ())
+    @(StepCounter n (PrimState m) -> Int -> Word8 -> m ())
+    P.writePrimArray
 {-# INLINE writeCounter #-}
 
 -- | Modify the value of a counter. Returns the modified value.
@@ -87,14 +88,14 @@ data Peano
 
 type NatToPeano :: Nat -> Peano
 type family NatToPeano n where
-    NatToPeano 0 = 'Z
-    NatToPeano n = 'S (NatToPeano (n - 1))
+  NatToPeano 0 = 'Z
+  NatToPeano n = 'S (NatToPeano (n - 1))
 
 type UpwardsM :: (Type -> Type) -> Peano -> Constraint
 class Applicative f => UpwardsM f n where
-  -- | @upwardsM i k@ means @k i *> k (i + 1) *> ... *> k (i + n - 1)@.
-  -- We use this function in order to statically unroll a loop in 'itraverseCounter_' through
-  -- instance resolution. This makes @validation@ benchmarks a couple of percent faster.
+  {-| @upwardsM i k@ means @k i *> k (i + 1) *> ... *> k (i + n - 1)@.
+  We use this function in order to statically unroll a loop in 'itraverseCounter_' through
+  instance resolution. This makes @validation@ benchmarks a couple of percent faster. -}
   upwardsM :: Int -> (Int -> f ()) -> f ()
 
 instance Applicative f => UpwardsM f 'Z where
@@ -108,7 +109,7 @@ instance UpwardsM f n => UpwardsM f ('S n) where
 -- | Traverse the counters with an effectful function.
 itraverseCounter_
   :: forall n m
-  . (UpwardsM m (NatToPeano n), PrimMonad m)
+   . (UpwardsM m (NatToPeano n), PrimMonad m)
   => (Int -> Word8 -> m ())
   -> StepCounter n (PrimState m)
   -> m ()

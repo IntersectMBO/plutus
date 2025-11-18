@@ -1,9 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE StrictData      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE StrictData #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies    #-}
-{-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
@@ -24,51 +24,51 @@ import NoThunks.Class
    only have to worry about a single object, so the CostModel type bundles the
    two together.  We could conceivably have different evaluators with different
    internal costs, so we keep the machine costs abstract.  The model for Cek
-   machine steps is in UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.
--}
-data CostModel machinecosts builtincosts =
-    CostModel {
-      _machineCostModel :: machinecosts
-    , _builtinCostModel :: builtincosts
-    } deriving stock (Eq, Show)
+   machine steps is in UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts. -}
+data CostModel machinecosts builtincosts
+  = CostModel
+  { _machineCostModel :: machinecosts
+  , _builtinCostModel :: builtincosts
+  }
+  deriving stock (Eq, Show)
+
 makeLenses ''CostModel
 
--- | The part of 'MachineParameters' that is individual for each semantics variant of 'DefaultFun'.
---
--- 'CaserBuiltin' isn't included, because it only explicitly depends on the protocol version and not
--- the language version (even though there's an implicit dependency on the language version: older
--- languages don't support 'Case' in general, but it's safe to ignore that, because support for
--- 'Case' is controlled by the AST version, which is a separate check during deserialisation).
-data MachineVariantParameters machineCosts fun val =
-    MachineVariantParameters {
-      machineCosts    :: machineCosts
-    , builtinsRuntime :: BuiltinsRuntime fun val
-    }
-    deriving stock Generic
-    deriving anyclass (NFData)
+{-| The part of 'MachineParameters' that is individual for each semantics variant of 'DefaultFun'.
+
+'CaserBuiltin' isn't included, because it only explicitly depends on the protocol version and not
+the language version (even though there's an implicit dependency on the language version: older
+languages don't support 'Case' in general, but it's safe to ignore that, because support for
+'Case' is controlled by the AST version, which is a separate check during deserialisation). -}
+data MachineVariantParameters machineCosts fun val
+  = MachineVariantParameters
+  { machineCosts :: machineCosts
+  , builtinsRuntime :: BuiltinsRuntime fun val
+  }
+  deriving stock (Generic)
+  deriving anyclass (NFData)
 
 {-| At execution time we need a 'BuiltinsRuntime' object which includes both the cost model for
 builtins and their denotations. This bundles one of those together with the cost model for evaluator
 steps and a 'CaserBuiltin' specifying how casing on values of built-in types works.
-The @val@ type will be 'CekValue' when we're using this with the CEK machine.
--}
-data MachineParameters machineCosts fun val =
-    MachineParameters {
-      machineCaserBuiltin      :: CaserBuiltin (UniOf val)
-    , machineVariantParameters :: MachineVariantParameters machineCosts fun val
-    }
-    deriving stock Generic
-    deriving anyclass (NFData)
+The @val@ type will be 'CekValue' when we're using this with the CEK machine. -}
+data MachineParameters machineCosts fun val
+  = MachineParameters
+  { machineCaserBuiltin :: CaserBuiltin (UniOf val)
+  , machineVariantParameters :: MachineVariantParameters machineCosts fun val
+  }
+  deriving stock (Generic)
+  deriving anyclass (NFData)
 
 -- For some reason the generic instance gives incorrect nothunk errors,
 -- see https://github.com/input-output-hk/nothunks/issues/24
 instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineVariantParameters machinecosts fun val) where
   wNoThunks ctx (MachineVariantParameters costs runtime) =
-      allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
+    allNoThunks [noThunks ctx costs, noThunks ctx runtime]
 
 instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
   wNoThunks ctx (MachineParameters caser varPars) =
-      allNoThunks [ noThunks ctx caser, noThunks ctx varPars ]
+    allNoThunks [noThunks ctx caser, noThunks ctx varPars]
 
 {- Note [The CostingPart constraint in mkMachineVariantParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
@@ -96,17 +96,17 @@ which makes sense: if @f@ receives all its type and term args then there's less 
 -}
 
 -- See Note [Inlining meanings of builtins].
-{-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
-mkMachineVariantParameters ::
-    ( -- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the
-      -- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].
-      CostingPart uni fun ~ builtincosts
-    , HasMeaningIn uni val
-    , ToBuiltinMeaning uni fun
-    )
-    => BuiltinSemanticsVariant fun
-    -> CostModel machineCosts builtincosts
-    -> MachineVariantParameters machineCosts fun val
+-- | This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime.
+mkMachineVariantParameters
+  :: ( -- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the
+       -- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].
+       CostingPart uni fun ~ builtincosts
+     , HasMeaningIn uni val
+     , ToBuiltinMeaning uni fun
+     )
+  => BuiltinSemanticsVariant fun
+  -> CostModel machineCosts builtincosts
+  -> MachineVariantParameters machineCosts fun val
 mkMachineVariantParameters semvar (CostModel mchnCosts builtinCosts) =
-    MachineVariantParameters mchnCosts $ inline toBuiltinsRuntime semvar builtinCosts
+  MachineVariantParameters mchnCosts $ inline toBuiltinsRuntime semvar builtinCosts
 {-# INLINE mkMachineVariantParameters #-}

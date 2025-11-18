@@ -1,6 +1,7 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module Cardano.Constitution.Config.Instance.TxLift () where
 
 import Cardano.Constitution.Config.Types
@@ -14,8 +15,9 @@ import PlutusTx.Lift.Class as Tx
 
 Tx.makeLift ''PredKey
 
-deriving newtype instance (Tx.Typeable Tx.DefaultUni predValue, Tx.Lift Tx.DefaultUni predValue)
-                          => Tx.Lift Tx.DefaultUni (Predicates predValue)
+deriving newtype instance
+  (Tx.Typeable Tx.DefaultUni predValue, Tx.Lift Tx.DefaultUni predValue)
+  => Tx.Lift Tx.DefaultUni (Predicates predValue)
 
 Tx.makeTypeable (TH.ConT ''Tx.DefaultUni) ''Predicates
 Tx.makeLift ''ParamValue

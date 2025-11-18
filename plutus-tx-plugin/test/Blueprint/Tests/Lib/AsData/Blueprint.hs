@@ -1,9 +1,9 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-| This module contains data type declarations to use in blueprints **only**
 
@@ -13,8 +13,7 @@ do not reveal their schema when deriving a 'HasBlueprintSchema' instance for a b
 To work around this problem we generate a separate data type declaration for each 'AsData' type
 and use these in blueprints.
 
-Do not use these types in real validators, instead use the 'AsData' declarations.
--}
+Do not use these types in real validators, instead use the 'AsData' declarations. -}
 module Blueprint.Tests.Lib.AsData.Blueprint where
 
 import Blueprint.Tests.Lib.AsData.Decls (datum2)

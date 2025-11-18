@@ -1,24 +1,24 @@
 -- BEGIN pragmas
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE ImportQualifiedPost   #-}
-{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE Strict                #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE Strict #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -74,30 +74,30 @@ type MyDatum = Integer
 data MyRedeemer = R0 | R1 V3.Lovelace | R2 V3.Value
 
 data MyParams = MkMyParams
-  { myBool          :: Bool
-  , myInteger       :: Integer
-  , myMap           :: Map Integer Bool
-  , myDCert         :: V1.DCert
-  , myScriptTag     :: V1.ScriptTag
-  , myRedeemerPtr   :: V1.RedeemerPtr
-  , myDiffMillis    :: V1.DiffMilliSeconds
-  , myTxId          :: V3.TxId
-  , myTokenName     :: V3.TokenName
-  , myAddress       :: V3.Address
-  , myPubKey        :: V3.PubKeyHash
-  , myPOSIXTime     :: V3.POSIXTime
-  , myLedgerBytes   :: V3.LedgerBytes
-  , myCredential    :: V3.Credential
-  , myDatum         :: V3.Datum
-  , myLovelace      :: V3.Lovelace
-  , myInterval      :: V3.Interval Integer
-  , myScriptHash    :: V3.ScriptHash
-  , myRedeemer      :: V3.Redeemer
-  , myRedeemerHash  :: V3.RedeemerHash
-  , myDatum_        :: V3.Datum
-  , myDatumHash     :: V3.DatumHash
-  , myTxInInfo      :: V3.TxInInfo
-  , myTxInfo        :: V3.TxInfo
+  { myBool :: Bool
+  , myInteger :: Integer
+  , myMap :: Map Integer Bool
+  , myDCert :: V1.DCert
+  , myScriptTag :: V1.ScriptTag
+  , myRedeemerPtr :: V1.RedeemerPtr
+  , myDiffMillis :: V1.DiffMilliSeconds
+  , myTxId :: V3.TxId
+  , myTokenName :: V3.TokenName
+  , myAddress :: V3.Address
+  , myPubKey :: V3.PubKeyHash
+  , myPOSIXTime :: V3.POSIXTime
+  , myLedgerBytes :: V3.LedgerBytes
+  , myCredential :: V3.Credential
+  , myDatum :: V3.Datum
+  , myLovelace :: V3.Lovelace
+  , myInterval :: V3.Interval Integer
+  , myScriptHash :: V3.ScriptHash
+  , myRedeemer :: V3.Redeemer
+  , myRedeemerHash :: V3.RedeemerHash
+  , myDatum_ :: V3.Datum
+  , myDatumHash :: V3.DatumHash
+  , myTxInInfo :: V3.TxInInfo
+  , myTxInfo :: V3.TxInfo
   , myScriptPurpose :: V3.ScriptPurpose
   , myScriptContext :: V3.ScriptContext
   }
@@ -121,11 +121,11 @@ deriving anyclass instance HasBlueprintDefinition MyRedeemer
 -- BEGIN validator
 
 typedValidator :: MyParams -> MyDatum -> MyRedeemer -> Bool
-typedValidator MkMyParams{..} datum redeemer =
+typedValidator MkMyParams {..} datum redeemer =
   case redeemer of
-    R0   -> myBool
-    R1{} -> myBool
-    R2{} -> myInteger == datum
+    R0 -> myBool
+    R1 {} -> myBool
+    R2 {} -> myInteger == datum
 
 untypedValidator :: MyParams -> BuiltinData -> BuiltinUnit
 untypedValidator params scriptContext =

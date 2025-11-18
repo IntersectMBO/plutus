@@ -18,7 +18,7 @@ import PlutusTx.Monoid (Monoid)
 -- | Plutus Tx version of 'Data.Traversable.Traversable'.
 class (Functor t, Foldable t) => Traversable t where
   -- | Plutus Tx version of 'Data.Traversable.traverse'.
-  traverse :: (Applicative f) => (a -> f b) -> t a -> f (t b)
+  traverse :: Applicative f => (a -> f b) -> t a -> f (t b)
 
 -- All the other methods are deliberately omitted,
 -- to make this a one-method class which has a simpler representation
@@ -26,18 +26,18 @@ class (Functor t, Foldable t) => Traversable t where
 instance Traversable [] where
   {-# INLINEABLE traverse #-}
   traverse f = go
-   where
-    go []       = pure []
-    go (x : xs) = liftA2 (:) (f x) (go xs)
+    where
+      go [] = pure []
+      go (x : xs) = liftA2 (:) (f x) (go xs)
 
 instance Traversable Maybe where
   {-# INLINEABLE traverse #-}
-  traverse _ Nothing  = pure Nothing
+  traverse _ Nothing = pure Nothing
   traverse f (Just a) = Just <$> f a
 
 instance Traversable (Either c) where
   {-# INLINEABLE traverse #-}
-  traverse _ (Left a)  = pure (Left a)
+  traverse _ (Left a) = pure (Left a)
   traverse f (Right a) = Right <$> f a
 
 instance Traversable ((,) c) where
@@ -75,7 +75,7 @@ for = flip traverse
 -- | Plutus Tx version of 'Data.Traversable.fmapDefault'.
 fmapDefault
   :: forall t a b
-   . (Traversable t)
+   . Traversable t
   => (a -> b) -> t a -> t b
 fmapDefault = coerce (traverse :: (a -> Identity b) -> t a -> Identity (t b))
 {-# INLINE fmapDefault #-}

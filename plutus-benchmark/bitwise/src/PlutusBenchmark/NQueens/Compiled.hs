@@ -1,12 +1,12 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.NQueens.Compiled (
   nqueensCompiled,
-  dimAsData
-  ) where
+  dimAsData,
+) where
 
 import PlutusBenchmark.NQueens (nqueens)
 import PlutusTx.Code (CompiledCode)
@@ -16,7 +16,7 @@ import PlutusTx.Prelude
 import PlutusTx.TH (compile)
 
 nqueensCompiled :: CompiledCode (BuiltinData -> [(Integer, Integer)])
-nqueensCompiled = $$(compile [|| \dim -> nqueens (unsafeFromBuiltinData dim) ||])
+nqueensCompiled = $$(compile [||\dim -> nqueens (unsafeFromBuiltinData dim)||])
 
 dimAsData :: CompiledCode BuiltinData
 dimAsData = liftCodeDef (toBuiltinData (8 :: Integer))

@@ -1,8 +1,8 @@
-{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module AsData.Budget.Spec where
 
@@ -14,8 +14,8 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBundle)
 import PlutusTx.TH (compile)
+import PlutusTx.Test (goldenBundle)
 
 tests :: TestNested
 tests =
@@ -41,7 +41,7 @@ onlyUseFirstField =
   $$( compile
         [||
         \d -> case PlutusTx.unsafeFromBuiltinData d of
-          Ints{int1 = x} -> x
+          Ints {int1 = x} -> x
         ||]
     )
 
@@ -50,7 +50,7 @@ onlyUseFirstFieldManual =
   $$( compile
         [||
         \d -> case PlutusTx.unsafeFromBuiltinData d of
-          IntsManual{int1Manual = x} -> x
+          IntsManual {int1Manual = x} -> x
         ||]
     )
 

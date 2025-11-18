@@ -173,10 +173,16 @@ module PlutusLedgerApi.Data.V1 (
 import Data.SatInt
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget as PLC
-import PlutusLedgerApi.Common as Common hiding (deserialiseScript, evaluateScriptCounting,
-                                         evaluateScriptRestricting)
-import PlutusLedgerApi.Common qualified as Common (deserialiseScript, evaluateScriptCounting,
-                                                   evaluateScriptRestricting)
+import PlutusLedgerApi.Common as Common hiding (
+  deserialiseScript,
+  evaluateScriptCounting,
+  evaluateScriptRestricting,
+ )
+import PlutusLedgerApi.Common qualified as Common (
+  deserialiseScript,
+  evaluateScriptCounting,
+  evaluateScriptRestricting,
+ )
 import PlutusLedgerApi.V1.Bytes
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Data.Address
@@ -191,8 +197,7 @@ import PlutusLedgerApi.V1.ParamName
 import PlutusLedgerApi.V1.Scripts as Scripts
 
 {-| An alias to the Plutus ledger language this module exposes at runtime.
- MAYBE: Use CPP '__FILE__' + some TH to automate this.
--}
+ MAYBE: Use CPP '__FILE__' + some TH to automate this. -}
 thisLedgerLanguage :: PlutusLedgerLanguage
 thisLedgerLanguage = PlutusV1
 
@@ -216,11 +221,10 @@ new versions.
 
 {-| The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.
-Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
--}
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). -}
 deserialiseScript
   :: forall m
-   . (MonadError ScriptDecodeError m)
+   . MonadError ScriptDecodeError m
   => MajorProtocolVersion
   -- ^ which major protocol version the script was submitted in.
   -> SerialisedScript
@@ -231,8 +235,7 @@ deserialiseScript = Common.deserialiseScript thisLedgerLanguage
 {-| Evaluates a script, returning the minimum budget that the script would need
 to evaluate successfully. lalaThis will take as long as the script takes, if you need to
 limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
-also returns the used budget.
--}
+also returns the used budget. -}
 evaluateScriptCounting
   :: MajorProtocolVersion
   -- ^ Which major protocol version to run the operation in
@@ -252,8 +255,7 @@ resources it can use according to the cost model. Also returns the budget that
 was actually used.
 
 Can be used to calculate budgets for scripts, but even in this case you must give
-a limit to guard against scripts that run for a long time or loop.
--}
+a limit to guard against scripts that run for a long time or loop. -}
 evaluateScriptRestricting
   :: MajorProtocolVersion
   -- ^ Which major protocol version to run the operation in

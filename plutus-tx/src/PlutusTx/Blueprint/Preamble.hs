@@ -1,6 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module PlutusTx.Blueprint.Preamble where
 
@@ -15,19 +15,18 @@ import PlutusTx.Blueprint.PlutusVersion (PlutusVersion)
 
 -- | Meta-information about the contract
 data Preamble = MkPreamble
-  { preambleTitle         :: Text
+  { preambleTitle :: Text
   -- ^ A short and descriptive title of the contract application
-  , preambleDescription   :: Maybe Text
+  , preambleDescription :: Maybe Text
   -- ^ A more elaborate description
-  , preambleVersion       :: Text
+  , preambleVersion :: Text
   -- ^ A version number for the project.
   , preamblePlutusVersion :: PlutusVersion
   -- ^ The Plutus version assumed for all validators
-  , preambleLicense       :: Maybe Text
-  {- ^ A license under which the specification
-  and contract code is distributed
-  -}
+  , preambleLicense :: Maybe Text
+  {-^ A license under which the specification
+  and contract code is distributed -}
   }
   deriving stock (Show, Generic)
 
-$(deriveToJSON defaultOptions{fieldLabelModifier = stripPrefix "preamble"} ''Preamble)
+$(deriveToJSON defaultOptions {fieldLabelModifier = stripPrefix "preamble"} ''Preamble)

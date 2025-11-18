@@ -1,7 +1,7 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 
 module Plugin.NoTrace.Spec where
@@ -9,9 +9,9 @@ module Plugin.NoTrace.Spec where
 import Prelude
 
 import Plugin.NoTrace.Lib (countTraces)
-import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
 import Plugin.NoTrace.WithPreservedLogging qualified as WithPreservedLogging
 import Plugin.NoTrace.WithTraces qualified as WithTraces
+import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
 import PlutusTx.Test.Run.Code (evaluatesToError, evaluatesWithoutError)
 import Test.Tasty (testGroup)
 import Test.Tasty.Extras (TestNested, embed)

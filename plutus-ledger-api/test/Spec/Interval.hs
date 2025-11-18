@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 module Spec.Interval where
@@ -17,16 +17,16 @@ import Hedgehog.Range qualified as Range
 import PlutusLedgerApi.V1.Interval qualified as Interval
 import PlutusPrelude (reoption)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.Hedgehog (testProperty)
 import Test.Tasty.HUnit (assertBool, testCase)
+import Test.Tasty.Hedgehog (testProperty)
 
 -- TODO: maybe bias towards generating non-empty intervals?
 
 genExtended :: Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.Extended a)
 genExtended finite g =
   if finite
-  then Interval.Finite <$> g
-  else Gen.choice [ Interval.Finite <$> g, pure Interval.NegInf, pure Interval.PosInf ]
+    then Interval.Finite <$> g
+    else Gen.choice [Interval.Finite <$> g, pure Interval.NegInf, pure Interval.PosInf]
 
 genLowerBound :: Bool -> Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.LowerBound a)
 genLowerBound finite closedOnly g = do
@@ -71,18 +71,28 @@ openIsEmpty =
   testCase "open interval isEmpty" $
     assertBool
       "open"
-      (Interval.isEmpty
-        (Interval.Interval
-          (Interval.strictLowerBound 4) (Interval.strictUpperBound 5) :: Interval.Interval Integer))
+      ( Interval.isEmpty
+          ( Interval.Interval
+              (Interval.strictLowerBound 4)
+              (Interval.strictUpperBound 5)
+              :: Interval.Interval Integer
+          )
+      )
 
 openOverlaps :: TestTree
 openOverlaps =
   testCase "open interval overlaps" $
-    let a = Interval.Interval
-            (Interval.strictLowerBound 1) (Interval.strictUpperBound 5) :: Interval.Interval Integer
-        b = Interval.Interval
-            (Interval.strictLowerBound 4) (Interval.strictUpperBound 6) :: Interval.Interval Integer
-    in assertBool "overlaps" (not $ Interval.overlaps a b)
+    let a =
+          Interval.Interval
+            (Interval.strictLowerBound 1)
+            (Interval.strictUpperBound 5)
+            :: Interval.Interval Integer
+        b =
+          Interval.Interval
+            (Interval.strictLowerBound 4)
+            (Interval.strictUpperBound 6)
+            :: Interval.Interval Integer
+     in assertBool "overlaps" (not $ Interval.overlaps a b)
 
 -- Property tests
 
@@ -90,7 +100,8 @@ intvlIsEmpty :: Property
 intvlIsEmpty = property $ do
   (i1, i2) <-
     forAll $
-      (,) <$> Gen.integral (toInteger <$> Range.linearBounded @Int)
+      (,)
+        <$> Gen.integral (toInteger <$> Range.linearBounded @Int)
         <*> Gen.integral (toInteger <$> Range.linearBounded @Int)
   let (from, to) = (min i1 i2, max i1 i2)
       nonEmpty = Interval.interval from to
@@ -100,8 +111,9 @@ intvlIsEmpty = property $ do
 
 intvlIntersection :: Property
 intvlIntersection = property $ do
-  ints <- forAll $
-    traverse (const $ Gen.integral (toInteger <$> Range.linearBounded @Int)) [1..4 :: Integer]
+  ints <-
+    forAll $
+      traverse (const $ Gen.integral (toInteger <$> Range.linearBounded @Int)) [1 .. 4 :: Integer]
   let [i1, i2, i3, i4] = sort ints
       outer = Interval.interval i1 i4
       inner = Interval.interval i2 i3
@@ -119,7 +131,8 @@ intvlOverlaps :: Property
 intvlOverlaps = property $ do
   (i1, i2) <-
     forAll $
-      (,) <$> Gen.integral (toInteger <$> Range.linearBounded @Int)
+      (,)
+        <$> Gen.integral (toInteger <$> Range.linearBounded @Int)
         <*> Gen.integral (toInteger <$> Range.linearBounded @Int)
   let (from, to) = (min i1 i2, max i1 i2)
       i = Interval.interval from to
@@ -139,21 +152,23 @@ is implementing the semantically correct behaviour.
 lowerBoundToValue :: Enum a => Interval.LowerBound a -> Maybe a
 lowerBoundToValue (Interval.LowerBound (Interval.Finite b) inclusive) =
   Just $ if inclusive then b else succ b
-lowerBoundToValue _                                                   = Nothing
+lowerBoundToValue _ = Nothing
 
 upperBoundToValue :: Enum a => Interval.UpperBound a -> Maybe a
 upperBoundToValue (Interval.UpperBound (Interval.Finite b) inclusive) =
   Just $ if inclusive then b else pred b
-upperBoundToValue _                                                   = Nothing
+upperBoundToValue _ = Nothing
 
 intervalToSet :: (Ord a, Enum a) => Interval.Interval a -> Maybe (Set.Set a)
 intervalToSet (Interval.Interval lb ub) =
   Set.fromList <$> (enumFromTo <$> lowerBoundToValue lb <*> upperBoundToValue ub)
 
 setToInterval :: Set.Set a -> Interval.Interval a
-setToInterval st | Set.null st =
-  Interval.Interval
-    (Interval.LowerBound Interval.PosInf True) (Interval.UpperBound Interval.NegInf True)
+setToInterval st
+  | Set.null st =
+      Interval.Interval
+        (Interval.LowerBound Interval.PosInf True)
+        (Interval.UpperBound Interval.NegInf True)
 setToInterval st =
   Interval.Interval
     (Interval.LowerBound (Interval.Finite (Set.findMin st)) True)
@@ -223,25 +238,29 @@ tests =
     , alwaysIsNotEmpty
     , openIsEmpty
     , openOverlaps
-    , testGroup "laws for integer intervals"
-      [ eqLaws genIntegerInterval
-      , partialOrderLaws genIntegerInterval Interval.contains
-      , boundedLatticeLaws genIntegerInterval
-      ]
-    , testGroup "laws for boolean intervals"
-      [ eqLaws genBooleanInterval
-      , partialOrderLaws genBooleanInterval Interval.contains
-      , boundedLatticeLaws genBooleanInterval
-      ]
-    , testGroup "properties"
-      [ testProperty "intersection" intvlIntersection
-      , testProperty "isEmpty" intvlIsEmpty
-      , testProperty "overlaps" intvlOverlaps
-      ]
-    , testGroup "set model"
-      [ testProperty "tripping" prop_intervalSetTripping
-      , testProperty "equals" prop_intervalSetEquals
-      , testProperty "contains" prop_intervalSetContains
-      , testProperty "intersection" prop_intervalSetIntersection
-      ]
+    , testGroup
+        "laws for integer intervals"
+        [ eqLaws genIntegerInterval
+        , partialOrderLaws genIntegerInterval Interval.contains
+        , boundedLatticeLaws genIntegerInterval
+        ]
+    , testGroup
+        "laws for boolean intervals"
+        [ eqLaws genBooleanInterval
+        , partialOrderLaws genBooleanInterval Interval.contains
+        , boundedLatticeLaws genBooleanInterval
+        ]
+    , testGroup
+        "properties"
+        [ testProperty "intersection" intvlIntersection
+        , testProperty "isEmpty" intvlIsEmpty
+        , testProperty "overlaps" intvlOverlaps
+        ]
+    , testGroup
+        "set model"
+        [ testProperty "tripping" prop_intervalSetTripping
+        , testProperty "equals" prop_intervalSetEquals
+        , testProperty "contains" prop_intervalSetContains
+        , testProperty "intersection" prop_intervalSetIntersection
+        ]
     ]

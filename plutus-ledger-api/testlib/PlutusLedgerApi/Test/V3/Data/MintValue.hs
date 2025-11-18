@@ -1,7 +1,7 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusLedgerApi.Test.V3.Data.MintValue where

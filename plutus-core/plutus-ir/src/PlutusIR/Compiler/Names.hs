@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
 import PlutusCore qualified as PLC
@@ -17,46 +18,47 @@ support unicode identifiers as well.
 
 typeReplacements :: [(T.Text, T.Text)]
 typeReplacements =
-    [ ("[]", "List")
-    , ("()", "Unit")
-    , ("(,)", "Tuple2")
-    , ("(,,)", "Tuple3")
-    , ("(,,,)", "Tuple4")
-    , ("(,,,,)", "Tuple5")
-    , ("(#,#)", "UTuple2")
-    , ("(#,,#)", "UTuple3")
-    , ("(#,,,#)", "UTuple4")
-    , ("(#,,,,#)", "UTuple5")
-    ]
+  [ ("[]", "List")
+  , ("()", "Unit")
+  , ("(,)", "Tuple2")
+  , ("(,,)", "Tuple3")
+  , ("(,,,)", "Tuple4")
+  , ("(,,,,)", "Tuple5")
+  , ("(#,#)", "UTuple2")
+  , ("(#,,#)", "UTuple3")
+  , ("(#,,,#)", "UTuple4")
+  , ("(#,,,,#)", "UTuple5")
+  ]
 
 termReplacements :: [(T.Text, T.Text)]
 termReplacements =
-    [ (":", "Cons")
-    , ("[]", "Nil")
-    , ("()", "Unit")
-    , ("(,)", "Tuple2")
-    , ("(,,)", "Tuple3")
-    , ("(,,,)", "Tuple4")
-    , ("(,,,,)", "Tuple5")
-    , ("(#,#)", "UTuple2")
-    , ("(#,,#)", "UTuple3")
-    , ("(#,,,#)", "UTuple4")
-    , ("(#,,,,#)", "UTuple5")
-    ]
+  [ (":", "Cons")
+  , ("[]", "Nil")
+  , ("()", "Unit")
+  , ("(,)", "Tuple2")
+  , ("(,,)", "Tuple3")
+  , ("(,,,)", "Tuple4")
+  , ("(,,,,)", "Tuple5")
+  , ("(#,#)", "UTuple2")
+  , ("(#,,#)", "UTuple3")
+  , ("(#,,,#)", "UTuple4")
+  , ("(#,,,,#)", "UTuple5")
+  ]
 
 data NameKind = TypeName | TermName
 
 safeName :: NameKind -> T.Text -> T.Text
 safeName kind t =
-    let
-        -- replace some special cases
-        toReplace = case kind of
-            TypeName -> typeReplacements
-            TermName -> termReplacements
-        replaced = List.foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
-        -- strip out disallowed characters
-        stripped = T.filter isQuotedIdentifierChar replaced
-     in if T.null stripped then "bad_name" else stripped
+  let
+    -- replace some special cases
+    toReplace = case kind of
+      TypeName -> typeReplacements
+      TermName -> termReplacements
+    replaced = List.foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
+    -- strip out disallowed characters
+    stripped = T.filter isQuotedIdentifierChar replaced
+   in
+    if T.null stripped then "bad_name" else stripped
 
 safeFreshName :: MonadQuote m => T.Text -> m PLC.Name
 safeFreshName s = liftQuote $ freshName $ safeName TermName s

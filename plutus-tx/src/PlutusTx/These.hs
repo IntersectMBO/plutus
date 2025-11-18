@@ -1,6 +1,6 @@
-{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
@@ -15,8 +15,7 @@ import PlutusTx.Blueprint.Definition (HasBlueprintDefinition)
 import Prelude qualified as Haskell
 
 {-| A 'These' @a@ @b@ is either an @a@, or a @b@ or an @a@ and a @b@.
-Plutus version of 'Data.These'.
--}
+Plutus version of 'Data.These'. -}
 data These a b = This a | That b | These a b
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
   deriving anyclass (HasBlueprintDefinition)

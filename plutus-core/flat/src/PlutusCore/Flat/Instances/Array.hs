@@ -1,9 +1,8 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 -- | Flat instances for the `array` package
-module PlutusCore.Flat.Instances.Array
-  ()
+module PlutusCore.Flat.Instances.Array ()
 where
 
 import Data.Array qualified as A
@@ -13,17 +12,18 @@ import PlutusCore.Flat.Class
 import PlutusCore.Flat.Decoder
 import PlutusCore.Flat.Encoder
 import PlutusCore.Flat.Instances.Base ()
+
 -- import PlutusCore.Flat.Instances.Util
 import PlutusCore.Flat.Instances.Mono
 
--- $setup
--- >>> :set -XFlexibleContexts
--- >>> import           Flat.Instances.Test
--- >>> import           Flat.Instances.Mono
--- >>> import           qualified Data.Array as A
--- >>> import           qualified Data.Array.Unboxed as U
--- >>> import           Data.Array.IArray
--- >>> import           Data.Word
+{-$setup
+>>> :set -XFlexibleContexts
+>>> import           Flat.Instances.Test
+>>> import           Flat.Instances.Mono
+>>> import           qualified Data.Array as A
+>>> import           qualified Data.Array.Unboxed as U
+>>> import           Data.Array.IArray
+>>> import           Data.Word -}
 
 {-|
 Array is encoded as (lowBound,highBound,AsArray (elems array)):
@@ -42,17 +42,16 @@ As it's easy to see:
 Arrays and Unboxed Arrays are encoded in the same way:
 
 >>> let bounds = ((1::Word,4::Word),(2,5));elems=[11::Word,22,33,44] in tst (U.listArray bounds elems :: U.UArray (Word,Word) Word) == tst (A.listArray bounds elems)
-True
--}
+True -}
 instance (Flat i, Flat e, Ix i) => Flat (A.Array i e) where
-  size   = sizeIArray
+  size = sizeIArray
 
   encode = encodeIArray
 
   decode = decodeIArray
 
 instance (Flat i, Flat e, Ix i, IArray U.UArray e) => Flat (U.UArray i e) where
-  size   = sizeIArray
+  size = sizeIArray
 
   encode = encodeIArray
 

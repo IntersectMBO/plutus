@@ -1,5 +1,6 @@
-{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE StandaloneDeriving #-}
+
 module Test.E.Binary where
 
 import Data.Binary
@@ -21,5 +22,3 @@ deriving instance Binary E258
 --     , Binary E256_253
 --     , Binary E256_256
 --     ]
-
-

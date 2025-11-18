@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module PlutusBenchmark.Ed25519 (checkValid) where
@@ -8,11 +8,11 @@ import PlutusBenchmark.SHA512 (sha512)
 import PlutusTx.Prelude hiding (inv)
 
 -- Based on https://ed25519.cr.yp.to/python/ed25519.py
-checkValid ::
-  BuiltinByteString ->
-  BuiltinByteString ->
-  BuiltinByteString ->
-  Bool
+checkValid
+  :: BuiltinByteString
+  -> BuiltinByteString
+  -> BuiltinByteString
+  -> Bool
 checkValid sig message pubKey =
   let r = decodePoint (sliceByteString 0 32 sig)
       a = decodePoint pubKey
@@ -92,10 +92,10 @@ q = 5789604461865809771178549250434395392663499233282028201972879200395656481994
 xRecover :: Integer -> Integer
 xRecover y =
   if
-      | cond1 && not cond2 -> xA
-      | cond1 && cond2     -> xAB
-      | not cond1 && cond2 -> xB
-      | otherwise          -> x
+    | cond1 && not cond2 -> xA
+    | cond1 && cond2 -> xAB
+    | not cond1 && cond2 -> xB
+    | otherwise -> x
   where
     xx :: Integer
     xx = (y * y - 1) * inv (d * y * y + 1)

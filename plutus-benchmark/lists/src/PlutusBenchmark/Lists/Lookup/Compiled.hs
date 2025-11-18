@@ -1,8 +1,9 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+
 module PlutusBenchmark.Lists.Lookup.Compiled where
 
 import PlutusTx qualified as Tx
@@ -29,11 +30,12 @@ type Workload f = (f Integer, f Integer, f Integer, f Integer)
 workloadOfSize :: Integer -> Workload []
 workloadOfSize sz =
   let
-    lixs = [0 .. (sz-1)]
+    lixs = [0 .. (sz - 1)]
     rixs = reverse lixs
-    ls = take (fromIntegral sz) [1,3 ..]
-    rs = take (fromIntegral sz) [1,2..]
-  in (lixs, rixs, ls, rs)
+    ls = take (fromIntegral sz) [1, 3 ..]
+    rs = take (fromIntegral sz) [1, 2 ..]
+   in
+    (lixs, rixs, ls, rs)
 
 workloadLToBl :: Workload [] -> Workload BI.BuiltinList
 workloadLToBl (lixs, rixs, ls, rs) =
@@ -42,12 +44,12 @@ workloadLToBl (lixs, rixs, ls, rs) =
 matchWithLists :: Workload [] -> Integer
 matchWithLists (lixs, rixs, ls, rs) = go lixs rixs 0
   where
-    go (lix:lrest) (rix:rrest) acc =
+    go (lix : lrest) (rix : rrest) acc =
       go lrest rrest ((ls L.!! lix) `B.addInteger` (rs L.!! rix) `B.addInteger` acc)
     go _ _ acc = acc
 
 mkMatchWithListsCode :: Workload [] -> Tx.CompiledCode Integer
-mkMatchWithListsCode l = $$(Tx.compile [|| matchWithLists ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
+mkMatchWithListsCode l = $$(Tx.compile [||matchWithLists||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
 
 matchWithBuiltinLists :: Workload BI.BuiltinList -> Integer
 matchWithBuiltinLists (lixs, rixs, ls, rs) = go lixs rixs 0
@@ -56,9 +58,17 @@ matchWithBuiltinLists (lixs, rixs, ls, rs) = go lixs rixs 0
       B.matchList'
         ltodo
         acc
-        (\lix lrest -> B.matchList' rtodo acc
-          (\rix rrest -> go lrest rrest
-            ((ls !! lix) `B.addInteger` (rs !! rix) `B.addInteger` acc)))
+        ( \lix lrest ->
+            B.matchList'
+              rtodo
+              acc
+              ( \rix rrest ->
+                  go
+                    lrest
+                    rrest
+                    ((ls !! lix) `B.addInteger` (rs !! rix) `B.addInteger` acc)
+              )
+        )
     l !! ix =
       B.matchList'
         l
@@ -68,4 +78,4 @@ matchWithBuiltinLists (lixs, rixs, ls, rs) = go lixs rixs 0
 
 mkMatchWithBuiltinListsCode :: Workload [] -> Tx.CompiledCode Integer
 mkMatchWithBuiltinListsCode l =
-  $$(Tx.compile [|| matchWithBuiltinLists ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (workloadLToBl l)
+  $$(Tx.compile [||matchWithBuiltinLists||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (workloadLToBl l)

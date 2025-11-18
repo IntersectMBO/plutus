@@ -1,4 +1,5 @@
-module Test.Data2.Flat(module Test.Data2) where
+module Test.Data2.Flat (module Test.Data2) where
+
 import PlutusCore.Flat
 import Test.Data2
 

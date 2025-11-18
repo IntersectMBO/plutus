@@ -1,7 +1,6 @@
 module PlutusIR.Core (
-    module Export
+  module Export,
 ) where
-
 
 import PlutusIR.Core.Instance ()
 import PlutusIR.Core.Plated as Export

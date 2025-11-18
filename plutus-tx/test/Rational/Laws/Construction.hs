@@ -1,6 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TupleSections #-}
 
 module Rational.Laws.Construction (constructionLaws) where
 
@@ -8,11 +8,16 @@ import Hedgehog (Gen, Property, assert, cover, property, (===))
 import Hedgehog.Gen qualified as Gen
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
-import Prelude
-import Rational.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, normalAndEquivalentToMaybe,
-                              testCoverProperty)
+import Rational.Laws.Helpers (
+  forAllWithPP,
+  genInteger,
+  genIntegerPos,
+  normalAndEquivalentToMaybe,
+  testCoverProperty,
+ )
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Prelude
 
 constructionLaws :: [TestTree]
 constructionLaws =
@@ -63,27 +68,27 @@ propRatioSign = property $ do
   let r = Ratio.ratio n d
   let signIndicator = Plutus.compare <$> r <*> pure Plutus.zero
   case (signum n, signum d) of
-    (0, _)   -> signIndicator === Just Plutus.EQ
+    (0, _) -> signIndicator === Just Plutus.EQ
     (-1, -1) -> signIndicator === Just Plutus.GT
-    (1, 1)   -> signIndicator === Just Plutus.GT
-    _        -> signIndicator === Just Plutus.LT
- where
-  go :: Gen (Plutus.Integer, Plutus.Integer)
-  go = Gen.choice [zeroNum, sameSign, diffSign]
-  zeroNum :: Gen (Plutus.Integer, Plutus.Integer)
-  zeroNum = (0,) <$> Gen.filter (/= Plutus.zero) genInteger
-  sameSign :: Gen (Plutus.Integer, Plutus.Integer)
-  sameSign = do
-    gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
-    (,) <$> gen <*> gen
-  diffSign :: Gen (Plutus.Integer, Plutus.Integer)
-  diffSign = do
-    (genN, genD) <-
-      Gen.element
-        [ (genIntegerPos, negate <$> genIntegerPos)
-        , (negate <$> genIntegerPos, genIntegerPos)
-        ]
-    (,) <$> genN <*> genD
+    (1, 1) -> signIndicator === Just Plutus.GT
+    _ -> signIndicator === Just Plutus.LT
+  where
+    go :: Gen (Plutus.Integer, Plutus.Integer)
+    go = Gen.choice [zeroNum, sameSign, diffSign]
+    zeroNum :: Gen (Plutus.Integer, Plutus.Integer)
+    zeroNum = (0,) <$> Gen.filter (/= Plutus.zero) genInteger
+    sameSign :: Gen (Plutus.Integer, Plutus.Integer)
+    sameSign = do
+      gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
+      (,) <$> gen <*> gen
+    diffSign :: Gen (Plutus.Integer, Plutus.Integer)
+    diffSign = do
+      (genN, genD) <-
+        Gen.element
+          [ (genIntegerPos, negate <$> genIntegerPos)
+          , (negate <$> genIntegerPos, genIntegerPos)
+          ]
+      (,) <$> genN <*> genD
 
 propConstructionAgreement :: Property
 propConstructionAgreement = property $ do

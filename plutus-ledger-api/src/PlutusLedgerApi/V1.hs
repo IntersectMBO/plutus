@@ -57,13 +57,13 @@ module PlutusLedgerApi.V1 (
   EvaluationContext.CostModelApplyError (..),
 
   -- * Script Context
-  Contexts.TxInfo(..),
-  Contexts.ScriptContext(..),
-  Contexts.ScriptPurpose(..),
+  Contexts.TxInfo (..),
+  Contexts.ScriptContext (..),
+  Contexts.ScriptPurpose (..),
   Contexts.TxId (..),
-  Contexts.TxOut(..),
-  Contexts.TxOutRef(..),
-  Contexts.TxInInfo(..),
+  Contexts.TxOut (..),
+  Contexts.TxOutRef (..),
+  Contexts.TxInInfo (..),
   Contexts.findOwnInput,
   Contexts.findDatum,
   Contexts.findDatumHash,
@@ -115,7 +115,7 @@ module PlutusLedgerApi.V1 (
   Value.valueOf,
 
   -- ** Currency symbols
-  Value.CurrencySymbol(..),
+  Value.CurrencySymbol (..),
   Value.currencySymbol,
   Value.adaSymbol,
   Value.symbols,
@@ -126,7 +126,7 @@ module PlutusLedgerApi.V1 (
   Value.adaToken,
 
   -- ** Asset classes
-  Value.AssetClass(..),
+  Value.AssetClass (..),
   Value.assetClass,
   Value.assetClassValue,
   Value.assetClassValueOf,
@@ -204,9 +204,8 @@ import PlutusLedgerApi.V1.Scripts as Scripts
 import PlutusLedgerApi.V1.Time qualified as Time
 import PlutusLedgerApi.V1.Value qualified as Value
 
-{- | An alias to the Plutus ledger language this module exposes at runtime.
- MAYBE: Use CPP '__FILE__' + some TH to automate this.
--}
+{-| An alias to the Plutus ledger language this module exposes at runtime.
+ MAYBE: Use CPP '__FILE__' + some TH to automate this. -}
 thisLedgerLanguage :: Common.PlutusLedgerLanguage
 thisLedgerLanguage = Common.PlutusV1
 
@@ -226,58 +225,55 @@ internally. That means we don't lose anything by exposing all the details: we're
 anything, we're just going to create new versions.
 -}
 
-{- | The deserialization from a serialised script into a `ScriptForEvaluation`,
+{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.
-Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
--}
-deserialiseScript ::
-  forall m.
-  (Common.MonadError Common.ScriptDecodeError m) =>
-  -- | which major protocol version the script was submitted in.
-  Common.MajorProtocolVersion ->
-  -- | the script to deserialise.
-  Common.SerialisedScript ->
-  m Common.ScriptForEvaluation
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). -}
+deserialiseScript
+  :: forall m
+   . Common.MonadError Common.ScriptDecodeError m
+  => Common.MajorProtocolVersion
+  -- ^ which major protocol version the script was submitted in.
+  -> Common.SerialisedScript
+  -- ^ the script to deserialise.
+  -> m Common.ScriptForEvaluation
 deserialiseScript = SerialisedScript.deserialiseScript thisLedgerLanguage
 
-{- | Evaluates a script, returning the minimum budget that the script would need
+{-| Evaluates a script, returning the minimum budget that the script would need
 to evaluate successfully. This will take as long as the script takes, if you need to
 limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
-also returns the used budget.
--}
-evaluateScriptCounting ::
-  -- | Which major protocol version to run the operation in
-  Common.MajorProtocolVersion ->
-  -- | Whether to produce log output
-  Common.VerboseMode ->
-  -- | Includes the cost model to use for tallying up the execution costs
-  EvaluationContext.EvaluationContext ->
-  -- | The script to evaluate
-  Common.ScriptForEvaluation ->
-  -- | The arguments to the script
-  [Common.Data] ->
-  (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+also returns the used budget. -}
+evaluateScriptCounting
+  :: Common.MajorProtocolVersion
+  -- ^ Which major protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> EvaluationContext.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> [Common.Data]
+  -- ^ The arguments to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
 evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 
-{- | Evaluates a script, with a cost model and a budget that restricts how many
+{-| Evaluates a script, with a cost model and a budget that restricts how many
 resources it can use according to the cost model. Also returns the budget that
 was actually used.
 
 Can be used to calculate budgets for scripts, but even in this case you must give
-a limit to guard against scripts that run for a long time or loop.
--}
-evaluateScriptRestricting ::
-  -- | Which major protocol version to run the operation in
-  Common.MajorProtocolVersion ->
-  -- | Whether to produce log output
-  Common.VerboseMode ->
-  -- | Includes the cost model to use for tallying up the execution costs
-  EvaluationContext.EvaluationContext ->
-  -- | The resource budget which must not be exceeded during evaluation
-  Common.ExBudget ->
-  -- | The script to evaluate
-  Common.ScriptForEvaluation ->
-  -- | The arguments to the script
-  [Common.Data] ->
-  (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+a limit to guard against scripts that run for a long time or loop. -}
+evaluateScriptRestricting
+  :: Common.MajorProtocolVersion
+  -- ^ Which major protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> EvaluationContext.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ExBudget
+  -- ^ The resource budget which must not be exceeded during evaluation
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> [Common.Data]
+  -- ^ The arguments to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
 evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage

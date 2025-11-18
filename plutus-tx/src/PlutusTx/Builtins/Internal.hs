@@ -1,16 +1,17 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE KindSignatures     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're OPAQUE!
 {-# OPTIONS_GHC -O0 #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-{-# HLINT ignore "Use newtype instead of data" #-} -- See Note [Opaque builtin types]
+{-# HLINT ignore "Use newtype instead of data" #-}
+-- See Note [Opaque builtin types]
 
 {-| This module contains the special Haskell names that are used to map to builtin types or functions
   in Plutus Core.
@@ -26,8 +27,7 @@
   Builtin functions with dynamic costing are particularly prone to budget overruns: for example,
   addInteger and appendByteString differ cost based on input size, so supplying very large integers or
   byte strings will cause these functions to abort when the budget limit is reached and fail.
-  See Note [Budgeting].
--}
+  See Note [Budgeting]. -}
 module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
@@ -123,7 +123,7 @@ UNIT
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinUnit = BuiltinUnit ~() deriving stock Data
+data BuiltinUnit = BuiltinUnit ~() deriving stock (Data)
 
 -- | Unit
 unitval :: BuiltinUnit
@@ -160,8 +160,7 @@ multiplyInteger = coerce ((*) @Integer)
 
 {-| Finds the quotient of two integers and fails when the second argument, the divisor, is zero.
 See Note [Integer division operations] for explanation on 'divideInteger', 'modInteger',
-'quotientInteger', and 'remainderInteger'.
--}
+'quotientInteger', and 'remainderInteger'. -}
 divideInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinInteger
 divideInteger = coerce (div @Integer)
 {-# OPAQUE divideInteger #-}
@@ -182,15 +181,13 @@ remainderInteger = coerce (rem @Integer)
 {-# OPAQUE remainderInteger #-}
 
 {-| Compares two integers and returns true when the first argument is less than the second
-| argument.
--}
+| argument. -}
 lessThanInteger :: BuiltinInteger -> BuiltinInteger -> Bool
 lessThanInteger x y = coerce ((<) @Integer) x y
 {-# OPAQUE lessThanInteger #-}
 
 {-| Compares two integers and returns true when the first argument is less or equal to than the
-| second argument.
--}
+| second argument. -}
 lessThanEqualsInteger :: BuiltinInteger -> BuiltinInteger -> Bool
 lessThanEqualsInteger x y = coerce ((<=) @Integer) x y
 {-# OPAQUE lessThanEqualsInteger #-}
@@ -207,7 +204,7 @@ BYTESTRING
 -- See Note [Opaque builtin types]
 
 -- | An opaque type representing Plutus Core ByteStrings.
-data BuiltinByteString = BuiltinByteString ~BS.ByteString deriving stock Data
+data BuiltinByteString = BuiltinByteString ~BS.ByteString deriving stock (Data)
 
 instance Haskell.Show BuiltinByteString where
   show (BuiltinByteString bs) = show bs
@@ -245,16 +242,14 @@ appendByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteStri
   - For builtin semantics variant A and B, that is for PlutusV1 and PlutusV2, this reduces the first argument
     modulo 256 and will never fail.
   - For builtin semantics variant C, that is for PlutusV3, this will expect first argument to be in range
-    @[0..255]@ and fail otherwise.
--}
+    @[0..255]@ and fail otherwise. -}
 consByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
 consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegral n) b
 {-# OPAQUE consByteString #-}
 
 {-| Slices the given bytestring and never fails. The first integer marks the beginning index and the
   second marks the end. Indices are expected to be 0-indexed, and when the first integer is greater
-  than the second, it returns an empty bytestring.
--}
+  than the second, it returns an empty bytestring. -}
 sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
 sliceByteString start n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) b)
 {-# OPAQUE sliceByteString #-}
@@ -265,8 +260,7 @@ lengthOfByteString (BuiltinByteString b) = toInteger $ BS.length b
 {-# OPAQUE lengthOfByteString #-}
 
 {-| Returns the n-th byte from the bytestring. Fails if the given index is not in the range @[0..j)@,
-  where @j@ is the length of the bytestring.
--}
+  where @j@ is the length of the bytestring. -}
 indexByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinInteger
 indexByteString (BuiltinByteString b) i = toInteger $ BS.index b (fromInteger i)
 {-# OPAQUE indexByteString #-}
@@ -308,8 +302,7 @@ ripemd_160 (BuiltinByteString b) = BuiltinByteString $ Hash.ripemd_160 b
 
 {-| Ed25519 signature verification. The first bytestring is the public key (32 bytes), followed
   by an arbitrary-size message and the signature (64 bytes). The sizes of the public
-  key and signature are enforced, and it fails when given bytestrings of incorrect size.
--}
+  key and signature are enforced, and it fails when given bytestrings of incorrect size. -}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> Bool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Ed25519.verifyEd25519Signature vk msg sig of
@@ -322,8 +315,7 @@ verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinBy
 
 {-| ECDSA signature verification on the SECP256k1 curve. The first bytestring is the public key (32 bytes),
   followed by the message hash (32 bytes) and the signature (64 bytes). The sizes of the public key and signature
-  are enforced, and it fails when given bytestrings of incorrect size.
--}
+  are enforced, and it fails when given bytestrings of incorrect size. -}
 verifyEcdsaSecp256k1Signature
   :: BuiltinByteString
   -> BuiltinByteString
@@ -340,8 +332,7 @@ verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (Bu
 
 {-| Schnorr signature verification on the SECP256k1 curve. The first bytestring is the public key (32 bytes),
   followed by an arbitrary-length message and the signature (64 bytes). The sizes of the public key and signature
-  are enforced, and it fails when given bytestrings of incorrect size.
--}
+  are enforced, and it fails when given bytestrings of incorrect size. -}
 verifySchnorrSecp256k1Signature
   :: BuiltinByteString
   -> BuiltinByteString
@@ -359,7 +350,7 @@ verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (
 -- | Runs trace for each element in a foldable structure.
 traceAll
   :: forall (a :: Type) (f :: Type -> Type)
-   . (Foldable f) => f Text -> a -> a
+   . Foldable f => f Text -> a -> a
 traceAll logs x = Foldable.foldl' (\acc t -> trace (BuiltinString t) acc) x logs
 
 -- | Checks the equality of two bytestrings and never fails
@@ -369,8 +360,7 @@ equalsByteString (BuiltinByteString b1) (BuiltinByteString b2) = b1 == b2
 
 {-| Checks if the first bytestring is less than the second bytestring and never fails. Comparison of the
   bytestrings will behave identically to the 'compare' implementation in 'ByteString.Ord'. It will compare
-  two bytestrings byte by byte—lexicographical ordering.
--}
+  two bytestrings byte by byte—lexicographical ordering. -}
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> Bool
 lessThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = b1 < b2
 {-# OPAQUE lessThanByteString #-}
@@ -390,7 +380,7 @@ STRING
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinString = BuiltinString ~Text deriving stock Data
+data BuiltinString = BuiltinString ~Text deriving stock (Data)
 
 instance Haskell.Show BuiltinString where
   show (BuiltinString t) = show t
@@ -429,7 +419,7 @@ PAIR
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinPair a b = BuiltinPair ~(a, b) deriving stock Data
+data BuiltinPair a b = BuiltinPair ~(a, b) deriving stock (Data)
 
 instance (Haskell.Show a, Haskell.Show b) => Haskell.Show (BuiltinPair a b) where
   show (BuiltinPair p) = show p
@@ -458,44 +448,43 @@ LIST
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinList a = BuiltinList ~[a] deriving stock Data
+data BuiltinList a = BuiltinList ~[a] deriving stock (Data)
 
-instance (Haskell.Show a) => Haskell.Show (BuiltinList a) where
+instance Haskell.Show a => Haskell.Show (BuiltinList a) where
   show (BuiltinList l) = show l
-instance (Haskell.Eq a) => Haskell.Eq (BuiltinList a) where
+instance Haskell.Eq a => Haskell.Eq (BuiltinList a) where
   (==) (BuiltinList l) (BuiltinList l') = (==) l l'
-instance (Haskell.Ord a) => Haskell.Ord (BuiltinList a) where
+instance Haskell.Ord a => Haskell.Ord (BuiltinList a) where
   compare (BuiltinList l) (BuiltinList l') = compare l l'
 
 -- | Checks if the given list is empty.
 null :: BuiltinList a -> Bool
 null (BuiltinList (_ : _)) = False
-null (BuiltinList [])      = True
+null (BuiltinList []) = True
 {-# OPAQUE null #-}
 
 -- | Takes the first element of the list and fails if given list is empty.
 head :: BuiltinList a -> a
 head (BuiltinList (x : _)) = x
-head (BuiltinList [])      = Haskell.error "empty list"
+head (BuiltinList []) = Haskell.error "empty list"
 {-# OPAQUE head #-}
 
 -- | Takes the last element of the list and fails if given list is empty.
 tail :: BuiltinList a -> BuiltinList a
 tail (BuiltinList (_ : xs)) = BuiltinList xs
-tail (BuiltinList [])       = Haskell.error "empty list"
+tail (BuiltinList []) = Haskell.error "empty list"
 {-# OPAQUE tail #-}
 
 {-| Branches out depending on the structure of given list and never fails. If given list is empty,
-  it will take the first branch and if not it will take the second branch.
--}
+  it will take the first branch and if not it will take the second branch. -}
 chooseList :: BuiltinList a -> b -> b -> b
-chooseList (BuiltinList []) b1 _      = b1
+chooseList (BuiltinList []) b1 _ = b1
 chooseList (BuiltinList (_ : _)) _ b2 = b2
 {-# OPAQUE chooseList #-}
 
 -- | Similar to 'chooseList' but deconstructs the list in case provided list is not empty.
 caseList' :: forall a r. r -> (a -> BuiltinList a -> r) -> BuiltinList a -> r
-caseList' nilCase _ (BuiltinList [])        = nilCase
+caseList' nilCase _ (BuiltinList []) = nilCase
 caseList' _ consCase (BuiltinList (x : xs)) = consCase x (BuiltinList xs)
 {-# OPAQUE caseList' #-}
 
@@ -505,15 +494,13 @@ drop i (BuiltinList xs) = BuiltinList (Haskell.genericDrop i xs)
 {-# OPAQUE drop #-}
 
 {-| Creates an empty data list and never fails. Prefer using constant.
-See Note [Constants vs built-in functions]
--}
+See Note [Constants vs built-in functions] -}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []
 {-# OPAQUE mkNilData #-}
 
 {-| Creates an empty data pair list and never fails. Prefer using constant.
-See Note [Constants vs built-in functions]
--}
+See Note [Constants vs built-in functions] -}
 mkNilPairData :: BuiltinUnit -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
 mkNilPairData _ = BuiltinList []
 {-# OPAQUE mkNilPairData #-}
@@ -537,8 +524,7 @@ As such, you should use this type in your on-chain code, and in any data structu
 that you want to be representable on-chain.
 
 For off-chain usage, there are conversion functions 'builtinDataToData' and
-'dataToBuiltinData', but note that these will not work on-chain.
--}
+'dataToBuiltinData', but note that these will not work on-chain. -}
 data BuiltinData = BuiltinData ~PLC.Data
   deriving stock (Data, Generic)
 
@@ -570,11 +556,11 @@ dataToBuiltinData = BuiltinData
 -- | Branches out depending on the structure of given data and never fails.
 chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a
 chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
-  PLC.Constr{} -> constrCase
-  PLC.Map{}    -> mapCase
-  PLC.List{}   -> listCase
-  PLC.I{}      -> iCase
-  PLC.B{}      -> bCase
+  PLC.Constr {} -> constrCase
+  PLC.Map {} -> mapCase
+  PLC.List {} -> listCase
+  PLC.I {} -> iCase
+  PLC.B {} -> bCase
 {-# OPAQUE chooseData #-}
 
 -- | Creates 'Constr' data value with the given index and elements; never fails.
@@ -585,8 +571,8 @@ mkConstr i (BuiltinList args) = BuiltinData (PLC.Constr i (fmap builtinDataToDat
 -- | Creates 'Map' data value with the given list of pairs and never fails.
 mkMap :: BuiltinList (BuiltinPair BuiltinData BuiltinData) -> BuiltinData
 mkMap (BuiltinList es) = BuiltinData (PLC.Map (fmap p2p es))
- where
-  p2p (BuiltinPair (d, d')) = (builtinDataToData d, builtinDataToData d')
+  where
+    p2p (BuiltinPair (d, d')) = (builtinDataToData d, builtinDataToData d')
 {-# OPAQUE mkMap #-}
 
 -- | Creates 'List' data value with the given list and never fails.
@@ -613,27 +599,27 @@ unsafeDataAsConstr _ = Haskell.error "not a Constr"
 -- | Deconstructs the given data as a 'Map', failing if it is not a 'Map'.
 unsafeDataAsMap :: BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
 unsafeDataAsMap (BuiltinData (PLC.Map m)) = BuiltinList (fmap p2p m)
- where
-  p2p (d, d') = BuiltinPair (dataToBuiltinData d, dataToBuiltinData d')
+  where
+    p2p (d, d') = BuiltinPair (dataToBuiltinData d, dataToBuiltinData d')
 unsafeDataAsMap _ = Haskell.error "not a Map"
 {-# OPAQUE unsafeDataAsMap #-}
 
 -- | Deconstructs the given data as a 'List', failing if it is not a 'List'.
 unsafeDataAsList :: BuiltinData -> BuiltinList BuiltinData
 unsafeDataAsList (BuiltinData (PLC.List l)) = BuiltinList (fmap dataToBuiltinData l)
-unsafeDataAsList _                          = Haskell.error "not a List"
+unsafeDataAsList _ = Haskell.error "not a List"
 {-# OPAQUE unsafeDataAsList #-}
 
 -- | Deconstructs the given data as a 'I', failing if it is not a 'I'.
 unsafeDataAsI :: BuiltinData -> BuiltinInteger
 unsafeDataAsI (BuiltinData (PLC.I i)) = i
-unsafeDataAsI _                       = Haskell.error "not an I"
+unsafeDataAsI _ = Haskell.error "not an I"
 {-# OPAQUE unsafeDataAsI #-}
 
 -- | Deconstructs the given data as a 'B', failing if it is not a 'B'.
 unsafeDataAsB :: BuiltinData -> BuiltinByteString
 unsafeDataAsB (BuiltinData (PLC.B b)) = BuiltinByteString b
-unsafeDataAsB _                       = Haskell.error "not a B"
+unsafeDataAsB _ = Haskell.error "not a B"
 {-# OPAQUE unsafeDataAsB #-}
 
 -- | Checks equality of two data and never fails.
@@ -642,8 +628,7 @@ equalsData (BuiltinData b1) (BuiltinData b2) = b1 Haskell.== b2
 {-# OPAQUE equalsData #-}
 
 {-| Serialize the given data into CBOR bytestring. See 'PlutusCore.Data' for exact encoder as 'Data'
-does not uses Generic version.
--}
+does not uses Generic version. -}
 serialiseData :: BuiltinData -> BuiltinByteString
 serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
 {-# OPAQUE serialiseData #-}
@@ -661,11 +646,11 @@ ARRAY
 
 data BuiltinArray a = BuiltinArray ~(Vector a) deriving stock (Data)
 
-instance (Haskell.Show a) => Haskell.Show (BuiltinArray a) where
+instance Haskell.Show a => Haskell.Show (BuiltinArray a) where
   show (BuiltinArray v) = show v
-instance (Haskell.Eq a) => Haskell.Eq (BuiltinArray a) where
+instance Haskell.Eq a => Haskell.Eq (BuiltinArray a) where
   (==) (BuiltinArray v1) (BuiltinArray v2) = (==) v1 v2
-instance (Haskell.Ord a) => Haskell.Ord (BuiltinArray a) where
+instance Haskell.Ord a => Haskell.Ord (BuiltinArray a) where
   compare (BuiltinArray v1) (BuiltinArray v2) = compare v1 v2
 
 -- | Returns the length of the provided array and never fails
@@ -679,8 +664,7 @@ listToArray (BuiltinList l) = BuiltinArray (Vector.fromList l)
 {-# OPAQUE listToArray #-}
 
 {-| Returns the n-th element from the array. Fails if the given index is not in the range @[0..j)@,
-  where @j@ is the length of the array.
--}
+  where @j@ is the length of the array. -}
 indexArray :: BuiltinArray a -> BuiltinInteger -> a
 indexArray (BuiltinArray v) i = v Vector.! fromInteger i
 {-# OPAQUE indexArray #-}
@@ -754,17 +738,16 @@ bls12_381_G1_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_uncompress (BuiltinByteString b) =
   case BLS12_381.G1.uncompress b of
     Left err -> Haskell.error $ "BSL12_381 G1 uncompression error: " ++ show err
-    Right a  -> BuiltinBLS12_381_G1_Element a
+    Right a -> BuiltinBLS12_381_G1_Element a
 {-# OPAQUE bls12_381_G1_uncompress #-}
 
 {-| Hashes an arbitrary bytestring message to a G1 element using the given domain separation tag (DST),
-failing if length of the DST is bigger than 255 bytes.
--}
+failing if length of the DST is bigger than 255 bytes. -}
 bls12_381_G1_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
   case BLS12_381.G1.hashToGroup msg dst of
     Left err -> Haskell.error $ show err
-    Right p  -> BuiltinBLS12_381_G1_Element p
+    Right p -> BuiltinBLS12_381_G1_Element p
 {-# OPAQUE bls12_381_G1_hashToGroup #-}
 
 -- | The compressed form of the G1 identity element.
@@ -827,17 +810,16 @@ bls12_381_G2_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_uncompress (BuiltinByteString b) =
   case BLS12_381.G2.uncompress b of
     Left err -> Haskell.error $ "BSL12_381 G2 uncompression error: " ++ show err
-    Right a  -> BuiltinBLS12_381_G2_Element a
+    Right a -> BuiltinBLS12_381_G2_Element a
 {-# OPAQUE bls12_381_G2_uncompress #-}
 
 {-| Hashes an arbitrary bytestring message to a G2 element using the given domain separation tag (DST),
-failing if length of the DST is bigger than 255 bytes.
--}
+failing if length of the DST is bigger than 255 bytes. -}
 bls12_381_G2_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
   case BLS12_381.G2.hashToGroup msg dst of
     Left err -> Haskell.error $ show err
-    Right p  -> BuiltinBLS12_381_G2_Element p
+    Right p -> BuiltinBLS12_381_G2_Element p
 {-# OPAQUE bls12_381_G2_hashToGroup #-}
 
 -- | The compressed form of the G2 identity element (also known as zero or point at infinity).
@@ -878,8 +860,7 @@ bls12_381_mulMlResult (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b
 {-# OPAQUE bls12_381_mulMlResult #-}
 
 {-| Performs the final verification step of a pairing check. Returns true if e(P,Q) == e(R,S) for
-the given Miller loop results, and never fails.
--}
+the given Miller loop results, and never fails. -}
 bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool
 bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b) =
   BLS12_381.Pairing.finalVerify a b
@@ -889,12 +870,11 @@ bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b
 CONVERSION
 -}
 
-{- | Converts the given integer to a bytestring. The first argument specifies
+{-| Converts the given integer to a bytestring. The first argument specifies
  endianness (True for big-endian), followed by the target length of the resulting bytestring
  and the integer itself. Fails if the target length is greater than 8192 or if the length
  argument is 0 and the result won't fit into 8192 bytes.
- See 'PlutusCore.Bitwise.integerToByteString' for its invariants in detail.
--}
+ See 'PlutusCore.Bitwise.integerToByteString' for its invariants in detail. -}
 integerToByteString
   :: Bool
   -> BuiltinInteger
@@ -910,8 +890,7 @@ integerToByteString endiannessArg paddingArg input =
 {-# OPAQUE integerToByteString #-}
 
 {-| Converts the given bytestring to the integer and never fails. The first argument specifies
-endianness (True for big-endian), followed by the bytestring.
--}
+endianness (True for big-endian), followed by the bytestring. -}
 byteStringToInteger
   :: Bool
   -> BuiltinByteString
@@ -926,8 +905,7 @@ BITWISE
 
 {-| Shifts the bytestring to the left if the second argument is positive, and to the right otherwise.
 Right-shifts fill with 0s from the left (logical shift); left-shifts fill with 0s from the right.
-Never fails.
--}
+Never fails. -}
 shiftByteString
   :: BuiltinByteString
   -> BuiltinInteger
@@ -937,8 +915,7 @@ shiftByteString (BuiltinByteString bs) =
 {-# OPAQUE shiftByteString #-}
 
 {-| Rotates the bytestring to the left if the second argument is positive, and to the right otherwise.
-Never fails.
--}
+Never fails. -}
 rotateByteString
   :: BuiltinByteString
   -> BuiltinInteger
@@ -955,8 +932,7 @@ countSetBits (BuiltinByteString bs) = fromIntegral . Bitwise.countSetBits $ bs
 {-# OPAQUE countSetBits #-}
 
 {-| Finds the index of the first bit set to 1 in the bytestring. If the bytestring consists only of
-0s, it returns the length of the bytestring in bits. Never fails.
--}
+0s, it returns the length of the bytestring in bits. Never fails. -}
 findFirstSetBit
   :: BuiltinByteString
   -> BuiltinInteger
@@ -969,8 +945,7 @@ LOGICAL
 -}
 
 {-| Performs a bitwise AND on two bytestrings. The first boolean argument indicates whether to use
-padding (True) or truncation (False) if the bytestrings have different lengths. Never fails.
--}
+padding (True) or truncation (False) if the bytestrings have different lengths. Never fails. -}
 andByteString
   :: Bool
   -> BuiltinByteString
@@ -981,8 +956,7 @@ andByteString isPaddingSemantics (BuiltinByteString data1) (BuiltinByteString da
 {-# OPAQUE andByteString #-}
 
 {-| Performs a bitwise OR on two bytestrings. The first boolean argument indicates whether to use
-padding (True) or truncation (False) if the bytestrings have different lengths. Never fails.
--}
+padding (True) or truncation (False) if the bytestrings have different lengths. Never fails. -}
 orByteString
   :: Bool
   -> BuiltinByteString
@@ -993,8 +967,7 @@ orByteString isPaddingSemantics (BuiltinByteString data1) (BuiltinByteString dat
 {-# OPAQUE orByteString #-}
 
 {-| Performs a bitwise XOR on two bytestrings. The first boolean argument indicates whether to use
-padding (True) or truncation (False) if the bytestrings have different lengths. Never fails.
--}
+padding (True) or truncation (False) if the bytestrings have different lengths. Never fails. -}
 xorByteString
   :: Bool
   -> BuiltinByteString
@@ -1027,8 +1000,7 @@ readBit (BuiltinByteString bs) i =
 {-# OPAQUE readBit #-}
 
 {-| Writes the given bit (third argument, True for 1, False for 0) at the specified indices (second argument) in the bytestring.
-Fails if any index is out of bounds.
--}
+Fails if any index is out of bounds. -}
 writeBits
   :: BuiltinByteString
   -> BuiltinList BuiltinInteger
@@ -1043,14 +1015,13 @@ writeBits (BuiltinByteString bs) (BuiltinList ixes) bit =
     BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
 {-# OPAQUE writeBits #-}
 
-{- | Creates a bytestring of a given length by repeating the given byte.
+{-| Creates a bytestring of a given length by repeating the given byte.
 Fails if the byte, second argument, is not in range @[0,255]@, the length is negative,
-or when the length is greater than 8192.
--}
-replicateByte ::
-  BuiltinInteger ->
-  BuiltinInteger ->
-  BuiltinByteString
+or when the length is greater than 8192. -}
+replicateByte
+  :: BuiltinInteger
+  -> BuiltinInteger
+  -> BuiltinByteString
 replicateByte n w8 =
   case Bitwise.replicateByte n (fromIntegral w8) of
     BuiltinFailure logs err ->
@@ -1061,8 +1032,7 @@ replicateByte n w8 =
 {-# OPAQUE replicateByte #-}
 
 {-| Computes modular exponentiation (base^exponent mod modulus). Fails if the modulus is zero or negative,
-or if the exponent is negative and the modular inverse does not exist.
--}
+or if the exponent is negative and the modular inverse does not exist. -}
 expModInteger
   :: BuiltinInteger
   -> BuiltinInteger
@@ -1149,8 +1119,8 @@ caseInteger :: Integer -> [a] -> a
 caseInteger i b = b !! fromIntegral i
 {-# OPAQUE caseInteger #-}
 
--- | Case matching on a builtin pair. Continuation is needed here to make
--- it more efficient on builtin-casing implementation.
+{-| Case matching on a builtin pair. Continuation is needed here to make
+it more efficient on builtin-casing implementation. -}
 casePair :: forall a b r. BuiltinPair a b -> (a -> b -> r) -> r
 casePair p f = f (PlutusTx.Builtins.Internal.fst p) (PlutusTx.Builtins.Internal.snd p)
 {-# INLINE casePair #-}

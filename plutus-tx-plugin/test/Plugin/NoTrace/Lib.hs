@@ -1,7 +1,7 @@
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 
 module Plugin.NoTrace.Lib where
@@ -39,7 +39,7 @@ traceArgument x = trace x ()
 
 traceShow :: ()
 traceShow =
-  let f :: (Show s) => s -> ()
+  let f :: Show s => s -> ()
       f s = trace (show s) ()
    in noinline f MkArg
 

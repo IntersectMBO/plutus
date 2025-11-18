@@ -4,9 +4,9 @@ module Hedgehog.Laws.Eq where
 
 import Hedgehog qualified
 import Hedgehog.Laws.Common
-import Prelude
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
+import Prelude
 
 eqLaws :: (Show a, Eq a) => Hedgehog.Gen a -> TestTree
 eqLaws g =

@@ -1,7 +1,8 @@
-{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Test.Data.Arbitrary where
+
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BL
 import Data.ByteString.Short qualified as SBS
@@ -9,10 +10,12 @@ import Data.Text qualified as TS
 import Data.Text.Lazy qualified as TL
 import Test.Data
 import Test.Tasty.QuickCheck
+
 -- import           Data.DeriveTH
 
 -- #if MIN_VERSION_base(4,9,0)
 import Data.List.NonEmpty qualified as BI
+
 -- #endif
 
 import Numeric.Natural (Natural)
@@ -91,7 +94,7 @@ instance () => Arbitrary N where
       4 -> return Five
       _ -> error "FATAL ERROR: Arbitrary instance, logic bug"
 
-instance (Arbitrary a) => Arbitrary (Tree a) where
+instance Arbitrary a => Arbitrary (Tree a) where
   arbitrary = do
     x <- choose (0 :: Int, 1)
     case x of
@@ -102,7 +105,7 @@ instance (Arbitrary a) => Arbitrary (Tree a) where
       1 -> Leaf <$> arbitrary
       _ -> error "FATAL ERROR: Arbitrary instance, logic bug"
 
-instance (Arbitrary a) => Arbitrary (List a) where
+instance Arbitrary a => Arbitrary (List a) where
   arbitrary = do
     x <- choose (0 :: Int, 1)
     case x of
@@ -134,4 +137,5 @@ instance () => Arbitrary B where
       0 -> B <$> arbitrary
       1 -> BB <$> arbitrary
       _ -> error "FATAL ERROR: Arbitrary instance, logic bug"
+
 -- GENERATED STOP

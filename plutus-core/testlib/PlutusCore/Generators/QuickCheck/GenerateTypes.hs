@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TupleSections #-}
 
 module PlutusCore.Generators.QuickCheck.GenerateTypes where
 
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Common
-import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.GenTm
+import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 
 import PlutusCore.Builtin
 import PlutusCore.Core
@@ -46,55 +46,61 @@ import Test.QuickCheck (chooseInt, shuffle)
 
 -- * Generators for well-kinded types
 
--- | Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
--- and lambda abstractions \ t0 ... tn. T
+{-| Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
+and lambda abstractions \ t0 ... tn. T -}
 genAtomicType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genAtomicType k = do
   tys <- asks geTypes
   dts <- asks geDatas
-  let atoms = [ TyVar () x | (x, k') <- Map.toList tys, k == k' ] ++
-              [ TyVar () x | (x, Datatype _ (TyVarDecl _ _ k') _ _ _) <- Map.toList dts, k == k' ]
+  let atoms =
+        [TyVar () x | (x, k') <- Map.toList tys, k == k']
+          ++ [TyVar () x | (x, Datatype _ (TyVarDecl _ _ k') _ _ _) <- Map.toList dts, k == k']
       genBuiltin = fmap (TyBuiltin ()) <$> genBuiltinTypeOf k
       lam k1 k2 = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
   -- There's always an atomic type of a given kind, hence the usage of 'deliver': we definitely have
   -- builtin types of kind @*@, and for all other kinds we can generate type lambdas.
-  deliver $ frequency
-    [ (7, if null atoms then pure Nothing else Just <$> elements atoms)
-    , (1, liftGen genBuiltin)
-      -- There may not be a type variable or a built-in type of the given type, hence we have to
-      -- resort to generating a lambda occasionally. Plus it's a lambda that ignores the bound
-      -- variable in its body, so it's fine to call it "atomic".
-    , (3, sequence $ listToMaybe [lam k1 k2 | KindArrow _ k1 k2 <- [k]])
-    ]
+  deliver $
+    frequency
+      [ (7, if null atoms then pure Nothing else Just <$> elements atoms)
+      , (1, liftGen genBuiltin)
+      , -- There may not be a type variable or a built-in type of the given type, hence we have to
+        -- resort to generating a lambda occasionally. Plus it's a lambda that ignores the bound
+        -- variable in its body, so it's fine to call it "atomic".
+        (3, sequence $ listToMaybe [lam k1 k2 | KindArrow _ k1 k2 <- [k]])
+      ]
 
 -- | Generate a type at a given kind
 genType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genType k = do
-    ty <- onAstSize (min 10) $ ifAstSizeZero (genAtomicType k) $
-        frequency $ concat
-          [ [ (5, genAtomicType k) ]
-          , [ (10, genFun) | k == Type () ]
-          , [ (5, genForall) | k == Type () ]
-          , [ (1, genIFix) | k == Type () ]
-          , [ (5, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ]
-          , [ (5, genApp) ]
-          , [ (3, genSOP) | k == Type () ]
-          ]
-    debug <- asks geDebug
-    when debug $ do
-      ctx <- asks geTypes
-      case checkKind ctx ty k of
-          Right _  -> pure ()
-          Left err ->
-              error . show $ fold
-                  [ "genType - checkInvariants: type " <> prettyReadable ty
-                  , " does not match kind " <> prettyReadable k
-                  , " in context " <> prettyReadable ctx
-                  , " with error message " <> fromString err
-                  ]
-    pure ty
+  ty <-
+    onAstSize (min 10) $
+      ifAstSizeZero (genAtomicType k) $
+        frequency $
+          concat
+            [ [(5, genAtomicType k)]
+            , [(10, genFun) | k == Type ()]
+            , [(5, genForall) | k == Type ()]
+            , [(1, genIFix) | k == Type ()]
+            , [(5, genLam k1 k2) | KindArrow _ k1 k2 <- [k]]
+            , [(5, genApp)]
+            , [(3, genSOP) | k == Type ()]
+            ]
+  debug <- asks geDebug
+  when debug $ do
+    ctx <- asks geTypes
+    case checkKind ctx ty k of
+      Right _ -> pure ()
+      Left err ->
+        error . show $
+          fold
+            [ "genType - checkInvariants: type " <> prettyReadable ty
+            , " does not match kind " <> prettyReadable k
+            , " in context " <> prettyReadable ctx
+            , " with error message " <> fromString err
+            ]
+  pure ty
   where
     -- This size split keeps us from generating ridiculous types that
     -- grow huge to the left of an arrow or abstraction (See also the
@@ -110,8 +116,8 @@ genType k = do
       fmap (TyForall () a k') $ onAstSize (subtract 1) $ bindTyName a k' $ genType $ Type ()
 
     genLam k1 k2 = do
-        a <- genMaybeFreshTyName "a"
-        fmap (TyLam () a k1) $ onAstSize (subtract 1) $ bindTyName a k1 (genType k2)
+      a <- genMaybeFreshTyName "a"
+      fmap (TyLam () a k1) $ onAstSize (subtract 1) $ bindTyName a k1 (genType k2)
 
     genApp = do
       k' <- liftGen arbitrary
@@ -119,21 +125,25 @@ genType k = do
 
     genIFix = do
       k' <- liftGen arbitrary
-      uncurry (TyIFix ()) <$> astSizeSplit_ 5 2
-        (genType $ toPatFuncKind k')
-        (genType k')
+      uncurry (TyIFix ())
+        <$> astSizeSplit_
+          5
+          2
+          (genType $ toPatFuncKind k')
+          (genType k')
 
     genSOP = do
-        n <- asks geAstSize
-        -- Generate up to five constructors or fewer than that if we don't have much size left.
-        iSum <- liftGen $ chooseInt (0, min 5 $ n `div` 5)
-        jsProd <- liftGen . replicateM iSum $
-            -- The more constructors a data type has, the less arguments each of them can have.
-            -- This is so that we don't generate data types with a large number of constructors each
-            -- which takes a large number of arguments.
-            chooseInt (0, min (7 - iSum) $ n `div` (2 * iSum))
-        withAstSize (n `div` sum jsProd) $
-            TySOP () <$> traverse (\j -> replicateM j . genType $ Type ()) jsProd
+      n <- asks geAstSize
+      -- Generate up to five constructors or fewer than that if we don't have much size left.
+      iSum <- liftGen $ chooseInt (0, min 5 $ n `div` 5)
+      jsProd <-
+        liftGen . replicateM iSum $
+          -- The more constructors a data type has, the less arguments each of them can have.
+          -- This is so that we don't generate data types with a large number of constructors each
+          -- which takes a large number of arguments.
+          chooseInt (0, min (7 - iSum) $ n `div` (2 * iSum))
+      withAstSize (n `div` sum jsProd) $
+        TySOP () <$> traverse (\j -> replicateM j . genType $ Type ()) jsProd
 
 -- | Generate a closed type at a given kind
 genClosedType :: Kind () -> Gen (Type TyName DefaultUni ())
@@ -145,17 +155,17 @@ genClosedTypeDebug = genTypeWithCtxDebug mempty
 
 -- | Generate a type in the given context with the given kind.
 genTypeWithCtx :: TypeCtx -> Kind () -> Gen (Type TyName DefaultUni ())
-genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
+genTypeWithCtx ctx k = runGenTm $ local (\e -> e {geTypes = ctx}) (genType k)
 
 -- | Generate a type in the given context with the given kind.
 genTypeWithCtxDebug :: TypeCtx -> Kind () -> Gen (Type TyName DefaultUni ())
-genTypeWithCtxDebug ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (withDebug $ genType k)
+genTypeWithCtxDebug ctx k = runGenTm $ local (\e -> e {geTypes = ctx}) (withDebug $ genType k)
 
 -- | Generate a well-kinded type and its kind in a given context
-genKindAndTypeWithCtx :: TypeCtx -> Gen (Kind(), Type TyName DefaultUni ())
+genKindAndTypeWithCtx :: TypeCtx -> Gen (Kind (), Type TyName DefaultUni ())
 genKindAndTypeWithCtx ctx = do
   k <- arbitrary
-  runGenTm $ local (\ e -> e { geTypes = ctx }) ((k,) <$> genType k)
+  runGenTm $ local (\e -> e {geTypes = ctx}) ((k,) <$> genType k)
 
 -- | Get the kind of a builtin
 builtinKind :: SomeTypeIn DefaultUni -> Kind ()
@@ -185,7 +195,7 @@ genCtx :: Gen TypeCtx
 genCtx = do
   let m = 20
   n <- choose (0, m)
-  let xVars = [TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..m]]
+  let xVars = [TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1 .. m]]
   shuf <- shuffle xVars
   let xs = take n shuf
   ks <- vectorOf n arbitrary

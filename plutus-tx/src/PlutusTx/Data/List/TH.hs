@@ -1,5 +1,5 @@
-{-# LANGUAGE BangPatterns     #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 
 module PlutusTx.Data.List.TH where
@@ -26,8 +26,7 @@ Sample Usage:
     )
  @
 
-This computes the sum of list elements at indices 1, 4 and 5.
--}
+This computes the sum of list elements at indices 1, 4 and 5. -}
 destructList
   :: String
   -- ^ Prefix of the generated bindings

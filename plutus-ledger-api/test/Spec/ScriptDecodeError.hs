@@ -34,10 +34,10 @@ prettyCBORDeserialiseError =
     @?= "Failed to deserialise a script: CBOR deserialisation failed \
         \at the offset 12345 for the following reason: reached the end \
         \of input while more data was expected."
- where
-  err =
-    CBORDeserialiseError
-      DeserialiseFailureInfo{dfOffset = 12345, dfReason = EndOfInput}
+  where
+    err =
+      CBORDeserialiseError
+        DeserialiseFailureInfo {dfOffset = 12345, dfReason = EndOfInput}
 
 prettyRemainderError :: Assertion
 prettyRemainderError =
@@ -52,23 +52,23 @@ prettyLedgerLanguageNotAvailableError =
         \This is not yet supported by the current major protocol version 7. \
         \The major protocol version that introduces this \
         \Plutus Ledger Language is 9."
- where
-  err =
-    LedgerLanguageNotAvailableError
-      { sdeAffectedLang = PlutusV2
-      , sdeIntroPv = changPV
-      , sdeThisPv = vasilPV
-      }
+  where
+    err =
+      LedgerLanguageNotAvailableError
+        { sdeAffectedLang = PlutusV2
+        , sdeIntroPv = changPV
+        , sdeThisPv = vasilPV
+        }
 
 prettyPlutusCoreLanguageNotAvailableError :: Assertion
 prettyPlutusCoreLanguageNotAvailableError =
   show (pretty err)
     @?= "Your script has a Plutus Core version of 1.0.0. \
         \This is not supported in PlutusV2 and major protocol version 7."
- where
-  err =
-    PlutusCoreLanguageNotAvailableError
-      { sdeAffectedVersion = plcVersion100
-      , sdeThisLang = PlutusV2
-      , sdeThisPv = vasilPV
-      }
+  where
+    err =
+      PlutusCoreLanguageNotAvailableError
+        { sdeAffectedVersion = plcVersion100
+        , sdeThisLang = PlutusV2
+        , sdeThisPv = vasilPV
+        }

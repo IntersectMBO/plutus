@@ -1,8 +1,7 @@
-
--- |Flat Instances for common data types from the packages on which `flat` has a dependency.
-module PlutusCore.Flat.Instances
-  ( module X
-  )
+-- | Flat Instances for common data types from the packages on which `flat` has a dependency.
+module PlutusCore.Flat.Instances (
+  module X,
+)
 where
 
 import PlutusCore.Flat.Instances.Array ()

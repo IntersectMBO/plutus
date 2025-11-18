@@ -1,5 +1,5 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE KindSignatures  #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
@@ -12,12 +12,12 @@ import PlutusTx.Code (CompiledCode, countAstNodes)
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as PlutusRatio
-import PlutusTx.Test
 import PlutusTx.TH (compile)
-import Prelude
+import PlutusTx.Test
 import Test.Tasty (TestName, TestTree, defaultMain, testGroup)
 import Test.Tasty.Extras (runTestNested, testNested)
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
+import Prelude
 
 main :: IO ()
 main =
@@ -185,7 +185,7 @@ genScale = $$(compile [||\s v -> PlutusRatio.fromInteger s Plutus.* v||])
 
 fitsUnder
   :: forall (a :: Type)
-   . (Typeable a)
+   . Typeable a
   => TestName
   -> (TestName, CompiledCode a)
   -> (TestName, CompiledCode a)
@@ -195,7 +195,7 @@ fitsUnder name test target = singleTest name $ AstSizeComparisonTest test target
 data AstSizeComparisonTest (a :: Type)
   = AstSizeComparisonTest (TestName, CompiledCode a) (TestName, CompiledCode a)
 
-instance (Typeable a) => IsTest (AstSizeComparisonTest a) where
+instance Typeable a => IsTest (AstSizeComparisonTest a) where
   run _ (AstSizeComparisonTest (mName, mCode) (tName, tCode)) _ = do
     let tEstimate = countAstNodes tCode
     let mEstimate = countAstNodes mCode

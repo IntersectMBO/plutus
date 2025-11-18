@@ -1,4 +1,4 @@
-{- | Benchmarking for the Haskell versions of the Plutus nofib benchmarks. -}
+-- | Benchmarking for the Haskell versions of the Plutus nofib benchmarks.
 module Main (main) where
 
 import Shared (mkBenchMarks)
@@ -27,5 +27,5 @@ benchQueens sz alg = nf (Queens.runQueens sz) alg
 main :: IO ()
 main = do
   let runners = (benchClausify, benchKnights, benchPrime, benchQueens)
-  config <- getConfig 5.0  -- Run each benchmark for at least five seconds
+  config <- getConfig 5.0 -- Run each benchmark for at least five seconds
   defaultMainWith config $ mkBenchMarks runners

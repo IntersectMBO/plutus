@@ -11,8 +11,9 @@ main :: IO ()
 main = do
   setLocaleEncoding utf8
   defaultMain $
-    testGroup "Certification"
-    [ optimizerTests
-    , astTests
-    , forceDelayASTTests
-    ]
+    testGroup
+      "Certification"
+      [ optimizerTests
+      , astTests
+      , forceDelayASTTests
+      ]

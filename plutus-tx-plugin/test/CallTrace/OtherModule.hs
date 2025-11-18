@@ -1,12 +1,12 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module CallTrace.OtherModule where
 
 import PlutusTx.Prelude
 
 errorWhenTrue :: Bool -> BuiltinString
-errorWhenTrue True  = error ()
+errorWhenTrue True = error ()
 errorWhenTrue False = "hi"
 
 wraps :: Bool -> BuiltinString
@@ -20,4 +20,4 @@ instance MyClassInOtherModule Integer where
   myClassFuncInOtherModule _ = error ()
 
 instance MyClassInOtherModule () where
-  myClassFuncInOtherModule () =  error ()
+  myClassFuncInOtherModule () = error ()

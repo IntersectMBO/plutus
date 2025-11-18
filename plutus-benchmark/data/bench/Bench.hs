@@ -1,9 +1,7 @@
-{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-{- | This benchmark cases measures efficiency of 'Data' construction.
--}
-
+-- | This benchmark cases measures efficiency of 'Data' construction.
 module Main (main) where
 
 import Criterion.Main
@@ -19,7 +17,8 @@ import Data.Functor
 
 benchmarks :: EvaluationContext -> [Benchmark]
 benchmarks ctx =
-    [ bgroup "data"
+  [ bgroup
+      "data"
       [ mkBMs "conDeconI" Data.conDeconI
       , mkBMs "conI" Data.conI
       , mkBMs "conDeconB - short" (Data.conDeconB "helloworld")
@@ -31,10 +30,11 @@ benchmarks ctx =
       , mkBMs "list no release, 2000 chuck size" (Data.listDataNoRelease 2000)
       , mkBMs "list with release, 2000 chuck size" (Data.listDataWithRelease 2000)
       ]
-    ]
-    where
-      mkBMs name f =
-        bgroup name $ [2000, 4000..12000] <&> \n ->
+  ]
+  where
+    mkBMs name f =
+      bgroup name $
+        [2000, 4000 .. 12000] <&> \n ->
           bench (show n) $ benchTermCek ctx (f n)
 
 main :: IO ()
