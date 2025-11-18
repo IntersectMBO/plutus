@@ -39,7 +39,7 @@ processNestedApp (Apply ann body arg) =
   else Apply ann (processNestedApp body) (processNestedApp arg)
   where
     (args, innerBody) = consumeApp [arg] body
-    consumeApp as (Apply _ body' arg') = consumeApp (processNestedApp arg':as) body'
+    consumeApp as (Apply _ body' arg') = consumeApp (arg':as) body'
     consumeApp as t                    = (as, t)
 processNestedApp (LamAbs ann name t) =
   LamAbs ann name (processNestedApp  t)
@@ -51,4 +51,7 @@ processNestedApp (Constr ann idx ts) =
   Constr ann idx (processNestedApp <$> ts)
 processNestedApp (Case ann t bs) =
   Case ann (processNestedApp t) (processNestedApp <$> bs)
-processNestedApp t = t
+processNestedApp (Var ann n) = Var ann n
+processNestedApp (Constant ann v) = Constant ann v
+processNestedApp (Builtin ann fun) = Builtin ann fun
+processNestedApp (Error ann) = Error ann

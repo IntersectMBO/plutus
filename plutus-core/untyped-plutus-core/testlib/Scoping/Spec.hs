@@ -81,7 +81,7 @@ test_names = testGroup "names"
         (evalSimplifierT . caseReduce)
     , T.test_scopingGood "case-apply"
         (genTerm @DefaultFun)
-        T.BindingRemovalOk
+        T.BindingRemovalNotOk
         T.PrerenameYes
         (evalSimplifierT . caseApply)
     , -- CSE creates entirely new names, which isn't supported by the scoping check machinery.
