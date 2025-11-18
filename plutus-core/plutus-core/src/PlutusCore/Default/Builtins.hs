@@ -2073,7 +2073,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ValueContains =
-      let valueContainsDenotation :: ValueLogOuterSizeAddLogMaxInnerSize -> ValueTotalSize -> BuiltinResult Bool
+      let valueContainsDenotation :: ValueTotalSize -> ValueTotalSize -> BuiltinResult Bool
           valueContainsDenotation (ValueTotalSize v1) (ValueTotalSize v2) =
             Value.valueContains v1 v2
           {-# INLINE valueContainsDenotation #-}
