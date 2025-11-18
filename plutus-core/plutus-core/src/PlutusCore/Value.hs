@@ -444,16 +444,19 @@ unValueData =
   unB = \case
     B b -> maybe (fail $ "unValueData: invalid key: " <> show (B.unpack b)) pure (k b)
     _ -> fail "unValueData: non-B constructor"
+  {-# INLINE unB #-}
 
   unQ :: Data -> BuiltinResult Quantity
   unQ = \case
     I i -> pure (UnsafeQuantity i)
     _ -> fail "unValueData: non-I constructor"
+  {-# INLINE unQ #-}
 
   unTokens :: Data -> BuiltinResult (Map K Quantity)
   unTokens = \case
     Map ts -> fmap (Map.fromListWith unsafeAddQuantity) (traverse (bitraverse unB unQ) ts)
     _ -> fail "unValueData: non-Map constructor"
+  {-# INLINE unTokens #-}
 {-# INLINEABLE unValueData #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.
