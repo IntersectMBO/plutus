@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v5.0.1
 
       - name: Cold Build / ${{ matrix.ghc }} / x86_64-linux
         run: | 
