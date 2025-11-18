@@ -97,7 +97,7 @@ withWorstCaseSearchKeys genValueWithKeys = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueLogOuterSizeAddLogMaxInnerSize, ValueTotalSize)
+    (ValueTotalSize, ValueTotalSize)
     -- Container: sum of log sizes, Contained: totalSize
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)

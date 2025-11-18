@@ -2074,7 +2074,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ValueContains =
       let valueContainsDenotation :: ValueLogOuterSizeAddLogMaxInnerSize -> ValueTotalSize -> BuiltinResult Bool
-          valueContainsDenotation (ValueLogOuterSizeAddLogMaxInnerSize v1) (ValueTotalSize v2) =
+          valueContainsDenotation (ValueTotalSize v1) (ValueTotalSize v2) =
             Value.valueContains v1 v2
           {-# INLINE valueContainsDenotation #-}
        in makeBuiltinMeaning
