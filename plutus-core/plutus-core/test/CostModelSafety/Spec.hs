@@ -32,13 +32,16 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
+import PlutusCore.Default ()
 import PlutusCore.Default.Builtins
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant)
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
-                                                    NumBytesCostedAsNumWords)
+                                                    NumBytesCostedAsNumWords,
+                                                    ValueLogOuterSizeAddLogMaxInnerSize,
+                                                    ValueTotalSize)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
@@ -129,7 +132,9 @@ smallConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.Pairing.MlResult) =
                     SomeConst $ BLS12_381.Pairing.millerLoop
                                   BLS12_381.G1.offchain_zero BLS12_381.G2.offchain_zero
-    | Just HRefl <- eqTypeRep tr (typeRep @Value) = SomeConst $ Value.empty
+    | Just HRefl <- eqTypeRep tr (typeRep @Value) = SomeConst Value.empty
+    | Just HRefl <- eqTypeRep tr (typeRep @ValueTotalSize) = SomeConst Value.empty
+    | Just HRefl <- eqTypeRep tr (typeRep @ValueLogOuterSizeAddLogMaxInnerSize) = SomeConst Value.empty
     | trPair `App` tr1 `App` tr2 <- tr
     , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
         case (smallConstant tr1, smallConstant tr2) of
