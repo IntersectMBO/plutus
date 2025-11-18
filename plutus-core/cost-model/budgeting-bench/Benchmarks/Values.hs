@@ -5,7 +5,7 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module Benchmarks.Values (makeBenchmarks) where
+module Benchmarks.Values where
 
 import Prelude
 
