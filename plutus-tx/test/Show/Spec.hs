@@ -1,6 +1,14 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+
+#if __GLASGOW_HASKELL__ >= 914
+-- Get a redundant constraint warning on `deriveShow`.
+-- The `Show` constraint is REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+-- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+{-# OPTIONS_GHC -Wno-redundant-constraints  #-}
+#endif
 
 module Show.Spec where
 
