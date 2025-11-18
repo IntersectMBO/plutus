@@ -331,7 +331,7 @@ library
     , monoidal-containers
     , mtl
     , multiset
-    , nothunks                    ^>=0.2
+    , nothunks                    >=0.2 && <0.4
     , parser-combinators          >=0.4.0
     , plutus-core:flat
     , prettyprinter               >=1.1.0.1
