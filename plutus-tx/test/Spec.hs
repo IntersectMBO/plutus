@@ -20,6 +20,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import List.Spec (listTests)
 import Bool.Spec (boolTests)
+import Eq.Spec (eqTests)
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
 import PlutusTx.Enum (Enum (..))
 import PlutusTx.Numeric (negate)
@@ -47,6 +48,7 @@ tests =
     , enumTests
     , listTests
     , boolTests
+    , eqTests
     , lawsTests
     , Show.Spec.propertyTests
     , Show.Spec.goldenTests

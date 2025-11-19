@@ -109,6 +109,7 @@ library
     PlutusTx.Semigroup
     PlutusTx.Show
     PlutusTx.Show.TH
+    PlutusTx.Eq.TH
     PlutusTx.Sqrt
     PlutusTx.TH
     PlutusTx.These
@@ -209,6 +210,7 @@ test-suite plutus-tx-test
     Blueprint.Spec
     List.Spec
     Bool.Spec
+    Eq.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction

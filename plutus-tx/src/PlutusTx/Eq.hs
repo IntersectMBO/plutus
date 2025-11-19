@@ -1,7 +1,9 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
-module PlutusTx.Eq (Eq (..), (/=)) where
+module PlutusTx.Eq (Eq (..), (/=), deriveEq) where
 
+import PlutusTx.Eq.TH
 import PlutusTx.Bool
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either (Either (..))
@@ -10,17 +12,7 @@ import Prelude (Maybe (..))
 
 {- HLINT ignore -}
 
-infix 4 ==, /=
-
--- Copied from the GHC definition
-
--- | The 'Eq' class defines equality ('==').
-class Eq a where
-  (==) :: a -> a -> Bool
-
--- (/=) deliberately omitted, to make this a one-method class which has a
--- simpler representation
-
+infix 4 /=
 (/=) :: (Eq a) => a -> a -> Bool
 x /= y = not (x == y)
 {-# INLINEABLE (/=) #-}
