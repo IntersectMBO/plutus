@@ -85,6 +85,7 @@ library
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq
+    PlutusTx.Eq.Class
     PlutusTx.ErrorCodes
     PlutusTx.Eval
     PlutusTx.Foldable
@@ -123,6 +124,7 @@ library
     PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
+    PlutusTx.Eq.TH
 
   build-depends:
     , aeson                  >=2.2
@@ -209,6 +211,7 @@ test-suite plutus-tx-test
     Blueprint.Spec
     List.Spec
     Bool.Spec
+    Eq.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
