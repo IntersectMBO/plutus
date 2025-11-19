@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-
 module PlutusTx.Enum (Enum (..)) where
 
 import PlutusTx.Bool (Bool (..), otherwise)

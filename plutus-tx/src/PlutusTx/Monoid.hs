@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
 module PlutusTx.Monoid (Monoid (..), mappend, mconcat, Group (..), gsub) where

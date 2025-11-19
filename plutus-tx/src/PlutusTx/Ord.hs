@@ -1,6 +1,4 @@
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- editorconfig-checker-disable-file
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module PlutusTx.Ord (Ord (..), Ordering (..)) where
 
@@ -23,8 +21,9 @@ infix 4 <, <=, >, >=
 {-| The 'Ord' class is used for totally ordered datatypes.
 
 Minimal complete definition: either 'compare' or '<='.
-Using 'compare' can be more efficient for complex types. -}
-class Eq a => Ord a where
+Using 'compare' can be more efficient for complex types.
+-}
+class (Eq a) => Ord a where
   compare :: a -> a -> Ordering
   (<), (<=), (>), (>=) :: a -> a -> Bool
   max, min :: a -> a -> a
@@ -58,13 +57,6 @@ class Eq a => Ord a where
   min x y = if x <= y then x else y
   {-# MINIMAL compare | (<=) #-}
 
-instance Eq Ordering where
-  {-# INLINEABLE (==) #-}
-  EQ == EQ = True
-  GT == GT = True
-  LT == LT = True
-  _ == _ = False
-
 instance Ord Builtins.Integer where
   {-# INLINEABLE (<) #-}
   (<) = Builtins.lessThanInteger
@@ -85,7 +77,7 @@ instance Ord Builtins.BuiltinByteString where
   {-# INLINEABLE (>=) #-}
   (>=) = Builtins.greaterThanEqualsByteString
 
-instance Ord a => Ord [a] where
+instance (Ord a) => Ord [a] where
   {-# INLINEABLE compare #-}
   compare [] [] = EQ
   compare [] (_ : _) = LT
@@ -93,30 +85,30 @@ instance Ord a => Ord [a] where
   compare (x : xs) (y : ys) =
     case compare x y of
       EQ -> compare xs ys
-      c -> c
+      c  -> c
 
 instance Ord Bool where
   {-# INLINEABLE compare #-}
   compare b1 b2 = case b1 of
     False -> case b2 of
       False -> EQ
-      True -> LT
+      True  -> LT
     True -> case b2 of
       False -> GT
-      True -> EQ
+      True  -> EQ
 
-instance Ord a => Ord (Maybe a) where
+instance (Ord a) => Ord (Maybe a) where
   {-# INLINEABLE compare #-}
   compare (Just a1) (Just a2) = compare a1 a2
-  compare Nothing (Just _) = LT
-  compare (Just _) Nothing = GT
-  compare Nothing Nothing = EQ
+  compare Nothing (Just _)    = LT
+  compare (Just _) Nothing    = GT
+  compare Nothing Nothing     = EQ
 
 instance (Ord a, Ord b) => Ord (Either a b) where
   {-# INLINEABLE compare #-}
-  compare (Left a1) (Left a2) = compare a1 a2
-  compare (Left _) (Right _) = LT
-  compare (Right _) (Left _) = GT
+  compare (Left a1) (Left a2)   = compare a1 a2
+  compare (Left _) (Right _)    = LT
+  compare (Right _) (Left _)    = GT
   compare (Right b1) (Right b2) = compare b1 b2
 
 instance Ord () where
@@ -128,4 +120,4 @@ instance (Ord a, Ord b) => Ord (a, b) where
   compare (a, b) (a', b') =
     case compare a a' of
       EQ -> compare b b'
-      c -> c
+      c  -> c
