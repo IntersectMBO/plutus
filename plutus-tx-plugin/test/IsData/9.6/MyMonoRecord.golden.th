@@ -6,7 +6,7 @@ instance PlutusTx.IsData.Class.FromData Plugin.Data.Spec.MyMonoRecord
     where {{-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-};
            PlutusTx.IsData.Class.fromBuiltinData d_2 = let constrFun_3 (!index_4) (!args_5) = case (index_4,
                                                                                                     args_5) of
-                                                                                              {(((PlutusTx.Eq.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
+                                                                                              {(((PlutusTx.Eq.Class.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.uncons -> GHC.Maybe.Just ((PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_6),
                                                                                                                                              (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_7))))) -> GHC.Maybe.Just (Plugin.Data.Spec.MyMonoRecord arg_6 arg_7);
                                                                                                _ -> GHC.Maybe.Nothing}

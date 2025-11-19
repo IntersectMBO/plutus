@@ -19,6 +19,7 @@ import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, pr
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import List.Spec (listTests)
+import Eq.Spec (eqTests)
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)
@@ -45,6 +46,7 @@ tests =
     , enumTests
     , listTests
     , boolTests
+    , eqTests
     , lawsTests
     , Show.Spec.propertyTests
     , Show.Spec.goldenTests

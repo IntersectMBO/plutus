@@ -5,7 +5,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 {-| The PlutusTx Prelude is a replacement for the Haskell Prelude that works
 better with Plutus Tx. You should use it if you're writing code that

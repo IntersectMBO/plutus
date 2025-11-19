@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.ErrorCodes where
 

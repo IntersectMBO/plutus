@@ -11,10 +11,10 @@ instance (PlutusTx.IsData.Class.FromData a_0,
     where {{-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-};
            PlutusTx.IsData.Class.fromBuiltinData d_5 = let constrFun_6 (!index_7) (!args_8) = case (index_7,
                                                                                                     args_8) of
-                                                                                              {(((PlutusTx.Eq.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
+                                                                                              {(((PlutusTx.Eq.Class.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.uncons -> GHC.Maybe.Just ((PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_9),
                                                                                                                                              (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_10))))) -> GHC.Maybe.Just (Plugin.Data.Spec.Poly1 arg_9 arg_10);
-                                                                                               (((PlutusTx.Eq.==) (1 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
+                                                                                               (((PlutusTx.Eq.Class.==) (1 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_11))) -> GHC.Maybe.Just (Plugin.Data.Spec.Poly2 arg_11);
                                                                                                _ -> GHC.Maybe.Nothing}
                                                         in PlutusTx.Builtins.matchData' d_5 constrFun_6 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}

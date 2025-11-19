@@ -1,5 +1,4 @@
 {-# LANGUAGE InstanceSigs #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.Semigroup (Semigroup (..), Max (..), Min (..)) where
 
