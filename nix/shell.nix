@@ -12,6 +12,7 @@ let
     "ghc96".stylish-haskell = project.projectVariants.ghc96.tool "stylish-haskell" "latest";
     "ghc96".fourmolu = mkFourmolu ghc;
     "ghc96".hlint = project.projectVariants.ghc96.tool "hlint" "3.8";
+    "ghc96".hp2ps = project.projectVariants.ghc96.tool "hp2ps" "latest";
 
     "ghc912".cabal = project.projectVariants.ghc912.tool "cabal" "latest";
     "ghc912".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc9122
@@ -19,6 +20,7 @@ let
     "ghc912".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
     "ghc912".fourmolu = mkFourmolu ghc;
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
+    "ghc912".hp2ps = project.projectVariants.ghc912.tool "hp2ps" "latest";
   };
 
   tools = all-tools.${ghc};
