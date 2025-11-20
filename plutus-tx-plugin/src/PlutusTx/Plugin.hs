@@ -11,7 +11,7 @@
 {-# OPTIONS_GHC -O0 #-}
 {-# OPTIONS_GHC -fno-full-laziness -fno-cse #-}
 
-module PlutusTx.Plugin (plugin, plc) where
+module PlutusTx.Plugin (plugin, plc, runCompiler) where
 
 import PlutusPrelude
 import PlutusTx.AsData.Internal qualified
