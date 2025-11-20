@@ -9,7 +9,6 @@
 {-# LANGUAGE ViewPatterns #-}
 -- For some reason this module is very slow to compile otherwise
 {-# OPTIONS_GHC -O0 #-}
-{-# OPTIONS_GHC -fno-full-laziness -fno-cse #-}
 
 module PlutusTx.Plugin (plugin, plc, runCompiler) where
 
@@ -645,6 +644,7 @@ runCompiler moduleName opts expr = do
   (uplcP, _) <-
     {-# SCC "plinth-plugin-plc-to-uplc-step" #-}
     flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+
 
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $

@@ -17,46 +17,33 @@ module Main where
 import Data.Default
 import Data.Foldable (fold)
 import PlutusCore qualified as PLC
-import PlutusCore.Compiler qualified as PLC
-import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
-import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Version qualified as PLC
-import PlutusIR qualified as PIR
 import PlutusIR.Compiler qualified as PIR
-import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
-import PlutusTx.Compiler.Builtins
-import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Types
 import PlutusTx.Options (PluginOptions (..), defaultPluginOptions)
 import PlutusTx.Plugin (runCompiler)
-import UntypedPlutusCore qualified as UPLC
 
 import GHC qualified as GHC
 import GHC.Core.FamInstEnv qualified as GHC
 import GHC.Core.Opt.OccurAnal qualified as GHC
-import GHC.Driver.Make qualified as GHC
 import GHC.Driver.Session qualified as GHC
 import GHC.Paths as GHC
 import GHC.Plugins qualified as GHC
-import GHC.Types.Literal qualified as GHC
 
-import Control.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
 
 import Data.Map qualified as Map
-import Data.Set qualified as Set
-import Language.Haskell.TH.Syntax qualified as TH
 
 -- | Create a simple Core expression for testing (a literal integer)
 createSimpleCoreExpr :: GHC.DynFlags -> GHC.CoreExpr
-createSimpleCoreExpr flags =
+createSimpleCoreExpr _flags =
   let lit = GHC.Lit (GHC.LitNumber GHC.LitNumInt 42)
   in lit
 

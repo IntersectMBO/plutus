@@ -254,14 +254,10 @@ test-suite plutus-tx-plugin-profile-test
     , data-default
     , ghc
     , ghc-paths
-    , lens
     , mtl
     , plutus-core            ^>=1.55
     , plutus-core:plutus-ir
-    , plutus-tx              ^>=1.55
     , plutus-tx-plugin       ^>=1.55
-    , template-haskell
-    , text
 
   default-extensions: Strict
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N
