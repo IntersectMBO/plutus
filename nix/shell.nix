@@ -1,19 +1,27 @@
-{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages }:
+# editorconfig-checker-disable-file
+
+{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages, ghc }:
 
 let
 
   # Toolchain versions used in dev shells. Consumed by `project.shellFor`.
-  tools = project.tools {
-    # "latest" cabal would be 3.14.1.0 which breaks haddock generation.
-    # TODO update cabal version once haddock generation is fixed upstream.
-    cabal = "3.12.1.0";
-    cabal-fmt = "latest";
-    haskell-language-server = "latest";
-    # fourmolu 0.18.0.0 and hlint 3.10 require GHC >=9.8
-    fourmolu = "0.17.0.0";
-    hlint = "3.8";
-    stylish-haskell = "latest";
+  all-tools = {
+    "ghc96".cabal = project.projectVariants.ghc96.tool "cabal" "3.12.1.0";
+    "ghc96".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest";
+    "ghc96".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest";
+    "ghc96".stylish-haskell = project.projectVariants.ghc96.tool "stylish-haskell" "latest";
+    "ghc96".fourmolu = project.projectVariants.ghc96.tool "fourmolu" "0.17.0.0"; # fourmolu 0.18.0.0 and hlint 3.10 require GHC >=9.8
+    "ghc96".hlint = project.projectVariants.ghc96.tool "hlint" "3.8";
+
+    "ghc912".cabal = project.projectVariants.ghc912.tool "cabal" "latest";
+    "ghc912".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc9122
+    "ghc912".haskell-language-server = project.projectVariants.ghc912.tool "haskell-language-server" "latest";
+    "ghc912".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
+    "ghc912".fourmolu = project.projectVariants.ghc912.tool "fourmolu" "latest";
+    "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
   };
+
+  tools = all-tools.${ghc};
 
   # Pre-commit hooks for the repo. Injects into shell via shellHook.
   pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
@@ -121,8 +129,8 @@ let
       "export LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive";
 
   # Full developer shell with many tools.
-  full-shell = project.shellFor {
-    name = "plutus-shell-${project.args.compiler-nix-name}";
+  full-shell = project.projectVariants.${ghc}.shellFor {
+    name = "plutus-shell-${ghc}";
 
     buildInputs = lib.concatLists [
       common-pkgs
@@ -143,8 +151,8 @@ let
 
 
   # Lightweight shell with minimal tools.
-  quick-shell = project.shellFor {
-    name = "plutus-shell-${project.args.compiler-nix-name}";
+  quick-shell = project.projectVariants.${ghc}.shellFor {
+    name = "plutus-shell-${ghc}";
     tools = { cabal = "latest"; };
     shellHook = ''
       ${locale-archive-hook}
@@ -156,10 +164,11 @@ let
 
   # Select shell by compiler used in the project variant.
   shell = {
-    ghc967 = full-shell;
-    ghc984 = quick-shell;
-    ghc9102 = quick-shell;
-  }.${project.args.compiler-nix-name};
+    ghc96 = full-shell;
+    ghc98 = quick-shell;
+    ghc910 = quick-shell;
+    ghc912 = full-shell;
+  }.${ghc};
 
 in
 

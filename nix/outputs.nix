@@ -32,8 +32,8 @@ let
   project = import ./project.nix
     { inherit inputs pkgs lib metatheory r-with-packages utils; };
 
-  mkShell = project: import ./shell.nix
-    { inherit inputs pkgs lib project agda-tools metatheory r-with-packages; };
+  mkShell = ghc: import ./shell.nix
+    { inherit inputs pkgs lib project agda-tools metatheory r-with-packages ghc; };
 
   exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
@@ -74,6 +74,7 @@ let
     ghc96 = (project.flake { }).hydraJobs.ghc96;
     ghc98 = (project.flake { }).hydraJobs.ghc98;
     ghc910 = (project.flake { }).hydraJobs.ghc910;
+    ghc912 = (project.flake { }).hydraJobs.ghc912;
   };
 
   project-variants-roots-and-plan-nix = {
@@ -83,6 +84,8 @@ let
     ghc98.plan-nix = project-variants-hydra-jobs.ghc98.plan-nix;
     ghc910.roots = project-variants-hydra-jobs.ghc910.roots;
     ghc910.plan-nix = project-variants-hydra-jobs.ghc910.plan-nix;
+    ghc912.roots = project-variants-hydra-jobs.ghc912.roots;
+    ghc912.plan-nix = project-variants-hydra-jobs.ghc912.plan-nix;
   };
 
   packages =
@@ -92,9 +95,10 @@ let
 
   non-profiled-shells = rec {
     default = ghc96;
-    ghc96 = mkShell project.projectVariants.ghc96;
-    ghc98 = mkShell project.projectVariants.ghc98;
-    ghc910 = mkShell project.projectVariants.ghc910;
+    ghc96 = mkShell "ghc96";
+    ghc98 = mkShell "ghc98";
+    ghc910 = mkShell "ghc910";
+    ghc912 = mkShell "ghc912";
   };
 
   # The default shell contains the agda-with-stdlib-and-metatheory package which will
