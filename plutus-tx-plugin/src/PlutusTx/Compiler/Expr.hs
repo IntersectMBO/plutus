@@ -76,6 +76,7 @@ import Control.Lens hiding (index, strict, transform)
 import Control.Monad
 import Control.Monad.Reader (ask, asks, local)
 import Data.Array qualified as Array
+import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BSC
@@ -909,6 +910,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
   builtinDataTyCon <- lookupGhcTyCon ''Builtins.BuiltinData
   builtinPairTyCon <- lookupGhcTyCon ''BI.BuiltinPair
+  builtinByteStringTyCon <- lookupGhcTyCon ''BI.BuiltinByteString
   builtinBLS12_G1_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G1_Element
   builtinBLS12_G2_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G2_Element
   stringTyName <- lookupGhcName ''Builtins.BuiltinString
@@ -1094,6 +1096,10 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           GHC.TyConApp tyCon []
             | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
                 pure $ PLC.mkConstant annMayInline ([] @Integer)
+            | tyCon == builtinByteStringTyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @ByteString)
+            | tyCon == GHC.boolTyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @Bool)
             | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
             | tyCon == builtinBLS12_G1_TyCon ->
                 pure $ PLC.mkConstant annMayInline ([] @BLS12_381_G1.Element)

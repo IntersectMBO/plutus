@@ -268,6 +268,7 @@ class MkNil arep where
   mkNil = mkNilOpaque
   {-# INLINEABLE mkNil #-}
 instance MkNil BuiltinInteger
+instance MkNil BuiltinByteString
 instance MkNil Bool
 instance MkNil BuiltinData
 instance MkNil BuiltinValue
