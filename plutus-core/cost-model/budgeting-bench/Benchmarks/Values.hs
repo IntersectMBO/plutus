@@ -15,11 +15,10 @@ import Control.Monad.State.Strict (State)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Data.Int (Int64)
 import Data.List (find, sort)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (InsertCoin, LookupCoin, UnValueData, UnionValue, ValueContains, ValueData))
+import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterSizeAddLogMaxInnerSize (..),
                                                     ValueTotalSize (..))
@@ -38,6 +37,7 @@ makeBenchmarks gen =
   , unValueDataBenchmark gen
   , insertCoinBenchmark gen
   , unionValueBenchmark gen
+  , scaleValueBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -233,21 +233,6 @@ insertCoinArgs gen = do
   where
     reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
 
--- | Generate either zero or maximum amount Integer values, the probability of each is 50%
-genZeroOrMaxAmount
-  :: (StatefulGen g m)
-  => g
-  -> Int
-  -- ^ Number of amounts to generate
-  -> m [Integer]
-genZeroOrMaxAmount gen n =
-  replicateM n $ do
-    coinType <- uniformRM (0 :: Int, 1) gen
-    pure $ case coinType of
-      0 -> 0
-      1 -> unQuantity maxBound
-      _ -> error "genZeroOrMaxAmount: impossible"
-
 ----------------------------------------------------------------------------------------------------
 -- UnionValue --------------------------------------------------------------------------------------
 
@@ -266,6 +251,24 @@ unionValueArgs gen = do
   pure $ zip vals1 vals2
 
 ----------------------------------------------------------------------------------------------------
+-- ScaleValue --------------------------------------------------------------------------------------
+
+scaleValueBenchmark :: StdGen -> Benchmark
+scaleValueBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (id, ValueTotalSize)
+    ScaleValue
+    []
+    (runBenchGen gen scaleValueArgs)
+
+scaleValueArgs :: (StatefulGen g m) => g -> m [(Integer, Value)]
+scaleValueArgs gen = do
+  let qty = mkQuantity . (floor :: Float -> Integer) . sqrt . fromInteger . unQuantity $ (maxBound :: Quantity)
+  vals <- replicateM 100 (generateValueWithQuantity qty gen)
+  scalars <- genZeroOrAmount gen 100 (qty - 1)
+  pure $ zip scalars vals
+
+----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
 
 -- | Generate common test values for benchmarking
@@ -282,6 +285,12 @@ generateValue :: (StatefulGen g m) => g -> m Value
 generateValue g = do
   numEntries <- uniformRM (1, maxValueEntries) g
   generateValueMaxEntries numEntries g
+
+-- | Generate Value with random number of entries between 1 and maxValueEntries
+generateValueWithQuantity :: (StatefulGen g m) => Quantity -> g -> m Value
+generateValueWithQuantity qty g = do
+  numEntries <- uniformRM (1, maxValueEntries) g
+  generateValueMaxEntriesWithQuantity numEntries qty g
 
 -- | Maximum number of (policyId, tokenName, quantity) entries for Value generation.
 -- This represents the practical limit based on execution budget constraints.
@@ -303,6 +312,15 @@ generateValueMaxEntries maxEntries g = do
 
   generateConstrainedValue numPolicies tokensPerPolicy g
 
+generateValueMaxEntriesWithQuantity :: (StatefulGen g m) => Int -> Quantity -> g -> m Value
+generateValueMaxEntriesWithQuantity maxEntries qty g = do
+  -- Uniform random distribution: cover full range from many policies (few tokens each)
+  -- to few policies (many tokens each)
+  numPolicies <- uniformRM (1, maxEntries) g
+  let tokensPerPolicy = if numPolicies > 0 then maxEntries `div` numPolicies else 0
+
+  generateConstrainedValueWithQuantity numPolicies tokensPerPolicy qty g
+
 -- | Generate constrained Value with information about max-size policy
 generateConstrainedValueWithMaxPolicy
   :: (StatefulGen g m)
@@ -310,15 +328,21 @@ generateConstrainedValueWithMaxPolicy
   -> Int -- Number of tokens per policy
   -> g
   -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
-generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g = do
+generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g =
+  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy maxBound g
+
+-- | Generate constrained Value with information about max-size policy and quantity
+generateConstrainedValueWithMaxPolicyAndQuantity
+  :: (StatefulGen g m)
+  => Int -- Number of policies
+  -> Int -- Number of tokens per policy
+  -> Quantity -- Each token gets user defined quantity
+  -> g
+  -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
+generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy qty g = do
   policyIds <- replicateM numPolicies (generateKey g)
   tokenNames <- replicateM tokensPerPolicy (generateKey g)
-
   let
-    qty :: Value.Quantity
-    qty = case Value.quantity (fromIntegral (maxBound :: Int64)) of
-      Just q -> q
-      Nothing -> error "generateConstrainedValueWithMaxPolicy: Int64 maxBound should be valid Quantity"
 
     -- Sort policy IDs to establish BST ordering
     sortedPolicyIds = sort policyIds
@@ -358,6 +382,17 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
   (value, _, _) <- generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
   pure value
 
+generateConstrainedValueWithQuantity
+  :: (StatefulGen g m)
+  => Int -- Number of policies
+  -> Int -- Number of tokens per policy
+  -> Quantity
+  -> g
+  -> m Value
+generateConstrainedValueWithQuantity numPolicies tokensPerPolicy qty g = do
+  (value, _, _) <- generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy qty g
+  pure value
+
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
 
@@ -380,6 +415,31 @@ generateKey g = do
     Just key -> pure key
     Nothing  -> error "Internal error: maxKeyLen key should always be valid"
 
+-- | Generate either zero or maximum amount Integer values, the probability of each is 50%
+genZeroOrMaxAmount
+  :: (StatefulGen g m)
+  => g
+  -> Int
+  -- ^ Number of amounts to generate
+  -> m [Integer]
+genZeroOrMaxAmount gen n =
+  genZeroOrAmount gen n (maxBound :: Quantity)
+
+genZeroOrAmount
+  :: (StatefulGen g m)
+  => g
+  -> Int
+  -- ^ Number of amounts to generate
+  -> Quantity
+  -> m [Integer]
+genZeroOrAmount gen n qty =
+  replicateM n $ do
+    coinType <- uniformRM (0 :: Int, 1) gen
+    pure $ case coinType of
+      0 -> 0
+      1 -> unQuantity qty
+      _ -> error "genZeroOrMaxAmount: impossible"
+
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
 
@@ -400,4 +460,9 @@ unsafeFromBuiltinResult = \case
 -- | Abstracted runner for computations using stateful random generator 'StdGen'
 runBenchGen :: StdGen -> (StateGenM StdGen -> State StdGen a) -> a
 runBenchGen gen ma = runStateGen_ gen \g -> ma g
+
+mkQuantity :: Integer -> Value.Quantity
+mkQuantity qty = case Value.quantity qty of
+  Just q  -> q
+  Nothing -> error "mkQuantity: out of bounds user supplied integer as quantity"
 

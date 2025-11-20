@@ -120,3 +120,7 @@ deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
     instance FromJSON ModelConstantOrLinear
 deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
     instance ToJSON ModelConstantOrLinear
+deriving via ModelJSON "squareOfTwoVariableSumFunction" SquareOfTwoVariableSumFunction
+    instance FromJSON SquareOfTwoVariableSumFunction
+deriving via ModelJSON "squareOfTwoVariableSumFunction" SquareOfTwoVariableSumFunction
+    instance ToJSON SquareOfTwoVariableSumFunction

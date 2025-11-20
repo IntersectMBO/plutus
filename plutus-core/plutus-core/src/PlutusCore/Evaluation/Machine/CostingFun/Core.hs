@@ -28,6 +28,7 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , OneVariableQuadraticFunction(..)
     , TwoVariableLinearFunction(..)
     , TwoVariableQuadraticFunction(..)
+    , SquareOfTwoVariableSumFunction(..)
     , ExpModCostingFunction(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)  -- Deprecated: see below.
@@ -460,6 +461,12 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
+data SquareOfTwoVariableSumFunction = SquareOfTwoVariableSumFunction
+  { squareOfSumCoefficient00 :: Coefficient00
+  , squareOfSumCoefficient11 :: Coefficient11
+  } deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
+
 {- Note [Backward compatibility for costing functions].  The PR at
    https://github.com/IntersectMBO/plutus/pull/5857 generalised the costing
    function types and made them more composable: in particular,
@@ -492,6 +499,7 @@ data ModelTwoArguments =
   | ModelTwoArgumentsConstBelowDiagonal  ModelConstantOrTwoArguments
   | ModelTwoArgumentsQuadraticInY        OneVariableQuadraticFunction
   | ModelTwoArgumentsQuadraticInXAndY    TwoVariableQuadraticFunction
+  | ModelTwoArgumentsSquareOfSum SquareOfTwoVariableSumFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -627,6 +635,7 @@ runTwoArgumentModel
              let !size1 = sumCostStream costs1
                  !size2 = sumCostStream costs2
              in CostLast $ evaluateTwoVariableQuadraticFunction f size1 size2
+runTwoArgumentModel (ModelTwoArgumentsSquareOfSum f) = undefined
 {-# OPAQUE runTwoArgumentModel #-}
 
 
@@ -738,8 +747,9 @@ runCostingFunThreeArguments (CostingFun cpu mem) =
 
 ---------------- Four-argument costing functions ----------------
 
-data ModelFourArguments =
-      ModelFourArgumentsConstantCost CostingInteger
+data ModelFourArguments
+    = ModelFourArgumentsConstantCost CostingInteger
+    | ModelFourArgumentsLinearInW OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -757,6 +767,10 @@ runFourArgumentModel
     -> CostStream
     -> CostStream
 runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> CostLast c
+runFourArgumentModel
+    (ModelFourArgumentsLinearInW (OneVariableLinearFunction intercept slope)) =
+        lazy $ \_ _ _ costs4 ->
+            scaleLinearly intercept slope costs4
 {-# OPAQUE runFourArgumentModel #-}
 
 -- See Note [runCostingFun* API].
