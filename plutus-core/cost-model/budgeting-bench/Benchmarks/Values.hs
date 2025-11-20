@@ -19,7 +19,7 @@ import Data.Int (Int64)
 import Data.List (find, sort)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (InsertCoin, LookupCoin, UnValueData, ValueContains, ValueData))
+import PlutusCore (DefaultFun (InsertCoin, LookupCoin, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterSizeAddLogMaxInnerSize (..),
                                                     ValueTotalSize (..))
@@ -37,6 +37,7 @@ makeBenchmarks gen =
   , valueDataBenchmark gen
   , unValueDataBenchmark gen
   , insertCoinBenchmark gen
+  , unionValueBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -246,6 +247,23 @@ genZeroOrMaxAmount gen n =
       0 -> 0
       1 -> unQuantity maxBound
       _ -> error "genZeroOrMaxAmount: impossible"
+
+----------------------------------------------------------------------------------------------------
+-- UnionValue --------------------------------------------------------------------------------------
+
+unionValueBenchmark :: StdGen -> Benchmark
+unionValueBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (ValueTotalSize, ValueTotalSize)
+    UnionValue
+    []
+    (runBenchGen gen unionValueArgs)
+
+unionValueArgs :: (StatefulGen g m) => g -> m [(Value, Value)]
+unionValueArgs gen = do
+  vals1 <- replicateM 100 (generateValue gen)
+  vals2 <- replicateM 100 (generateValue gen)
+  pure $ zip vals1 vals2
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------

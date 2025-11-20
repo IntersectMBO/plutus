@@ -157,6 +157,7 @@ arity <- function(name) {
         "ValueData" = 1,
         "UnValueData" = 1,
         "InsertCoin" = 4,
+        "UnionValue" = 2,
         -1  ## Default for missing values
         )
 }
@@ -826,7 +827,18 @@ modelFun <- function(path) {
 
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
     lookupCoinModel           <- linearInZ ("LookupCoin")    
+    # W wrapped with `Logarithmic . ValueOuterOrMaxInner`
     insertCoinModel           <- linearInW ("InsertCoin")    
+
+    # X and Y wrapped with `ValueTotalSize` (contained value size)
+    unionValueModel         <- {
+        fname <- "UnionValue"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ I((x_mem + y_mem)^2), filtered)
+        mk.result(m, "square_of_added_sizes")
+    }
 
     # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)
     # Y wrapped with `ValueTotalSize` (contained value size)
@@ -941,7 +953,8 @@ modelFun <- function(path) {
         valueContainsModel                   = valueContainsModel,
         valueDataModel                       = valueDataModel,
         unValueDataModel                     = unValueDataModel,
-        insertCoinModel                      = insertCoinModel
+        insertCoinModel                      = insertCoinModel,
+        unionValueModel                      = unionValueModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
