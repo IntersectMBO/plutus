@@ -95,27 +95,27 @@ executable plc
     , plutus-core:flat
     , plutus-core:plutus-core-execlib
 
-executable uplc
-  import:         lang, os-support, ghc-version-support
-  main-is:        uplc/Main.hs
-  other-modules:  Paths_plutus_executables
-  hs-source-dirs: executables
+-- New test-suite for UPLC unified tests
+test-suite uplc-tests
+  import:             lang, os-support, ghc-version-support
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test/uplc
+  main-is:            Main.hs
+
   build-depends:
-    , base                             >=4.9   && <5
+      base
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
     , bytestring
-    , criterion
-    , deepseq
-    , haskeline
-    , mtl
-    , optparse-applicative
-    , plutus-core                      ^>=1.55
-    , plutus-core:flat
-    , plutus-core:plutus-core-execlib
-    , plutus-metatheory                ^>=1.55
-    , prettyprinter
-    , serialise
-    , split
     , text
+    , directory
+    , process
+    , plutus-core            ^>=1.55
+    , plutus-metatheory      ^>=1.55
+
+  build-tool-depends:
+    plutus-executables:uplc
 
 test-suite test-simple
   import:             lang, os-support, ghc-version-support
