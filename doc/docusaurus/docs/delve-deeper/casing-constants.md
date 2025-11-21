@@ -2,43 +2,81 @@
 sidebar_position: 26
 ---
 
+# TODO
+
+□ figure out how case on data will work
+□ Figure out how `case ... of ...` is compiled for built-in types.
+□ Run all the examples with `uplc` command line
+□ Add flag name below (now named TODO)
+□ test what happens in uplc if you oversaturate one of the branches of a case on
+SOP (this is the main motivation of multilambdas)
+
 # Casing on built-in types in UPLC
 
-Starting with _intra-era hard fork_, UPLC supports a new way of processing
+Starting with (HARD FORK NAME HERE), UPLC supports a new way of processing
 values of some built-in types, such as `Integer` and `Data`. The `case`
-construct, which was originally introduced for [sums-of-products](), can also be
-used to case-split on such values.
+construct, originally introduced with [sums-of-products](), can also be used to
+split on values of these built-in types.
 
-Using `case` in UPLC programs can make processing of built-in types more
-efficient, for example when dealing with `ScriptContext`, which is encoded using
-`Data`. Even types like `Bool`
+Using `case` in UPLC may improve script performance and size, for example when
+dealing with `ScriptContext`, which is encoded using `Data`. Even for types like
+`Bool`, it may result in smaller script size, compared to built-in functions
+like `ifThenElse`.
 
-Depending on the built-in type, a certain order and amount of branches is
-expected, and not necessarily all values can be matched using `case`.
+The currently supported built-in types that `case` supports are:
+
+- `unit`
+- `bool`
+- `integer`
+- `data`
+- `list`
+- `pair`
+
+However, the branching may be subject to some constraints. For example, when
+casing on `integer`, only non-negative integers can be matched and there is no
+catch-all.
+
+In Plinth, when using the TODO flag, many standard library functions will be
+compiled into UPLC's `case`, such as `fstPair`, `ifThenElse` and `caseList`.
+Note that Plinth's `case ... of ...` syntax is not necessarily compiled to UPLC,
+as it can sometimes be more expressive.
+
 
 ## Bool
 
-Booleans can be used in `case` with one or two branches, where the first is the
-false branch. Boolean negation can be written as:
+Booleans can be used in `case` with either one or two branches, where the first
+is the `false` branch. Boolean negation can be written for example as:
 
-```
-\b ->
-  case b
-    false
-    true
+```uplc
+lam b (case b false true)
 ```
 
-When only one branch is provided, script execution will fail when the boolean
-evaluates to `true`.
+When only a single branch is provided, script execution will fail when the
+boolean evaluates to `true`.
+
+Using a single branch is appropriate when the second branch was supposed to fail
+already, saving script size.
 
 ## Unit
 
 Needs exactly one branch. If the expression being cased on evaluates to a unit
 value, evaluation will continue with the expression in that branch.
 
+```uplc
+lam x (case x (con integer 5))
+```
+
+Is a function that returns `5` if `x` evaluates to `()` without an error.
+
+
 ## Pair
 
-A built-in pair expects a single branch that is a function with two arguments
+A built-in pair expects a single branch that is a function with two arguments.
+This example implements the swap function:
+
+```uplc
+lam x (case x (lam a (lam b (con pair b a))))
+```
 
 ## Integer
 
@@ -53,8 +91,8 @@ case e
   branch_n
 ```
 
-If the expression e evaluates to an integer `i`, `branch_i` will be evaluated.
-If that branch is not given (or `i` is negative), execution will fail.
+If the expression `e` evaluates to an integer `i`, `branch_i` will be evaluated.
+If that branch is not given (or `i` is negative), evaluation will fail.
 
 Note that there is no way to provide a "catch-all" case.
 
@@ -65,52 +103,20 @@ booleans), where the first one deals with the cons case, and the second one with
 the empty list. If no second branch is given, execution will fail when the list
 turns out to be empty.
 
+This example implements the `head` function:
+
+```uplc
+lam xs (case xs (lam y (lam ys (y)))
+```
+
 ## Data
 
+When using `case` on values of the `data` type, only `Constr` constructors can
+be matched, similar to how `case` works on
+[sums-of-products](./encoding#sums-of-products).
 
-
-# How to use built-in casing in Plinth
-
-Compiler flag, functions.
-
-
-# Pattern matching and Case
-
-When you use pattern matching in Plinth, such as in a `case` expression, the
-generated UPLC code will depend on the type of the value being matched on.
-
-□ Is this true or only on the UPLC level, i.e. does the compiler compile into
-case or something else for built-in datatypes. For example, casing on integers
-is limited to non-negative branches, and BuiltinData only to Data.Constr
-
-Usage in Plinth (if builtincasing flag):
-(searching for BuiltinCasing)
-- Bool matcher
-
-"built-in terms" (not built-in functions apparently, for those see below)
-
-- casePair (defineBuiltinTerm)
-- caseList (defineBuiltinTerm)
-
-Built-in functions that are mapped to case instead of their built-in:
-- ifThenElse
-- fstPair
-- sndPair
-- chooseUnit
-
-## Case on built-in datatypes
-
-As of ..., pattern matching of most built-in types
-
-### Booleans
-
-### Integers
-
-### BuiltinData
-
-Only works on Data.Constr constructors
-
-□ TODO: how will case be handled
+```uplc
+```
 
 
 ## Algebraic datatypes
