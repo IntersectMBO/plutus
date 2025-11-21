@@ -4,6 +4,7 @@ module UntypedPlutusCore.Simplify.Opts
   ( SimplifyOpts (..)
   , soMaxSimplifierIterations
   , soMaxCseIterations
+  , soCseExcludeWorkFree
   , soInlineHints
   , soConservativeOpts
   , soInlineConstants
@@ -21,6 +22,7 @@ import PlutusCore.AstSize
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
   , _soMaxCseIterations        :: Int
+  , _soCseExcludeWorkFree      :: Bool
   , _soConservativeOpts        :: Bool
   , _soInlineHints             :: InlineHints name a
   , _soInlineConstants         :: Bool
@@ -36,6 +38,7 @@ defaultSimplifyOpts =
   SimplifyOpts
     { _soMaxSimplifierIterations = 12
     , _soMaxCseIterations = 4
+    , _soCseExcludeWorkFree = True
     , _soConservativeOpts = False
     , _soInlineHints = def
     , _soInlineConstants = True

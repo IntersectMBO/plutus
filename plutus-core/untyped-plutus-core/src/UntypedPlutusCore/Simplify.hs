@@ -123,7 +123,7 @@ termSimplifier opts builtinSemanticsVariant =
       SimplifierT name uni fun a m (Term name uni fun a)
     cseStep _ =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
-        (Just Refl, Just Refl) -> cse builtinSemanticsVariant
+        (Just Refl, Just Refl) -> cse (_soCseExcludeWorkFree opts) builtinSemanticsVariant
         _                      -> pure
 
     cseTimes = if _soConservativeOpts opts then 0 else _soMaxCseIterations opts
