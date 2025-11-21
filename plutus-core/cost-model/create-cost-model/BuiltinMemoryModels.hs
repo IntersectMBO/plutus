@@ -181,5 +181,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramValueContains                   = Id $ ModelTwoArgumentsConstantCost 32
   , paramValueData                       = Id $ ModelOneArgumentConstantCost 32
   , paramUnValueData                     = Id $ ModelOneArgumentConstantCost 32
+  , paramInsertCoin                      = Id $ ModelFourArgumentsConstantCost 1
+  , paramUnionValue                      = Id $ ModelTwoArgumentsConstantCost 1
   }
   where identityFunction = OneVariableLinearFunction 0 1

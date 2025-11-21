@@ -156,6 +156,8 @@ arity <- function(name) {
         "ValueContains" = 2,
         "ValueData" = 1,
         "UnValueData" = 1,
+        "InsertCoin" = 4,
+        "UnionValue" = 2,
         -1  ## Default for missing values
         )
 }
@@ -170,7 +172,7 @@ get.bench.data <- function(path) {
         comment.char="#"
     )
 
-    benchname <- regex("([[:alnum:]_]+)/(\\d+)(?:/(\\d+))?(?:/(\\d+))?")
+    benchname <- regex("([[:alnum:]_]+)/(\\d+)(?:/(\\d+))?(?:/(\\d+))?(?:/(\\d+))?")
     ## We have benchmark names like "AddInteger/11/22", the numbers representing the sizes of
     ## the inputs to the benchmark.  This extracts the name and up to three numbers, returning
     ## "NA" for any that are missing.  If we ever have builtins with more than three arguments
@@ -182,7 +184,7 @@ get.bench.data <- function(path) {
     ## the size of the first one because the others are terms (and the time is
     ## constant anyway).
 
-    numbercols = c("x_mem", "y_mem", "z_mem")
+    numbercols = c("x_mem", "y_mem", "z_mem", "w_mem")
 
     benchmark.name.to.numbers <- function(name) {
         a <- str_match(name, benchname)
@@ -430,6 +432,14 @@ modelFun <- function(path) {
             discard.overhead ()
         m <- lm(t ~ z_mem, filtered)
         return (mk.result(m, "linear_in_z"))
+   }
+
+   linearInW <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ w_mem, filtered)
+        return (mk.result(m, "linear_in_w"))
    }
 
     ##### Integers #####
@@ -817,6 +827,18 @@ modelFun <- function(path) {
 
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
     lookupCoinModel           <- linearInZ ("LookupCoin")    
+    # W wrapped with `Logarithmic . ValueOuterOrMaxInner`
+    insertCoinModel           <- linearInW ("InsertCoin")    
+
+    # X and Y wrapped with `ValueTotalSize` (contained value size)
+    unionValueModel         <- {
+        fname <- "UnionValue"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ I((x_mem + y_mem)^2), filtered)
+        mk.result(m, "square_of_sum")
+    }
 
     # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)
     # Y wrapped with `ValueTotalSize` (contained value size)
@@ -829,7 +851,7 @@ modelFun <- function(path) {
         mk.result(m, "multiplied_sizes")
     }         
 
-    # Sizes of parameters are used as is (unwrapped):
+    # # Sizes of parameters are used as is (unwrapped):
     valueDataModel            <- constantModel ("ValueData")
     unValueDataModel          <- linearInX ("UnValueData")
 
@@ -930,7 +952,9 @@ modelFun <- function(path) {
         lookupCoinModel                      = lookupCoinModel,
         valueContainsModel                   = valueContainsModel,
         valueDataModel                       = valueDataModel,
-        unValueDataModel                     = unValueDataModel
+        unValueDataModel                     = unValueDataModel,
+        insertCoinModel                      = insertCoinModel,
+        unionValueModel                      = unionValueModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

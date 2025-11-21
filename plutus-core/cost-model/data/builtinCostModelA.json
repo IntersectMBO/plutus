@@ -1254,5 +1254,25 @@
       "arguments": 1,
       "type": "constant_cost"
     }
+  },
+  "insertCoin": {
+    "cpu": {
+        "arguments": 0,
+        "type": "constant_cost"
+    },
+    "memory": {
+      "arguments": 0,
+      "type": "constant_cost"
+    }
+  },
+  "unionValue": {
+    "cpu": {
+    "arguments": 0,
+    "type": "constant_cost"
+    },
+    "memory": {
+      "arguments": 0,
+      "type": "constant_cost"
+    }
   }
 }
