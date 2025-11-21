@@ -263,10 +263,10 @@ scaleValueBenchmark gen =
 
 scaleValueArgs :: (StatefulGen g m) => g -> m [(Integer, Value)]
 scaleValueArgs gen = do
-  let qty = mkQuantity . (floor :: Float -> Integer) . sqrt . fromInteger . unQuantity $ (maxBound :: Quantity)
-  vals <- replicateM 100 (generateValueWithQuantity qty gen)
-  scalars <- genZeroOrAmount gen 100 (qty - 1)
-  pure $ zip scalars vals
+  replicateM 100 $ do
+    (i1, i2) <- genBoundedProduct gen
+    val <- generateValueWithQuantity (mkQuantity $ sqrtMax - 1000) gen
+    pure (i1, val)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
@@ -439,6 +439,18 @@ genZeroOrAmount gen n qty =
       0 -> 0
       1 -> unQuantity qty
       _ -> error "genZeroOrMaxAmount: impossible"
+
+genBoundedProduct
+  :: (StatefulGen g m)
+  => g
+  -> m (Integer, Integer)
+genBoundedProduct gen = do
+  i1 <- uniformRM (0, sqrtMax) gen
+  i2 <- uniformRM (0, sqrtMax) gen
+  pure (i1, i2)
+
+sqrtMax :: Integer
+sqrtMax = floor . sqrt . fromIntegral $ unQuantity (maxBound :: Quantity)
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------

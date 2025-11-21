@@ -58,6 +58,19 @@ instance FromJSON TwoVariableQuadraticFunction where
                 obj .: "c00" <*> obj .: "c10" <*> obj .: "c01" <*>
                 obj .: "c20" <*> obj .: "c11" <*> obj .: "c02"
 
+data SquareOfTwoVariableSumFunction =
+    SquareOfTwoVariableSumFunction
+    { ssfcoeff00_ :: Integer
+    , ssfcoeff11_ :: Integer
+    }
+    deriving stock (Show, Lift)
+
+instance FromJSON SquareOfTwoVariableSumFunction where
+    parseJSON = withObject "Square of two-variable sum function" $ \obj ->
+                SquareOfTwoVariableSumFunction <$>
+                obj .: "square_of_sum_coefficient00" <*>
+                obj .: "square_of_sum_coefficient11"
+
 data ExpModCostingFunction =
     ExpModCostingFunction
     { emcfcoeff00_ :: Integer
@@ -89,12 +102,14 @@ data Model
     | LinearInX             LinearFunction
     | LinearInY             LinearFunction
     | LinearInZ             LinearFunction
+    | LinearInW             LinearFunction
     | LiteralInYOrLinearInZ LinearFunction
     | LinearInMaxYZ         LinearFunction
     | LinearInYAndZ         TwoVariableLinearFunction
     | QuadraticInY          OneVariableQuadraticFunction
     | QuadraticInZ          OneVariableQuadraticFunction
     | QuadraticInXAndY      TwoVariableQuadraticFunction
+    | SquareOfSum           SquareOfTwoVariableSumFunction
     | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
@@ -135,6 +150,7 @@ instance FromJSON Model where
                "linear_in_x"                 -> LinearInX             <$> parseJSON args
                "linear_in_y"                 -> LinearInY             <$> parseJSON args
                "linear_in_z"                 -> LinearInZ             <$> parseJSON args
+               "linear_in_w"                 -> LinearInW             <$> parseJSON args
                "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
                "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
                "quadratic_in_x_and_y"        -> QuadraticInXAndY      <$> parseJSON args
@@ -142,6 +158,7 @@ instance FromJSON Model where
                "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
                "linear_in_max_yz"            -> LinearInMaxYZ         <$> parseJSON args
                "linear_in_y_and_z"           -> LinearInYAndZ         <$> parseJSON args
+               "square_of_sum" -> SquareOfSum           <$> parseJSON args
                "subtracted_sizes"            -> SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
                "const_above_diagonal"        -> modelWithConstant ConstAboveDiagonal args
                "const_below_diagonal"        -> modelWithConstant ConstBelowDiagonal args
