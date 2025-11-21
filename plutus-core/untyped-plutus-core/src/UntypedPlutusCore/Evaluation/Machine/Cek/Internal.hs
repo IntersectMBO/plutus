@@ -695,7 +695,7 @@ data Context uni fun ann
     | FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
     | FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
-    -- ^ @[_ V]@
+    -- ^ @[_ K1 .. Kn]@
     | FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V1 .. Vn]@
     | FrameForce !(Context uni fun ann)
@@ -788,7 +788,7 @@ enterComputeCek = computeCek
         -> CekValEnv uni fun ann
         -> NTerm uni fun ann
         -> CekM uni fun s (DischargeResult uni fun)
-    -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
+    -- s ; ρ ▻ x  ↦ s ◅  ρ(x)    if x is bound in ρ
     computeCek !ctx !env (Var _ varName) = do
         stepAndMaybeSpend BVar
         val <- lookupVarName varName env
@@ -819,7 +819,7 @@ enterComputeCek = computeCek
         let meaning = lookupBuiltin bn ?cekRuntime
         -- 'Builtin' is fully discharged.
         returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
-    -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
+    -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I [] _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
         case es of
@@ -861,7 +861,7 @@ enterComputeCek = computeCek
     -- add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
-    -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
+    -- s , [_ K1 .. Kn] ◅ lam x (M,ρ) ↦ s , [_ K2 .. Kn]; ρ [ x  ↦  VCon K1 ] ▻ M
     returnCek (FrameAwaitFunConN args ctx) fun =
       -- In the future, if we want to revert back to more general
       -- 'FrameAwaitFunValue (CekValue uni fun ann)', we can use optimization proposed in
