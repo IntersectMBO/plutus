@@ -19,7 +19,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v6.0.0
 
       - name: Build Report
         run: | 
