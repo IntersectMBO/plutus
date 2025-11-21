@@ -54,14 +54,14 @@ library
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  src
   exposed-modules:
-    PlutusTx.Compiler.Builtins
     PlutusTx.Compiler.Error
-    PlutusTx.Compiler.Types
     PlutusTx.Options
     PlutusTx.Plugin
+    PlutusTx.Compiler.Types
 
   other-modules:
     PlutusTx.Compiler.Binders
+    PlutusTx.Compiler.Builtins
     PlutusTx.Compiler.Expr
     PlutusTx.Compiler.Kind
     PlutusTx.Compiler.Laziness
@@ -124,6 +124,10 @@ test-suite plutus-tx-plugin-tests
     AssocMap.Properties3
     AssocMap.Semantics
     AssocMap.Spec
+    Blueprint.Tests
+    Blueprint.Tests.Lib
+    Blueprint.Tests.Lib.AsData.Blueprint
+    Blueprint.Tests.Lib.AsData.Decls
     Budget.Spec
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
@@ -133,6 +137,7 @@ test-suite plutus-tx-plugin-tests
     ByteStringLiterals.Spec
     CallTrace.Lib
     CallTrace.OtherModule
+    CallTrace.Spec
     DataList.Budget.Spec
     Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
@@ -173,15 +178,10 @@ test-suite plutus-tx-plugin-tests
     ShortCircuit.WithoutGHCOptimisations
     StdLib.Spec
     Strictness.Spec
+    TH.Spec
+    TH.TestTH
     Unicode.Spec
 
-  -- Blueprint.Tests
-  -- Blueprint.Tests.Lib
-  -- Blueprint.Tests.Lib.AsData.Blueprint
-  -- Blueprint.Tests.Lib.AsData.Decls
-  -- CallTrace.Spec
-  -- TH.Spec
-  -- TH.TestTH
   build-depends:
     , base                             >=4.9   && <5
     , base16-bytestring
@@ -242,6 +242,7 @@ test-suite size
   ghc-options:
     -fno-strictness -fno-unbox-strict-fields
     -fno-unbox-small-strict-fields -fno-full-laziness
+
 
 test-suite plutus-tx-plugin-profile-test
   import:             lang, ghc-version-support, os-support
