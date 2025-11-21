@@ -17,7 +17,7 @@ let
     "ghc912".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc9122
     "ghc912".haskell-language-server = project.projectVariants.ghc912.tool "haskell-language-server" "latest";
     "ghc912".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
-    "ghc912".fourmolu = project.projectVariants.ghc912.tool "fourmolu" "latest";
+    "ghc912".fourmolu = mkFourmolu ghc;
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
   };
 
