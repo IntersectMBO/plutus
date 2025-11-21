@@ -1,11 +1,10 @@
 # editorconfig-checker-disable-file
-
-{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages, ghc, mkFourmolu }:
+{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages, project-variant mkFourmolu }:
 
 let
 
   # Toolchain versions used in dev shells. Consumed by `project.shellFor`.
-  all-tools = {
+  tools = rec {
     "ghc96".cabal = project.projectVariants.ghc96.tool "cabal" "3.12.1.0";
     "ghc96".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest";
     "ghc96".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest";
@@ -21,9 +20,10 @@ let
     "ghc912".fourmolu = mkFourmolu ghc;
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
     "ghc912".hp2ps = project.projectVariants.ghc912.tool "hp2ps" "latest";
-  };
 
-  tools = all-tools.${ghc};
+    "ghc96-profiled" = tools."ghc96";
+
+  }.${project-variant};
 
   # Pre-commit hooks for the repo. Injects into shell via shellHook.
   pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
@@ -132,8 +132,8 @@ let
       "export LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive";
 
   # Full developer shell with many tools.
-  full-shell = project.projectVariants.${ghc}.shellFor {
-    name = "plutus-shell-${ghc}";
+  full-shell = project.projectVariants.${project-variant}.shellFor {
+    name = "plutus-shell-${project-variant}";
 
     buildInputs = lib.concatLists [
       common-pkgs
@@ -154,8 +154,8 @@ let
 
 
   # Lightweight shell with minimal tools.
-  quick-shell = project.projectVariants.${ghc}.shellFor {
-    name = "plutus-shell-${ghc}";
+  quick-shell = project.projectVariants.${project-variant}.shellFor {
+    name = "plutus-shell-${project-variant}";
     tools = { cabal = "latest"; };
     shellHook = ''
       ${locale-archive-hook}
@@ -168,10 +168,11 @@ let
   # Select shell by compiler used in the project variant.
   shell = {
     ghc96 = full-shell;
+    ghc96-profiled = full-shell;
     ghc98 = quick-shell;
     ghc910 = quick-shell;
     ghc912 = full-shell;
-  }.${ghc};
+  }.${project-variant};
 
 in
 
