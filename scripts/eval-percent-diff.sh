@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# diff‑budget.sh – show percent deltas for *.eval.golden metrics
+# diff‑budget.sh – show percent deltas for *.golden.eval metrics
 # Usage:  diff‑budget.sh [-t] [<base-commit>]
 #    -t    output as Markdown tables instead of colored text
 
@@ -31,9 +31,9 @@ if [[ $# -gt 1 ]]; then
   usage
 elif [[ $# -eq 1 ]]; then
   BASE="$1"
-  GIT_DIFF_CMD=(git diff "$BASE" -- '*.eval.golden')
+  GIT_DIFF_CMD=(git diff "$BASE" -- '*.golden.eval')
 else
-  GIT_DIFF_CMD=(git diff -- '*.eval.golden')
+  GIT_DIFF_CMD=(git diff -- '*.golden.eval')
 fi
 
 # --- run diff and post‑process ----------------------------------------------
@@ -51,7 +51,7 @@ if [[ $TFLAG -eq 1 ]]; then
     file=""; seen=0;
   }
   # new file header: reset seen flag, store filename
-  /^--- a\/.*\.eval\.golden/ {
+  /^--- a\/.*\.golden\.eval/ {
     file = substr($2,3)
     seen = 0
     next
@@ -99,7 +99,7 @@ else
     file=""; seen=0;
   }
   # new file header: reset seen flag, store filename
-  /^--- a\/.*\.eval\.golden/ {
+  /^--- a\/.*\.golden\.eval/ {
     file = substr($2,3)
     seen = 0
     next

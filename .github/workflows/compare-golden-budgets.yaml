@@ -3,7 +3,7 @@ name: "🏆 Compare Golden Budgets"
 on:
   pull_request:
     paths:
-      - '**.eval.golden'
+      - '**.golden.eval'
 
 jobs:
   run-script:
