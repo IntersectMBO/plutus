@@ -64,9 +64,6 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
 import PlutusCore qualified as PLC
-import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381_G1
-import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381_G2
-import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.StdLib.Data.Function qualified
 import PlutusCore.Subst qualified as PLC
@@ -76,7 +73,6 @@ import Control.Lens hiding (index, strict, transform)
 import Control.Monad
 import Control.Monad.Reader (ask, asks, local)
 import Data.Array qualified as Array
-import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BSC
@@ -910,6 +906,9 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
   builtinDataTyCon <- lookupGhcTyCon ''Builtins.BuiltinData
   builtinPairTyCon <- lookupGhcTyCon ''BI.BuiltinPair
+  builtinListTyCon <- lookupGhcTyCon ''BI.BuiltinList
+  builtinArrayTyCon <- lookupGhcTyCon ''BI.BuiltinArray
+  builtinValueTyCon <- lookupGhcTyCon ''BI.BuiltinValue
   builtinByteStringTyCon <- lookupGhcTyCon ''BI.BuiltinByteString
   builtinBLS12_G1_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G1_Element
   builtinBLS12_G2_TyCon <- lookupGhcTyCon ''BI.BuiltinBLS12_381_G2_Element
@@ -923,6 +922,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   stringToBuiltinByteStringHexName <- lookupGhcName 'Builtins.stringToBuiltinByteStringHex
   useToOpaqueName <- lookupGhcName 'Builtins.useToOpaque
   useFromOpaqueName <- lookupGhcName 'Builtins.useFromOpaque
+  mkNilName <- lookupGhcName 'Builtins.mkNil
   mkNilOpaqueName <- lookupGhcName 'Builtins.mkNilOpaque
   boolOperatorOr <- lookupGhcName '(PlutusTx.Bool.||)
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
@@ -930,6 +930,44 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   listIndexId <- lookupGhcId '(PlutusTx.List.!!)
+
+  let
+    compileMkNil
+      :: (CompilingDefault uni fun m ann)
+      => GHC.Type
+      -> m (PIRTerm uni fun)
+    compileMkNil ty =
+      let
+        tyToUniverse :: GHC.Type -> Maybe (SomeTypeIn' PLC.DefaultUni)
+        tyToUniverse (GHC.TyConApp tyCon [tyArg1, tyArg2])
+          | tyCon == builtinPairTyCon = do
+              (SomeTypeIn' a) <- tyToUniverse tyArg1
+              (SomeTypeIn' b) <- tyToUniverse tyArg2
+              pure $ SomeTypeIn' (PLC.DefaultUniPair a b)
+          | otherwise = Nothing
+        tyToUniverse (GHC.TyConApp tyCon [tyArg1])
+          | tyCon == builtinListTyCon = do
+              (SomeTypeIn' a) <- tyToUniverse tyArg1
+              pure $ SomeTypeIn' (PLC.DefaultUniList a)
+          | tyCon == builtinArrayTyCon = do
+              (SomeTypeIn' a) <- tyToUniverse tyArg1
+              pure $ SomeTypeIn' (PLC.DefaultUniArray a)
+          | otherwise = Nothing
+        tyToUniverse (GHC.TyConApp tyCon [])
+          | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon =
+            pure $ SomeTypeIn' PLC.DefaultUniInteger
+          | tyCon == builtinByteStringTyCon = pure $ SomeTypeIn' PLC.DefaultUniByteString
+          | tyCon == GHC.boolTyCon = pure $ SomeTypeIn' PLC.DefaultUniBool
+          | tyCon == builtinDataTyCon = pure $ SomeTypeIn' PLC.DefaultUniData
+          | tyCon == builtinBLS12_G1_TyCon = pure $ SomeTypeIn' PLC.DefaultUniBLS12_381_G1_Element
+          | tyCon == builtinBLS12_G2_TyCon = pure $ SomeTypeIn' PLC.DefaultUniBLS12_381_G2_Element
+          | tyCon == builtinValueTyCon = pure $ SomeTypeIn' PLC.DefaultUniValue
+          | otherwise = Nothing
+        tyToUniverse _ = Nothing
+      in case tyToUniverse ty of
+           Just (SomeTypeIn' (ty' :: PLC.DefaultUni (PLC.Esc a))) ->
+             pure $ PLC.constant annMayInline $ PLC.Some $ PLC.ValueOf (PLC.DefaultUniList ty') []
+           Nothing -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
 
   case e of
     -- case integer
@@ -1092,23 +1130,9 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
     (strip -> GHC.Var n) `GHC.App` GHC.Type ty
-      | GHC.getName n == mkNilOpaqueName -> case ty of
-          GHC.TyConApp tyCon []
-            | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
-                pure $ PLC.mkConstant annMayInline ([] @Integer)
-            | tyCon == builtinByteStringTyCon ->
-                pure $ PLC.mkConstant annMayInline ([] @ByteString)
-            | tyCon == GHC.boolTyCon ->
-                pure $ PLC.mkConstant annMayInline ([] @Bool)
-            | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
-            | tyCon == builtinBLS12_G1_TyCon ->
-                pure $ PLC.mkConstant annMayInline ([] @BLS12_381_G1.Element)
-            | tyCon == builtinBLS12_G2_TyCon ->
-                pure $ PLC.mkConstant annMayInline ([] @BLS12_381_G2.Element)
-          GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
-            | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
-                pure $ PLC.mkConstant annMayInline ([] @(PLC.Data, PLC.Data))
-          _ -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
+      | GHC.getName n == mkNilOpaqueName -> compileMkNil ty
+    (strip -> GHC.Var n) `GHC.App` GHC.Type ty `GHC.App` _
+      | GHC.getName n == mkNilName -> compileMkNil ty
     GHC.Var n
       | GHC.getName n == useToOpaqueName ->
           throwPlain $
