@@ -9,9 +9,9 @@ import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseApply), Simp
                                                recordSimplification)
 
 caseApply
-    :: Monad m
-    => Term name uni fun a
-    -> SimplifierT name uni fun a m (Term name uni fun a)
+  :: Monad m
+  => Term name uni fun a
+  -> SimplifierT name uni fun a m (Term name uni fun a)
 caseApply term = do
   let result = processNestedApp term
   recordSimplification term CaseApply result
