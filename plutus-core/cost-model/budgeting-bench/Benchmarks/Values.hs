@@ -263,7 +263,7 @@ scaleValueBenchmark gen =
 
 scaleValueArgs :: (StatefulGen g m) => g -> m [(Integer, Value)]
 scaleValueArgs gen = do
-  let qty = mkQuantity . (floor :: Float -> Integer) . sqrt . fromInteger . unQuantity $ (maxBound :: Quantity)
+  let qty = mkQuantity . (floor :: Float -> Integer) . sqrt . fromInteger . unQuantity $ (2378247824 :: Quantity)
   vals <- replicateM 100 (generateValueWithQuantity qty gen)
   scalars <- genZeroOrAmount gen 100 (qty - 1)
   pure $ zip scalars vals
@@ -329,7 +329,7 @@ generateConstrainedValueWithMaxPolicy
   -> g
   -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
 generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g =
-  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy maxBound g
+  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy 191821 g
 
 -- | Generate constrained Value with information about max-size policy and quantity
 generateConstrainedValueWithMaxPolicyAndQuantity
@@ -423,7 +423,7 @@ genZeroOrMaxAmount
   -- ^ Number of amounts to generate
   -> m [Integer]
 genZeroOrMaxAmount gen n =
-  genZeroOrAmount gen n (maxBound :: Quantity)
+  genZeroOrAmount gen n (200000 :: Quantity)
 
 genZeroOrAmount
   :: (StatefulGen g m)
