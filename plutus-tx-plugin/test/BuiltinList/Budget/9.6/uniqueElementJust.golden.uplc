@@ -2,7 +2,7 @@
    1.1.0
    ((\take xs ->
        case
-         (force (force take) [] 1 xs)
+         (case (constr 0 [[], 1, xs]) [(force (force take))])
          [ (\x xs -> case xs [(\ds ds -> constr 1 []), (constr 0 [x])])
          , (constr 1 []) ])
       ((\f ->
@@ -19,10 +19,11 @@
                            [ (\x xs ->
                                 force mkCons
                                   x
-                                  (force (force (take (delay (\x -> x))))
-                                     `$dMkNil`
-                                     (subtractInteger n 1)
-                                     xs))
+                                  (case
+                                     (constr 0
+                                        [`$dMkNil`, (subtractInteger n 1), xs])
+                                     [ (force
+                                          (force (take (delay (\x -> x))))) ]))
                            , `$dMkNil` ])
                       , `$dMkNil` ])))
          (delay (\x -> x)))))

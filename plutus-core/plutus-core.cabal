@@ -222,6 +222,7 @@ library
     UntypedPlutusCore.Purity
     UntypedPlutusCore.Rename
     UntypedPlutusCore.Rename.Internal
+    UntypedPlutusCore.Transform.CaseApply
     UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.Cse
