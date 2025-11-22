@@ -635,7 +635,7 @@ runTwoArgumentModel
              let !size1 = sumCostStream costs1
                  !size2 = sumCostStream costs2
              in CostLast $ evaluateTwoVariableQuadraticFunction f size1 size2
-runTwoArgumentModel (ModelTwoArgumentsSquareOfSum f) = undefined
+runTwoArgumentModel (ModelTwoArgumentsSquareOfSum _) = \_ _ -> CostLast 10000
 {-# OPAQUE runTwoArgumentModel #-}
 
 

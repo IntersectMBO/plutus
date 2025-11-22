@@ -1267,11 +1267,11 @@
   },
   "unionValue": {
     "cpu": {
-    "arguments": 0,
+    "arguments": 10000,
     "type": "constant_cost"
     },
     "memory": {
-      "arguments": 0,
+      "arguments": 10000,
       "type": "constant_cost"
     }
   }
