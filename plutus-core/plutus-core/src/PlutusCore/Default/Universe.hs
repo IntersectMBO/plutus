@@ -50,7 +50,7 @@ import PlutusCore.Core.Type (Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Data (Data)
+import PlutusCore.Data (Data (Constr))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..),
                                                     ValueLogOuterSizeAddLogMaxInnerSize (..),
@@ -730,10 +730,27 @@ instance CaseBuiltin DefaultUni where
               case x of
                 (l, r) -> Right $ headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
             | otherwise -> Left $ outOfBoundsErr someVal branches
+        DefaultUniData ->
+          case x of
+            Constr ix ds
+              | 0 <= ix && ix < toInteger len ->
+                Right $
+                  headSpine
+                    (branches Vector.! (fromIntegral ix))
+                    (someValueOf DefaultUniData <$> ds)
+              | otherwise -> Left $ outOfBoundsErr someVal branches
+            _ -> Left "Only 'Constr' constructor can be cased"
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches
     {-# INLINE caseBuiltin #-}
+
+instance LetBuiltin DefaultUni where
+  letBuiltin _someVal@(Some (ValueOf uni x)) =
+    case uni of
+      DefaultUniList ty      -> Right $ someValueOf ty <$> x
+      DefaultUniPair tyL tyR -> Right [someValueOf tyL $ fst x, someValueOf tyR $ snd x]
+      _                      -> Left $ display uni <> "no"
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

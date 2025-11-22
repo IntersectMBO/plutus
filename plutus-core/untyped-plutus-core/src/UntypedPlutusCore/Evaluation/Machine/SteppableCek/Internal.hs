@@ -348,7 +348,7 @@ mkCekTrans
     -> Slippage
     -> m (CekTrans uni fun ann s, ExBudgetInfo cost uni fun s)
 mkCekTrans
-        (MachineParameters caser (MachineVariantParameters costs runtime))
+        (MachineParameters caser leter (MachineVariantParameters costs runtime))
         (ExBudgetMode getExBudgetInfo)
         (EmitterMode getEmitterMode)
         slippage = do
@@ -357,6 +357,7 @@ mkCekTrans
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekCaserBuiltin = caser
+        ?cekLeterBuiltin = leter
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs

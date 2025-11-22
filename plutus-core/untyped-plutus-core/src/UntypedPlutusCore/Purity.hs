@@ -214,6 +214,16 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
         <> evalThis (EvalTerm Pure MaybeWork t)
         -- then we go to an unknown scrutinee
         <> evalThis Unknown
+    t@(Bind _ body binds) ->
+      -- first binds
+      foldMap goTerm binds
+        -- then the body
+        <> goTerm body
+        -- then do the whole term
+        <> evalThis (EvalTerm Pure MaybeWork t)
+        <> case body of -- TODO: make sure this is correct
+             Let _ _ body' -> goTerm body'
+             _             -> evalThis Unknown
     -- Leaf terms
     t@Var{} ->
       evalThis (EvalTerm Pure WorkFree t)
@@ -227,6 +237,8 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
     t@Delay{} ->
       evalThis (EvalTerm Pure WorkFree t)
     t@LamAbs{} ->
+      evalThis (EvalTerm Pure WorkFree t)
+    t@Let{} ->
       evalThis (EvalTerm Pure WorkFree t)
     t@Constant{} ->
       evalThis (EvalTerm Pure WorkFree t)
