@@ -273,8 +273,22 @@ instance MkNil BuiltinData
 instance MkNil BuiltinValue
 instance MkNil BuiltinBLS12_381_G1_Element
 instance MkNil BuiltinBLS12_381_G2_Element
-instance (MkNil a) => MkNil (BuiltinList a)
-instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
+
+instance
+#if __GLASGOW_HASKELL__ < 914
+         -- This constraint is REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+         -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+         (MkNil a) =>
+#endif
+         MkNil (BuiltinList a)
+
+instance
+#if __GLASGOW_HASKELL__ < 914
+         -- These constraints are REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+         -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+         (MkNil a, MkNil b) =>
+#endif
+         MkNil (BuiltinPair a b)
 
 instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
   toOpaque = goList
