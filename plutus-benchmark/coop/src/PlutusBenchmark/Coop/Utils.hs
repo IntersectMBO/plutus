@@ -7,27 +7,25 @@ module PlutusBenchmark.Coop.Utils where
 import PlutusTx.Prelude
 import Prelude ()
 
-import PlutusLedgerApi.V1.Value (Value (Value), flattenValue, valueOf, withCurrencySymbol)
-import PlutusLedgerApi.V2 (CurrencySymbol, Datum (Datum), DatumHash,
-                           OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
-                           ScriptContext (ScriptContext), ScriptPurpose (Spending), TxId (TxId),
-                           TxInInfo (TxInInfo, txInInfoOutRef),
-                           TxInfo (TxInfo, txInfoInputs, txInfoMint), TxOut (TxOut, txOutValue),
-                           TxOutRef (TxOutRef))
-import PlutusTx.AssocMap (Map, lookup)
-import PlutusTx.AssocMap qualified as AssocMap
+import PlutusLedgerApi.V1 (Datum (Datum), DatumHash)
+import PlutusLedgerApi.V1.Data.Value
+import PlutusLedgerApi.V2.Data.Contexts
+import PlutusLedgerApi.V2.Data.Tx
+import PlutusTx.BuiltinList qualified as BIList
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.List (find)
+import PlutusTx.Data.AssocMap (Map, lookup)
+import PlutusTx.Data.AssocMap qualified as AssocMap
+import PlutusTx.Data.List (List, find)
 
-findOwnInput :: [TxInInfo] -> TxOutRef -> TxInInfo
-findOwnInput inputs oref =
+findOwnInput' :: List TxInInfo -> TxOutRef -> TxInInfo
+findOwnInput' inputs oref =
   case find (\i -> txInInfoOutRef i == oref) inputs of
     Nothing -> traceError "findOwnInput: not found"
     Just x  -> x
 
 mustBurnOwnSingletonValue :: ScriptContext -> BuiltinUnit
 mustBurnOwnSingletonValue (ScriptContext (TxInfo {..}) (Spending oref)) =
-  let (TxInInfo _ (TxOut {txOutValue = ownInputValue})) = findOwnInput txInfoInputs oref
+  let (TxInInfo _ (TxOut {txOutValue = ownInputValue})) = findOwnInput' txInfoInputs oref
   -- flattenValue actually reverses order. See plutus#7173.
   in case flattenValue ownInputValue of
     [(cs, tk, q), _ada] ->
@@ -47,25 +45,32 @@ resolveDatum datums outputDatum =
         Nothing        -> traceError "expected datum but given datum hash have no associated datum"
         Just (Datum d) -> unsafeFromBuiltinData @a d
     OutputDatum (Datum d) -> unsafeFromBuiltinData @a d
+{-# INLINE resolveDatum #-}
 
 currencyValue :: CurrencySymbol -> Value -> Value
 currencyValue cs val = withCurrencySymbol cs val mempty (\v -> Value $ AssocMap.singleton cs v)
+{-# INLINE currencyValue #-}
 
 unsafeMergeMap :: AssocMap.Map k v -> AssocMap.Map k v -> AssocMap.Map k v
-unsafeMergeMap x y = AssocMap.unsafeFromList (AssocMap.toList x <> AssocMap.toList y)
+unsafeMergeMap x y = AssocMap.unsafeFromBuiltinList (BIList.append (AssocMap.toBuiltinList x) (AssocMap.toBuiltinList y))
+{-# INLINE unsafeMergeMap #-}
 
 hashInput :: TxInInfo -> BuiltinByteString
 hashInput (TxInInfo (TxOutRef (TxId hash) idx) _)
   | idx < 256 = blake2b_256 (consByteString idx hash)
   | otherwise = traceError "hashInput: Transaction output index must fit in an octet"
+{-# INLINE hashInput #-}
 
 errorIfFalse :: BuiltinString -> Bool -> BuiltinUnit
 errorIfFalse msg False = traceError msg
 errorIfFalse _ True    = BI.unitval
+{-# INLINE errorIfFalse #-}
 
 errorIfTrue :: BuiltinString -> Bool -> BuiltinUnit
 errorIfTrue msg True = traceError msg
 errorIfTrue _ False  = BI.unitval
+{-# INLINE errorIfTrue #-}
 
 hasCurrency :: CurrencySymbol -> Value -> Bool
 hasCurrency cs (Value val) = AssocMap.member cs val
+{-# INLINE hasCurrency #-}

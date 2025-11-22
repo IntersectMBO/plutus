@@ -24,15 +24,16 @@ import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Traversable (for)
-import PlutusLedgerApi.V1.Address (pubKeyHashAddress, scriptHashAddress)
-import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V2 hiding (Map)
-import PlutusTx.AssocMap qualified as AssocMap
+import PlutusLedgerApi.Data.V2 hiding (Map)
+import PlutusLedgerApi.V1.Data.Address (pubKeyHashAddress, scriptHashAddress)
+import PlutusLedgerApi.V1.Data.Value
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
+import PlutusTx.Data.AssocMap qualified as AssocMap
+import PlutusTx.Data.List qualified as Li
 
 import PlutusBenchmark.Coop.Types
-import PlutusLedgerApi.V1.Interval (interval)
-import PlutusLedgerApi.V2 qualified as Value
+import PlutusLedgerApi.Data.V2 qualified as Value
+import PlutusLedgerApi.V1.Data.Interval (interval)
 import PlutusTx.Prelude (Group (inv))
 
 mkScriptContext :: ScriptPurpose -> [TxInInfo] -> [TxInInfo] -> Value -> [TxOut] -> [PubKeyHash] -> ScriptContext
@@ -49,11 +50,11 @@ mkTxInfo ins refs mints outs sigs =
     , txInfoData = AssocMap.empty
     , txInfoId = ""
     , txInfoRedeemers = AssocMap.empty
-    , txInfoInputs = sortOn (\(TxInInfo i _) -> i) ins
-    , txInfoReferenceInputs = sortOn (\(TxInInfo i _) -> i) refs
+    , txInfoInputs = Li.fromSOP $ sortOn (\(TxInInfo i _) -> i) ins
+    , txInfoReferenceInputs = Li.fromSOP $ sortOn (\(TxInInfo i _) -> i) refs
     , txInfoMint = normalizeValue mints
-    , txInfoOutputs = outs
-    , txInfoSignatories = sigs
+    , txInfoOutputs = Li.fromSOP outs
+    , txInfoSignatories = Li.fromSOP sigs
     }
 
 setValidity :: ScriptContext -> Value.POSIXTimeRange -> ScriptContext
@@ -413,14 +414,14 @@ genCorrectFsMpBurningCtx fsMpParams fsCs = do
   fsMintCtx <- genCorrectFsMpMintingCtx fsMpParams fsCs
   (otherIns, otherMint, otherOuts) <- genOthers 5
 
-  let fsVOuts = [out | out <- txInfoOutputs . scriptContextTxInfo $ fsMintCtx, txOutAddress out == fsVAddr]
+  let fsVOuts = Li.fromSOP [out | out <- Li.toSOP (txInfoOutputs . scriptContextTxInfo $ fsMintCtx), txOutAddress out == fsVAddr]
 
-  fsIns <- for fsVOuts (\fsOut -> TxInInfo <$> genTxOutRef <*> pure fsOut)
+  fsIns <- for (Li.toSOP fsVOuts) (\fsOut -> TxInInfo <$> genTxOutRef <*> pure fsOut)
 
-  let fsDatums = [fsDat | out <- fsVOuts, OutputDatum (Datum dat) <- [txOutDatum out], fsDat <- maybe [] pure (fromBuiltinData @FsDatum dat)]
-      gcAfter = maximum [fs'gcAfter fsDatum | fsDatum <- fsDatums]
-      submitters = [fs'submitter fsDatum | fsDatum <- fsDatums]
-      fsBurned = mconcat [inv $ txOutValue fsVOut | fsVOut <- fsVOuts]
+  let fsDatums = Li.fromSOP [fsDat | out <- Li.toSOP fsVOuts, OutputDatum (Datum dat) <- [txOutDatum out], fsDat <- maybe [] pure (fromBuiltinData @FsDatum dat)]
+      gcAfter = maximum [fs'gcAfter fsDatum | fsDatum <- Li.toSOP fsDatums]
+      submitters = [fs'submitter fsDatum | fsDatum <- Li.toSOP fsDatums]
+      fsBurned = mconcat [inv $ txOutValue fsVOut | fsVOut <- Li.toSOP fsVOuts]
       ins = otherIns <> fsIns
       mint = otherMint <> fsBurned
       outs = otherOuts
@@ -609,8 +610,8 @@ doMintAndPayOtherTokenName cs ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoMint = txInfoMint txInfo <> assetClassValue otherAc (toInteger . length . txInfoOutputs $ txInfo)
-              , txInfoOutputs = txInfoOutputs txInfo <> [out {txOutValue = assetClassValue otherAc 1 <> txOutValue out} | out <- txInfoOutputs txInfo]
+              { txInfoMint = txInfoMint txInfo <> assetClassValue otherAc (Li.length . txInfoOutputs $ txInfo)
+              , txInfoOutputs = txInfoOutputs txInfo <> Li.fromSOP [out {txOutValue = assetClassValue otherAc 1 <> txOutValue out} | out <- Li.toSOP (txInfoOutputs txInfo)]
               }
         }
 
@@ -623,7 +624,7 @@ doMintAndPayOtherTokenNameAddr cs addr ctx =
         { scriptContextTxInfo =
             txInfo
               { txInfoMint = txInfoMint txInfo <> assetClassValue otherAc 1
-              , txInfoOutputs = txInfoOutputs txInfo <> [TxOut addr (assetClassValue otherAc 1) NoOutputDatum Nothing]
+              , txInfoOutputs = txInfoOutputs txInfo <> Li.fromSOP [TxOut addr (assetClassValue otherAc 1) NoOutputDatum Nothing]
               }
         }
 
@@ -634,7 +635,7 @@ doRemoveOutputDatum ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoOutputs = [out {txOutDatum = NoOutputDatum} | out <- txInfoOutputs txInfo]
+              { txInfoOutputs = Li.fromSOP [out {txOutDatum = NoOutputDatum} | out <- Li.toSOP (txInfoOutputs txInfo)]
               }
         }
 
@@ -645,7 +646,7 @@ doPayToOtherAddress originalAddr otherAddr ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoOutputs = [out {txOutAddress = otherAddr} | out <- txInfoOutputs txInfo, txOutAddress out == originalAddr]
+              { txInfoOutputs = Li.fromSOP [out {txOutAddress = otherAddr} | out <- Li.toSOP (txInfoOutputs txInfo), txOutAddress out == originalAddr]
               }
         }
 
@@ -656,7 +657,7 @@ doRemoveInputsWithToken ac ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoInputs = [inp | inp@(TxInInfo _ inOut) <- txInfoInputs txInfo, assetClassValueOf (txOutValue inOut) ac > 0]
+              { txInfoInputs = Li.fromSOP [inp | inp@(TxInInfo _ inOut) <- Li.toSOP (txInfoInputs txInfo), assetClassValueOf (txOutValue inOut) ac > 0]
               }
         }
 
@@ -667,7 +668,7 @@ doRemoveRefInputsWithCurrency cs ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoReferenceInputs = [inp | inp@(TxInInfo _ inOut) <- txInfoReferenceInputs txInfo, not . AssocMap.member cs $ getValue (txOutValue inOut)]
+              { txInfoReferenceInputs = Li.fromSOP [inp | inp@(TxInInfo _ inOut) <- Li.toSOP (txInfoReferenceInputs txInfo), not . AssocMap.member cs $ getValue (txOutValue inOut)]
               }
         }
 
@@ -678,7 +679,7 @@ doRemoveInputsWithCurrency cs ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoInputs = [inp | inp@(TxInInfo _ inOut) <- txInfoInputs txInfo, not . AssocMap.member cs $ getValue (txOutValue inOut)]
+              { txInfoInputs = Li.fromSOP [inp | inp@(TxInInfo _ inOut) <- Li.toSOP (txInfoInputs txInfo), not . AssocMap.member cs $ getValue (txOutValue inOut)]
               }
         }
 
@@ -692,7 +693,7 @@ doPayInsteadOfBurn addr ctx =
         { scriptContextTxInfo =
             txInfo
               { txInfoMint = mintedVal
-              , txInfoOutputs = txInfoOutputs txInfo <> [TxOut addr (inv burnedVal) NoOutputDatum Nothing]
+              , txInfoOutputs = txInfoOutputs txInfo <> (Li.singleton $ TxOut addr (inv burnedVal) NoOutputDatum Nothing)
               }
         }
 
@@ -724,17 +725,17 @@ _doNothing = id
 -- TODO: Switch to mlabs-haskell/plutus-simple-model (that's why you need it)
 normalizeValue :: Value -> Value
 normalizeValue v =
-  Value . AssocMap.safeFromList . Map.toList . (AssocMap.safeFromList . Map.toList <$>) $
+  Value . AssocMap.safeFromSOPList . Map.toList . (AssocMap.safeFromSOPList . Map.toList <$>) $
     Map.unionsWith
       (Map.unionWith (+))
       ( [ Map.singleton cs (Map.singleton tn q)
-        | (cs, tokens) <- AssocMap.toList . getValue $ v
-        , (tn, q) <- AssocMap.toList tokens
+        | (cs, tokens) <- AssocMap.toSOPList . getValue $ v
+        , (tn, q) <- AssocMap.toSOPList tokens
         ]
       )
 
 -- | Creates an interval with Extended bounds
-interval' :: forall a. Extended a -> Extended a -> Interval a
+interval' :: (ToData a, UnsafeFromData a) => Extended a -> Extended a -> Interval a
 interval' from' to' = Interval (LowerBound from' False) (UpperBound to' False)
 
 hashTxInputs :: [TxInInfo] -> ByteString

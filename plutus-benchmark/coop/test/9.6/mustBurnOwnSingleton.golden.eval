@@ -1,6 +1,3 @@
-CPU:               114_113_035
-Memory:                579_805
-AST Size:                1_274
-Flat Size:               3_833
-
-(con unit ())
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: error
