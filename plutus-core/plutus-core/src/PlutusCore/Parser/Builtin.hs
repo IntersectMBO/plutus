@@ -25,7 +25,7 @@ import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Text.Megaparsec (customFailure, getSourcePos, takeWhileP)
+import Text.Megaparsec (customFailure, getSourcePos, takeWhileP, try)
 import Text.Megaparsec.Char (char, hexDigitChar, string)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
@@ -155,7 +155,7 @@ conBLS12_381_G2_Element = do
 -- | Parser for constants of the given type.
 constantOf :: ExpectParens -> DefaultUni (Esc a) -> Parser a
 constantOf expectParens uni =
-  case uni of
+  try (trailingWhitespace . inParens $ constantOf ExpectParensNo uni) <|> case uni of
     DefaultUniInteger                                                 -> conInteger
     DefaultUniByteString                                              -> conBS
     DefaultUniString                                                  -> conText
