@@ -1,0 +1,2478 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Compiler.Types</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.52.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Compiler.Types.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Compiler.Types</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Scope"
+	      >Scope</a
+	      > uni fun = <a href="#v:Scope"
+	      >Scope</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > (<a href="PlutusTx-PLCTypes.html#t:PLCVar" title="PlutusTx.PLCTypes"
+	      >PLCVar</a
+	      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun))) (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > <a href="PlutusTx-PLCTypes.html#t:PLCTyVar" title="PlutusTx.PLCTypes"
+	      >PLCTyVar</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Verbosity"
+	      >Verbosity</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Quiet"
+		  >Quiet</a
+		  ></li
+		><li
+		>| <a href="#v:Verbose"
+		  >Verbose</a
+		  ></li
+		><li
+		>| <a href="#v:Debug"
+		  >Debug</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Compiling"
+	      >Compiling</a
+	      > uni fun m ann = (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	      >CompileError</a
+	      > uni fun ann) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	      >CompileContext</a
+	      > uni fun) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+	      >MonadState</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:CompileState" title="PlutusTx.Compiler.Types"
+	      >CompileState</a
+	      > m, <a href="../plutus-core/PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	      >LexName</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	      >MonadWriter</a
+	      > <a href="../plutus-tx/PlutusTx-Coverage.html#t:CoverageIndex" title="PlutusTx.Coverage"
+	      >CoverageIndex</a
+	      > m)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:NameInfo"
+	      >NameInfo</a
+	      > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-TyThing.html#t:TyThing" title="GHC.Types.TyThing"
+	      >TyThing</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CompileOptions"
+	      >CompileOptions</a
+	      > = <a href="#v:CompileOptions"
+	      >CompileOptions</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:coProfile"
+		  >coProfile</a
+		  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+		  >ProfileOpts</a
+		  ></li
+		><li
+		><a href="#v:coCoverage"
+		  >coCoverage</a
+		  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageOpts" title="PlutusTx.Compiler.Types"
+		  >CoverageOpts</a
+		  ></li
+		><li
+		><a href="#v:coDatatypeStyle"
+		  >coDatatypeStyle</a
+		  > &#8759; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+		  >DatatypeStyle</a
+		  ></li
+		><li
+		><a href="#v:coRemoveTrace"
+		  >coRemoveTrace</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:coInlineFix"
+		  >coInlineFix</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ProfileOpts"
+	      >ProfileOpts</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:All"
+		  >All</a
+		  ></li
+		><li
+		>| <a href="#v:None"
+		  >None</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CoverageOpts"
+	      >CoverageOpts</a
+	      > = <a href="#v:CoverageOpts"
+	      >CoverageOpts</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unCoverageOpts"
+		  >unCoverageOpts</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+		  >Set</a
+		  > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+		  >CoverageType</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CompileContext"
+	      >CompileContext</a
+	      > uni fun = <a href="#v:CompileContext"
+	      >CompileContext</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:ccOpts"
+		  >ccOpts</a
+		  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompileOptions" title="PlutusTx.Compiler.Types"
+		  >CompileOptions</a
+		  ></li
+		><li
+		><a href="#v:ccFlags"
+		  >ccFlags</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Session.html#t:DynFlags" title="GHC.Driver.Session"
+		  >DynFlags</a
+		  ></li
+		><li
+		><a href="#v:ccFamInstEnvs"
+		  >ccFamInstEnvs</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-FamInstEnv.html#t:FamInstEnvs" title="GHC.Core.FamInstEnv"
+		  >FamInstEnvs</a
+		  ></li
+		><li
+		><a href="#v:ccNameInfo"
+		  >ccNameInfo</a
+		  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:NameInfo" title="PlutusTx.Compiler.Types"
+		  >NameInfo</a
+		  ></li
+		><li
+		><a href="#v:ccScope"
+		  >ccScope</a
+		  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Scope" title="PlutusTx.Compiler.Types"
+		  >Scope</a
+		  > uni fun</li
+		><li
+		><a href="#v:ccBlackholed"
+		  >ccBlackholed</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+		  >Set</a
+		  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		  >Name</a
+		  ></li
+		><li
+		><a href="#v:ccCurDef"
+		  >ccCurDef</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+		  >LexName</a
+		  ></li
+		><li
+		><a href="#v:ccModBreaks"
+		  >ccModBreaks</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-ByteCode-Types.html#t:ModBreaks" title="GHC.ByteCode.Types"
+		  >ModBreaks</a
+		  ></li
+		><li
+		><a href="#v:ccBuiltinsInfo"
+		  >ccBuiltinsInfo</a
+		  > &#8759; <a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun</li
+		><li
+		><a href="#v:ccBuiltinCostModel"
+		  >ccBuiltinCostModel</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		  >CostingPart</a
+		  > uni fun</li
+		><li
+		><a href="#v:ccDebugTraceOn"
+		  >ccDebugTraceOn</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:ccRewriteRules"
+		  >ccRewriteRules</a
+		  > &#8759; <a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+		  >RewriteRules</a
+		  > uni fun</li
+		><li
+		><a href="#v:ccSafeToInline"
+		  >ccSafeToInline</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:LexName"
+	      >LexName</a
+	      > = <a href="#v:LexName"
+	      >LexName</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CompileState"
+	      >CompileState</a
+	      > = <a href="#v:CompileState"
+	      >CompileState</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:csNextStep"
+		  >csNextStep</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:csPreviousSteps"
+		  >csPreviousSteps</a
+		  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  >]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CoverageType"
+	      >CoverageType</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:LocationCoverage"
+		  >LocationCoverage</a
+		  ></li
+		><li
+		>| <a href="#v:BooleanCoverage"
+		  >BooleanCoverage</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:CompilingDefault"
+	      >CompilingDefault</a
+	      > uni fun m ann = (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >, <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann)</li
+	    ><li class="src short"
+	    ><a href="#v:stableModuleCmp"
+	      >stableModuleCmp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Unit-Types.html#t:Module" title="GHC.Unit.Types"
+	      >Module</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Unit-Types.html#t:Module" title="GHC.Unit.Types"
+	      >Module</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+	      >Ordering</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stableNameCmp"
+	      >stableNameCmp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+	      >Ordering</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:activeCoverageTypes"
+	      >activeCoverageTypes</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompileOptions" title="PlutusTx.Compiler.Types"
+	      >CompileOptions</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+	      >CoverageType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:blackhole"
+	      >blackhole</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	      >CompileContext</a
+	      > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > &#8594; m a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:blackholed"
+	      >blackholed</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	      >CompileContext</a
+	      > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:initialScope"
+	      >initialScope</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Scope" title="PlutusTx.Compiler.Types"
+	      >Scope</a
+	      > uni fun</li
+	    ><li class="src short"
+	    ><a href="#v:withCurDef"
+	      >withCurDef</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	      >LexName</a
+	      > &#8594; m a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:modifyCurDeps"
+	      >modifyCurDeps</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	      >LexName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	      >LexName</a
+	      >) &#8594; m ()</li
+	    ><li class="src short"
+	    >module <a href="../plutus-core/PlutusCore-Annotation.html"
+	      >PlutusCore.Annotation</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Scope" class="def"
+	    >Scope</a
+	    > uni fun <a href="src/PlutusTx.Compiler.Types.html#Scope" class="link"
+	    >Source</a
+	    > <a href="#t:Scope" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Scope" class="def"
+		  >Scope</a
+		  > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+		  >Map</a
+		  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		  >Name</a
+		  > (<a href="PlutusTx-PLCTypes.html#t:PLCVar" title="PlutusTx.PLCTypes"
+		  >PLCVar</a
+		  > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+		  >PIRTerm</a
+		  > uni fun))) (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+		  >Map</a
+		  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		  >Name</a
+		  > <a href="PlutusTx-PLCTypes.html#t:PLCTyVar" title="PlutusTx.PLCTypes"
+		  >PLCTyVar</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Verbosity" class="def"
+	    >Verbosity</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#Verbosity" class="link"
+	    >Source</a
+	    > <a href="#t:Verbosity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Verbosity level of the Plutus Tx compiler.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Quiet" class="def"
+		  >Quiet</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Verbose" class="def"
+		  >Verbose</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Debug" class="def"
+		  >Debug</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Verbosity"
+	    >Instances</h4
+	    ><details id="i:Verbosity" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Verbosity:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+		      >Verbosity</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Verbosity" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Verbosity:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Verbosity:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+		      >Verbosity</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Verbosity" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Verbosity:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Verbosity:Pretty:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+		      >Verbosity</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-91" class="link"
+		    >Source</a
+		    > <a href="#t:Verbosity" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Verbosity:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Compiling" class="def"
+	    >Compiling</a
+	    > uni fun m ann = (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	    >CompileError</a
+	    > uni fun ann) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	    >CompileContext</a
+	    > uni fun) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+	    >MonadState</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:CompileState" title="PlutusTx.Compiler.Types"
+	    >CompileState</a
+	    > m, <a href="../plutus-core/PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	    >LexName</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	    >MonadWriter</a
+	    > <a href="../plutus-tx/PlutusTx-Coverage.html#t:CoverageIndex" title="PlutusTx.Coverage"
+	    >CoverageIndex</a
+	    > m) <a href="src/PlutusTx.Compiler.Types.html#Compiling" class="link"
+	    >Source</a
+	    > <a href="#t:Compiling" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:NameInfo" class="def"
+	    >NameInfo</a
+	    > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-TyThing.html#t:TyThing" title="GHC.Types.TyThing"
+	    >TyThing</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#NameInfo" class="link"
+	    >Source</a
+	    > <a href="#t:NameInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CompileOptions" class="def"
+	    >CompileOptions</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#CompileOptions" class="link"
+	    >Source</a
+	    > <a href="#t:CompileOptions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compilation options.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CompileOptions" class="def"
+		  >CompileOptions</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:coProfile" class="def"
+			  >coProfile</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coCoverage" class="def"
+			  >coCoverage</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageOpts" title="PlutusTx.Compiler.Types"
+			  >CoverageOpts</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coDatatypeStyle" class="def"
+			  >coDatatypeStyle</a
+			  > &#8759; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coRemoveTrace" class="def"
+			  >coRemoveTrace</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coInlineFix" class="def"
+			  >coInlineFix</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ProfileOpts" class="def"
+	    >ProfileOpts</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#ProfileOpts" class="link"
+	    >Source</a
+	    > <a href="#t:ProfileOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Profiling options. <code
+	      >All</code
+	      > profiles everything. <code
+	      >None</code
+	      > is the default.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:All" class="def"
+		  >All</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:None" class="def"
+		  >None</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ProfileOpts"
+	    >Instances</h4
+	    ><details id="i:ProfileOpts" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ProfileOpts:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+		      >ProfileOpts</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:ProfileOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ProfileOpts:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ProfileOpts:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+		      >ProfileOpts</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:ProfileOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ProfileOpts:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ProfileOpts:Pretty:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+		      >ProfileOpts</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:ProfileOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ProfileOpts:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CoverageOpts" class="def"
+	    >CoverageOpts</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#CoverageOpts" class="link"
+	    >Source</a
+	    > <a href="#t:CoverageOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Coverage options
+See Note [Coverage annotations]</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CoverageOpts" class="def"
+		  >CoverageOpts</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unCoverageOpts" class="def"
+			  >unCoverageOpts</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+			  >Set</a
+			  > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CompileContext" class="def"
+	    >CompileContext</a
+	    > uni fun <a href="src/PlutusTx.Compiler.Types.html#CompileContext" class="link"
+	    >Source</a
+	    > <a href="#t:CompileContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CompileContext" class="def"
+		  >CompileContext</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:ccOpts" class="def"
+			  >ccOpts</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompileOptions" title="PlutusTx.Compiler.Types"
+			  >CompileOptions</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccFlags" class="def"
+			  >ccFlags</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Session.html#t:DynFlags" title="GHC.Driver.Session"
+			  >DynFlags</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccFamInstEnvs" class="def"
+			  >ccFamInstEnvs</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-FamInstEnv.html#t:FamInstEnvs" title="GHC.Core.FamInstEnv"
+			  >FamInstEnvs</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccNameInfo" class="def"
+			  >ccNameInfo</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:NameInfo" title="PlutusTx.Compiler.Types"
+			  >NameInfo</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccScope" class="def"
+			  >ccScope</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Scope" title="PlutusTx.Compiler.Types"
+			  >Scope</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccBlackholed" class="def"
+			  >ccBlackholed</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+			  >Set</a
+			  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+			  >Name</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccCurDef" class="def"
+			  >ccCurDef</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccModBreaks" class="def"
+			  >ccModBreaks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-ByteCode-Types.html#t:ModBreaks" title="GHC.ByteCode.Types"
+			  >ModBreaks</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccBuiltinsInfo" class="def"
+			  >ccBuiltinsInfo</a
+			  > &#8759; <a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+			  >BuiltinsInfo</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccBuiltinCostModel" class="def"
+			  >ccBuiltinCostModel</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccDebugTraceOn" class="def"
+			  >ccDebugTraceOn</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccRewriteRules" class="def"
+			  >ccRewriteRules</a
+			  > &#8759; <a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+			  >RewriteRules</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:ccSafeToInline" class="def"
+			  >ccSafeToInline</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:LexName" class="def"
+	    >LexName</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#LexName" class="link"
+	    >Source</a
+	    > <a href="#t:LexName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A wrapper around <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		>Name</a
+		></code
+	      > with a stable <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		>Ord</a
+		></code
+	      > instance. Use this where the ordering
+will affect the output of the compiler, i.e. when sorting or so on. It's  fine to use
+<code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		>Name</a
+		></code
+	      > if we're just putting them in a <code
+	      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+		>Set</a
+		></code
+	      >, for example.</p
+	    ><p
+	    >The <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		>Eq</a
+		></code
+	      > instance we derive - it's also not stable across builds, but I believe this is only
+a problem if you compare things from different builds, which we don't do.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:LexName" class="def"
+		  >LexName</a
+		  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		  >Name</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:LexName"
+	    >Instances</h4
+	    ><details id="i:LexName" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LexName:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+		      >LexName</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-150" class="link"
+		    >Source</a
+		    > <a href="#t:LexName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LexName:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LexName:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+		      >LexName</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-148" class="link"
+		    >Source</a
+		    > <a href="#t:LexName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LexName:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LexName:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+		      >LexName</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-153" class="link"
+		    >Source</a
+		    > <a href="#t:LexName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LexName:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+			  >LexName</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CompileState" class="def"
+	    >CompileState</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#CompileState" class="link"
+	    >Source</a
+	    > <a href="#t:CompileState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CompileState" class="def"
+		  >CompileState</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:csNextStep" class="def"
+			  >csNextStep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >The ID of the next step to be taken by the PlutusTx compiler.
+  This is used when generating debug traces.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:csPreviousSteps" class="def"
+			  >csPreviousSteps</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  >]</dfn
+			><div class="doc"
+			><p
+			  >The IDs of the previous steps taken by the PlutusTx compiler leading up to
+  the current point. This is used when generating debug traces.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CoverageType" class="def"
+	    >CoverageType</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#CoverageType" class="link"
+	    >Source</a
+	    > <a href="#t:CoverageType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Option `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-all #-}` enables all these
+See Note [Adding more coverage annotations].
+See Note [Coverage order]</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:LocationCoverage" class="def"
+		  >LocationCoverage</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Check that all source locations that we can identify in GHC Core have been covered.
+    For this to work at all we need `{-# OPTIONS_GHC -g #-}`
+    turn on with `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-location #-}`</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BooleanCoverage" class="def"
+		  >BooleanCoverage</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Check that every boolean valued expression that isn't <code
+		    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+		      >True</a
+		      ></code
+		    > or <code
+		    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+		      >False</a
+		      ></code
+		    > for which
+    we know the source location have been covered. For this to work at all we need
+    `{-# OPTIONS_GHC -g #-}` turn on with
+    `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-}`</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CoverageType"
+	    >Instances</h4
+	    ><details id="i:CoverageType" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CoverageType:Bounded:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+		      >CoverageType</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:CoverageType" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CoverageType:Bounded:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CoverageType:Enum:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+		      >CoverageType</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:CoverageType" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CoverageType:Enum:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; [<a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; [<a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; [<a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; [<a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CoverageType:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+		      >CoverageType</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:CoverageType" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CoverageType:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CoverageType:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+		      >CoverageType</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:CoverageType" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CoverageType:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CoverageType:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+		      >CoverageType</a
+		      ></span
+		    > <a href="src/PlutusTx.Compiler.Types.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:CoverageType" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CoverageType:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Types.html"
+			>PlutusTx.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > &#8594; <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+			  >CoverageType</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:CompilingDefault" class="def"
+	    >CompilingDefault</a
+	    > uni fun m ann = (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >, <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann) <a href="src/PlutusTx.Compiler.Types.html#CompilingDefault" class="link"
+	    >Source</a
+	    > <a href="#t:CompilingDefault" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stableModuleCmp" class="def"
+	    >stableModuleCmp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Unit-Types.html#t:Module" title="GHC.Unit.Types"
+	    >Module</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Unit-Types.html#t:Module" title="GHC.Unit.Types"
+	    >Module</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+	    >Ordering</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#stableModuleCmp" class="link"
+	    >Source</a
+	    > <a href="#v:stableModuleCmp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Our own version of <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Unit-Module.html#v:stableModuleCmp" title="GHC.Unit.Module"
+		>stableModuleCmp</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stableNameCmp" class="def"
+	    >stableNameCmp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+	    >Ordering</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#stableNameCmp" class="link"
+	    >Source</a
+	    > <a href="#v:stableNameCmp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Our own version of <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#v:stableNameCmp" title="GHC.Types.Name"
+		>stableNameCmp</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:activeCoverageTypes" class="def"
+	    >activeCoverageTypes</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompileOptions" title="PlutusTx.Compiler.Types"
+	    >CompileOptions</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:CoverageType" title="PlutusTx.Compiler.Types"
+	    >CoverageType</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#activeCoverageTypes" class="link"
+	    >Source</a
+	    > <a href="#v:activeCoverageTypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the coverage types we are using</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:blackhole" class="def"
+	    >blackhole</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	    >CompileContext</a
+	    > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > &#8594; m a &#8594; m a <a href="src/PlutusTx.Compiler.Types.html#blackhole" class="link"
+	    >Source</a
+	    > <a href="#v:blackhole" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:blackholed" class="def"
+	    >blackholed</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	    >CompileContext</a
+	    > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Compiler.Types.html#blackholed" class="link"
+	    >Source</a
+	    > <a href="#v:blackholed" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:initialScope" class="def"
+	    >initialScope</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Scope" title="PlutusTx.Compiler.Types"
+	    >Scope</a
+	    > uni fun <a href="src/PlutusTx.Compiler.Types.html#initialScope" class="link"
+	    >Source</a
+	    > <a href="#v:initialScope" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withCurDef" class="def"
+	    >withCurDef</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	    >LexName</a
+	    > &#8594; m a &#8594; m a <a href="src/PlutusTx.Compiler.Types.html#withCurDef" class="link"
+	    >Source</a
+	    > <a href="#v:withCurDef" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:modifyCurDeps" class="def"
+	    >modifyCurDeps</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	    >LexName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:LexName" title="PlutusTx.Compiler.Types"
+	    >LexName</a
+	    >) &#8594; m () <a href="src/PlutusTx.Compiler.Types.html#modifyCurDeps" class="link"
+	    >Source</a
+	    > <a href="#v:modifyCurDeps" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  >module <a href="../plutus-core/PlutusCore-Annotation.html"
+	    >PlutusCore.Annotation</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

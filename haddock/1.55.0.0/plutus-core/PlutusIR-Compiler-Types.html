@@ -1,0 +1,3621 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Compiler.Types</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Compiler.Types.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Compiler.Types</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:AllowEscape"
+	      >AllowEscape</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:YesEscape"
+		  >YesEscape</a
+		  ></li
+		><li
+		>| <a href="#v:NoEscape"
+		  >NoEscape</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PirTCConfig"
+	      >PirTCConfig</a
+	      > uni fun = <a href="#v:PirTCConfig"
+	      >PirTCConfig</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_pirConfigTCConfig"
+		  >_pirConfigTCConfig</a
+		  > &#8759; <a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+		  >TypeCheckConfig</a
+		  > uni fun</li
+		><li
+		><a href="#v:_pirConfigAllowEscape"
+		  >_pirConfigAllowEscape</a
+		  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:AllowEscape" title="PlutusIR.Compiler.Types"
+		  >AllowEscape</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:pirConfigTCConfig"
+	      >pirConfigTCConfig</a
+	      > &#8759; &#8704; uni fun uni fun. Lens (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun) (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun) (<a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+	      >TypeCheckConfig</a
+	      > uni fun) (<a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+	      >TypeCheckConfig</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:pirConfigAllowEscape"
+	      >pirConfigAllowEscape</a
+	      > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun) <a href="PlutusIR-Compiler-Types.html#t:AllowEscape" title="PlutusIR.Compiler.Types"
+	      >AllowEscape</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DatatypeStyle"
+	      >DatatypeStyle</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:ScottEncoding"
+		  >ScottEncoding</a
+		  ></li
+		><li
+		>| <a href="#v:SumsOfProducts"
+		  >SumsOfProducts</a
+		  ></li
+		><li
+		>| <a href="#v:BuiltinCasing"
+		  >BuiltinCasing</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:DatatypeCompilationOpts"
+	      >DatatypeCompilationOpts</a
+	      > = <a href="#v:DatatypeCompilationOpts"
+	      >DatatypeCompilationOpts</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_dcoStyle"
+		  >_dcoStyle</a
+		  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+		  >DatatypeStyle</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:dcoStyle"
+	      >dcoStyle</a
+	      > &#8759; Iso' <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	      >DatatypeCompilationOpts</a
+	      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+	      >DatatypeStyle</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultDatatypeCompilationOpts"
+	      >defaultDatatypeCompilationOpts</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	      >DatatypeCompilationOpts</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CompilationOpts"
+	      >CompilationOpts</a
+	      > a = <a href="#v:CompilationOpts"
+	      >CompilationOpts</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_coOptimize"
+		  >_coOptimize</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coTypecheck"
+		  >_coTypecheck</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coPedantic"
+		  >_coPedantic</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coVerbose"
+		  >_coVerbose</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDebug"
+		  >_coDebug</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDatatypes"
+		  >_coDatatypes</a
+		  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+		  >DatatypeCompilationOpts</a
+		  ></li
+		><li
+		><a href="#v:_coMaxSimplifierIterations"
+		  >_coMaxSimplifierIterations</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierUnwrapCancel"
+		  >_coDoSimplifierUnwrapCancel</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierCaseReduce"
+		  >_coDoSimplifierCaseReduce</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierRewrite"
+		  >_coDoSimplifierRewrite</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierBeta"
+		  >_coDoSimplifierBeta</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierInline"
+		  >_coDoSimplifierInline</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierKnownCon"
+		  >_coDoSimplifierKnownCon</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierCaseOfCase"
+		  >_coDoSimplifierCaseOfCase</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierEvaluateBuiltins"
+		  >_coDoSimplifierEvaluateBuiltins</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierStrictifyBindings"
+		  >_coDoSimplifierStrictifyBindings</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coDoSimplifierRemoveDeadBindings"
+		  >_coDoSimplifierRemoveDeadBindings</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coInlineHints"
+		  >_coInlineHints</a
+		  > &#8759; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+		  >InlineHints</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</li
+		><li
+		><a href="#v:_coInlineConstants"
+		  >_coInlineConstants</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coInlineFix"
+		  >_coInlineFix</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coInlineCallsiteGrowth"
+		  >_coInlineCallsiteGrowth</a
+		  > &#8759; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+		  >AstSize</a
+		  ></li
+		><li
+		><a href="#v:_coProfile"
+		  >_coProfile</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coRelaxedFloatin"
+		  >_coRelaxedFloatin</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coCaseOfCaseConservative"
+		  >_coCaseOfCaseConservative</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_coPreserveLogging"
+		  >_coPreserveLogging</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:coVerbose"
+	      >coVerbose</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coTypecheck"
+	      >coTypecheck</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coRelaxedFloatin"
+	      >coRelaxedFloatin</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coProfile"
+	      >coProfile</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coPreserveLogging"
+	      >coPreserveLogging</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coPedantic"
+	      >coPedantic</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coOptimize"
+	      >coOptimize</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coMaxSimplifierIterations"
+	      >coMaxSimplifierIterations</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coInlineHints"
+	      >coInlineHints</a
+	      > &#8759; &#8704; a a. Lens (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	      >InlineHints</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	      >InlineHints</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a))</li
+	    ><li class="src short"
+	    ><a href="#v:coInlineFix"
+	      >coInlineFix</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coInlineConstants"
+	      >coInlineConstants</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coInlineCallsiteGrowth"
+	      >coInlineCallsiteGrowth</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+	      >AstSize</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierUnwrapCancel"
+	      >coDoSimplifierUnwrapCancel</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierStrictifyBindings"
+	      >coDoSimplifierStrictifyBindings</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierRewrite"
+	      >coDoSimplifierRewrite</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierRemoveDeadBindings"
+	      >coDoSimplifierRemoveDeadBindings</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierKnownCon"
+	      >coDoSimplifierKnownCon</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierInline"
+	      >coDoSimplifierInline</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierEvaluateBuiltins"
+	      >coDoSimplifierEvaluateBuiltins</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierCaseReduce"
+	      >coDoSimplifierCaseReduce</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierCaseOfCase"
+	      >coDoSimplifierCaseOfCase</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDoSimplifierBeta"
+	      >coDoSimplifierBeta</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDebug"
+	      >coDebug</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coDatatypes"
+	      >coDatatypes</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	      >DatatypeCompilationOpts</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:coCaseOfCaseConservative"
+	      >coCaseOfCaseConservative</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultCompilationOpts"
+	      >defaultCompilationOpts</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CompilationCtx"
+	      >CompilationCtx</a
+	      > uni fun a = <a href="#v:CompilationCtx"
+	      >CompilationCtx</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_ccOpts"
+		  >_ccOpts</a
+		  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+		  >CompilationOpts</a
+		  > a</li
+		><li
+		><a href="#v:_ccEnclosing"
+		  >_ccEnclosing</a
+		  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a</li
+		><li
+		><a href="#v:_ccTypeCheckConfig"
+		  >_ccTypeCheckConfig</a
+		  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+		  >PirTCConfig</a
+		  > uni fun</li
+		><li
+		><a href="#v:_ccBuiltinsInfo"
+		  >_ccBuiltinsInfo</a
+		  > &#8759; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun</li
+		><li
+		><a href="#v:_ccBuiltinCostModel"
+		  >_ccBuiltinCostModel</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		  >CostingPart</a
+		  > uni fun</li
+		><li
+		><a href="#v:_ccRewriteRules"
+		  >_ccRewriteRules</a
+		  > &#8759; <a href="PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+		  >RewriteRules</a
+		  > uni fun</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:ccTypeCheckConfig"
+	      >ccTypeCheckConfig</a
+	      > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:ccRewriteRules"
+	      >ccRewriteRules</a
+	      > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) (<a href="PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:ccOpts"
+	      >ccOpts</a
+	      > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:ccEnclosing"
+	      >ccEnclosing</a
+	      > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:ccBuiltinsInfo"
+	      >ccBuiltinsInfo</a
+	      > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:ccBuiltinCostModel"
+	      >ccBuiltinCostModel</a
+	      > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:toDefaultCompilationCtx"
+	      >toDefaultCompilationCtx</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun)) &#8658; <a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+	      >TypeCheckConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:validateOpts"
+	      >validateOpts</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	      >Compiling</a
+	      > m uni fun a &#8658; <a href="PlutusIR-Core-Type.html#t:Version" title="PlutusIR.Core.Type"
+	      >Version</a
+	      > &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:getEnclosing"
+	      >getEnclosing</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) m &#8658; m (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:withEnclosing"
+	      >withEnclosing</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) m &#8658; (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a) &#8594; m b &#8594; m b</li
+	    ><li class="src short"
+	    ><a href="#v:runIf"
+	      >runIf</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) m &#8658; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; (b &#8594; m b) &#8594; b &#8594; m b</li
+	    ><li class="src short"
+	    ><a href="#v:runIfOpts"
+	      >runIfOpts</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) m &#8658; (b &#8594; m b) &#8594; b &#8594; m b</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PLCProgram"
+	      >PLCProgram</a
+	      > uni fun a = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PLCTerm"
+	      >PLCTerm</a
+	      > uni fun a = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PLCType"
+	      >PLCType</a
+	      > uni a = <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PLCRecType"
+	      >PLCRecType</a
+	      > uni fun a<ul class="subs"
+	      ><li
+		>= <a href="#v:PlainType"
+		  >PlainType</a
+		  > (<a href="PlutusIR-Compiler-Types.html#t:PLCType" title="PlutusIR.Compiler.Types"
+		  >PLCType</a
+		  > uni a)</li
+		><li
+		>| <a href="#v:RecursiveType"
+		  >RecursiveType</a
+		  > (<a href="../plutus-core/PlutusCore-StdLib-Type.html#t:RecursiveType" title="PlutusCore.StdLib.Type"
+		  >RecursiveType</a
+		  > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a))</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getType"
+	      >getType</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	      >PLCRecType</a
+	      > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PLCType" title="PlutusIR.Compiler.Types"
+	      >PLCType</a
+	      > uni a</li
+	    ><li class="src short"
+	    ><a href="#v:wrap"
+	      >wrap</a
+	      > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	      >PLCRecType</a
+	      > uni fun a &#8594; [<a href="PlutusIR-Compiler-Types.html#t:PLCType" title="PlutusIR.Compiler.Types"
+	      >PLCType</a
+	      > uni a] &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:unwrap"
+	      >unwrap</a
+	      > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	      >PLCRecType</a
+	      > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PIRTerm"
+	      >PIRTerm</a
+	      > uni fun a = <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PIRType"
+	      >PIRType</a
+	      > uni a = <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Compiling"
+	      >Compiling</a
+	      > m uni fun a = (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) m, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:AnnotateCaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >AnnotateCaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+	      >AnnInline</a
+	      > a, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TermDef"
+	      >TermDef</a
+	      > tyname name uni fun a = <a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	      >Def</a
+	      > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > tyname name uni a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:SharedName"
+	      >SharedName</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:FixpointCombinator"
+		  >FixpointCombinator</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		>| <a href="#v:FixBy"
+		  >FixBy</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toProgramName"
+	      >toProgramName</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+	      >SharedName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:AllowEscape" class="def"
+	    >AllowEscape</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#AllowEscape" class="link"
+	    >Source</a
+	    > <a href="#t:AllowEscape" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Extra flag to be passed in the TypeCheckM Reader context,
+ to signal if the PIR expression currently being typechecked is at the top-level
+ and thus its type can escape, or nested and thus not allowed to escape.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:YesEscape" class="def"
+		  >YesEscape</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:NoEscape" class="def"
+		  >NoEscape</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PirTCConfig" class="def"
+	    >PirTCConfig</a
+	    > uni fun <a href="src/PlutusIR.Compiler.Types.html#PirTCConfig" class="link"
+	    >Source</a
+	    > <a href="#t:PirTCConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >extending the plc typecheck config with AllowEscape</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PirTCConfig" class="def"
+		  >PirTCConfig</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_pirConfigTCConfig" class="def"
+			  >_pirConfigTCConfig</a
+			  > &#8759; <a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+			  >TypeCheckConfig</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_pirConfigAllowEscape" class="def"
+			  >_pirConfigAllowEscape</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:AllowEscape" title="PlutusIR.Compiler.Types"
+			  >AllowEscape</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PirTCConfig"
+	    >Instances</h4
+	    ><details id="i:PirTCConfig" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PirTCConfig:HasKindCheckConfig:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HasKindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+		      >HasKindCheckConfig</a
+		      > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+		      >PirTCConfig</a
+		      > uni fun)</span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:PirTCConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PirTCConfig:HasKindCheckConfig:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:kindCheckConfig"
+			  >kindCheckConfig</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+			  >PirTCConfig</a
+			  > uni fun) <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:KindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+			  >KindCheckConfig</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:kindCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:kccHandleNameMismatches"
+			  >kccHandleNameMismatches</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+			  >PirTCConfig</a
+			  > uni fun) <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HandleNameMismatches" title="PlutusCore.TypeCheck.Internal"
+			  >HandleNameMismatches</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:kccHandleNameMismatches" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PirTCConfig:HasTypeCheckConfig:2"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HasTypeCheckConfig" title="PlutusCore.TypeCheck.Internal"
+		      >HasTypeCheckConfig</a
+		      > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+		      >PirTCConfig</a
+		      > uni fun) uni fun</span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:PirTCConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PirTCConfig:HasTypeCheckConfig:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeCheckConfig"
+			  >typeCheckConfig</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+			  >PirTCConfig</a
+			  > uni fun) (<a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+			  >TypeCheckConfig</a
+			  > uni fun) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tccKindCheckConfig"
+			  >tccKindCheckConfig</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+			  >PirTCConfig</a
+			  > uni fun) <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:KindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+			  >KindCheckConfig</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:tccKindCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tccBuiltinTypes"
+			  >tccBuiltinTypes</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+			  >PirTCConfig</a
+			  > uni fun) (<a href="PlutusIR-TypeCheck-Internal.html#t:BuiltinTypes" title="PlutusIR.TypeCheck.Internal"
+			  >BuiltinTypes</a
+			  > uni fun) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:tccBuiltinTypes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pirConfigTCConfig" class="def"
+	    >pirConfigTCConfig</a
+	    > &#8759; &#8704; uni fun uni fun. Lens (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun) (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun) (<a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+	    >TypeCheckConfig</a
+	    > uni fun) (<a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+	    >TypeCheckConfig</a
+	    > uni fun) <a href="src/PlutusIR.Compiler.Types.html#pirConfigTCConfig" class="link"
+	    >Source</a
+	    > <a href="#v:pirConfigTCConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pirConfigAllowEscape" class="def"
+	    >pirConfigAllowEscape</a
+	    > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun) <a href="PlutusIR-Compiler-Types.html#t:AllowEscape" title="PlutusIR.Compiler.Types"
+	    >AllowEscape</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#pirConfigAllowEscape" class="link"
+	    >Source</a
+	    > <a href="#v:pirConfigAllowEscape" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DatatypeStyle" class="def"
+	    >DatatypeStyle</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#DatatypeStyle" class="link"
+	    >Source</a
+	    > <a href="#t:DatatypeStyle" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >What style to use when encoding datatypes.
+ Generally, <code
+	      ><a href="PlutusIR-Compiler-Types.html#v:SumsOfProducts" title="PlutusIR.Compiler.Types"
+		>SumsOfProducts</a
+		></code
+	      > is superior, unless you are targeting an
+ old Plutus Core language version.</p
+	    ><p
+	    >See Note [Encoding of datatypes]</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ScottEncoding" class="def"
+		  >ScottEncoding</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:SumsOfProducts" class="def"
+		  >SumsOfProducts</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinCasing" class="def"
+		  >BuiltinCasing</a
+		  ></td
+		><td class="doc"
+		><p
+		  >A temporary data type style used to make a couple of V3 ledger-api-test tests pass
+ before we can support casing on values of built-in types in newer protocol versions and
+ merge this into <code
+		    ><a href="PlutusIR-Compiler-Types.html#v:SumsOfProducts" title="PlutusIR.Compiler.Types"
+		      >SumsOfProducts</a
+		      ></code
+		    > (which is what controls whether <code
+		    >Case</code
+		    > is available or
+ not).</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DatatypeStyle"
+	    >Instances</h4
+	    ><details id="i:DatatypeStyle" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeStyle:Read:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+		      >Read</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+		      >DatatypeStyle</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeStyle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeStyle:Read:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readsPrec"
+			  >readsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readList"
+			  >readList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > [<a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readPrec"
+			  >readPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readListPrec"
+			  >readListPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > [<a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readListPrec" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeStyle:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+		      >DatatypeStyle</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeStyle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeStyle:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeStyle:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+		      >DatatypeStyle</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeStyle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeStyle:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeStyle:Pretty:4"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+		      >DatatypeStyle</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeStyle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeStyle:Pretty:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:DatatypeCompilationOpts" class="def"
+	    >DatatypeCompilationOpts</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#DatatypeCompilationOpts" class="link"
+	    >Source</a
+	    > <a href="#t:DatatypeCompilationOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:DatatypeCompilationOpts" class="def"
+		  >DatatypeCompilationOpts</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_dcoStyle" class="def"
+			  >_dcoStyle</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+			  >DatatypeStyle</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DatatypeCompilationOpts"
+	    >Instances</h4
+	    ><details id="i:DatatypeCompilationOpts" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeCompilationOpts:Read:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+		      >Read</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+		      >DatatypeCompilationOpts</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeCompilationOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeCompilationOpts:Read:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readsPrec"
+			  >readsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readList"
+			  >readList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > [<a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readPrec"
+			  >readPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readListPrec"
+			  >readListPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > [<a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readListPrec" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeCompilationOpts:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+		      >DatatypeCompilationOpts</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeCompilationOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeCompilationOpts:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeCompilationOpts:Pretty:3"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+		      >DatatypeCompilationOpts</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeCompilationOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeCompilationOpts:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dcoStyle" class="def"
+	    >dcoStyle</a
+	    > &#8759; Iso' <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	    >DatatypeCompilationOpts</a
+	    > <a href="PlutusIR-Compiler-Types.html#t:DatatypeStyle" title="PlutusIR.Compiler.Types"
+	    >DatatypeStyle</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#dcoStyle" class="link"
+	    >Source</a
+	    > <a href="#v:dcoStyle" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultDatatypeCompilationOpts" class="def"
+	    >defaultDatatypeCompilationOpts</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	    >DatatypeCompilationOpts</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#defaultDatatypeCompilationOpts" class="link"
+	    >Source</a
+	    > <a href="#v:defaultDatatypeCompilationOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CompilationOpts" class="def"
+	    >CompilationOpts</a
+	    > a <a href="src/PlutusIR.Compiler.Types.html#CompilationOpts" class="link"
+	    >Source</a
+	    > <a href="#t:CompilationOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CompilationOpts" class="def"
+		  >CompilationOpts</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_coOptimize" class="def"
+			  >_coOptimize</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coTypecheck" class="def"
+			  >_coTypecheck</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coPedantic" class="def"
+			  >_coPedantic</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coVerbose" class="def"
+			  >_coVerbose</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDebug" class="def"
+			  >_coDebug</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDatatypes" class="def"
+			  >_coDatatypes</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coMaxSimplifierIterations" class="def"
+			  >_coMaxSimplifierIterations</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierUnwrapCancel" class="def"
+			  >_coDoSimplifierUnwrapCancel</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierCaseReduce" class="def"
+			  >_coDoSimplifierCaseReduce</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierRewrite" class="def"
+			  >_coDoSimplifierRewrite</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierBeta" class="def"
+			  >_coDoSimplifierBeta</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierInline" class="def"
+			  >_coDoSimplifierInline</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierKnownCon" class="def"
+			  >_coDoSimplifierKnownCon</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierCaseOfCase" class="def"
+			  >_coDoSimplifierCaseOfCase</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierEvaluateBuiltins" class="def"
+			  >_coDoSimplifierEvaluateBuiltins</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierStrictifyBindings" class="def"
+			  >_coDoSimplifierStrictifyBindings</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coDoSimplifierRemoveDeadBindings" class="def"
+			  >_coDoSimplifierRemoveDeadBindings</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coInlineHints" class="def"
+			  >_coInlineHints</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+			  >InlineHints</a
+			  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+			  >Name</a
+			  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coInlineConstants" class="def"
+			  >_coInlineConstants</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coInlineFix" class="def"
+			  >_coInlineFix</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coInlineCallsiteGrowth" class="def"
+			  >_coInlineCallsiteGrowth</a
+			  > &#8759; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+			  >AstSize</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coProfile" class="def"
+			  >_coProfile</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coRelaxedFloatin" class="def"
+			  >_coRelaxedFloatin</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coCaseOfCaseConservative" class="def"
+			  >_coCaseOfCaseConservative</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_coPreserveLogging" class="def"
+			  >_coPreserveLogging</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Whether to try and preserve the logging beahviour of the program.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CompilationOpts"
+	    >Instances</h4
+	    ><details id="i:CompilationOpts" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CompilationOpts:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+		      >CompilationOpts</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-112" class="link"
+		    >Source</a
+		    > <a href="#t:CompilationOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CompilationOpts:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+			  >CompilationOpts</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+			  >CompilationOpts</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+			  >CompilationOpts</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coVerbose" class="def"
+	    >coVerbose</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coVerbose" class="link"
+	    >Source</a
+	    > <a href="#v:coVerbose" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coTypecheck" class="def"
+	    >coTypecheck</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coTypecheck" class="link"
+	    >Source</a
+	    > <a href="#v:coTypecheck" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coRelaxedFloatin" class="def"
+	    >coRelaxedFloatin</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coRelaxedFloatin" class="link"
+	    >Source</a
+	    > <a href="#v:coRelaxedFloatin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coProfile" class="def"
+	    >coProfile</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coProfile" class="link"
+	    >Source</a
+	    > <a href="#v:coProfile" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coPreserveLogging" class="def"
+	    >coPreserveLogging</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coPreserveLogging" class="link"
+	    >Source</a
+	    > <a href="#v:coPreserveLogging" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coPedantic" class="def"
+	    >coPedantic</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coPedantic" class="link"
+	    >Source</a
+	    > <a href="#v:coPedantic" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coOptimize" class="def"
+	    >coOptimize</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coOptimize" class="link"
+	    >Source</a
+	    > <a href="#v:coOptimize" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coMaxSimplifierIterations" class="def"
+	    >coMaxSimplifierIterations</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coMaxSimplifierIterations" class="link"
+	    >Source</a
+	    > <a href="#v:coMaxSimplifierIterations" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coInlineHints" class="def"
+	    >coInlineHints</a
+	    > &#8759; &#8704; a a. Lens (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	    >InlineHints</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	    >InlineHints</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) <a href="src/PlutusIR.Compiler.Types.html#coInlineHints" class="link"
+	    >Source</a
+	    > <a href="#v:coInlineHints" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coInlineFix" class="def"
+	    >coInlineFix</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coInlineFix" class="link"
+	    >Source</a
+	    > <a href="#v:coInlineFix" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coInlineConstants" class="def"
+	    >coInlineConstants</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coInlineConstants" class="link"
+	    >Source</a
+	    > <a href="#v:coInlineConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coInlineCallsiteGrowth" class="def"
+	    >coInlineCallsiteGrowth</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+	    >AstSize</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coInlineCallsiteGrowth" class="link"
+	    >Source</a
+	    > <a href="#v:coInlineCallsiteGrowth" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierUnwrapCancel" class="def"
+	    >coDoSimplifierUnwrapCancel</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierUnwrapCancel" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierUnwrapCancel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierStrictifyBindings" class="def"
+	    >coDoSimplifierStrictifyBindings</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierStrictifyBindings" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierStrictifyBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierRewrite" class="def"
+	    >coDoSimplifierRewrite</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierRewrite" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierRewrite" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierRemoveDeadBindings" class="def"
+	    >coDoSimplifierRemoveDeadBindings</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierRemoveDeadBindings" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierRemoveDeadBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierKnownCon" class="def"
+	    >coDoSimplifierKnownCon</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierKnownCon" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierKnownCon" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierInline" class="def"
+	    >coDoSimplifierInline</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierInline" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierInline" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierEvaluateBuiltins" class="def"
+	    >coDoSimplifierEvaluateBuiltins</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierEvaluateBuiltins" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierEvaluateBuiltins" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierCaseReduce" class="def"
+	    >coDoSimplifierCaseReduce</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierCaseReduce" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierCaseReduce" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierCaseOfCase" class="def"
+	    >coDoSimplifierCaseOfCase</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierCaseOfCase" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierCaseOfCase" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDoSimplifierBeta" class="def"
+	    >coDoSimplifierBeta</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDoSimplifierBeta" class="link"
+	    >Source</a
+	    > <a href="#v:coDoSimplifierBeta" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDebug" class="def"
+	    >coDebug</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDebug" class="link"
+	    >Source</a
+	    > <a href="#v:coDebug" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coDatatypes" class="def"
+	    >coDatatypes</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	    >DatatypeCompilationOpts</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coDatatypes" class="link"
+	    >Source</a
+	    > <a href="#v:coDatatypes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:coCaseOfCaseConservative" class="def"
+	    >coCaseOfCaseConservative</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#coCaseOfCaseConservative" class="link"
+	    >Source</a
+	    > <a href="#v:coCaseOfCaseConservative" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultCompilationOpts" class="def"
+	    >defaultCompilationOpts</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a <a href="src/PlutusIR.Compiler.Types.html#defaultCompilationOpts" class="link"
+	    >Source</a
+	    > <a href="#v:defaultCompilationOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CompilationCtx" class="def"
+	    >CompilationCtx</a
+	    > uni fun a <a href="src/PlutusIR.Compiler.Types.html#CompilationCtx" class="link"
+	    >Source</a
+	    > <a href="#t:CompilationCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CompilationCtx" class="def"
+		  >CompilationCtx</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_ccOpts" class="def"
+			  >_ccOpts</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+			  >CompilationOpts</a
+			  > a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ccEnclosing" class="def"
+			  >_ccEnclosing</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ccTypeCheckConfig" class="def"
+			  >_ccTypeCheckConfig</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+			  >PirTCConfig</a
+			  > uni fun</dfn
+			><div class="doc"
+			><p
+			  >Decide to either typecheck (passing a specific tcconfig) or not by passing <code
+			    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			      >Nothing</a
+			      ></code
+			    >.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ccBuiltinsInfo" class="def"
+			  >_ccBuiltinsInfo</a
+			  > &#8759; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+			  >BuiltinsInfo</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ccBuiltinCostModel" class="def"
+			  >_ccBuiltinCostModel</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ccRewriteRules" class="def"
+			  >_ccRewriteRules</a
+			  > &#8759; <a href="PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+			  >RewriteRules</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ccTypeCheckConfig" class="def"
+	    >ccTypeCheckConfig</a
+	    > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) (<a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun) <a href="src/PlutusIR.Compiler.Types.html#ccTypeCheckConfig" class="link"
+	    >Source</a
+	    > <a href="#v:ccTypeCheckConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ccRewriteRules" class="def"
+	    >ccRewriteRules</a
+	    > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) (<a href="PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun) <a href="src/PlutusIR.Compiler.Types.html#ccRewriteRules" class="link"
+	    >Source</a
+	    > <a href="#v:ccRewriteRules" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ccOpts" class="def"
+	    >ccOpts</a
+	    > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) (<a href="PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	    >CompilationOpts</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#ccOpts" class="link"
+	    >Source</a
+	    > <a href="#v:ccOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ccEnclosing" class="def"
+	    >ccEnclosing</a
+	    > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#ccEnclosing" class="link"
+	    >Source</a
+	    > <a href="#v:ccEnclosing" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ccBuiltinsInfo" class="def"
+	    >ccBuiltinsInfo</a
+	    > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun) <a href="src/PlutusIR.Compiler.Types.html#ccBuiltinsInfo" class="link"
+	    >Source</a
+	    > <a href="#v:ccBuiltinsInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ccBuiltinCostModel" class="def"
+	    >ccBuiltinCostModel</a
+	    > &#8759; &#8704; uni fun a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun) <a href="src/PlutusIR.Compiler.Types.html#ccBuiltinCostModel" class="link"
+	    >Source</a
+	    > <a href="#v:ccBuiltinCostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toDefaultCompilationCtx" class="def"
+	    >toDefaultCompilationCtx</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun)) &#8658; <a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+	    >TypeCheckConfig</a
+	    > uni fun &#8594; <a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a <a href="src/PlutusIR.Compiler.Types.html#toDefaultCompilationCtx" class="link"
+	    >Source</a
+	    > <a href="#v:toDefaultCompilationCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:validateOpts" class="def"
+	    >validateOpts</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun a &#8658; <a href="PlutusIR-Core-Type.html#t:Version" title="PlutusIR.Core.Type"
+	    >Version</a
+	    > &#8594; m () <a href="src/PlutusIR.Compiler.Types.html#validateOpts" class="link"
+	    >Source</a
+	    > <a href="#v:validateOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getEnclosing" class="def"
+	    >getEnclosing</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) m &#8658; m (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#getEnclosing" class="link"
+	    >Source</a
+	    > <a href="#v:getEnclosing" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withEnclosing" class="def"
+	    >withEnclosing</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) m &#8658; (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) &#8594; m b &#8594; m b <a href="src/PlutusIR.Compiler.Types.html#withEnclosing" class="link"
+	    >Source</a
+	    > <a href="#v:withEnclosing" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runIf" class="def"
+	    >runIf</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) m &#8658; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; (b &#8594; m b) &#8594; b &#8594; m b <a href="src/PlutusIR.Compiler.Types.html#runIf" class="link"
+	    >Source</a
+	    > <a href="#v:runIf" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runIfOpts" class="def"
+	    >runIfOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) m &#8658; (b &#8594; m b) &#8594; b &#8594; m b <a href="src/PlutusIR.Compiler.Types.html#runIfOpts" class="link"
+	    >Source</a
+	    > <a href="#v:runIfOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PLCProgram" class="def"
+	    >PLCProgram</a
+	    > uni fun a = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#PLCProgram" class="link"
+	    >Source</a
+	    > <a href="#t:PLCProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PLCTerm" class="def"
+	    >PLCTerm</a
+	    > uni fun a = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#PLCTerm" class="link"
+	    >Source</a
+	    > <a href="#t:PLCTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PLCType" class="def"
+	    >PLCType</a
+	    > uni a = <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#PLCType" class="link"
+	    >Source</a
+	    > <a href="#t:PLCType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PLCRecType" class="def"
+	    >PLCRecType</a
+	    > uni fun a <a href="src/PlutusIR.Compiler.Types.html#PLCRecType" class="link"
+	    >Source</a
+	    > <a href="#t:PLCRecType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A possibly recursive type.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PlainType" class="def"
+		  >PlainType</a
+		  > (<a href="PlutusIR-Compiler-Types.html#t:PLCType" title="PlutusIR.Compiler.Types"
+		  >PLCType</a
+		  > uni a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:RecursiveType" class="def"
+		  >RecursiveType</a
+		  > (<a href="../plutus-core/PlutusCore-StdLib-Type.html#t:RecursiveType" title="PlutusCore.StdLib.Type"
+		  >RecursiveType</a
+		  > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getType" class="def"
+	    >getType</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	    >PLCRecType</a
+	    > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PLCType" title="PlutusIR.Compiler.Types"
+	    >PLCType</a
+	    > uni a <a href="src/PlutusIR.Compiler.Types.html#getType" class="link"
+	    >Source</a
+	    > <a href="#v:getType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the actual type inside a <code
+	      ><a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+		>PLCRecType</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:wrap" class="def"
+	    >wrap</a
+	    > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	    >PLCRecType</a
+	    > uni fun a &#8594; [<a href="PlutusIR-Compiler-Types.html#t:PLCType" title="PlutusIR.Compiler.Types"
+	    >PLCType</a
+	    > uni a] &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a <a href="src/PlutusIR.Compiler.Types.html#wrap" class="link"
+	    >Source</a
+	    > <a href="#v:wrap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Wrap a term appropriately for a possibly recursive type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unwrap" class="def"
+	    >unwrap</a
+	    > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	    >PLCRecType</a
+	    > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a <a href="src/PlutusIR.Compiler.Types.html#unwrap" class="link"
+	    >Source</a
+	    > <a href="#v:unwrap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unwrap a term appropriately for a possibly recursive type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PIRTerm" class="def"
+	    >PIRTerm</a
+	    > uni fun a = <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#PIRTerm" class="link"
+	    >Source</a
+	    > <a href="#t:PIRTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PIRType" class="def"
+	    >PIRType</a
+	    > uni a = <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#PIRType" class="link"
+	    >Source</a
+	    > <a href="#t:PIRType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Compiling" class="def"
+	    >Compiling</a
+	    > m uni fun a = (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) m, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:AnnotateCaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >AnnotateCaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+	    >AnnInline</a
+	    > a, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > a) <a href="src/PlutusIR.Compiler.Types.html#Compiling" class="link"
+	    >Source</a
+	    > <a href="#t:Compiling" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TermDef" class="def"
+	    >TermDef</a
+	    > tyname name uni fun a = <a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	    >Def</a
+	    > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > tyname name uni a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Compiler.Types.html#TermDef" class="link"
+	    >Source</a
+	    > <a href="#t:TermDef" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:SharedName" class="def"
+	    >SharedName</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#SharedName" class="link"
+	    >Source</a
+	    > <a href="#t:SharedName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >We generate some shared definitions compilation, this datatype
+ defines the &quot;keys&quot; for those definitions.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FixpointCombinator" class="def"
+		  >FixpointCombinator</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:FixBy" class="def"
+		  >FixBy</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SharedName"
+	    >Instances</h4
+	    ><details id="i:SharedName" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SharedName:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+		      >SharedName</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-248" class="link"
+		    >Source</a
+		    > <a href="#t:SharedName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SharedName:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SharedName:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+		      >SharedName</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-248" class="link"
+		    >Source</a
+		    > <a href="#t:SharedName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SharedName:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SharedName:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+		      >SharedName</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-248" class="link"
+		    >Source</a
+		    > <a href="#t:SharedName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SharedName:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > &#8594; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+			  >SharedName</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toProgramName" class="def"
+	    >toProgramName</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+	    >SharedName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > <a href="src/PlutusIR.Compiler.Types.html#toProgramName" class="link"
+	    >Source</a
+	    > <a href="#v:toProgramName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,3348 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Show.TH</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.55.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Show.TH.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Show.TH</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Show"
+	      >Show</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:showsPrec"
+		  >showsPrec</a
+		  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		  >Integer</a
+		  > &#8594; a &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+		  >ShowS</a
+		  ></li
+		><li
+		><a href="#v:show"
+		  >show</a
+		  > &#8759; a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		  >BuiltinString</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:ShowS"
+	      >ShowS</a
+	      > = [<a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      >] &#8594; [<a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:showString"
+	      >showString</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	      >ShowS</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:showSpace"
+	      >showSpace</a
+	      > &#8759; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	      >ShowS</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:showCommaSpace"
+	      >showCommaSpace</a
+	      > &#8759; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	      >ShowS</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:showParen"
+	      >showParen</a
+	      > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	      >ShowS</a
+	      > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	      >ShowS</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:appPrec"
+	      >appPrec</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:appPrec1"
+	      >appPrec1</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:concatBuiltinStrings"
+	      >concatBuiltinStrings</a
+	      > &#8759; [<a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      >] &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:deriveShow"
+	      >deriveShow</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:deriveShowsPrec"
+	      >deriveShowsPrec</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	      >ConstructorInfo</a
+	      >] &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:deriveShowsPrecBody"
+	      >deriveShowsPrecBody</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	      >ConstructorInfo</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+	      >Exp</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:deriveMatchForCon"
+	      >deriveMatchForCon</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	      >ConstructorInfo</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Match" title="Language.Haskell.TH.Syntax"
+	      >Match</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:deriveShowExpForArg"
+	      >deriveShowExpForArg</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+	      >Exp</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:parenInfixConName"
+	      >parenInfixConName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Show" class="def"
+	    >Show</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Show.TH.html#Show" class="link"
+	    >Source</a
+	    > <a href="#t:Show" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Conversion of values to <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		>BuiltinString</a
+		></code
+	      >s. Unlike <code
+	      >GHC.Show.Show</code
+	      >, there is no
+ <code
+	      >showList</code
+	      > method, because there is no <code
+	      ><a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		>Show</a
+		></code
+	      > instance for <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#v:String" title="Data.String"
+		>String</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusTx-Show-TH.html#v:showsPrec" title="PlutusTx.Show.TH"
+	      >showsPrec</a
+	      > | <a href="PlutusTx-Show-TH.html#v:show" title="PlutusTx.Show.TH"
+	      >show</a
+	      ></p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:showsPrec" class="def"
+	      >showsPrec</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; a &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	      >ShowS</a
+	      > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+	      >Source</a
+	      > <a href="#v:showsPrec" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:show" class="def"
+	      >show</a
+	      > &#8759; a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+	      >Source</a
+	      > <a href="#v:show" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Show"
+	    >Instances</h4
+	    ><details id="i:Show" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:1"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.Show.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:2"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.Show.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:3"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      ></span
+		    > <a href="src/PlutusTx.Show.html#line-92" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:4"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.Show.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:5"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > ()</span
+		    > <a href="src/PlutusTx.Show.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; () &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; () &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:6"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Show.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:7"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Show.html#line-162" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:8"
+		      ></span
+		      > <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > [a]</span
+		    > <a href="src/PlutusTx.Show.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; [a] &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; [a] &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:9"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.Show.html#line-163" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a b &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a b &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:10"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		      >These</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.Show.html#line-164" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+			  >These</a
+			  > a b &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+			  >These</a
+			  > a b &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:11"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.Show.html#line-136" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:12"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c)</span
+		    > <a href="src/PlutusTx.Show.html#line-137" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:13"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d)</span
+		    > <a href="src/PlutusTx.Show.html#line-138" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:14"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e)</span
+		    > <a href="src/PlutusTx.Show.html#line-139" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:15"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f)</span
+		    > <a href="src/PlutusTx.Show.html#line-140" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:16"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g)</span
+		    > <a href="src/PlutusTx.Show.html#line-141" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:17"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h)</span
+		    > <a href="src/PlutusTx.Show.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:18"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i)</span
+		    > <a href="src/PlutusTx.Show.html#line-143" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:19"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j)</span
+		    > <a href="src/PlutusTx.Show.html#line-144" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:20"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k)</span
+		    > <a href="src/PlutusTx.Show.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:21"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l)</span
+		    > <a href="src/PlutusTx.Show.html#line-146" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:22"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m)</span
+		    > <a href="src/PlutusTx.Show.html#line-147" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:23"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n)</span
+		    > <a href="src/PlutusTx.Show.html#line-148" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:24"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)</span
+		    > <a href="src/PlutusTx.Show.html#line-149" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:24"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:25"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)</span
+		    > <a href="src/PlutusTx.Show.html#line-150" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:25"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:26"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q)</span
+		    > <a href="src/PlutusTx.Show.html#line-151" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:26"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:27"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r)</span
+		    > <a href="src/PlutusTx.Show.html#line-152" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:27"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:28"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s)</span
+		    > <a href="src/PlutusTx.Show.html#line-153" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:28"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:29"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t)</span
+		    > <a href="src/PlutusTx.Show.html#line-154" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:29"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:30"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > u) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u)</span
+		    > <a href="src/PlutusTx.Show.html#line-155" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:30"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:31"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > u, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > v) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v)</span
+		    > <a href="src/PlutusTx.Show.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:31"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:32"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > u, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > v, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > w) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w)</span
+		    > <a href="src/PlutusTx.Show.html#line-157" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:32"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:33"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > u, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > v, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > w, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > x) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x)</span
+		    > <a href="src/PlutusTx.Show.html#line-158" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:33"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:34"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > u, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > v, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > w, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > x, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > y) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y)</span
+		    > <a href="src/PlutusTx.Show.html#line-159" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:34"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:35"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > u, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > v, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > w, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > x, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > y, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > z) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z)</span
+		    > <a href="src/PlutusTx.Show.html#line-160" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:35"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Show:Show:36"
+		      ></span
+		      > (<a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > a, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > b, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > c, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > d, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > e, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > f, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > g, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > h, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > i, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > j, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > k, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > l, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > m, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > n, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > o, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > p, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > q, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > r, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > s, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > u, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > v, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > w, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > x, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > y, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > z, <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > t26) &#8658; <a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		      >Show</a
+		      > (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, t26)</span
+		    > <a href="src/PlutusTx.Show.html#line-161" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Show:Show:36"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Show.html"
+			>PlutusTx.Show</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, t26) &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+			  >ShowS</a
+			  > <a href="src/PlutusTx.Show.TH.html#showsPrec" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, t26) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Show.TH.html#show" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:ShowS" class="def"
+	    >ShowS</a
+	    > = [<a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    >] &#8594; [<a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    >] <a href="src/PlutusTx.Show.TH.html#ShowS" class="link"
+	    >Source</a
+	    > <a href="#t:ShowS" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Currently the only way to concatenate <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		>BuiltinString</a
+		></code
+	      >s is <code
+	      ><a href="PlutusTx-Builtins.html#v:appendString" title="PlutusTx.Builtins"
+		>appendString</a
+		></code
+	      >, whose cost
+ is linear in the total length of the two strings. A naive concatenation of multiple
+ <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		>BuiltinString</a
+		></code
+	      >s costs <code
+	      >O(n^2)</code
+	      > in the worst case, where <code
+	      >n</code
+	      > is the total length. By
+ collecting the <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		>BuiltinString</a
+		></code
+	      >s in a list and concatenating them in the end, the cost
+ can be reduced to <code
+	      >O(n*logn)</code
+	      >. If we add a <code
+	      >concatStrings</code
+	      > builtin function in the future,
+ the cost can be further reduced to <code
+	      >O(n)</code
+	      >.</p
+	    ><p
+	    >Like <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Show.html#v:ShowS" title="GHC.Show"
+		>ShowS</a
+		></code
+	      >, the purpose of the function type here is to turn list concatenation
+ into function composition.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:showString" class="def"
+	    >showString</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	    >ShowS</a
+	    > <a href="src/PlutusTx.Show.TH.html#showString" class="link"
+	    >Source</a
+	    > <a href="#v:showString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:showSpace" class="def"
+	    >showSpace</a
+	    > &#8759; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	    >ShowS</a
+	    > <a href="src/PlutusTx.Show.TH.html#showSpace" class="link"
+	    >Source</a
+	    > <a href="#v:showSpace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:showCommaSpace" class="def"
+	    >showCommaSpace</a
+	    > &#8759; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	    >ShowS</a
+	    > <a href="src/PlutusTx.Show.TH.html#showCommaSpace" class="link"
+	    >Source</a
+	    > <a href="#v:showCommaSpace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:showParen" class="def"
+	    >showParen</a
+	    > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	    >ShowS</a
+	    > &#8594; <a href="PlutusTx-Show-TH.html#t:ShowS" title="PlutusTx.Show.TH"
+	    >ShowS</a
+	    > <a href="src/PlutusTx.Show.TH.html#showParen" class="link"
+	    >Source</a
+	    > <a href="#v:showParen" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:appPrec" class="def"
+	    >appPrec</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Show.TH.html#appPrec" class="link"
+	    >Source</a
+	    > <a href="#v:appPrec" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:appPrec1" class="def"
+	    >appPrec1</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Show.TH.html#appPrec1" class="link"
+	    >Source</a
+	    > <a href="#v:appPrec1" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concatBuiltinStrings" class="def"
+	    >concatBuiltinStrings</a
+	    > &#8759; [<a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    >] &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.Show.TH.html#concatBuiltinStrings" class="link"
+	    >Source</a
+	    > <a href="#v:concatBuiltinStrings" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deriveShow" class="def"
+	    >deriveShow</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.Show.TH.html#deriveShow" class="link"
+	    >Source</a
+	    > <a href="#v:deriveShow" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Derive <code
+	      ><a href="PlutusTx-Show-TH.html#t:Show" title="PlutusTx.Show.TH"
+		>Show</a
+		></code
+	      > instance. Adapted from <code
+	      >Text.Show.Deriving.deriveShow</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deriveShowsPrec" class="def"
+	    >deriveShowsPrec</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	    >ConstructorInfo</a
+	    >] &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.Show.TH.html#deriveShowsPrec" class="link"
+	    >Source</a
+	    > <a href="#v:deriveShowsPrec" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Derive <code
+	      ><a href="PlutusTx-Show-TH.html#v:showsPrec" title="PlutusTx.Show.TH"
+		>showsPrec</a
+		></code
+	      > definition for each data constructor.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deriveShowsPrecBody" class="def"
+	    >deriveShowsPrecBody</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	    >ConstructorInfo</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+	    >Exp</a
+	    > <a href="src/PlutusTx.Show.TH.html#deriveShowsPrecBody" class="link"
+	    >Source</a
+	    > <a href="#v:deriveShowsPrecBody" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deriveMatchForCon" class="def"
+	    >deriveMatchForCon</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	    >ConstructorInfo</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Match" title="Language.Haskell.TH.Syntax"
+	    >Match</a
+	    > <a href="src/PlutusTx.Show.TH.html#deriveMatchForCon" class="link"
+	    >Source</a
+	    > <a href="#v:deriveMatchForCon" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Derive <code
+	      ><a href="PlutusTx-Show-TH.html#v:showsPrec" title="PlutusTx.Show.TH"
+		>showsPrec</a
+		></code
+	      > body for a single data constructor.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deriveShowExpForArg" class="def"
+	    >deriveShowExpForArg</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+	    >Exp</a
+	    > <a href="src/PlutusTx.Show.TH.html#deriveShowExpForArg" class="link"
+	    >Source</a
+	    > <a href="#v:deriveShowExpForArg" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Derive the <code
+	      ><a href="PlutusTx-Show-TH.html#v:showsPrec" title="PlutusTx.Show.TH"
+		>showsPrec</a
+		></code
+	      > expression for showing a single constructor argument.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parenInfixConName" class="def"
+	    >parenInfixConName</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Show.TH.html#parenInfixConName" class="link"
+	    >Source</a
+	    > <a href="#v:parenInfixConName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add parens if it is an infix data constructor.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

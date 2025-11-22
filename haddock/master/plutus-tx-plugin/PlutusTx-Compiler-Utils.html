@@ -1,0 +1,404 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Compiler.Utils</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.55.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Compiler.Utils.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Compiler.Utils</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:lookupGhcTyCon"
+	      >lookupGhcTyCon</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; m <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:lookupGhcName"
+	      >lookupGhcName</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; m <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:lookupGhcId"
+	      >lookupGhcId</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; m <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sdToStr"
+	      >sdToStr</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	      >CompileContext</a
+	      > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Utils-Outputable.html#t:SDoc" title="GHC.Utils.Outputable"
+	      >SDoc</a
+	      > &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sdToTxt"
+	      >sdToTxt</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	      >CompileContext</a
+	      > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Utils-Outputable.html#t:SDoc" title="GHC.Utils.Outputable"
+	      >SDoc</a
+	      > &#8594; m <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:throwSd"
+	      >throwSd</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	      >CompileError</a
+	      > uni fun ann) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	      >CompileContext</a
+	      > uni fun) m) &#8658; (<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+	      >Error</a
+	      > uni fun ann) &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Utils-Outputable.html#t:SDoc" title="GHC.Utils.Outputable"
+	      >SDoc</a
+	      > &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:tyConsOfExpr"
+	      >tyConsOfExpr</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	      >UniqSet</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tyConsOfBndr"
+	      >tyConsOfBndr</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBndr" title="GHC.Core"
+	      >CoreBndr</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	      >UniqSet</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tyConsOfBind"
+	      >tyConsOfBind</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:Bind" title="GHC.Core"
+	      >Bind</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBndr" title="GHC.Core"
+	      >CoreBndr</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	      >UniqSet</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tyConsOfAlt"
+	      >tyConsOfAlt</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreAlt" title="GHC.Core"
+	      >CoreAlt</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	      >UniqSet</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupGhcTyCon" class="def"
+	    >lookupGhcTyCon</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; m <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#lookupGhcTyCon" class="link"
+	    >Source</a
+	    > <a href="#v:lookupGhcTyCon" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+		>TyCon</a
+		></code
+	      > for a given <code
+	      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		>Name</a
+		></code
+	      > stored in the builtin name info,
+failing if it is missing.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupGhcName" class="def"
+	    >lookupGhcName</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; m <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#lookupGhcName" class="link"
+	    >Source</a
+	    > <a href="#v:lookupGhcName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		>Name</a
+		></code
+	      > for a given <code
+	      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		>Name</a
+		></code
+	      > stored in the builtin name info,
+failing if it is missing.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupGhcId" class="def"
+	    >lookupGhcId</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; m <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#lookupGhcId" class="link"
+	    >Source</a
+	    > <a href="#v:lookupGhcId" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+		>Id</a
+		></code
+	      > for a given <code
+	      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		>Name</a
+		></code
+	      > stored in the builtin name info,
+failing if it is missing.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sdToStr" class="def"
+	    >sdToStr</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	    >CompileContext</a
+	    > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Utils-Outputable.html#t:SDoc" title="GHC.Utils.Outputable"
+	    >SDoc</a
+	    > &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#sdToStr" class="link"
+	    >Source</a
+	    > <a href="#v:sdToStr" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sdToTxt" class="def"
+	    >sdToTxt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	    >CompileContext</a
+	    > uni fun) m &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Utils-Outputable.html#t:SDoc" title="GHC.Utils.Outputable"
+	    >SDoc</a
+	    > &#8594; m <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#sdToTxt" class="link"
+	    >Source</a
+	    > <a href="#v:sdToTxt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:throwSd" class="def"
+	    >throwSd</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	    >CompileError</a
+	    > uni fun ann) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	    >CompileContext</a
+	    > uni fun) m) &#8658; (<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+	    >Error</a
+	    > uni fun ann) &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Utils-Outputable.html#t:SDoc" title="GHC.Utils.Outputable"
+	    >SDoc</a
+	    > &#8594; m a <a href="src/PlutusTx.Compiler.Utils.html#throwSd" class="link"
+	    >Source</a
+	    > <a href="#v:throwSd" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tyConsOfExpr" class="def"
+	    >tyConsOfExpr</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	    >UniqSet</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#tyConsOfExpr" class="link"
+	    >Source</a
+	    > <a href="#v:tyConsOfExpr" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tyConsOfBndr" class="def"
+	    >tyConsOfBndr</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBndr" title="GHC.Core"
+	    >CoreBndr</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	    >UniqSet</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#tyConsOfBndr" class="link"
+	    >Source</a
+	    > <a href="#v:tyConsOfBndr" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tyConsOfBind" class="def"
+	    >tyConsOfBind</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:Bind" title="GHC.Core"
+	    >Bind</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBndr" title="GHC.Core"
+	    >CoreBndr</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	    >UniqSet</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#tyConsOfBind" class="link"
+	    >Source</a
+	    > <a href="#v:tyConsOfBind" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tyConsOfAlt" class="def"
+	    >tyConsOfAlt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreAlt" title="GHC.Core"
+	    >CoreAlt</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Unique-Set.html#t:UniqSet" title="GHC.Types.Unique.Set"
+	    >UniqSet</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > <a href="src/PlutusTx.Compiler.Utils.html#tyConsOfAlt" class="link"
+	    >Source</a
+	    > <a href="#v:tyConsOfAlt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

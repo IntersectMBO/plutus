@@ -1,0 +1,718 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Purpose</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Json</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+  As per CIP-57, a validator arguments (redeemer, datum) and validator parameters
+  all must specify a purpose that indicates in which context they are used.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Purpose"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Purpose.html#Purpose"
+	  ><span class="hs-identifier hs-var"
+	    >Purpose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Spend"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Purpose.html#Spend"
+	  ><span class="hs-identifier hs-var"
+	    >Spend</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Mint"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Purpose.html#Mint"
+	  ><span class="hs-identifier hs-var"
+	    >Mint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Withdraw"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Purpose.html#Withdraw"
+	  ><span class="hs-identifier hs-var"
+	    >Withdraw</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Publish"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Purpose.html#Publish"
+	  ><span class="hs-identifier hs-var"
+	    >Publish</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680011637"
+      ><span id="local-6989586621680011639"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Purpose -&gt; Purpose -&gt; Bool
+(Purpose -&gt; Purpose -&gt; Bool)
+-&gt; (Purpose -&gt; Purpose -&gt; Bool) -&gt; Eq Purpose
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Purpose -&gt; Purpose -&gt; Bool
+== :: Purpose -&gt; Purpose -&gt; Bool
+$c/= :: Purpose -&gt; Purpose -&gt; Bool
+/= :: Purpose -&gt; Purpose -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011646"
+      ><span id="local-6989586621680011648"
+	><span id="local-6989586621680011650"
+	  ><span id="local-6989586621680011654"
+	    ><span id="local-6989586621680011657"
+	      ><span id="local-6989586621680011660"
+		><span id="local-6989586621680011663"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Purpose
+Eq Purpose =&gt;
+(Purpose -&gt; Purpose -&gt; Ordering)
+-&gt; (Purpose -&gt; Purpose -&gt; Bool)
+-&gt; (Purpose -&gt; Purpose -&gt; Bool)
+-&gt; (Purpose -&gt; Purpose -&gt; Bool)
+-&gt; (Purpose -&gt; Purpose -&gt; Bool)
+-&gt; (Purpose -&gt; Purpose -&gt; Purpose)
+-&gt; (Purpose -&gt; Purpose -&gt; Purpose)
+-&gt; Ord Purpose
+Purpose -&gt; Purpose -&gt; Bool
+Purpose -&gt; Purpose -&gt; Ordering
+Purpose -&gt; Purpose -&gt; Purpose
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Purpose -&gt; Purpose -&gt; Ordering
+compare :: Purpose -&gt; Purpose -&gt; Ordering
+$c&lt; :: Purpose -&gt; Purpose -&gt; Bool
+&lt; :: Purpose -&gt; Purpose -&gt; Bool
+$c&lt;= :: Purpose -&gt; Purpose -&gt; Bool
+&lt;= :: Purpose -&gt; Purpose -&gt; Bool
+$c&gt; :: Purpose -&gt; Purpose -&gt; Bool
+&gt; :: Purpose -&gt; Purpose -&gt; Bool
+$c&gt;= :: Purpose -&gt; Purpose -&gt; Bool
+&gt;= :: Purpose -&gt; Purpose -&gt; Bool
+$cmax :: Purpose -&gt; Purpose -&gt; Purpose
+max :: Purpose -&gt; Purpose -&gt; Purpose
+$cmin :: Purpose -&gt; Purpose -&gt; Purpose
+min :: Purpose -&gt; Purpose -&gt; Purpose
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011667"
+      ><span id="local-6989586621680011669"
+	><span id="local-6989586621680011673"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Purpose -&gt; ShowS
+[Purpose] -&gt; ShowS
+Purpose -&gt; String
+(Int -&gt; Purpose -&gt; ShowS)
+-&gt; (Purpose -&gt; String) -&gt; ([Purpose] -&gt; ShowS) -&gt; Show Purpose
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Purpose -&gt; ShowS
+showsPrec :: Int -&gt; Purpose -&gt; ShowS
+$cshow :: Purpose -&gt; String
+show :: Purpose -&gt; String
+$cshowList :: [Purpose] -&gt; ShowS
+showList :: [Purpose] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011677"
+      ><span id="local-6989586621680011684"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; Code m Purpose)
+-&gt; Lift Purpose
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; Code m Purpose
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; Code m Purpose
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Purpose -&gt; Code m Purpose
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011694"
+      ><span id="local-6989586621680011698"
+	><span id="local-6989586621680011701"
+	  ><span id="local-6989586621680011704"
+	    ><span class="annot"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Blueprint.Purpose.html#Purpose"
+		><span class="hs-identifier hs-type"
+		  >Purpose</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680011707"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: Purpose -&gt; Value
+</span
+	  ><a href="#local-6989586621680011707"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Json.String</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Value) -&gt; (Purpose -&gt; Text) -&gt; Purpose -&gt; Value
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Purpose -&gt; Text
+</span
+	><a href="PlutusTx.Blueprint.Purpose.html#purposeToText"
+	><span class="hs-identifier hs-var"
+	  >purposeToText</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Purpose.html#purposeToText"
+	><span class="hs-identifier hs-type"
+	  >purposeToText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Purpose.html#Purpose"
+	><span class="hs-identifier hs-type"
+	  >Purpose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="purposeToText"
+      ><span class="annot"
+	><span class="annottext"
+	  >purposeToText :: Purpose -&gt; Text
+</span
+	  ><a href="PlutusTx.Blueprint.Purpose.html#purposeToText"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >purposeToText</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Purpose
+</span
+	><a href="PlutusTx.Blueprint.Purpose.html#Spend"
+	><span class="hs-identifier hs-var"
+	  >Spend</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;spend&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Purpose
+</span
+	><a href="PlutusTx.Blueprint.Purpose.html#Mint"
+	><span class="hs-identifier hs-var"
+	  >Mint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;mint&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Purpose
+</span
+	><a href="PlutusTx.Blueprint.Purpose.html#Withdraw"
+	><span class="hs-identifier hs-var"
+	  >Withdraw</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;withdraw&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Purpose
+</span
+	><a href="PlutusTx.Blueprint.Purpose.html#Publish"
+	><span class="hs-identifier hs-var"
+	  >Publish</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;publish&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

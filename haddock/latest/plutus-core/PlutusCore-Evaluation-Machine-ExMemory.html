@@ -1,0 +1,3000 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.ExMemory</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.ExMemory.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.ExMemory</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:CostingInteger"
+	      >CostingInteger</a
+	      > = <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ExMemory"
+	      >ExMemory</a
+	      > = <a href="#v:ExMemory"
+	      >ExMemory</a
+	      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ExCPU"
+	      >ExCPU</a
+	      > = <a href="#v:ExCPU"
+	      >ExCPU</a
+	      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dividedBy"
+	      >dividedBy</a
+	      > &#8759; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      > &#8594; <a href="PlutusPrelude.html#t:Natural" title="PlutusPrelude"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:CostingInteger" class="def"
+	    >CostingInteger</a
+	    > = <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger" class="link"
+	    >Source</a
+	    > <a href="#t:CostingInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ExMemory" class="def"
+	    >ExMemory</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory" class="link"
+	    >Source</a
+	    > <a href="#t:ExMemory" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Counts size in machine words.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ExMemory" class="def"
+		  >ExMemory</a
+		  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >CostingInteger</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExMemory"
+	    >Instances</h4
+	    ><details id="i:ExMemory" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:ToJSON:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:ToJSON:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Monoid:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Monoid:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Semigroup:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Semigroup:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Bounded:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Bounded:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Generic:6"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Generic:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > x &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Num:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Num:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negate"
+			  >negate</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:negate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:abs"
+			  >abs</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:abs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:signum"
+			  >signum</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:signum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromInteger"
+			  >fromInteger</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Read:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+		      >Read</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Read:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readsPrec"
+			  >readsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readList"
+			  >readList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readPrec"
+			  >readPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readListPrec"
+			  >readListPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readListPrec" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Show:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Show:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:ToField:10"
+		      ></span
+		      > ToField <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:ToField:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-EmitterMode.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toField"
+			  >toField</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; Field</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:NFData:11"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:NFData:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Eq:12"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Eq:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Ord:13"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Ord:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:NoThunks:14"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-80" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:NoThunks:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Pretty:15"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-81" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Pretty:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Serialise:16"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Serialise:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:PrettyBy:17"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-83" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:PrettyBy:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Lift:18"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Lift:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExMemory:Rep:19"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExMemory</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemory" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExMemory:Rep:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			>ExMemory</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ExMemory&quot; &quot;PlutusCore.Evaluation.Machine.ExMemory&quot; &quot;plutus-core-1.55.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ExMemory&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+			>CostingInteger</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ExCPU" class="def"
+	    >ExCPU</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU" class="link"
+	    >Source</a
+	    > <a href="#t:ExCPU" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
+ appproximately 106 days.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ExCPU" class="def"
+		  >ExCPU</a
+		  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >CostingInteger</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExCPU"
+	    >Instances</h4
+	    ><details id="i:ExCPU" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-116" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:ToJSON:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-116" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:ToJSON:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Monoid:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-133" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Monoid:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Semigroup:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-125" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Semigroup:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Bounded:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Bounded:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Generic:6"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Generic:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > x &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Num:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Num:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negate"
+			  >negate</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:negate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:abs"
+			  >abs</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:abs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:signum"
+			  >signum</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:signum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromInteger"
+			  >fromInteger</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Read:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+		      >Read</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Read:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readsPrec"
+			  >readsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readList"
+			  >readList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readPrec"
+			  >readPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readListPrec"
+			  >readListPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readListPrec" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Show:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Show:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:ToField:10"
+		      ></span
+		      > ToField <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:ToField:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-EmitterMode.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toField"
+			  >toField</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; Field</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:NFData:11"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:NFData:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Eq:12"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Eq:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Ord:13"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Ord:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:NoThunks:14"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-118" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:NoThunks:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Pretty:15"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Pretty:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Serialise:16"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-117" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Serialise:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:PrettyBy:17"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-121" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:PrettyBy:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Lift:18"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Lift:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExCPU:Rep:19"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		      >ExCPU</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemory.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:ExCPU" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExCPU:Rep:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemory.html"
+			>PlutusCore.Evaluation.Machine.ExMemory</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			>ExCPU</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ExCPU&quot; &quot;PlutusCore.Evaluation.Machine.ExMemory&quot; &quot;plutus-core-1.55.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ExCPU&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+			>CostingInteger</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dividedBy" class="def"
+	    >dividedBy</a
+	    > &#8759; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > &#8594; <a href="PlutusPrelude.html#t:Natural" title="PlutusPrelude"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:dividedBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Divide a <code
+	      ><a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		>SatInt</a
+		></code
+	      > by a natural number.  If the natural number is zero,
+ return <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#v:maxBound" title="Prelude"
+		>maxBound</a
+		></code
+	      >; if we're at the maximum or minimum value then leave the
+ input unaltered. This should never throw.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

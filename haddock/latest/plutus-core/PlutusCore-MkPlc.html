@@ -1,0 +1,4905 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.MkPlc</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.MkPlc.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.MkPlc</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:TermLike"
+	      >TermLike</a
+	      > term tyname name uni fun | term &#8594; tyname name uni fun <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:var"
+		  >var</a
+		  > &#8759; ann &#8594; name &#8594; term ann</li
+		><li
+		><a href="#v:tyAbs"
+		  >tyAbs</a
+		  > &#8759; ann &#8594; tyname &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ann &#8594; term ann &#8594; term ann</li
+		><li
+		><a href="#v:lamAbs"
+		  >lamAbs</a
+		  > &#8759; ann &#8594; name &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann &#8594; term ann &#8594; term ann</li
+		><li
+		><a href="#v:apply"
+		  >apply</a
+		  > &#8759; ann &#8594; term ann &#8594; term ann &#8594; term ann</li
+		><li
+		><a href="#v:constant"
+		  >constant</a
+		  > &#8759; ann &#8594; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni) &#8594; term ann</li
+		><li
+		><a href="#v:builtin"
+		  >builtin</a
+		  > &#8759; ann &#8594; fun &#8594; term ann</li
+		><li
+		><a href="#v:tyInst"
+		  >tyInst</a
+		  > &#8759; ann &#8594; term ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann &#8594; term ann</li
+		><li
+		><a href="#v:unwrap"
+		  >unwrap</a
+		  > &#8759; ann &#8594; term ann &#8594; term ann</li
+		><li
+		><a href="#v:iWrap"
+		  >iWrap</a
+		  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann &#8594; term ann &#8594; term ann</li
+		><li
+		><a href="#v:error"
+		  >error</a
+		  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann &#8594; term ann</li
+		><li
+		><a href="#v:constr"
+		  >constr</a
+		  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+		  >Word64</a
+		  > &#8594; [term ann] &#8594; term ann</li
+		><li
+		><a href="#v:kase"
+		  >kase</a
+		  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann &#8594; term ann &#8594; [term ann] &#8594; term ann</li
+		><li
+		><a href="#v:termLet"
+		  >termLet</a
+		  > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+		  >TermDef</a
+		  > term tyname name uni ann &#8594; term ann &#8594; term ann</li
+		><li
+		><a href="#v:typeLet"
+		  >typeLet</a
+		  > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+		  >TypeDef</a
+		  > tyname uni ann &#8594; term ann &#8594; term ann</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:UniOf"
+	      >UniOf</a
+	      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:HasTypeLevel"
+	      >HasTypeLevel</a
+	      > uni x = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	      >KnownTypeAst</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+	      >Void</a
+	      > uni (<a href="PlutusCore-Builtin-Polymorphism.html#t:ElaborateBuiltin" title="PlutusCore.Builtin.Polymorphism"
+	      >ElaborateBuiltin</a
+	      > uni x)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:HasTermLevel"
+	      >HasTermLevel</a
+	      > uni = <a href="Universe-Core.html#t:Includes" title="Universe.Core"
+	      >Includes</a
+	      > uni</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:HasTypeAndTermLevel"
+	      >HasTypeAndTermLevel</a
+	      > uni x = (uni <a href="PlutusCore-MkPlc.html#t:HasTypeLevel" title="PlutusCore.MkPlc"
+	      >`HasTypeLevel`</a
+	      > x, uni <a href="PlutusCore-MkPlc.html#t:HasTermLevel" title="PlutusCore.MkPlc"
+	      >`HasTermLevel`</a
+	      > x)</li
+	    ><li class="src short"
+	    ><a href="#v:mkTyBuiltinOf"
+	      >mkTyBuiltinOf</a
+	      > &#8759; &#8704; k (a &#8759; k) uni tyname ann. ann &#8594; uni (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkTyBuiltin"
+	      >mkTyBuiltin</a
+	      > &#8759; &#8704; a (x &#8759; a) uni ann tyname. uni <a href="PlutusCore-MkPlc.html#t:HasTypeLevel" title="PlutusCore.MkPlc"
+	      >`HasTypeLevel`</a
+	      > x &#8658; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkConstantOf"
+	      >mkConstantOf</a
+	      > &#8759; &#8704; a uni fun term tyname name ann. <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; ann &#8594; uni (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; a &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkConstant"
+	      >mkConstant</a
+	      > &#8759; &#8704; a uni fun term tyname name ann. (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun, uni <a href="PlutusCore-MkPlc.html#t:HasTermLevel" title="PlutusCore.MkPlc"
+	      >`HasTermLevel`</a
+	      > a) &#8658; ann &#8594; a &#8594; term ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:VarDecl"
+	      >VarDecl</a
+	      > tyname name uni ann = <a href="#v:VarDecl"
+	      >VarDecl</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_varDeclAnn"
+		  >_varDeclAnn</a
+		  > &#8759; ann</li
+		><li
+		><a href="#v:_varDeclName"
+		  >_varDeclName</a
+		  > &#8759; name</li
+		><li
+		><a href="#v:_varDeclType"
+		  >_varDeclType</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TyVarDecl"
+	      >TyVarDecl</a
+	      > tyname ann = <a href="#v:TyVarDecl"
+	      >TyVarDecl</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_tyVarDeclAnn"
+		  >_tyVarDeclAnn</a
+		  > &#8759; ann</li
+		><li
+		><a href="#v:_tyVarDeclName"
+		  >_tyVarDeclName</a
+		  > &#8759; tyname</li
+		><li
+		><a href="#v:_tyVarDeclKind"
+		  >_tyVarDeclKind</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TyDecl"
+	      >TyDecl</a
+	      > tyname uni ann = <a href="#v:TyDecl"
+	      >TyDecl</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_tyDeclAnn"
+		  >_tyDeclAnn</a
+		  > &#8759; ann</li
+		><li
+		><a href="#v:_tyDeclType"
+		  >_tyDeclType</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann</li
+		><li
+		><a href="#v:_tyDeclKind"
+		  >_tyDeclKind</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		  >Kind</a
+		  > ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:mkVar"
+	      >mkVar</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	      >VarDecl</a
+	      > tyname name uni ann &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkTyVar"
+	      >mkTyVar</a
+	      > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	      >TyVarDecl</a
+	      > tyname ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:tyDeclVar"
+	      >tyDeclVar</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	      >TyVarDecl</a
+	      > tyname ann &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+	      >TyDecl</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Def"
+	      >Def</a
+	      > var val = <a href="#v:Def"
+	      >Def</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:defVar"
+		  >defVar</a
+		  > &#8759; var</li
+		><li
+		><a href="#v:defVal"
+		  >defVal</a
+		  > &#8759; val</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:embedTerm"
+	      >embedTerm</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; term ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TermDef"
+	      >TermDef</a
+	      > term tyname name uni ann = <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	      >Def</a
+	      > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	      >VarDecl</a
+	      > tyname name uni ann) (term ann)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TypeDef"
+	      >TypeDef</a
+	      > tyname uni ann = <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	      >Def</a
+	      > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	      >TyVarDecl</a
+	      > tyname ann) (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:FunctionType"
+	      >FunctionType</a
+	      > tyname uni ann = <a href="#v:FunctionType"
+	      >FunctionType</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_functionTypeAnn"
+		  >_functionTypeAnn</a
+		  > &#8759; ann</li
+		><li
+		><a href="#v:_functionTypeDom"
+		  >_functionTypeDom</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann</li
+		><li
+		><a href="#v:_functionTypeCod"
+		  >_functionTypeCod</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:FunctionDef"
+	      >FunctionDef</a
+	      > term tyname name uni fun ann = <a href="#v:FunctionDef"
+	      >FunctionDef</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_functionDefAnn"
+		  >_functionDefAnn</a
+		  > &#8759; ann</li
+		><li
+		><a href="#v:_functionDefName"
+		  >_functionDefName</a
+		  > &#8759; name</li
+		><li
+		><a href="#v:_functionDefType"
+		  >_functionDefType</a
+		  > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionType" title="PlutusCore.MkPlc"
+		  >FunctionType</a
+		  > tyname uni ann</li
+		><li
+		><a href="#v:_functionDefTerm"
+		  >_functionDefTerm</a
+		  > &#8759; term ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:functionTypeToType"
+	      >functionTypeToType</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionType" title="PlutusCore.MkPlc"
+	      >FunctionType</a
+	      > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:functionDefToType"
+	      >functionDefToType</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+	      >FunctionDef</a
+	      > term tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:functionDefVarDecl"
+	      >functionDefVarDecl</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+	      >FunctionDef</a
+	      > term tyname name uni fun ann &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	      >VarDecl</a
+	      > tyname name uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkFunctionDef"
+	      >mkFunctionDef</a
+	      > &#8759; ann &#8594; name &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; term ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+	      >FunctionDef</a
+	      > term tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:mkImmediateLamAbs"
+	      >mkImmediateLamAbs</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+	      >TermDef</a
+	      > term tyname name uni ann &#8594; term ann &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkImmediateTyAbs"
+	      >mkImmediateTyAbs</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	      >TypeDef</a
+	      > tyname uni ann &#8594; term ann &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyForall"
+	      >mkIterTyForall</a
+	      > &#8759; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	      >TyVarDecl</a
+	      > tyname ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyLam"
+	      >mkIterTyLam</a
+	      > &#8759; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	      >TyVarDecl</a
+	      > tyname ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterApp"
+	      >mkIterApp</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; term ann &#8594; [(ann, term ann)] &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterAppNoAnn"
+	      >mkIterAppNoAnn</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; term () &#8594; [term ()] &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:-64--64-"
+	      >(@@)</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; term () &#8594; [term ()] &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyFun"
+	      >mkIterTyFun</a
+	      > &#8759; ann &#8594; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterLamAbs"
+	      >mkIterLamAbs</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; [<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	      >VarDecl</a
+	      > tyname name uni ann] &#8594; term ann &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterInst"
+	      >mkIterInst</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; term ann &#8594; [(ann, <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann)] &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterInstNoAnn"
+	      >mkIterInstNoAnn</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; term () &#8594; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ()] &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyAbs"
+	      >mkIterTyAbs</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	      >TyVarDecl</a
+	      > tyname ann] &#8594; term ann &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyApp"
+	      >mkIterTyApp</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; [(ann, <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann)] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyAppNoAnn"
+	      >mkIterTyAppNoAnn</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni () &#8594; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ()] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterKindArrow"
+	      >mkIterKindArrow</a
+	      > &#8759; ann &#8594; [<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ann &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:mkFreshTermLet"
+	      >mkFreshTermLet</a
+	      > &#8759; (<a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > t tyname <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a) &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni a &#8594; t a &#8594; m (t a, t a &#8594; t a)</li
+	    ><li class="src short"
+	    ><a href="#v:headSpineToTerm"
+	      >headSpineToTerm</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; ann &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:MonoHeadSpine" title="PlutusCore.Builtin.KnownType"
+	      >MonoHeadSpine</a
+	      > (term ann) &#8594; term ann</li
+	    ><li class="src short"
+	    ><a href="#v:headSpineToTermNoAnn"
+	      >headSpineToTermNoAnn</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term tyname name uni fun &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MonoHeadSpine" title="PlutusCore.Builtin.KnownType"
+	      >MonoHeadSpine</a
+	      > (term ()) &#8594; term ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:TermLike" class="def"
+	    >TermLike</a
+	    > term tyname name uni fun | term &#8594; tyname name uni fun <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.MkPlc.html#TermLike" class="link"
+	    >Source</a
+	    > <a href="#t:TermLike" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.</p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusCore-MkPlc.html#v:var" title="PlutusCore.MkPlc"
+	      >var</a
+	      >, <a href="PlutusCore-MkPlc.html#v:tyAbs" title="PlutusCore.MkPlc"
+	      >tyAbs</a
+	      >, <a href="PlutusCore-MkPlc.html#v:lamAbs" title="PlutusCore.MkPlc"
+	      >lamAbs</a
+	      >, <a href="PlutusCore-MkPlc.html#v:apply" title="PlutusCore.MkPlc"
+	      >apply</a
+	      >, <a href="PlutusCore-MkPlc.html#v:constant" title="PlutusCore.MkPlc"
+	      >constant</a
+	      >, <a href="PlutusCore-MkPlc.html#v:builtin" title="PlutusCore.MkPlc"
+	      >builtin</a
+	      >, <a href="PlutusCore-MkPlc.html#v:tyInst" title="PlutusCore.MkPlc"
+	      >tyInst</a
+	      >, <a href="PlutusCore-MkPlc.html#v:unwrap" title="PlutusCore.MkPlc"
+	      >unwrap</a
+	      >, <a href="PlutusCore-MkPlc.html#v:iWrap" title="PlutusCore.MkPlc"
+	      >iWrap</a
+	      >, <a href="PlutusCore-MkPlc.html#v:error" title="PlutusCore.MkPlc"
+	      >error</a
+	      >, <a href="PlutusCore-MkPlc.html#v:constr" title="PlutusCore.MkPlc"
+	      >constr</a
+	      >, <a href="PlutusCore-MkPlc.html#v:kase" title="PlutusCore.MkPlc"
+	      >kase</a
+	      ></p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:var" class="def"
+	      >var</a
+	      > &#8759; ann &#8594; name &#8594; term ann <a href="src/PlutusCore.MkPlc.html#var" class="link"
+	      >Source</a
+	      > <a href="#v:var" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:tyAbs" class="def"
+	      >tyAbs</a
+	      > &#8759; ann &#8594; tyname &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ann &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#tyAbs" class="link"
+	      >Source</a
+	      > <a href="#v:tyAbs" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:lamAbs" class="def"
+	      >lamAbs</a
+	      > &#8759; ann &#8594; name &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#lamAbs" class="link"
+	      >Source</a
+	      > <a href="#v:lamAbs" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:apply" class="def"
+	      >apply</a
+	      > &#8759; ann &#8594; term ann &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#apply" class="link"
+	      >Source</a
+	      > <a href="#v:apply" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:constant" class="def"
+	      >constant</a
+	      > &#8759; ann &#8594; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; term ann <a href="src/PlutusCore.MkPlc.html#constant" class="link"
+	      >Source</a
+	      > <a href="#v:constant" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:builtin" class="def"
+	      >builtin</a
+	      > &#8759; ann &#8594; fun &#8594; term ann <a href="src/PlutusCore.MkPlc.html#builtin" class="link"
+	      >Source</a
+	      > <a href="#v:builtin" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:tyInst" class="def"
+	      >tyInst</a
+	      > &#8759; ann &#8594; term ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#tyInst" class="link"
+	      >Source</a
+	      > <a href="#v:tyInst" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:unwrap" class="def"
+	      >unwrap</a
+	      > &#8759; ann &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#unwrap" class="link"
+	      >Source</a
+	      > <a href="#v:unwrap" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:iWrap" class="def"
+	      >iWrap</a
+	      > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#iWrap" class="link"
+	      >Source</a
+	      > <a href="#v:iWrap" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:error" class="def"
+	      >error</a
+	      > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#error" class="link"
+	      >Source</a
+	      > <a href="#v:error" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:constr" class="def"
+	      >constr</a
+	      > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      > &#8594; [term ann] &#8594; term ann <a href="src/PlutusCore.MkPlc.html#constr" class="link"
+	      >Source</a
+	      > <a href="#v:constr" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:kase" class="def"
+	      >kase</a
+	      > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; term ann &#8594; [term ann] &#8594; term ann <a href="src/PlutusCore.MkPlc.html#kase" class="link"
+	      >Source</a
+	      > <a href="#v:kase" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:termLet" class="def"
+	      >termLet</a
+	      > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+	      >TermDef</a
+	      > term tyname name uni ann &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#termLet" class="link"
+	      >Source</a
+	      > <a href="#v:termLet" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:typeLet" class="def"
+	      >typeLet</a
+	      > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	      >TypeDef</a
+	      > tyname uni ann &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#typeLet" class="link"
+	      >Source</a
+	      > <a href="#v:typeLet" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TermLike"
+	    >Instances</h4
+	    ><details id="i:TermLike" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:TermLike:TermLike:1"
+		      ></span
+		      > <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		      >TermLike</a
+		      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		      >Term</a
+		      > name uni fun) <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > name uni fun</span
+		    > <a href="src/UntypedPlutusCore.Core.Type.html#line-129" class="link"
+		    >Source</a
+		    > <a href="#t:TermLike" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:TermLike:TermLike:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Type.html"
+			>UntypedPlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:var"
+			  >var</a
+			  > &#8759; ann &#8594; name &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#var" class="link"
+			  >Source</a
+			  > <a href="#v:var" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tyAbs"
+			  >tyAbs</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#tyAbs" class="link"
+			  >Source</a
+			  > <a href="#v:tyAbs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:lamAbs"
+			  >lamAbs</a
+			  > &#8759; ann &#8594; name &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#lamAbs" class="link"
+			  >Source</a
+			  > <a href="#v:lamAbs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:apply"
+			  >apply</a
+			  > &#8759; ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#apply" class="link"
+			  >Source</a
+			  > <a href="#v:apply" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:constant"
+			  >constant</a
+			  > &#8759; ann &#8594; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni) &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#constant" class="link"
+			  >Source</a
+			  > <a href="#v:constant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:builtin"
+			  >builtin</a
+			  > &#8759; ann &#8594; fun &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#builtin" class="link"
+			  >Source</a
+			  > <a href="#v:builtin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tyInst"
+			  >tyInst</a
+			  > &#8759; ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#tyInst" class="link"
+			  >Source</a
+			  > <a href="#v:tyInst" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:unwrap"
+			  >unwrap</a
+			  > &#8759; ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#unwrap" class="link"
+			  >Source</a
+			  > <a href="#v:unwrap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:iWrap"
+			  >iWrap</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#iWrap" class="link"
+			  >Source</a
+			  > <a href="#v:iWrap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:error"
+			  >error</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#error" class="link"
+			  >Source</a
+			  > <a href="#v:error" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:constr"
+			  >constr</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+			  >Word64</a
+			  > &#8594; [<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann] &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#constr" class="link"
+			  >Source</a
+			  > <a href="#v:constr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:kase"
+			  >kase</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; [<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann] &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#kase" class="link"
+			  >Source</a
+			  > <a href="#v:kase" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:termLet"
+			  >termLet</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+			  >TermDef</a
+			  > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun) <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > name uni ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#termLet" class="link"
+			  >Source</a
+			  > <a href="#v:termLet" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:typeLet"
+			  >typeLet</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+			  >TypeDef</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann <a href="src/PlutusCore.MkPlc.html#typeLet" class="link"
+			  >Source</a
+			  > <a href="#v:typeLet" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:TermLike:TermLike:2"
+		      ></span
+		      > <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		      >TermLike</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > tyname name uni fun) tyname name uni fun</span
+		    > <a href="src/PlutusCore.MkPlc.html#line-112" class="link"
+		    >Source</a
+		    > <a href="#t:TermLike" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:TermLike:TermLike:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-MkPlc.html"
+			>PlutusCore.MkPlc</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:var"
+			  >var</a
+			  > &#8759; ann &#8594; name &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#var" class="link"
+			  >Source</a
+			  > <a href="#v:var" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tyAbs"
+			  >tyAbs</a
+			  > &#8759; ann &#8594; tyname &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#tyAbs" class="link"
+			  >Source</a
+			  > <a href="#v:tyAbs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:lamAbs"
+			  >lamAbs</a
+			  > &#8759; ann &#8594; name &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#lamAbs" class="link"
+			  >Source</a
+			  > <a href="#v:lamAbs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:apply"
+			  >apply</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#apply" class="link"
+			  >Source</a
+			  > <a href="#v:apply" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:constant"
+			  >constant</a
+			  > &#8759; ann &#8594; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni) &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#constant" class="link"
+			  >Source</a
+			  > <a href="#v:constant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:builtin"
+			  >builtin</a
+			  > &#8759; ann &#8594; fun &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#builtin" class="link"
+			  >Source</a
+			  > <a href="#v:builtin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tyInst"
+			  >tyInst</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#tyInst" class="link"
+			  >Source</a
+			  > <a href="#v:tyInst" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:unwrap"
+			  >unwrap</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#unwrap" class="link"
+			  >Source</a
+			  > <a href="#v:unwrap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:iWrap"
+			  >iWrap</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#iWrap" class="link"
+			  >Source</a
+			  > <a href="#v:iWrap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:error"
+			  >error</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#error" class="link"
+			  >Source</a
+			  > <a href="#v:error" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:constr"
+			  >constr</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+			  >Word64</a
+			  > &#8594; [<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#constr" class="link"
+			  >Source</a
+			  > <a href="#v:constr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:kase"
+			  >kase</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; [<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#kase" class="link"
+			  >Source</a
+			  > <a href="#v:kase" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:termLet"
+			  >termLet</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+			  >TermDef</a
+			  > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun) tyname name uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#termLet" class="link"
+			  >Source</a
+			  > <a href="#v:termLet" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:typeLet"
+			  >typeLet</a
+			  > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+			  >TypeDef</a
+			  > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#typeLet" class="link"
+			  >Source</a
+			  > <a href="#v:typeLet" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:UniOf" class="def"
+	    >UniOf</a
+	    > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > <a href="src/PlutusCore.Core.Type.html#UniOf" class="link"
+	    >Source</a
+	    > <a href="#t:UniOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Extract the universe from a type.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UniOf"
+	    >Instances</h4
+	    ><details id="i:UniOf" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:if:UniOf:UniOf:1"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+		      >UniOf</a
+		      > (<a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+		      >Opaque</a
+		      > val rep)</span
+		    > <a href="src/PlutusCore.Builtin.Polymorphism.html#line-152" class="link"
+		    >Source</a
+		    > <a href="#t:UniOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:if:UniOf:UniOf:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Polymorphism.html"
+			>PlutusCore.Builtin.Polymorphism</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+			>UniOf</a
+			> (<a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+			>Opaque</a
+			> val rep) = <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+			>UniOf</a
+			> val</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:if:UniOf:UniOf:2"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+		      >UniOf</a
+		      > (<a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+		      >SomeConstant</a
+		      > uni rep)</span
+		    > <a href="src/PlutusCore.Builtin.Polymorphism.html#line-166" class="link"
+		    >Source</a
+		    > <a href="#t:UniOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:if:UniOf:UniOf:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Polymorphism.html"
+			>PlutusCore.Builtin.Polymorphism</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+			>UniOf</a
+			> (<a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+			>SomeConstant</a
+			> uni rep) = uni</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:if:UniOf:UniOf:3"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+		      >UniOf</a
+		      > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+		      >CkValue</a
+		      > uni fun)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.Ck.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:UniOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:if:UniOf:UniOf:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-Ck.html"
+			>PlutusCore.Evaluation.Machine.Ck</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+			>UniOf</a
+			> (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			>CkValue</a
+			> uni fun) = uni</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:if:UniOf:UniOf:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+		      >UniOf</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekValue</a
+		      > uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-676" class="link"
+		    >Source</a
+		    > <a href="#t:UniOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:if:UniOf:UniOf:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+			>UniOf</a
+			> (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			>CekValue</a
+			> uni fun ann) = uni</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:if:UniOf:UniOf:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+		      >UniOf</a
+		      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		      >Term</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Type.html#line-127" class="link"
+		    >Source</a
+		    > <a href="#t:UniOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:if:UniOf:UniOf:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Type.html"
+			>UntypedPlutusCore.Core.Type</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+			>UniOf</a
+			> (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			>Term</a
+			> name uni fun ann) = uni</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:if:UniOf:UniOf:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+		      >UniOf</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-181" class="link"
+		    >Source</a
+		    > <a href="#t:UniOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:if:UniOf:UniOf:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-MkPlc.html#t:UniOf" title="PlutusCore.MkPlc"
+			>UniOf</a
+			> (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			>Term</a
+			> tyname name uni fun ann) = uni</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:HasTypeLevel" class="def"
+	    >HasTypeLevel</a
+	    > uni x = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	    >KnownTypeAst</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+	    >Void</a
+	    > uni (<a href="PlutusCore-Builtin-Polymorphism.html#t:ElaborateBuiltin" title="PlutusCore.Builtin.Polymorphism"
+	    >ElaborateBuiltin</a
+	    > uni x) <a href="src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeLevel" class="link"
+	    >Source</a
+	    > <a href="#t:HasTypeLevel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Specifies that the given type is a built-in one and can be embedded into a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		>Kind</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:HasTermLevel" class="def"
+	    >HasTermLevel</a
+	    > uni = <a href="Universe-Core.html#t:Includes" title="Universe.Core"
+	    >Includes</a
+	    > uni <a href="src/PlutusCore.Core.Type.html#HasTermLevel" class="link"
+	    >Source</a
+	    > <a href="#t:HasTermLevel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Specifies that the given type is a built-in one and its values can be embedded into a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:HasTypeAndTermLevel" class="def"
+	    >HasTypeAndTermLevel</a
+	    > uni x = (uni <a href="PlutusCore-MkPlc.html#t:HasTypeLevel" title="PlutusCore.MkPlc"
+	    >`HasTypeLevel`</a
+	    > x, uni <a href="PlutusCore-MkPlc.html#t:HasTermLevel" title="PlutusCore.MkPlc"
+	    >`HasTermLevel`</a
+	    > x) <a href="src/PlutusCore.Builtin.KnownTypeAst.html#HasTypeAndTermLevel" class="link"
+	    >Source</a
+	    > <a href="#t:HasTypeAndTermLevel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The product of <code
+	      ><a href="PlutusCore-MkPlc.html#t:HasTypeLevel" title="PlutusCore.MkPlc"
+		>HasTypeLevel</a
+		></code
+	      > and <code
+	      ><a href="PlutusCore-MkPlc.html#t:HasTermLevel" title="PlutusCore.MkPlc"
+		>HasTermLevel</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTyBuiltinOf" class="def"
+	    >mkTyBuiltinOf</a
+	    > &#8759; &#8704; k (a &#8759; k) uni tyname ann. ann &#8594; uni (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#mkTyBuiltinOf" class="link"
+	    >Source</a
+	    > <a href="#v:mkTyBuiltinOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Embed a type (given its explicit type tag) into a PLC type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTyBuiltin" class="def"
+	    >mkTyBuiltin</a
+	    > &#8759; &#8704; a (x &#8759; a) uni ann tyname. uni <a href="PlutusCore-MkPlc.html#t:HasTypeLevel" title="PlutusCore.MkPlc"
+	    >`HasTypeLevel`</a
+	    > x &#8658; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.Builtin.KnownTypeAst.html#mkTyBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:mkTyBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a Haskell representation of a possibly 0-ary application of a built-in type to
+ arbitrary types implementing <code
+	      ><a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		>KnownTypeAst</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkConstantOf" class="def"
+	    >mkConstantOf</a
+	    > &#8759; &#8704; a uni fun term tyname name ann. <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; ann &#8594; uni (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; a &#8594; term ann <a href="src/PlutusCore.MkPlc.html#mkConstantOf" class="link"
+	    >Source</a
+	    > <a href="#v:mkConstantOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Embed a Haskell value (given its explicit type tag) into a PLC term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkConstant" class="def"
+	    >mkConstant</a
+	    > &#8759; &#8704; a uni fun term tyname name ann. (<a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun, uni <a href="PlutusCore-MkPlc.html#t:HasTermLevel" title="PlutusCore.MkPlc"
+	    >`HasTermLevel`</a
+	    > a) &#8658; ann &#8594; a &#8594; term ann <a href="src/PlutusCore.MkPlc.html#mkConstant" class="link"
+	    >Source</a
+	    > <a href="#v:mkConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Embed a Haskell value (provided its type is in the universe) into a PLC term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:VarDecl" class="def"
+	    >VarDecl</a
+	    > tyname name uni ann <a href="src/PlutusCore.Core.Type.html#VarDecl" class="link"
+	    >Source</a
+	    > <a href="#t:VarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A &quot;variable declaration&quot;, i.e. a name and a type for a variable.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:VarDecl" class="def"
+		  >VarDecl</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_varDeclAnn" class="def"
+			  >_varDeclAnn</a
+			  > &#8759; ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_varDeclName" class="def"
+			  >_varDeclName</a
+			  > &#8759; name</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_varDeclType" class="def"
+			  >_varDeclType</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:VarDecl"
+	    >Instances</h4
+	    ><details id="i:VarDecl" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarDecl:PrettyBy:1"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyReadableBy" title="PlutusCore.Pretty.Readable"
+		      >PrettyReadableBy</a
+		      > configName tyname, <a href="PlutusCore-Pretty-Readable.html#t:PrettyReadableBy" title="PlutusCore.Pretty.Readable"
+		      >PrettyReadableBy</a
+		      > configName name, <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+		      >PrettyConfigReadable</a
+		      > configName) (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		      >VarDecl</a
+		      > tyname name uni ann)</span
+		    > <a href="src/PlutusCore.Core.Instance.Pretty.Readable.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyBy" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarDecl:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Instance-Pretty-Readable.html"
+			>PlutusCore.Core.Instance.Pretty.Readable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > configName &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > configName &#8594; [<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarDecl:Functor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		      >VarDecl</a
+		      > tyname name uni)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-196" class="link"
+		    >Source</a
+		    > <a href="#t:VarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarDecl:Functor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni a &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni b &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarDecl:Generic:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		      >VarDecl</a
+		      > tyname name uni ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-196" class="link"
+		    >Source</a
+		    > <a href="#t:VarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarDecl:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann) x &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarDecl:Show:4"
+		      ></span
+		      > (<a href="Universe-Core.html#t:GShow" title="Universe.Core"
+		      >GShow</a
+		      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > ann, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > tyname) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		      >VarDecl</a
+		      > tyname name uni ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-196" class="link"
+		    >Source</a
+		    > <a href="#t:VarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarDecl:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarDecl:Flat:5"
+		      ></span
+		      > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > ann, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > tyname, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > name) &#8658; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		      >VarDecl</a
+		      > tyname name uni ann)</span
+		    > <a href="src/PlutusCore.FlatInstances.html#line-319" class="link"
+		    >Source</a
+		    > <a href="#t:Flat" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarDecl:Flat:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-FlatInstances.html"
+			>PlutusCore.FlatInstances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann &#8594; <a href="../plutus-core/PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarDecl:HasUnique:6"
+		      ></span
+		      > <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > name <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		      >TermUnique</a
+		      > &#8658; <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		      >VarDecl</a
+		      > tyname name uni ann) <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		      >TermUnique</a
+		      ></span
+		    > <a href="src/PlutusCore.Core.Type.html#line-214" class="link"
+		    >Source</a
+		    > <a href="#t:VarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarDecl:HasUnique:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unique"
+			  >unique</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			  >VarDecl</a
+			  > tyname name uni ann) <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+			  >TermUnique</a
+			  > <a href="src/PlutusCore.Name.Unique.html#unique" class="link"
+			  >Source</a
+			  > <a href="#v:unique" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VarDecl:Rep:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		      >VarDecl</a
+		      > tyname name uni ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-196" class="link"
+		    >Source</a
+		    > <a href="#t:VarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VarDecl:Rep:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+			>VarDecl</a
+			> tyname name uni ann) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;VarDecl&quot; &quot;PlutusCore.Core.Type&quot; &quot;plutus-core-1.55.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;VarDecl&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_varDeclAnn&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> ann) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_varDeclName&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> name) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_varDeclType&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			>Type</a
+			> tyname uni ann)))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TyVarDecl" class="def"
+	    >TyVarDecl</a
+	    > tyname ann <a href="src/PlutusCore.Core.Type.html#TyVarDecl" class="link"
+	    >Source</a
+	    > <a href="#t:TyVarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A &quot;type variable declaration&quot;, i.e. a name and a kind for a type variable.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TyVarDecl" class="def"
+		  >TyVarDecl</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_tyVarDeclAnn" class="def"
+			  >_tyVarDeclAnn</a
+			  > &#8759; ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_tyVarDeclName" class="def"
+			  >_tyVarDeclName</a
+			  > &#8759; tyname</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_tyVarDeclKind" class="def"
+			  >_tyVarDeclKind</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TyVarDecl"
+	    >Instances</h4
+	    ><details id="i:TyVarDecl" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyVarDecl:Functor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		      >TyVarDecl</a
+		      > tyname)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-188" class="link"
+		    >Source</a
+		    > <a href="#t:TyVarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyVarDecl:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname a &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname b &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyVarDecl:PrettyBy:2"
+		      ></span
+		      > <a href="PlutusCore-Pretty-Readable.html#t:PrettyReadableBy" title="PlutusCore.Pretty.Readable"
+		      >PrettyReadableBy</a
+		      > configName tyname &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+		      >PrettyConfigReadable</a
+		      > configName) (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		      >TyVarDecl</a
+		      > tyname ann)</span
+		    > <a href="src/PlutusCore.Core.Instance.Pretty.Readable.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyBy" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyVarDecl:PrettyBy:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Instance-Pretty-Readable.html"
+			>PlutusCore.Core.Instance.Pretty.Readable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > configName &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > configName &#8594; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyVarDecl:Generic:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		      >TyVarDecl</a
+		      > tyname ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-188" class="link"
+		    >Source</a
+		    > <a href="#t:TyVarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyVarDecl:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann) x &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyVarDecl:Show:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > ann, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > tyname) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		      >TyVarDecl</a
+		      > tyname ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-188" class="link"
+		    >Source</a
+		    > <a href="#t:TyVarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyVarDecl:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyVarDecl:Flat:5"
+		      ></span
+		      > (<a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > ann, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > tyname) &#8658; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		      >TyVarDecl</a
+		      > tyname ann)</span
+		    > <a href="src/PlutusCore.FlatInstances.html#line-327" class="link"
+		    >Source</a
+		    > <a href="#t:Flat" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyVarDecl:Flat:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-FlatInstances.html"
+			>PlutusCore.FlatInstances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann &#8594; <a href="../plutus-core/PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyVarDecl:HasUnique:6"
+		      ></span
+		      > <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+		      >TypeUnique</a
+		      > &#8658; <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		      >TyVarDecl</a
+		      > tyname ann) <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+		      >TypeUnique</a
+		      ></span
+		    > <a href="src/PlutusCore.Core.Type.html#line-210" class="link"
+		    >Source</a
+		    > <a href="#t:TyVarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyVarDecl:HasUnique:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unique"
+			  >unique</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			  >TyVarDecl</a
+			  > tyname ann) <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+			  >TypeUnique</a
+			  > <a href="src/PlutusCore.Name.Unique.html#unique" class="link"
+			  >Source</a
+			  > <a href="#v:unique" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyVarDecl:Rep:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		      >TyVarDecl</a
+		      > tyname ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-188" class="link"
+		    >Source</a
+		    > <a href="#t:TyVarDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyVarDecl:Rep:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+			>TyVarDecl</a
+			> tyname ann) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;TyVarDecl&quot; &quot;PlutusCore.Core.Type&quot; &quot;plutus-core-1.55.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TyVarDecl&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_tyVarDeclAnn&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> ann) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_tyVarDeclName&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> tyname) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_tyVarDeclKind&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			>Kind</a
+			> ann)))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TyDecl" class="def"
+	    >TyDecl</a
+	    > tyname uni ann <a href="src/PlutusCore.Core.Type.html#TyDecl" class="link"
+	    >Source</a
+	    > <a href="#t:TyDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A &quot;type declaration&quot;, i.e. a kind for a type.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TyDecl" class="def"
+		  >TyDecl</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_tyDeclAnn" class="def"
+			  >_tyDeclAnn</a
+			  > &#8759; ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_tyDeclType" class="def"
+			  >_tyDeclType</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_tyDeclKind" class="def"
+			  >_tyDeclKind</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			  >Kind</a
+			  > ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TyDecl"
+	    >Instances</h4
+	    ><details id="i:TyDecl" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyDecl:Functor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+		      >TyDecl</a
+		      > tyname uni)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:TyDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyDecl:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni a &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni b &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyDecl:Generic:2"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+		      >TyDecl</a
+		      > tyname uni ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:TyDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyDecl:Generic:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann) x &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyDecl:Show:3"
+		      ></span
+		      > (<a href="Universe-Core.html#t:GShow" title="Universe.Core"
+		      >GShow</a
+		      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > ann, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > tyname) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+		      >TyDecl</a
+		      > tyname uni ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:TyDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyDecl:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			  >TyDecl</a
+			  > tyname uni ann] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TyDecl:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+		      >TyDecl</a
+		      > tyname uni ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:TyDecl" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TyDecl:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+			>TyDecl</a
+			> tyname uni ann) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;TyDecl&quot; &quot;PlutusCore.Core.Type&quot; &quot;plutus-core-1.55.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TyDecl&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_tyDeclAnn&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> ann) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_tyDeclType&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			>Type</a
+			> tyname uni ann)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_tyDeclKind&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+			>Kind</a
+			> ann)))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkVar" class="def"
+	    >mkVar</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	    >VarDecl</a
+	    > tyname name uni ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#mkVar" class="link"
+	    >Source</a
+	    > <a href="#v:mkVar" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a <code
+	      ><a href="PlutusCore-Core-Type.html#v:Var" title="PlutusCore.Core.Type"
+		>Var</a
+		></code
+	      > referencing the given <code
+	      ><a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		>VarDecl</a
+		></code
+	      >.
+ The <code
+	      >ann</code
+	      > is propagated from the <code
+	      ><a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		>VarDecl</a
+		></code
+	      > to the <code
+	      ><a href="PlutusCore-Core-Type.html#v:Var" title="PlutusCore.Core.Type"
+		>Var</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTyVar" class="def"
+	    >mkTyVar</a
+	    > &#8759; ann &#8594; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	    >TyVarDecl</a
+	    > tyname ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#mkTyVar" class="link"
+	    >Source</a
+	    > <a href="#v:mkTyVar" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a <code
+	      ><a href="PlutusCore-Core-Type.html#v:TyVar" title="PlutusCore.Core.Type"
+		>TyVar</a
+		></code
+	      > referencing the given <code
+	      ><a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+		>TyVarDecl</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tyDeclVar" class="def"
+	    >tyDeclVar</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	    >TyVarDecl</a
+	    > tyname ann &#8594; <a href="PlutusCore-MkPlc.html#t:TyDecl" title="PlutusCore.MkPlc"
+	    >TyDecl</a
+	    > tyname uni ann <a href="src/PlutusCore.Core.Type.html#tyDeclVar" class="link"
+	    >Source</a
+	    > <a href="#v:tyDeclVar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Def" class="def"
+	    >Def</a
+	    > var val <a href="src/PlutusCore.MkPlc.html#Def" class="link"
+	    >Source</a
+	    > <a href="#t:Def" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A definition. Pretty much just a pair with more descriptive names.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Def" class="def"
+		  >Def</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:defVar" class="def"
+			  >defVar</a
+			  > &#8759; var</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:defVal" class="def"
+			  >defVal</a
+			  > &#8759; val</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Def"
+	    >Instances</h4
+	    ><details id="i:Def" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Def:Generic:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+		      >Def</a
+		      > var val)</span
+		    > <a href="src/PlutusCore.MkPlc.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:Def" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Def:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-MkPlc.html"
+			>PlutusCore.MkPlc</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val) x &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Def:Show:2"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > var, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > val) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+		      >Def</a
+		      > var val)</span
+		    > <a href="src/PlutusCore.MkPlc.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:Def" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Def:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-MkPlc.html"
+			>PlutusCore.MkPlc</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Def:Eq:3"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > var, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > val) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+		      >Def</a
+		      > var val)</span
+		    > <a href="src/PlutusCore.MkPlc.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:Def" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Def:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-MkPlc.html"
+			>PlutusCore.MkPlc</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Def:Ord:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > var, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > val) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+		      >Def</a
+		      > var val)</span
+		    > <a href="src/PlutusCore.MkPlc.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:Def" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Def:Ord:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-MkPlc.html"
+			>PlutusCore.MkPlc</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val &#8594; <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			  >Def</a
+			  > var val <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Def:Rep:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+		      >Def</a
+		      > var val)</span
+		    > <a href="src/PlutusCore.MkPlc.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:Def" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Def:Rep:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-MkPlc.html"
+			>PlutusCore.MkPlc</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+			>Def</a
+			> var val) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;Def&quot; &quot;PlutusCore.MkPlc&quot; &quot;plutus-core-1.55.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Def&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;defVar&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> var) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;defVal&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> val)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:embedTerm" class="def"
+	    >embedTerm</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#embedTerm" class="link"
+	    >Source</a
+	    > <a href="#v:embedTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TermDef" class="def"
+	    >TermDef</a
+	    > term tyname name uni ann = <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	    >Def</a
+	    > (<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	    >VarDecl</a
+	    > tyname name uni ann) (term ann) <a href="src/PlutusCore.MkPlc.html#TermDef" class="link"
+	    >Source</a
+	    > <a href="#t:TermDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A term definition as a variable.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TypeDef" class="def"
+	    >TypeDef</a
+	    > tyname uni ann = <a href="PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	    >Def</a
+	    > (<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	    >TyVarDecl</a
+	    > tyname ann) (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="src/PlutusCore.MkPlc.html#TypeDef" class="link"
+	    >Source</a
+	    > <a href="#t:TypeDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A type definition as a type variable.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:FunctionType" class="def"
+	    >FunctionType</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#FunctionType" class="link"
+	    >Source</a
+	    > <a href="#t:FunctionType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of a PLC function.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FunctionType" class="def"
+		  >FunctionType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_functionTypeAnn" class="def"
+			  >_functionTypeAnn</a
+			  > &#8759; ann</dfn
+			><div class="doc"
+			><p
+			  >An annotation.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_functionTypeDom" class="def"
+			  >_functionTypeDom</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann</dfn
+			><div class="doc"
+			><p
+			  >The domain of a function.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_functionTypeCod" class="def"
+			  >_functionTypeCod</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann</dfn
+			><div class="doc"
+			><p
+			  >The codomain of the function.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:FunctionDef" class="def"
+	    >FunctionDef</a
+	    > term tyname name uni fun ann <a href="src/PlutusCore.MkPlc.html#FunctionDef" class="link"
+	    >Source</a
+	    > <a href="#t:FunctionDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A PLC function.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FunctionDef" class="def"
+		  >FunctionDef</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_functionDefAnn" class="def"
+			  >_functionDefAnn</a
+			  > &#8759; ann</dfn
+			><div class="doc"
+			><p
+			  >An annotation.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_functionDefName" class="def"
+			  >_functionDefName</a
+			  > &#8759; name</dfn
+			><div class="doc"
+			><p
+			  >The name of a function.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_functionDefType" class="def"
+			  >_functionDefType</a
+			  > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionType" title="PlutusCore.MkPlc"
+			  >FunctionType</a
+			  > tyname uni ann</dfn
+			><div class="doc"
+			><p
+			  >The type of the function.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_functionDefTerm" class="def"
+			  >_functionDefTerm</a
+			  > &#8759; term ann</dfn
+			><div class="doc"
+			><p
+			  >The definition of the function.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:functionTypeToType" class="def"
+	    >functionTypeToType</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionType" title="PlutusCore.MkPlc"
+	    >FunctionType</a
+	    > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#functionTypeToType" class="link"
+	    >Source</a
+	    > <a href="#v:functionTypeToType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a <code
+	      ><a href="PlutusCore-MkPlc.html#t:FunctionType" title="PlutusCore.MkPlc"
+		>FunctionType</a
+		></code
+	      > to the corresponding <code
+	      ><a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		>Kind</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:functionDefToType" class="def"
+	    >functionDefToType</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+	    >FunctionDef</a
+	    > term tyname name uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#functionDefToType" class="link"
+	    >Source</a
+	    > <a href="#v:functionDefToType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the type of a <code
+	      ><a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+		>FunctionDef</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:functionDefVarDecl" class="def"
+	    >functionDefVarDecl</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+	    >FunctionDef</a
+	    > term tyname name uni fun ann &#8594; <a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	    >VarDecl</a
+	    > tyname name uni ann <a href="src/PlutusCore.MkPlc.html#functionDefVarDecl" class="link"
+	    >Source</a
+	    > <a href="#v:functionDefVarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a <code
+	      ><a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+		>FunctionDef</a
+		></code
+	      > to a <code
+	      ><a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+		>VarDecl</a
+		></code
+	      >. I.e. ignore the actual term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkFunctionDef" class="def"
+	    >mkFunctionDef</a
+	    > &#8759; ann &#8594; name &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; term ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+	    >FunctionDef</a
+	    > term tyname name uni fun ann) <a href="src/PlutusCore.MkPlc.html#mkFunctionDef" class="link"
+	    >Source</a
+	    > <a href="#v:mkFunctionDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a <code
+	      ><a href="PlutusCore-MkPlc.html#t:FunctionDef" title="PlutusCore.MkPlc"
+		>FunctionDef</a
+		></code
+	      >. Return <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+		>Nothing</a
+		></code
+	      > if the provided type is not functional.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkImmediateLamAbs" class="def"
+	    >mkImmediateLamAbs</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkImmediateLamAbs" class="link"
+	    >Source</a
+	    > <a href="#v:mkImmediateLamAbs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > term tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-MkPlc.html#t:TermDef" title="PlutusCore.MkPlc"
+		  >TermDef</a
+		  > term tyname name uni ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ann</td
+		><td class="doc"
+		><p
+		  >The body of the let, possibly referencing the name.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Make a &quot;let-binding&quot; for a term as an immediately applied lambda abstraction.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkImmediateTyAbs" class="def"
+	    >mkImmediateTyAbs</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkImmediateTyAbs" class="link"
+	    >Source</a
+	    > <a href="#v:mkImmediateTyAbs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > term tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+		  >TypeDef</a
+		  > tyname uni ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ann</td
+		><td class="doc"
+		><p
+		  >The body of the let, possibly referencing the name.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Make a &quot;let-binding&quot; for a type as an immediately instantiated type abstraction. Note: the body must be a value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyForall" class="def"
+	    >mkIterTyForall</a
+	    > &#8759; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	    >TyVarDecl</a
+	    > tyname ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#mkIterTyForall" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyForall" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Universally quantify a list of names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyLam" class="def"
+	    >mkIterTyLam</a
+	    > &#8759; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	    >TyVarDecl</a
+	    > tyname ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#mkIterTyLam" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyLam" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Lambda abstract a list of names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterApp" class="def"
+	    >mkIterApp</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; term ann &#8594; [(ann, term ann)] &#8594; term ann <a href="src/PlutusCore.MkPlc.html#mkIterApp" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterApp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated application. Each <code
+	      ><a href="PlutusCore-MkPlc.html#v:apply" title="PlutusCore.MkPlc"
+		>apply</a
+		></code
+	      > node uses the annotation associated with
+ the corresponding argument.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterAppNoAnn" class="def"
+	    >mkIterAppNoAnn</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkIterAppNoAnn" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterAppNoAnn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > term tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; term ()</td
+		><td class="doc"
+		><pre
+		  >f</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [term ()]</td
+		><td class="doc"
+		><pre
+		  >[ x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ()</td
+		><td class="doc"
+		><pre
+		  >[f x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated application with no annotation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-64--64-" class="def"
+	    >(@@)</a
+	    > <a href="src/PlutusCore.MkPlc.html#%40%40" class="link"
+	    >Source</a
+	    > <a href="#v:-64--64-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > term tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; term ()</td
+		><td class="doc"
+		><pre
+		  >f</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [term ()]</td
+		><td class="doc"
+		><pre
+		  >[ x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ()</td
+		><td class="doc"
+		><pre
+		  >[f x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >An infix synonym for <code
+	      ><a href="PlutusCore-MkPlc.html#v:mkIterAppNoAnn" title="PlutusCore.MkPlc"
+		>mkIterAppNoAnn</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyFun" class="def"
+	    >mkIterTyFun</a
+	    > &#8759; ann &#8594; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="src/PlutusCore.MkPlc.html#mkIterTyFun" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyFun" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated function type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterLamAbs" class="def"
+	    >mkIterLamAbs</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; [<a href="PlutusCore-MkPlc.html#t:VarDecl" title="PlutusCore.MkPlc"
+	    >VarDecl</a
+	    > tyname name uni ann] &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#mkIterLamAbs" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterLamAbs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Lambda abstract a list of names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterInst" class="def"
+	    >mkIterInst</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkIterInst" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterInst" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > term tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; term ann</td
+		><td class="doc"
+		><pre
+		  >a</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [(ann, <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann)]</td
+		><td class="doc"
+		><pre
+		  > [ x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ann</td
+		><td class="doc"
+		><pre
+		  >{ a x0 ... xn }</pre
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated instantiation. Each <code
+	      ><a href="PlutusCore-MkPlc.html#v:tyInst" title="PlutusCore.MkPlc"
+		>tyInst</a
+		></code
+	      > node uses the annotation associated with
+ the corresponding argument.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterInstNoAnn" class="def"
+	    >mkIterInstNoAnn</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkIterInstNoAnn" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterInstNoAnn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > term tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; term ()</td
+		><td class="doc"
+		><pre
+		  >a</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ()]</td
+		><td class="doc"
+		><pre
+		  > [ x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; term ()</td
+		><td class="doc"
+		><pre
+		  >{ a x0 ... xn }</pre
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated instantiation with no annotation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyAbs" class="def"
+	    >mkIterTyAbs</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; [<a href="PlutusCore-MkPlc.html#t:TyVarDecl" title="PlutusCore.MkPlc"
+	    >TyVarDecl</a
+	    > tyname ann] &#8594; term ann &#8594; term ann <a href="src/PlutusCore.MkPlc.html#mkIterTyAbs" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyAbs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type abstract a list of names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyApp" class="def"
+	    >mkIterTyApp</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkIterTyApp" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyApp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann</td
+		><td class="doc"
+		><pre
+		  >f</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [(ann, <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann)]</td
+		><td class="doc"
+		><pre
+		  >[ x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann</td
+		><td class="doc"
+		><pre
+		  >[ f x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated type application. Each <code
+	      ><a href="PlutusCore-Core-Type.html#v:TyApp" title="PlutusCore.Core.Type"
+		>TyApp</a
+		></code
+	      > node uses the annotation associated with
+ the corresponding argument.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyAppNoAnn" class="def"
+	    >mkIterTyAppNoAnn</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkIterTyAppNoAnn" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyAppNoAnn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ()</td
+		><td class="doc"
+		><pre
+		  >f</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ()]</td
+		><td class="doc"
+		><pre
+		  >[ x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ()</td
+		><td class="doc"
+		><pre
+		  >[ f x0 ... xn ]</pre
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated type application with no annotation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterKindArrow" class="def"
+	    >mkIterKindArrow</a
+	    > &#8759; ann &#8594; [<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ann] &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ann &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ann <a href="src/PlutusCore.MkPlc.html#mkIterKindArrow" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterKindArrow" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make an iterated function kind.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkFreshTermLet" class="def"
+	    >mkFreshTermLet</a
+	    > <a href="src/PlutusCore.MkPlc.html#mkFreshTermLet" class="link"
+	    >Source</a
+	    > <a href="#v:mkFreshTermLet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		  >MonadQuote</a
+		  > m, <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > t tyname <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		  >Monoid</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni a</td
+		><td class="doc"
+		><p
+		  >the type of binding</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; t a</td
+		><td class="doc"
+		><p
+		  >the term bound to the fresh variable</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; m (t a, t a &#8594; t a)</td
+		><td class="doc"
+		><p
+		  >the fresh Var and a function that takes an &quot;in&quot; term to construct the Let</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >A helper to create a single, fresh strict binding; It returns the fresh bound <code
+	      ><a href="PlutusCore-Core-Type.html#v:Var" title="PlutusCore.Core.Type"
+		>Var</a
+		></code
+	      >iable and
+a function `Term -&gt; Term`, expecting an &quot;in-Term&quot; to form a let-expression.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:headSpineToTerm" class="def"
+	    >headSpineToTerm</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; ann &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:MonoHeadSpine" title="PlutusCore.Builtin.KnownType"
+	    >MonoHeadSpine</a
+	    > (term ann) &#8594; term ann <a href="src/PlutusCore.MkPlc.html#headSpineToTerm" class="link"
+	    >Source</a
+	    > <a href="#v:headSpineToTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><a href="PlutusCore-MkPlc.html#v:apply" title="PlutusCore.MkPlc"
+		>apply</a
+		></code
+	      > the head of the application to the arguments iteratively.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:headSpineToTermNoAnn" class="def"
+	    >headSpineToTermNoAnn</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term tyname name uni fun &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MonoHeadSpine" title="PlutusCore.Builtin.KnownType"
+	    >MonoHeadSpine</a
+	    > (term ()) &#8594; term () <a href="src/PlutusCore.MkPlc.html#headSpineToTermNoAnn" class="link"
+	    >Source</a
+	    > <a href="#v:headSpineToTermNoAnn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >headSpineToTerm</code
+	      > but without annotation.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

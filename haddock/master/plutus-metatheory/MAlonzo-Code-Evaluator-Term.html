@@ -1,0 +1,1065 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.Evaluator.Term</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.55.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.Evaluator.Term.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.Evaluator.Term</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Term_14" class="def"
+	    >T_Term_14</a
+	    > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedTyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/MAlonzo.Code.Evaluator.Term.html#T_Term_14" class="link"
+	    >Source</a
+	    > <a href="#t:T_Term_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Term_14" class="def"
+	    >d_Term_14</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Evaluator.Term.html#d_Term_14" class="link"
+	    >Source</a
+	    > <a href="#v:d_Term_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Type_16" class="def"
+	    >T_Type_16</a
+	    > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedTyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/MAlonzo.Code.Evaluator.Term.html#T_Type_16" class="link"
+	    >Source</a
+	    > <a href="#t:T_Type_16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Type_16" class="def"
+	    >d_Type_16</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Evaluator.Term.html#d_Type_16" class="link"
+	    >Source</a
+	    > <a href="#v:d_Type_16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_TermN_18" class="def"
+	    >T_TermN_18</a
+	    > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#T_TermN_18" class="link"
+	    >Source</a
+	    > <a href="#t:T_TermN_18" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_TermN_18" class="def"
+	    >d_TermN_18</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Evaluator.Term.html#d_TermN_18" class="link"
+	    >Source</a
+	    > <a href="#v:d_TermN_18" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_TypeN_20" class="def"
+	    >T_TypeN_20</a
+	    > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#T_TypeN_20" class="link"
+	    >Source</a
+	    > <a href="#t:T_TypeN_20" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_TypeN_20" class="def"
+	    >d_TypeN_20</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Evaluator.Term.html#d_TypeN_20" class="link"
+	    >Source</a
+	    > <a href="#v:d_TypeN_20" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_TermNU_22" class="def"
+	    >T_TermNU_22</a
+	    > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#T_TermNU_22" class="link"
+	    >Source</a
+	    > <a href="#t:T_TermNU_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_TermNU_22" class="def"
+	    >d_TermNU_22</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Evaluator.Term.html#d_TermNU_22" class="link"
+	    >Source</a
+	    > <a href="#v:d_TermNU_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_TermU_24" class="def"
+	    >T_TermU_24</a
+	    > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/MAlonzo.Code.Evaluator.Term.html#T_TermU_24" class="link"
+	    >Source</a
+	    > <a href="#t:T_TermU_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_TermU_24" class="def"
+	    >d_TermU_24</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Evaluator.Term.html#d_TermU_24" class="link"
+	    >Source</a
+	    > <a href="#v:d_TermU_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_parseTm_26" class="def"
+	    >d_parseTm_26</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ParseError_4" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ParseError_4</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermN_18" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermN_18</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_parseTm_26" class="link"
+	    >Source</a
+	    > <a href="#v:d_parseTm_26" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_parseTmU_28" class="def"
+	    >d_parseTmU_28</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ParseError_4" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ParseError_4</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermNU_22" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermNU_22</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_parseTmU_28" class="link"
+	    >Source</a
+	    > <a href="#v:d_parseTmU_28" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_parseTy_30" class="def"
+	    >d_parseTy_30</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ParseError_4" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ParseError_4</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TypeN_20" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TypeN_20</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_parseTy_30" class="link"
+	    >Source</a
+	    > <a href="#v:d_parseTy_30" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_deBruijnifyTm_32" class="def"
+	    >d_deBruijnifyTm_32</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermN_18" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermN_18</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Scoped.html#t:T_FreeVariableError_574" title="MAlonzo.Code.Scoped"
+	    >T_FreeVariableError_574</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_deBruijnifyTm_32" class="link"
+	    >Source</a
+	    > <a href="#v:d_deBruijnifyTm_32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_deBruijnifyTy_34" class="def"
+	    >d_deBruijnifyTy_34</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TypeN_20" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TypeN_20</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Scoped.html#t:T_FreeVariableError_574" title="MAlonzo.Code.Scoped"
+	    >T_FreeVariableError_574</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_deBruijnifyTy_34" class="link"
+	    >Source</a
+	    > <a href="#v:d_deBruijnifyTy_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_deBruijnifyTmU_36" class="def"
+	    >d_deBruijnifyTmU_36</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermNU_22" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermNU_22</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Scoped.html#t:T_FreeVariableError_574" title="MAlonzo.Code.Scoped"
+	    >T_FreeVariableError_574</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_deBruijnifyTmU_36" class="link"
+	    >Source</a
+	    > <a href="#v:d_deBruijnifyTmU_36" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_convTm_38" class="def"
+	    >d_convTm_38</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Raw.html#t:T_RawTm_32" title="MAlonzo.Code.Raw"
+	    >T_RawTm_32</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_convTm_38" class="link"
+	    >Source</a
+	    > <a href="#v:d_convTm_38" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_unconvTm_40" class="def"
+	    >d_unconvTm_40</a
+	    > &#8759; <a href="MAlonzo-Code-Raw.html#t:T_RawTm_32" title="MAlonzo.Code.Raw"
+	    >T_RawTm_32</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_unconvTm_40" class="link"
+	    >Source</a
+	    > <a href="#v:d_unconvTm_40" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_convTy_42" class="def"
+	    >d_convTy_42</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Raw.html#t:T_RawTy_2" title="MAlonzo.Code.Raw"
+	    >T_RawTy_2</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_convTy_42" class="link"
+	    >Source</a
+	    > <a href="#v:d_convTy_42" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_unconvTy_44" class="def"
+	    >d_unconvTy_44</a
+	    > &#8759; <a href="MAlonzo-Code-Raw.html#t:T_RawTy_2" title="MAlonzo.Code.Raw"
+	    >T_RawTy_2</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_unconvTy_44" class="link"
+	    >Source</a
+	    > <a href="#v:d_unconvTy_44" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_convTmU_46" class="def"
+	    >d_convTmU_46</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_convTmU_46" class="link"
+	    >Source</a
+	    > <a href="#v:d_convTmU_46" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_unconvTmU_48" class="def"
+	    >d_unconvTmU_48</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_unconvTmU_48" class="link"
+	    >Source</a
+	    > <a href="#v:d_unconvTmU_48" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkKindAgda" class="def"
+	    >checkKindAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Kind_652" title="MAlonzo.Code.Utils"
+	    >T_Kind_652</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#checkKindAgda" class="link"
+	    >Source</a
+	    > <a href="#v:checkKindAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_checkKindX_50" class="def"
+	    >d_checkKindX_50</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Kind_652" title="MAlonzo.Code.Utils"
+	    >T_Kind_652</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_checkKindX_50" class="link"
+	    >Source</a
+	    > <a href="#v:d_checkKindX_50" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferKindAgda" class="def"
+	    >inferKindAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_Kind_652" title="MAlonzo.Code.Utils"
+	    >T_Kind_652</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#inferKindAgda" class="link"
+	    >Source</a
+	    > <a href="#v:inferKindAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_inferKind-39-8709-39-_68" class="def"
+	    >d_inferKind'8709'_68</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_Kind_652" title="MAlonzo.Code.Utils"
+	    >T_Kind_652</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_inferKind%278709%27_68" class="link"
+	    >Source</a
+	    > <a href="#v:d_inferKind-39-8709-39-_68" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normalizeTypeAgda" class="def"
+	    >normalizeTypeAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#normalizeTypeAgda" class="link"
+	    >Source</a
+	    > <a href="#v:normalizeTypeAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_normalizeType_80" class="def"
+	    >d_normalizeType_80</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_normalizeType_80" class="link"
+	    >Source</a
+	    > <a href="#v:d_normalizeType_80" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferTypeAgda" class="def"
+	    >inferTypeAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#inferTypeAgda" class="link"
+	    >Source</a
+	    > <a href="#v:inferTypeAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_inferType-39-8709-39-_92" class="def"
+	    >d_inferType'8709'_92</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_inferType%278709%27_92" class="link"
+	    >Source</a
+	    > <a href="#v:d_inferType-39-8709-39-_92" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkTypeAgda" class="def"
+	    >checkTypeAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#checkTypeAgda" class="link"
+	    >Source</a
+	    > <a href="#v:checkTypeAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_checkType-39-8709-39-_104" class="def"
+	    >d_checkType'8709'_104</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Type_16" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Type_16</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_checkType%278709%27_104" class="link"
+	    >Source</a
+	    > <a href="#v:d_checkType-39-8709-39-_104" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normalizeTypeTermAgda" class="def"
+	    >normalizeTypeTermAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#normalizeTypeTermAgda" class="link"
+	    >Source</a
+	    > <a href="#v:normalizeTypeTermAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_normalizeTypeTerm_120" class="def"
+	    >d_normalizeTypeTerm_120</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_normalizeTypeTerm_120" class="link"
+	    >Source</a
+	    > <a href="#v:d_normalizeTypeTerm_120" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTLAgda" class="def"
+	    >runTLAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#runTLAgda" class="link"
+	    >Source</a
+	    > <a href="#v:runTLAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runTL_132" class="def"
+	    >d_runTL_132</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_runTL_132" class="link"
+	    >Source</a
+	    > <a href="#v:d_runTL_132" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTCKAgda" class="def"
+	    >runTCKAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#runTCKAgda" class="link"
+	    >Source</a
+	    > <a href="#v:runTCKAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runTCK_146" class="def"
+	    >d_runTCK_146</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_runTCK_146" class="link"
+	    >Source</a
+	    > <a href="#v:d_runTCK_146" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTCEKAgda" class="def"
+	    >runTCEKAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#runTCEKAgda" class="link"
+	    >Source</a
+	    > <a href="#v:runTCEKAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runTCEK_166" class="def"
+	    >d_runTCEK_166</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_Term_14" title="MAlonzo.Code.Evaluator.Term"
+	    >T_Term_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_runTCEK_166" class="link"
+	    >Source</a
+	    > <a href="#v:d_runTCEK_166" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runUValue_186" class="def"
+	    >d_runUValue_186</a
+	    > &#8759; <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Untyped-CEK.html#t:T_Value_14" title="MAlonzo.Code.Untyped.CEK"
+	    >T_Value_14</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_runUValue_186" class="link"
+	    >Source</a
+	    > <a href="#v:d_runUValue_186" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runUAgda" class="def"
+	    >runUAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#runUAgda" class="link"
+	    >Source</a
+	    > <a href="#v:runUAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runU_194" class="def"
+	    >d_runU_194</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_runU_194" class="link"
+	    >Source</a
+	    > <a href="#v:d_runU_194" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runUCountingAgda" class="def"
+	    >runUCountingAgda</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="MAlonzo-Code-Cost-Raw.html#t:T_HCekMachineCosts_4" title="MAlonzo.Code.Cost.Raw"
+	    >T_HCekMachineCosts_4</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T_List_384" title="MAlonzo.Code.Utils"
+	    >T_List_384</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="MAlonzo-Code-Cost-Raw.html#t:T_CpuAndMemoryModel_164" title="MAlonzo.Code.Cost.Raw"
+	    >T_CpuAndMemoryModel_164</a
+	    >)) &#8594; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >)) <a href="src/MAlonzo.Code.Evaluator.Term.html#runUCountingAgda" class="link"
+	    >Source</a
+	    > <a href="#v:runUCountingAgda" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runUCounting_202" class="def"
+	    >d_runUCounting_202</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="MAlonzo-Code-Cost-Raw.html#t:T_HCekMachineCosts_4" title="MAlonzo.Code.Cost.Raw"
+	    >T_HCekMachineCosts_4</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T_List_384" title="MAlonzo.Code.Utils"
+	    >T_List_384</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="MAlonzo-Code-Cost-Raw.html#t:T_CpuAndMemoryModel_164" title="MAlonzo.Code.Cost.Raw"
+	    >T_CpuAndMemoryModel_164</a
+	    >)) &#8594; <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="MAlonzo-Code-Evaluator-Term.html#t:T_TermU_24" title="MAlonzo.Code.Evaluator.Term"
+	    >T_TermU_24</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__366" title="MAlonzo.Code.Utils"
+	    >T__'215'__366</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >)) <a href="src/MAlonzo.Code.Evaluator.Term.html#d_runUCounting_202" class="link"
+	    >Source</a
+	    > <a href="#v:d_runUCounting_202" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:blah" class="def"
+	    >blah</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#blah" class="link"
+	    >Source</a
+	    > <a href="#v:blah" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_blah_240" class="def"
+	    >d_blah_240</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_blah_240" class="link"
+	    >Source</a
+	    > <a href="#v:d_blah_240" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:printTy" class="def"
+	    >printTy</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#printTy" class="link"
+	    >Source</a
+	    > <a href="#v:printTy" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_printTy_286" class="def"
+	    >d_printTy_286</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_printTy_286" class="link"
+	    >Source</a
+	    > <a href="#v:d_printTy_286" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:alphaTy" class="def"
+	    >alphaTy</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#alphaTy" class="link"
+	    >Source</a
+	    > <a href="#v:alphaTy" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_alphaTy_314" class="def"
+	    >d_alphaTy_314</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_alphaTy_314" class="link"
+	    >Source</a
+	    > <a href="#v:d_alphaTy_314" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:alphaTm" class="def"
+	    >alphaTm</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#alphaTm" class="link"
+	    >Source</a
+	    > <a href="#v:alphaTm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_alphaTm_360" class="def"
+	    >d_alphaTm_360</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_alphaTm_360" class="link"
+	    >Source</a
+	    > <a href="#v:d_alphaTm_360" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:alphaU" class="def"
+	    >alphaU</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#alphaU" class="link"
+	    >Source</a
+	    > <a href="#v:alphaU" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_alphaU_406" class="def"
+	    >d_alphaU_406</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Term.html#d_alphaU_406" class="link"
+	    >Source</a
+	    > <a href="#v:d_alphaU_406" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

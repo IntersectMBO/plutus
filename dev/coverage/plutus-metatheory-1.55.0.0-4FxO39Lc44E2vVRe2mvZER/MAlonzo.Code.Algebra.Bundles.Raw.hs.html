@@ -1,0 +1,816 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Algebra.Bundles.Raw where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   17 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   18 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   19 </span>                    word64ToNat)
+<span class="lineno">   20 </span>import MAlonzo.RTE qualified
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>-- Algebra.Bundles.Raw.RawSuccessorSet
+<span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">d_RawSuccessorSet_10 a0 a1 = ()</span></span>
+<span class="lineno">   24 </span>data T_RawSuccessorSet_10
+<span class="lineno">   25 </span>  = C_RawSuccessorSet'46'constructor_89 (AgdaAny -&gt; AgdaAny) AgdaAny
+<span class="lineno">   26 </span>-- Algebra.Bundles.Raw.RawSuccessorSet.Carrier
+<span class="lineno">   27 </span>d_Carrier_24 :: T_RawSuccessorSet_10 -&gt; ()
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">d_Carrier_24 = erased</span></span>
+<span class="lineno">   29 </span>-- Algebra.Bundles.Raw.RawSuccessorSet._≈_
+<span class="lineno">   30 </span>d__'8776'__26 :: T_RawSuccessorSet_10 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">d__'8776'__26 = erased</span></span>
+<span class="lineno">   32 </span>-- Algebra.Bundles.Raw.RawSuccessorSet.suc#
+<span class="lineno">   33 </span>d_suc'35'_28 :: T_RawSuccessorSet_10 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">d_suc'35'_28 v0</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   36 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSuccessorSet'46'constructor_89 v3 v4 -&gt; coe v3</span>
+<span class="lineno">   37 </span><span class="spaces">      </span><span class="nottickedoff">_                                         -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   38 </span>-- Algebra.Bundles.Raw.RawSuccessorSet.zero#
+<span class="lineno">   39 </span>d_zero'35'_30 :: T_RawSuccessorSet_10 -&gt; AgdaAny
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">d_zero'35'_30 v0</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   42 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSuccessorSet'46'constructor_89 v3 v4 -&gt; coe v4</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">_                                         -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   44 </span>-- Algebra.Bundles.Raw.RawMagma
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">d_RawMagma_36 a0 a1 = ()</span></span>
+<span class="lineno">   46 </span>newtype T_RawMagma_36
+<span class="lineno">   47 </span>  = C_RawMagma'46'constructor_341 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   48 </span>-- Algebra.Bundles.Raw.RawMagma.Carrier
+<span class="lineno">   49 </span>d_Carrier_48 :: T_RawMagma_36 -&gt; ()
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">d_Carrier_48 = erased</span></span>
+<span class="lineno">   51 </span>-- Algebra.Bundles.Raw.RawMagma._≈_
+<span class="lineno">   52 </span>d__'8776'__50 :: T_RawMagma_36 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">d__'8776'__50 = erased</span></span>
+<span class="lineno">   54 </span>-- Algebra.Bundles.Raw.RawMagma._∙_
+<span class="lineno">   55 </span>d__'8729'__52 :: T_RawMagma_36 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">d__'8729'__52 v0</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">C_RawMagma'46'constructor_341 v3 -&gt; coe v3</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">_                                -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   60 </span>-- Algebra.Bundles.Raw.RawMagma._≉_
+<span class="lineno">   61 </span>d__'8777'__54 ::
+<span class="lineno">   62 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   63 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   64 </span>  T_RawMagma_36 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">d__'8777'__54 = erased</span></span>
+<span class="lineno">   66 </span>-- Algebra.Bundles.Raw.RawMonoid
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">d_RawMonoid_64 a0 a1 = ()</span></span>
+<span class="lineno">   68 </span>data T_RawMonoid_64
+<span class="lineno">   69 </span>  = C_RawMonoid'46'constructor_745 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   70 </span>                                   AgdaAny
+<span class="lineno">   71 </span>-- Algebra.Bundles.Raw.RawMonoid.Carrier
+<span class="lineno">   72 </span>d_Carrier_78 :: T_RawMonoid_64 -&gt; ()
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">d_Carrier_78 = erased</span></span>
+<span class="lineno">   74 </span>-- Algebra.Bundles.Raw.RawMonoid._≈_
+<span class="lineno">   75 </span>d__'8776'__80 :: T_RawMonoid_64 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">d__'8776'__80 = erased</span></span>
+<span class="lineno">   77 </span>-- Algebra.Bundles.Raw.RawMonoid._∙_
+<span class="lineno">   78 </span>d__'8729'__82 :: T_RawMonoid_64 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">d__'8729'__82 v0</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="nottickedoff">C_RawMonoid'46'constructor_745 v3 v4 -&gt; coe v3</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="nottickedoff">_                                    -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   83 </span>-- Algebra.Bundles.Raw.RawMonoid.ε
+<span class="lineno">   84 </span>d_ε_84 :: T_RawMonoid_64 -&gt; AgdaAny
+<span class="lineno">   85 </span><span class="decl"><span class="nottickedoff">d_ε_84 v0</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">C_RawMonoid'46'constructor_745 v3 v4 -&gt; coe v4</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">_                                    -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   89 </span>-- Algebra.Bundles.Raw.RawMonoid.rawMagma
+<span class="lineno">   90 </span>d_rawMagma_86 ::
+<span class="lineno">   91 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   92 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   93 </span>  T_RawMonoid_64 -&gt; T_RawMagma_36
+<span class="lineno">   94 </span><span class="decl"><span class="nottickedoff">d_rawMagma_86 ~v0 ~v1 v2 = du_rawMagma_86 v2</span></span>
+<span class="lineno">   95 </span>du_rawMagma_86 :: T_RawMonoid_64 -&gt; T_RawMagma_36
+<span class="lineno">   96 </span><span class="decl"><span class="nottickedoff">du_rawMagma_86 v0</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">= coe C_RawMagma'46'constructor_341 (d__'8729'__82 (coe v0))</span></span>
+<span class="lineno">   98 </span>-- Algebra.Bundles.Raw.RawMonoid._._≉_
+<span class="lineno">   99 </span>d__'8777'__90 ::
+<span class="lineno">  100 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  101 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  102 </span>  T_RawMonoid_64 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">d__'8777'__90 = erased</span></span>
+<span class="lineno">  104 </span>-- Algebra.Bundles.Raw.RawGroup
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">d_RawGroup_96 a0 a1 = ()</span></span>
+<span class="lineno">  106 </span>data T_RawGroup_96
+<span class="lineno">  107 </span>  = C_RawGroup'46'constructor_1207 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  108 </span>                                   AgdaAny (AgdaAny -&gt; AgdaAny)
+<span class="lineno">  109 </span>-- Algebra.Bundles.Raw.RawGroup.Carrier
+<span class="lineno">  110 </span>d_Carrier_112 :: T_RawGroup_96 -&gt; ()
+<span class="lineno">  111 </span><span class="decl"><span class="nottickedoff">d_Carrier_112 = erased</span></span>
+<span class="lineno">  112 </span>-- Algebra.Bundles.Raw.RawGroup._≈_
+<span class="lineno">  113 </span>d__'8776'__114 :: T_RawGroup_96 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  114 </span><span class="decl"><span class="nottickedoff">d__'8776'__114 = erased</span></span>
+<span class="lineno">  115 </span>-- Algebra.Bundles.Raw.RawGroup._∙_
+<span class="lineno">  116 </span>d__'8729'__116 :: T_RawGroup_96 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">d__'8729'__116 v0</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="nottickedoff">C_RawGroup'46'constructor_1207 v3 v4 v5 -&gt; coe v3</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="nottickedoff">_                                       -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  121 </span>-- Algebra.Bundles.Raw.RawGroup.ε
+<span class="lineno">  122 </span>d_ε_118 :: T_RawGroup_96 -&gt; AgdaAny
+<span class="lineno">  123 </span><span class="decl"><span class="nottickedoff">d_ε_118 v0</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  125 </span><span class="spaces">      </span><span class="nottickedoff">C_RawGroup'46'constructor_1207 v3 v4 v5 -&gt; coe v4</span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="nottickedoff">_                                       -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  127 </span>-- Algebra.Bundles.Raw.RawGroup._⁻¹
+<span class="lineno">  128 </span>d__'8315''185'_120 :: T_RawGroup_96 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  129 </span><span class="decl"><span class="nottickedoff">d__'8315''185'_120 v0</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="nottickedoff">C_RawGroup'46'constructor_1207 v3 v4 v5 -&gt; coe v5</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="nottickedoff">_                                       -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  133 </span>-- Algebra.Bundles.Raw.RawGroup.rawMonoid
+<span class="lineno">  134 </span>d_rawMonoid_122 ::
+<span class="lineno">  135 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  136 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  137 </span>  T_RawGroup_96 -&gt; T_RawMonoid_64
+<span class="lineno">  138 </span><span class="decl"><span class="nottickedoff">d_rawMonoid_122 ~v0 ~v1 v2 = du_rawMonoid_122 v2</span></span>
+<span class="lineno">  139 </span>du_rawMonoid_122 :: T_RawGroup_96 -&gt; T_RawMonoid_64
+<span class="lineno">  140 </span><span class="decl"><span class="nottickedoff">du_rawMonoid_122 v0</span>
+<span class="lineno">  141 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  142 </span><span class="spaces">      </span><span class="nottickedoff">C_RawMonoid'46'constructor_745 (d__'8729'__116 (coe v0))</span>
+<span class="lineno">  143 </span><span class="spaces">      </span><span class="nottickedoff">(d_ε_118 (coe v0))</span></span>
+<span class="lineno">  144 </span>-- Algebra.Bundles.Raw.RawGroup._._≉_
+<span class="lineno">  145 </span>d__'8777'__126 ::
+<span class="lineno">  146 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  147 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  148 </span>  T_RawGroup_96 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  149 </span><span class="decl"><span class="nottickedoff">d__'8777'__126 = erased</span></span>
+<span class="lineno">  150 </span>-- Algebra.Bundles.Raw.RawGroup._.rawMagma
+<span class="lineno">  151 </span>d_rawMagma_128 ::
+<span class="lineno">  152 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  153 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  154 </span>  T_RawGroup_96 -&gt; T_RawMagma_36
+<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">d_rawMagma_128 ~v0 ~v1 v2 = du_rawMagma_128 v2</span></span>
+<span class="lineno">  156 </span>du_rawMagma_128 :: T_RawGroup_96 -&gt; T_RawMagma_36
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">du_rawMagma_128 v0</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_rawMagma_86 (coe du_rawMonoid_122 (coe v0))</span></span>
+<span class="lineno">  159 </span>-- Algebra.Bundles.Raw.RawNearSemiring
+<span class="lineno">  160 </span><span class="decl"><span class="nottickedoff">d_RawNearSemiring_134 a0 a1 = ()</span></span>
+<span class="lineno">  161 </span>data T_RawNearSemiring_134
+<span class="lineno">  162 </span>  = C_RawNearSemiring'46'constructor_1729 (AgdaAny -&gt;
+<span class="lineno">  163 </span>                                           AgdaAny -&gt; AgdaAny)
+<span class="lineno">  164 </span>                                          (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) AgdaAny
+<span class="lineno">  165 </span>-- Algebra.Bundles.Raw.RawNearSemiring.Carrier
+<span class="lineno">  166 </span>d_Carrier_150 :: T_RawNearSemiring_134 -&gt; ()
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">d_Carrier_150 = erased</span></span>
+<span class="lineno">  168 </span>-- Algebra.Bundles.Raw.RawNearSemiring._≈_
+<span class="lineno">  169 </span>d__'8776'__152 :: T_RawNearSemiring_134 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  170 </span><span class="decl"><span class="nottickedoff">d__'8776'__152 = erased</span></span>
+<span class="lineno">  171 </span>-- Algebra.Bundles.Raw.RawNearSemiring._+_
+<span class="lineno">  172 </span>d__'43'__154 ::
+<span class="lineno">  173 </span>  T_RawNearSemiring_134 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  174 </span><span class="decl"><span class="nottickedoff">d__'43'__154 v0</span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  176 </span><span class="spaces">      </span><span class="nottickedoff">C_RawNearSemiring'46'constructor_1729 v3 v4 v5 -&gt; coe v3</span>
+<span class="lineno">  177 </span><span class="spaces">      </span><span class="nottickedoff">_                                              -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  178 </span>-- Algebra.Bundles.Raw.RawNearSemiring._*_
+<span class="lineno">  179 </span>d__'42'__156 ::
+<span class="lineno">  180 </span>  T_RawNearSemiring_134 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  181 </span><span class="decl"><span class="nottickedoff">d__'42'__156 v0</span>
+<span class="lineno">  182 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  183 </span><span class="spaces">      </span><span class="nottickedoff">C_RawNearSemiring'46'constructor_1729 v3 v4 v5 -&gt; coe v4</span>
+<span class="lineno">  184 </span><span class="spaces">      </span><span class="nottickedoff">_                                              -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  185 </span>-- Algebra.Bundles.Raw.RawNearSemiring.0#
+<span class="lineno">  186 </span>d_0'35'_158 :: T_RawNearSemiring_134 -&gt; AgdaAny
+<span class="lineno">  187 </span><span class="decl"><span class="nottickedoff">d_0'35'_158 v0</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  189 </span><span class="spaces">      </span><span class="nottickedoff">C_RawNearSemiring'46'constructor_1729 v3 v4 v5 -&gt; coe v5</span>
+<span class="lineno">  190 </span><span class="spaces">      </span><span class="nottickedoff">_                                              -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  191 </span>-- Algebra.Bundles.Raw.RawNearSemiring.+-rawMonoid
+<span class="lineno">  192 </span>d_'43''45'rawMonoid_160 ::
+<span class="lineno">  193 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  194 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  195 </span>  T_RawNearSemiring_134 -&gt; T_RawMonoid_64
+<span class="lineno">  196 </span><span class="decl"><span class="nottickedoff">d_'43''45'rawMonoid_160 ~v0 ~v1 v2 = du_'43''45'rawMonoid_160 v2</span></span>
+<span class="lineno">  197 </span>du_'43''45'rawMonoid_160 :: T_RawNearSemiring_134 -&gt; T_RawMonoid_64
+<span class="lineno">  198 </span><span class="decl"><span class="nottickedoff">du_'43''45'rawMonoid_160 v0</span>
+<span class="lineno">  199 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  200 </span><span class="spaces">      </span><span class="nottickedoff">C_RawMonoid'46'constructor_745 (d__'43'__154 (coe v0))</span>
+<span class="lineno">  201 </span><span class="spaces">      </span><span class="nottickedoff">(d_0'35'_158 (coe v0))</span></span>
+<span class="lineno">  202 </span>-- Algebra.Bundles.Raw.RawNearSemiring._._≉_
+<span class="lineno">  203 </span>d__'8777'__164 ::
+<span class="lineno">  204 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  205 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  206 </span>  T_RawNearSemiring_134 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  207 </span><span class="decl"><span class="nottickedoff">d__'8777'__164 = erased</span></span>
+<span class="lineno">  208 </span>-- Algebra.Bundles.Raw.RawNearSemiring._.rawMagma
+<span class="lineno">  209 </span>d_rawMagma_166 ::
+<span class="lineno">  210 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  211 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  212 </span>  T_RawNearSemiring_134 -&gt; T_RawMagma_36
+<span class="lineno">  213 </span><span class="decl"><span class="nottickedoff">d_rawMagma_166 ~v0 ~v1 v2 = du_rawMagma_166 v2</span></span>
+<span class="lineno">  214 </span>du_rawMagma_166 :: T_RawNearSemiring_134 -&gt; T_RawMagma_36
+<span class="lineno">  215 </span><span class="decl"><span class="nottickedoff">du_rawMagma_166 v0</span>
+<span class="lineno">  216 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_rawMagma_86 (coe du_'43''45'rawMonoid_160 (coe v0))</span></span>
+<span class="lineno">  217 </span>-- Algebra.Bundles.Raw.RawNearSemiring.*-rawMagma
+<span class="lineno">  218 </span>d_'42''45'rawMagma_168 ::
+<span class="lineno">  219 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  220 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  221 </span>  T_RawNearSemiring_134 -&gt; T_RawMagma_36
+<span class="lineno">  222 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMagma_168 ~v0 ~v1 v2 = du_'42''45'rawMagma_168 v2</span></span>
+<span class="lineno">  223 </span>du_'42''45'rawMagma_168 :: T_RawNearSemiring_134 -&gt; T_RawMagma_36
+<span class="lineno">  224 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMagma_168 v0</span>
+<span class="lineno">  225 </span><span class="spaces">  </span><span class="nottickedoff">= coe C_RawMagma'46'constructor_341 (d__'42'__156 (coe v0))</span></span>
+<span class="lineno">  226 </span>-- Algebra.Bundles.Raw.RawSemiring
+<span class="lineno">  227 </span><span class="decl"><span class="nottickedoff">d_RawSemiring_174 a0 a1 = ()</span></span>
+<span class="lineno">  228 </span>data T_RawSemiring_174
+<span class="lineno">  229 </span>  = C_RawSemiring'46'constructor_2353 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  230 </span>                                      (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) AgdaAny AgdaAny
+<span class="lineno">  231 </span>-- Algebra.Bundles.Raw.RawSemiring.Carrier
+<span class="lineno">  232 </span>d_Carrier_192 :: T_RawSemiring_174 -&gt; ()
+<span class="lineno">  233 </span><span class="decl"><span class="nottickedoff">d_Carrier_192 = erased</span></span>
+<span class="lineno">  234 </span>-- Algebra.Bundles.Raw.RawSemiring._≈_
+<span class="lineno">  235 </span>d__'8776'__194 :: T_RawSemiring_174 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  236 </span><span class="decl"><span class="nottickedoff">d__'8776'__194 = erased</span></span>
+<span class="lineno">  237 </span>-- Algebra.Bundles.Raw.RawSemiring._+_
+<span class="lineno">  238 </span>d__'43'__196 :: T_RawSemiring_174 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  239 </span><span class="decl"><span class="nottickedoff">d__'43'__196 v0</span>
+<span class="lineno">  240 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  241 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSemiring'46'constructor_2353 v3 v4 v5 v6 -&gt; coe v3</span>
+<span class="lineno">  242 </span><span class="spaces">      </span><span class="nottickedoff">_                                             -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  243 </span>-- Algebra.Bundles.Raw.RawSemiring._*_
+<span class="lineno">  244 </span>d__'42'__198 :: T_RawSemiring_174 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  245 </span><span class="decl"><span class="nottickedoff">d__'42'__198 v0</span>
+<span class="lineno">  246 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  247 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSemiring'46'constructor_2353 v3 v4 v5 v6 -&gt; coe v4</span>
+<span class="lineno">  248 </span><span class="spaces">      </span><span class="nottickedoff">_                                             -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  249 </span>-- Algebra.Bundles.Raw.RawSemiring.0#
+<span class="lineno">  250 </span>d_0'35'_200 :: T_RawSemiring_174 -&gt; AgdaAny
+<span class="lineno">  251 </span><span class="decl"><span class="nottickedoff">d_0'35'_200 v0</span>
+<span class="lineno">  252 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  253 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSemiring'46'constructor_2353 v3 v4 v5 v6 -&gt; coe v5</span>
+<span class="lineno">  254 </span><span class="spaces">      </span><span class="nottickedoff">_                                             -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  255 </span>-- Algebra.Bundles.Raw.RawSemiring.1#
+<span class="lineno">  256 </span>d_1'35'_202 :: T_RawSemiring_174 -&gt; AgdaAny
+<span class="lineno">  257 </span><span class="decl"><span class="nottickedoff">d_1'35'_202 v0</span>
+<span class="lineno">  258 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  259 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSemiring'46'constructor_2353 v3 v4 v5 v6 -&gt; coe v6</span>
+<span class="lineno">  260 </span><span class="spaces">      </span><span class="nottickedoff">_                                             -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  261 </span>-- Algebra.Bundles.Raw.RawSemiring.rawNearSemiring
+<span class="lineno">  262 </span>d_rawNearSemiring_204 ::
+<span class="lineno">  263 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  264 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  265 </span>  T_RawSemiring_174 -&gt; T_RawNearSemiring_134
+<span class="lineno">  266 </span><span class="decl"><span class="nottickedoff">d_rawNearSemiring_204 ~v0 ~v1 v2 = du_rawNearSemiring_204 v2</span></span>
+<span class="lineno">  267 </span>du_rawNearSemiring_204 ::
+<span class="lineno">  268 </span>  T_RawSemiring_174 -&gt; T_RawNearSemiring_134
+<span class="lineno">  269 </span><span class="decl"><span class="nottickedoff">du_rawNearSemiring_204 v0</span>
+<span class="lineno">  270 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  271 </span><span class="spaces">      </span><span class="nottickedoff">C_RawNearSemiring'46'constructor_1729 (d__'43'__196 (coe v0))</span>
+<span class="lineno">  272 </span><span class="spaces">      </span><span class="nottickedoff">(d__'42'__198 (coe v0)) (d_0'35'_200 (coe v0))</span></span>
+<span class="lineno">  273 </span>-- Algebra.Bundles.Raw.RawSemiring._._≉_
+<span class="lineno">  274 </span>d__'8777'__208 ::
+<span class="lineno">  275 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  276 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  277 </span>  T_RawSemiring_174 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  278 </span><span class="decl"><span class="nottickedoff">d__'8777'__208 = erased</span></span>
+<span class="lineno">  279 </span>-- Algebra.Bundles.Raw.RawSemiring._.*-rawMagma
+<span class="lineno">  280 </span>d_'42''45'rawMagma_210 ::
+<span class="lineno">  281 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  282 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  283 </span>  T_RawSemiring_174 -&gt; T_RawMagma_36
+<span class="lineno">  284 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMagma_210 ~v0 ~v1 v2 = du_'42''45'rawMagma_210 v2</span></span>
+<span class="lineno">  285 </span>du_'42''45'rawMagma_210 :: T_RawSemiring_174 -&gt; T_RawMagma_36
+<span class="lineno">  286 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMagma_210 v0</span>
+<span class="lineno">  287 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'42''45'rawMagma_168 (coe du_rawNearSemiring_204 (coe v0))</span></span>
+<span class="lineno">  288 </span>-- Algebra.Bundles.Raw.RawSemiring._.rawMagma
+<span class="lineno">  289 </span>d_rawMagma_212 ::
+<span class="lineno">  290 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  291 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  292 </span>  T_RawSemiring_174 -&gt; T_RawMagma_36
+<span class="lineno">  293 </span><span class="decl"><span class="nottickedoff">d_rawMagma_212 ~v0 ~v1 v2 = du_rawMagma_212 v2</span></span>
+<span class="lineno">  294 </span>du_rawMagma_212 :: T_RawSemiring_174 -&gt; T_RawMagma_36
+<span class="lineno">  295 </span><span class="decl"><span class="nottickedoff">du_rawMagma_212 v0</span>
+<span class="lineno">  296 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_rawNearSemiring_204 (coe v0) in</span>
+<span class="lineno">  297 </span><span class="spaces">    </span><span class="nottickedoff">coe (coe du_rawMagma_86 (coe du_'43''45'rawMonoid_160 (coe v1)))</span></span>
+<span class="lineno">  298 </span>-- Algebra.Bundles.Raw.RawSemiring._.+-rawMonoid
+<span class="lineno">  299 </span>d_'43''45'rawMonoid_214 ::
+<span class="lineno">  300 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  301 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  302 </span>  T_RawSemiring_174 -&gt; T_RawMonoid_64
+<span class="lineno">  303 </span><span class="decl"><span class="nottickedoff">d_'43''45'rawMonoid_214 ~v0 ~v1 v2 = du_'43''45'rawMonoid_214 v2</span></span>
+<span class="lineno">  304 </span>du_'43''45'rawMonoid_214 :: T_RawSemiring_174 -&gt; T_RawMonoid_64
+<span class="lineno">  305 </span><span class="decl"><span class="nottickedoff">du_'43''45'rawMonoid_214 v0</span>
+<span class="lineno">  306 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  307 </span><span class="spaces">      </span><span class="nottickedoff">du_'43''45'rawMonoid_160 (coe du_rawNearSemiring_204 (coe v0))</span></span>
+<span class="lineno">  308 </span>-- Algebra.Bundles.Raw.RawSemiring.*-rawMonoid
+<span class="lineno">  309 </span>d_'42''45'rawMonoid_216 ::
+<span class="lineno">  310 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  311 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  312 </span>  T_RawSemiring_174 -&gt; T_RawMonoid_64
+<span class="lineno">  313 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMonoid_216 ~v0 ~v1 v2 = du_'42''45'rawMonoid_216 v2</span></span>
+<span class="lineno">  314 </span>du_'42''45'rawMonoid_216 :: T_RawSemiring_174 -&gt; T_RawMonoid_64
+<span class="lineno">  315 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMonoid_216 v0</span>
+<span class="lineno">  316 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  317 </span><span class="spaces">      </span><span class="nottickedoff">C_RawMonoid'46'constructor_745 (d__'42'__198 (coe v0))</span>
+<span class="lineno">  318 </span><span class="spaces">      </span><span class="nottickedoff">(d_1'35'_202 (coe v0))</span></span>
+<span class="lineno">  319 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne
+<span class="lineno">  320 </span><span class="decl"><span class="nottickedoff">d_RawRingWithoutOne_222 a0 a1 = ()</span></span>
+<span class="lineno">  321 </span>data T_RawRingWithoutOne_222
+<span class="lineno">  322 </span>  = C_RawRingWithoutOne'46'constructor_3105 (AgdaAny -&gt;
+<span class="lineno">  323 </span>                                             AgdaAny -&gt; AgdaAny)
+<span class="lineno">  324 </span>                                            (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) (AgdaAny -&gt; AgdaAny)
+<span class="lineno">  325 </span>                                            AgdaAny
+<span class="lineno">  326 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne.Carrier
+<span class="lineno">  327 </span>d_Carrier_240 :: T_RawRingWithoutOne_222 -&gt; ()
+<span class="lineno">  328 </span><span class="decl"><span class="nottickedoff">d_Carrier_240 = erased</span></span>
+<span class="lineno">  329 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne._≈_
+<span class="lineno">  330 </span>d__'8776'__242 ::
+<span class="lineno">  331 </span>  T_RawRingWithoutOne_222 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  332 </span><span class="decl"><span class="nottickedoff">d__'8776'__242 = erased</span></span>
+<span class="lineno">  333 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne._+_
+<span class="lineno">  334 </span>d__'43'__244 ::
+<span class="lineno">  335 </span>  T_RawRingWithoutOne_222 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  336 </span><span class="decl"><span class="nottickedoff">d__'43'__244 v0</span>
+<span class="lineno">  337 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  338 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRingWithoutOne'46'constructor_3105 v3 v4 v5 v6 -&gt; coe v3</span>
+<span class="lineno">  339 </span><span class="spaces">      </span><span class="nottickedoff">_                                                   -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  340 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne._*_
+<span class="lineno">  341 </span>d__'42'__246 ::
+<span class="lineno">  342 </span>  T_RawRingWithoutOne_222 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">d__'42'__246 v0</span>
+<span class="lineno">  344 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  345 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRingWithoutOne'46'constructor_3105 v3 v4 v5 v6 -&gt; coe v4</span>
+<span class="lineno">  346 </span><span class="spaces">      </span><span class="nottickedoff">_                                                   -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  347 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne.-_
+<span class="lineno">  348 </span>d_'45'__248 :: T_RawRingWithoutOne_222 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  349 </span><span class="decl"><span class="nottickedoff">d_'45'__248 v0</span>
+<span class="lineno">  350 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  351 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRingWithoutOne'46'constructor_3105 v3 v4 v5 v6 -&gt; coe v5</span>
+<span class="lineno">  352 </span><span class="spaces">      </span><span class="nottickedoff">_                                                   -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  353 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne.0#
+<span class="lineno">  354 </span>d_0'35'_250 :: T_RawRingWithoutOne_222 -&gt; AgdaAny
+<span class="lineno">  355 </span><span class="decl"><span class="nottickedoff">d_0'35'_250 v0</span>
+<span class="lineno">  356 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  357 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRingWithoutOne'46'constructor_3105 v3 v4 v5 v6 -&gt; coe v6</span>
+<span class="lineno">  358 </span><span class="spaces">      </span><span class="nottickedoff">_                                                   -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  359 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne.+-rawGroup
+<span class="lineno">  360 </span>d_'43''45'rawGroup_252 ::
+<span class="lineno">  361 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  362 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  363 </span>  T_RawRingWithoutOne_222 -&gt; T_RawGroup_96
+<span class="lineno">  364 </span><span class="decl"><span class="nottickedoff">d_'43''45'rawGroup_252 ~v0 ~v1 v2 = du_'43''45'rawGroup_252 v2</span></span>
+<span class="lineno">  365 </span>du_'43''45'rawGroup_252 :: T_RawRingWithoutOne_222 -&gt; T_RawGroup_96
+<span class="lineno">  366 </span><span class="decl"><span class="nottickedoff">du_'43''45'rawGroup_252 v0</span>
+<span class="lineno">  367 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  368 </span><span class="spaces">      </span><span class="nottickedoff">C_RawGroup'46'constructor_1207 (d__'43'__244 (coe v0))</span>
+<span class="lineno">  369 </span><span class="spaces">      </span><span class="nottickedoff">(d_0'35'_250 (coe v0)) (d_'45'__248 (coe v0))</span></span>
+<span class="lineno">  370 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne._._≉_
+<span class="lineno">  371 </span>d__'8777'__256 ::
+<span class="lineno">  372 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  373 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  374 </span>  T_RawRingWithoutOne_222 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  375 </span><span class="decl"><span class="nottickedoff">d__'8777'__256 = erased</span></span>
+<span class="lineno">  376 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne._.rawMagma
+<span class="lineno">  377 </span>d_rawMagma_258 ::
+<span class="lineno">  378 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  379 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  380 </span>  T_RawRingWithoutOne_222 -&gt; T_RawMagma_36
+<span class="lineno">  381 </span><span class="decl"><span class="nottickedoff">d_rawMagma_258 ~v0 ~v1 v2 = du_rawMagma_258 v2</span></span>
+<span class="lineno">  382 </span>du_rawMagma_258 :: T_RawRingWithoutOne_222 -&gt; T_RawMagma_36
+<span class="lineno">  383 </span><span class="decl"><span class="nottickedoff">du_rawMagma_258 v0</span>
+<span class="lineno">  384 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_'43''45'rawGroup_252 (coe v0) in</span>
+<span class="lineno">  385 </span><span class="spaces">    </span><span class="nottickedoff">coe (coe du_rawMagma_86 (coe du_rawMonoid_122 (coe v1)))</span></span>
+<span class="lineno">  386 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne._.rawMonoid
+<span class="lineno">  387 </span>d_rawMonoid_260 ::
+<span class="lineno">  388 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  389 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  390 </span>  T_RawRingWithoutOne_222 -&gt; T_RawMonoid_64
+<span class="lineno">  391 </span><span class="decl"><span class="nottickedoff">d_rawMonoid_260 ~v0 ~v1 v2 = du_rawMonoid_260 v2</span></span>
+<span class="lineno">  392 </span>du_rawMonoid_260 :: T_RawRingWithoutOne_222 -&gt; T_RawMonoid_64
+<span class="lineno">  393 </span><span class="decl"><span class="nottickedoff">du_rawMonoid_260 v0</span>
+<span class="lineno">  394 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_rawMonoid_122 (coe du_'43''45'rawGroup_252 (coe v0))</span></span>
+<span class="lineno">  395 </span>-- Algebra.Bundles.Raw.RawRingWithoutOne.*-rawMagma
+<span class="lineno">  396 </span>d_'42''45'rawMagma_262 ::
+<span class="lineno">  397 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  398 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  399 </span>  T_RawRingWithoutOne_222 -&gt; T_RawMagma_36
+<span class="lineno">  400 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMagma_262 ~v0 ~v1 v2 = du_'42''45'rawMagma_262 v2</span></span>
+<span class="lineno">  401 </span>du_'42''45'rawMagma_262 :: T_RawRingWithoutOne_222 -&gt; T_RawMagma_36
+<span class="lineno">  402 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMagma_262 v0</span>
+<span class="lineno">  403 </span><span class="spaces">  </span><span class="nottickedoff">= coe C_RawMagma'46'constructor_341 (d__'42'__246 (coe v0))</span></span>
+<span class="lineno">  404 </span>-- Algebra.Bundles.Raw.RawRing
+<span class="lineno">  405 </span><span class="decl"><span class="nottickedoff">d_RawRing_268 a0 a1 = ()</span></span>
+<span class="lineno">  406 </span>data T_RawRing_268
+<span class="lineno">  407 </span>  = C_RawRing'46'constructor_3857 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  408 </span>                                  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) (AgdaAny -&gt; AgdaAny) AgdaAny
+<span class="lineno">  409 </span>                                  AgdaAny
+<span class="lineno">  410 </span>-- Algebra.Bundles.Raw.RawRing.Carrier
+<span class="lineno">  411 </span>d_Carrier_288 :: T_RawRing_268 -&gt; ()
+<span class="lineno">  412 </span><span class="decl"><span class="nottickedoff">d_Carrier_288 = erased</span></span>
+<span class="lineno">  413 </span>-- Algebra.Bundles.Raw.RawRing._≈_
+<span class="lineno">  414 </span>d__'8776'__290 :: T_RawRing_268 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  415 </span><span class="decl"><span class="nottickedoff">d__'8776'__290 = erased</span></span>
+<span class="lineno">  416 </span>-- Algebra.Bundles.Raw.RawRing._+_
+<span class="lineno">  417 </span>d__'43'__292 :: T_RawRing_268 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  418 </span><span class="decl"><span class="nottickedoff">d__'43'__292 v0</span>
+<span class="lineno">  419 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  420 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRing'46'constructor_3857 v3 v4 v5 v6 v7 -&gt; coe v3</span>
+<span class="lineno">  421 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  422 </span>-- Algebra.Bundles.Raw.RawRing._*_
+<span class="lineno">  423 </span>d__'42'__294 :: T_RawRing_268 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  424 </span><span class="decl"><span class="nottickedoff">d__'42'__294 v0</span>
+<span class="lineno">  425 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  426 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRing'46'constructor_3857 v3 v4 v5 v6 v7 -&gt; coe v4</span>
+<span class="lineno">  427 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  428 </span>-- Algebra.Bundles.Raw.RawRing.-_
+<span class="lineno">  429 </span>d_'45'__296 :: T_RawRing_268 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  430 </span><span class="decl"><span class="nottickedoff">d_'45'__296 v0</span>
+<span class="lineno">  431 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  432 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRing'46'constructor_3857 v3 v4 v5 v6 v7 -&gt; coe v5</span>
+<span class="lineno">  433 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  434 </span>-- Algebra.Bundles.Raw.RawRing.0#
+<span class="lineno">  435 </span>d_0'35'_298 :: T_RawRing_268 -&gt; AgdaAny
+<span class="lineno">  436 </span><span class="decl"><span class="nottickedoff">d_0'35'_298 v0</span>
+<span class="lineno">  437 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  438 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRing'46'constructor_3857 v3 v4 v5 v6 v7 -&gt; coe v6</span>
+<span class="lineno">  439 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  440 </span>-- Algebra.Bundles.Raw.RawRing.1#
+<span class="lineno">  441 </span>d_1'35'_300 :: T_RawRing_268 -&gt; AgdaAny
+<span class="lineno">  442 </span><span class="decl"><span class="nottickedoff">d_1'35'_300 v0</span>
+<span class="lineno">  443 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  444 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRing'46'constructor_3857 v3 v4 v5 v6 v7 -&gt; coe v7</span>
+<span class="lineno">  445 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  446 </span>-- Algebra.Bundles.Raw.RawRing.rawSemiring
+<span class="lineno">  447 </span>d_rawSemiring_302 ::
+<span class="lineno">  448 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  449 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  450 </span>  T_RawRing_268 -&gt; T_RawSemiring_174
+<span class="lineno">  451 </span><span class="decl"><span class="nottickedoff">d_rawSemiring_302 ~v0 ~v1 v2 = du_rawSemiring_302 v2</span></span>
+<span class="lineno">  452 </span>du_rawSemiring_302 :: T_RawRing_268 -&gt; T_RawSemiring_174
+<span class="lineno">  453 </span><span class="decl"><span class="nottickedoff">du_rawSemiring_302 v0</span>
+<span class="lineno">  454 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  455 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSemiring'46'constructor_2353 (d__'43'__292 (coe v0))</span>
+<span class="lineno">  456 </span><span class="spaces">      </span><span class="nottickedoff">(d__'42'__294 (coe v0)) (d_0'35'_298 (coe v0))</span>
+<span class="lineno">  457 </span><span class="spaces">      </span><span class="nottickedoff">(d_1'35'_300 (coe v0))</span></span>
+<span class="lineno">  458 </span>-- Algebra.Bundles.Raw.RawRing._._≉_
+<span class="lineno">  459 </span>d__'8777'__306 ::
+<span class="lineno">  460 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  461 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  462 </span>  T_RawRing_268 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  463 </span><span class="decl"><span class="nottickedoff">d__'8777'__306 = erased</span></span>
+<span class="lineno">  464 </span>-- Algebra.Bundles.Raw.RawRing._.*-rawMagma
+<span class="lineno">  465 </span>d_'42''45'rawMagma_308 ::
+<span class="lineno">  466 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  467 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  468 </span>  T_RawRing_268 -&gt; T_RawMagma_36
+<span class="lineno">  469 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMagma_308 ~v0 ~v1 v2 = du_'42''45'rawMagma_308 v2</span></span>
+<span class="lineno">  470 </span>du_'42''45'rawMagma_308 :: T_RawRing_268 -&gt; T_RawMagma_36
+<span class="lineno">  471 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMagma_308 v0</span>
+<span class="lineno">  472 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_rawSemiring_302 (coe v0) in</span>
+<span class="lineno">  473 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  474 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'42''45'rawMagma_168 (coe du_rawNearSemiring_204 (coe v1)))</span></span>
+<span class="lineno">  475 </span>-- Algebra.Bundles.Raw.RawRing._.*-rawMonoid
+<span class="lineno">  476 </span>d_'42''45'rawMonoid_310 ::
+<span class="lineno">  477 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  478 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  479 </span>  T_RawRing_268 -&gt; T_RawMonoid_64
+<span class="lineno">  480 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMonoid_310 ~v0 ~v1 v2 = du_'42''45'rawMonoid_310 v2</span></span>
+<span class="lineno">  481 </span>du_'42''45'rawMonoid_310 :: T_RawRing_268 -&gt; T_RawMonoid_64
+<span class="lineno">  482 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMonoid_310 v0</span>
+<span class="lineno">  483 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'42''45'rawMonoid_216 (coe du_rawSemiring_302 (coe v0))</span></span>
+<span class="lineno">  484 </span>-- Algebra.Bundles.Raw.RawRing._.rawMagma
+<span class="lineno">  485 </span>d_rawMagma_312 ::
+<span class="lineno">  486 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  487 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  488 </span>  T_RawRing_268 -&gt; T_RawMagma_36
+<span class="lineno">  489 </span><span class="decl"><span class="nottickedoff">d_rawMagma_312 ~v0 ~v1 v2 = du_rawMagma_312 v2</span></span>
+<span class="lineno">  490 </span>du_rawMagma_312 :: T_RawRing_268 -&gt; T_RawMagma_36
+<span class="lineno">  491 </span><span class="decl"><span class="nottickedoff">du_rawMagma_312 v0</span>
+<span class="lineno">  492 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_rawSemiring_302 (coe v0) in</span>
+<span class="lineno">  493 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  494 </span><span class="spaces">      </span><span class="nottickedoff">(let v2 = coe du_rawNearSemiring_204 (coe v1) in</span>
+<span class="lineno">  495 </span><span class="spaces">       </span><span class="nottickedoff">coe (coe du_rawMagma_86 (coe du_'43''45'rawMonoid_160 (coe v2))))</span></span>
+<span class="lineno">  496 </span>-- Algebra.Bundles.Raw.RawRing._.+-rawMonoid
+<span class="lineno">  497 </span>d_'43''45'rawMonoid_314 ::
+<span class="lineno">  498 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  499 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  500 </span>  T_RawRing_268 -&gt; T_RawMonoid_64
+<span class="lineno">  501 </span><span class="decl"><span class="nottickedoff">d_'43''45'rawMonoid_314 ~v0 ~v1 v2 = du_'43''45'rawMonoid_314 v2</span></span>
+<span class="lineno">  502 </span>du_'43''45'rawMonoid_314 :: T_RawRing_268 -&gt; T_RawMonoid_64
+<span class="lineno">  503 </span><span class="decl"><span class="nottickedoff">du_'43''45'rawMonoid_314 v0</span>
+<span class="lineno">  504 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_rawSemiring_302 (coe v0) in</span>
+<span class="lineno">  505 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  506 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  507 </span><span class="spaces">         </span><span class="nottickedoff">du_'43''45'rawMonoid_160 (coe du_rawNearSemiring_204 (coe v1)))</span></span>
+<span class="lineno">  508 </span>-- Algebra.Bundles.Raw.RawRing.rawRingWithoutOne
+<span class="lineno">  509 </span>d_rawRingWithoutOne_316 ::
+<span class="lineno">  510 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  511 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  512 </span>  T_RawRing_268 -&gt; T_RawRingWithoutOne_222
+<span class="lineno">  513 </span><span class="decl"><span class="nottickedoff">d_rawRingWithoutOne_316 ~v0 ~v1 v2 = du_rawRingWithoutOne_316 v2</span></span>
+<span class="lineno">  514 </span>du_rawRingWithoutOne_316 ::
+<span class="lineno">  515 </span>  T_RawRing_268 -&gt; T_RawRingWithoutOne_222
+<span class="lineno">  516 </span><span class="decl"><span class="nottickedoff">du_rawRingWithoutOne_316 v0</span>
+<span class="lineno">  517 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  518 </span><span class="spaces">      </span><span class="nottickedoff">C_RawRingWithoutOne'46'constructor_3105 (d__'43'__292 (coe v0))</span>
+<span class="lineno">  519 </span><span class="spaces">      </span><span class="nottickedoff">(d__'42'__294 (coe v0)) (d_'45'__296 (coe v0))</span>
+<span class="lineno">  520 </span><span class="spaces">      </span><span class="nottickedoff">(d_0'35'_298 (coe v0))</span></span>
+<span class="lineno">  521 </span>-- Algebra.Bundles.Raw.RawRing._.+-rawGroup
+<span class="lineno">  522 </span>d_'43''45'rawGroup_320 ::
+<span class="lineno">  523 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  524 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  525 </span>  T_RawRing_268 -&gt; T_RawGroup_96
+<span class="lineno">  526 </span><span class="decl"><span class="nottickedoff">d_'43''45'rawGroup_320 ~v0 ~v1 v2 = du_'43''45'rawGroup_320 v2</span></span>
+<span class="lineno">  527 </span>du_'43''45'rawGroup_320 :: T_RawRing_268 -&gt; T_RawGroup_96
+<span class="lineno">  528 </span><span class="decl"><span class="nottickedoff">du_'43''45'rawGroup_320 v0</span>
+<span class="lineno">  529 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  530 </span><span class="spaces">      </span><span class="nottickedoff">du_'43''45'rawGroup_252 (coe du_rawRingWithoutOne_316 (coe v0))</span></span>
+<span class="lineno">  531 </span>-- Algebra.Bundles.Raw.RawQuasigroup
+<span class="lineno">  532 </span><span class="decl"><span class="nottickedoff">d_RawQuasigroup_326 a0 a1 = ()</span></span>
+<span class="lineno">  533 </span>data T_RawQuasigroup_326
+<span class="lineno">  534 </span>  = C_RawQuasigroup'46'constructor_4731 (AgdaAny -&gt;
+<span class="lineno">  535 </span>                                         AgdaAny -&gt; AgdaAny)
+<span class="lineno">  536 </span>                                        (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  537 </span>                                        (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  538 </span>-- Algebra.Bundles.Raw.RawQuasigroup.Carrier
+<span class="lineno">  539 </span>d_Carrier_342 :: T_RawQuasigroup_326 -&gt; ()
+<span class="lineno">  540 </span><span class="decl"><span class="nottickedoff">d_Carrier_342 = erased</span></span>
+<span class="lineno">  541 </span>-- Algebra.Bundles.Raw.RawQuasigroup._≈_
+<span class="lineno">  542 </span>d__'8776'__344 :: T_RawQuasigroup_326 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  543 </span><span class="decl"><span class="nottickedoff">d__'8776'__344 = erased</span></span>
+<span class="lineno">  544 </span>-- Algebra.Bundles.Raw.RawQuasigroup._∙_
+<span class="lineno">  545 </span>d__'8729'__346 ::
+<span class="lineno">  546 </span>  T_RawQuasigroup_326 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  547 </span><span class="decl"><span class="nottickedoff">d__'8729'__346 v0</span>
+<span class="lineno">  548 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  549 </span><span class="spaces">      </span><span class="nottickedoff">C_RawQuasigroup'46'constructor_4731 v3 v4 v5 -&gt; coe v3</span>
+<span class="lineno">  550 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  551 </span>-- Algebra.Bundles.Raw.RawQuasigroup._\\_
+<span class="lineno">  552 </span>d__'92''92'__348 ::
+<span class="lineno">  553 </span>  T_RawQuasigroup_326 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  554 </span><span class="decl"><span class="nottickedoff">d__'92''92'__348 v0</span>
+<span class="lineno">  555 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  556 </span><span class="spaces">      </span><span class="nottickedoff">C_RawQuasigroup'46'constructor_4731 v3 v4 v5 -&gt; coe v4</span>
+<span class="lineno">  557 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  558 </span>-- Algebra.Bundles.Raw.RawQuasigroup._//_
+<span class="lineno">  559 </span>d__'47''47'__350 ::
+<span class="lineno">  560 </span>  T_RawQuasigroup_326 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  561 </span><span class="decl"><span class="nottickedoff">d__'47''47'__350 v0</span>
+<span class="lineno">  562 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  563 </span><span class="spaces">      </span><span class="nottickedoff">C_RawQuasigroup'46'constructor_4731 v3 v4 v5 -&gt; coe v5</span>
+<span class="lineno">  564 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  565 </span>-- Algebra.Bundles.Raw.RawQuasigroup.∙-rawMagma
+<span class="lineno">  566 </span>d_'8729''45'rawMagma_352 ::
+<span class="lineno">  567 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  568 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  569 </span>  T_RawQuasigroup_326 -&gt; T_RawMagma_36
+<span class="lineno">  570 </span><span class="decl"><span class="nottickedoff">d_'8729''45'rawMagma_352 ~v0 ~v1 v2 = du_'8729''45'rawMagma_352 v2</span></span>
+<span class="lineno">  571 </span>du_'8729''45'rawMagma_352 :: T_RawQuasigroup_326 -&gt; T_RawMagma_36
+<span class="lineno">  572 </span><span class="decl"><span class="nottickedoff">du_'8729''45'rawMagma_352 v0</span>
+<span class="lineno">  573 </span><span class="spaces">  </span><span class="nottickedoff">= coe C_RawMagma'46'constructor_341 (d__'8729'__346 (coe v0))</span></span>
+<span class="lineno">  574 </span>-- Algebra.Bundles.Raw.RawQuasigroup.\\-rawMagma
+<span class="lineno">  575 </span>d_'92''92''45'rawMagma_354 ::
+<span class="lineno">  576 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  577 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  578 </span>  T_RawQuasigroup_326 -&gt; T_RawMagma_36
+<span class="lineno">  579 </span><span class="decl"><span class="nottickedoff">d_'92''92''45'rawMagma_354 ~v0 ~v1 v2</span>
+<span class="lineno">  580 </span><span class="spaces">  </span><span class="nottickedoff">= du_'92''92''45'rawMagma_354 v2</span></span>
+<span class="lineno">  581 </span>du_'92''92''45'rawMagma_354 :: T_RawQuasigroup_326 -&gt; T_RawMagma_36
+<span class="lineno">  582 </span><span class="decl"><span class="nottickedoff">du_'92''92''45'rawMagma_354 v0</span>
+<span class="lineno">  583 </span><span class="spaces">  </span><span class="nottickedoff">= coe C_RawMagma'46'constructor_341 (d__'92''92'__348 (coe v0))</span></span>
+<span class="lineno">  584 </span>-- Algebra.Bundles.Raw.RawQuasigroup.//-rawMagma
+<span class="lineno">  585 </span>d_'47''47''45'rawMagma_356 ::
+<span class="lineno">  586 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  587 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  588 </span>  T_RawQuasigroup_326 -&gt; T_RawMagma_36
+<span class="lineno">  589 </span><span class="decl"><span class="nottickedoff">d_'47''47''45'rawMagma_356 ~v0 ~v1 v2</span>
+<span class="lineno">  590 </span><span class="spaces">  </span><span class="nottickedoff">= du_'47''47''45'rawMagma_356 v2</span></span>
+<span class="lineno">  591 </span>du_'47''47''45'rawMagma_356 :: T_RawQuasigroup_326 -&gt; T_RawMagma_36
+<span class="lineno">  592 </span><span class="decl"><span class="nottickedoff">du_'47''47''45'rawMagma_356 v0</span>
+<span class="lineno">  593 </span><span class="spaces">  </span><span class="nottickedoff">= coe C_RawMagma'46'constructor_341 (d__'47''47'__350 (coe v0))</span></span>
+<span class="lineno">  594 </span>-- Algebra.Bundles.Raw.RawQuasigroup._._≉_
+<span class="lineno">  595 </span>d__'8777'__360 ::
+<span class="lineno">  596 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  597 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  598 </span>  T_RawQuasigroup_326 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  599 </span><span class="decl"><span class="nottickedoff">d__'8777'__360 = erased</span></span>
+<span class="lineno">  600 </span>-- Algebra.Bundles.Raw.RawLoop
+<span class="lineno">  601 </span><span class="decl"><span class="nottickedoff">d_RawLoop_366 a0 a1 = ()</span></span>
+<span class="lineno">  602 </span>data T_RawLoop_366
+<span class="lineno">  603 </span>  = C_RawLoop'46'constructor_5465 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  604 </span>                                  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  605 </span>                                  AgdaAny
+<span class="lineno">  606 </span>-- Algebra.Bundles.Raw.RawLoop.Carrier
+<span class="lineno">  607 </span>d_Carrier_384 :: T_RawLoop_366 -&gt; ()
+<span class="lineno">  608 </span><span class="decl"><span class="nottickedoff">d_Carrier_384 = erased</span></span>
+<span class="lineno">  609 </span>-- Algebra.Bundles.Raw.RawLoop._≈_
+<span class="lineno">  610 </span>d__'8776'__386 :: T_RawLoop_366 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  611 </span><span class="decl"><span class="nottickedoff">d__'8776'__386 = erased</span></span>
+<span class="lineno">  612 </span>-- Algebra.Bundles.Raw.RawLoop._∙_
+<span class="lineno">  613 </span>d__'8729'__388 :: T_RawLoop_366 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  614 </span><span class="decl"><span class="nottickedoff">d__'8729'__388 v0</span>
+<span class="lineno">  615 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  616 </span><span class="spaces">      </span><span class="nottickedoff">C_RawLoop'46'constructor_5465 v3 v4 v5 v6 -&gt; coe v3</span>
+<span class="lineno">  617 </span><span class="spaces">      </span><span class="nottickedoff">_                                         -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  618 </span>-- Algebra.Bundles.Raw.RawLoop._\\_
+<span class="lineno">  619 </span>d__'92''92'__390 :: T_RawLoop_366 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  620 </span><span class="decl"><span class="nottickedoff">d__'92''92'__390 v0</span>
+<span class="lineno">  621 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  622 </span><span class="spaces">      </span><span class="nottickedoff">C_RawLoop'46'constructor_5465 v3 v4 v5 v6 -&gt; coe v4</span>
+<span class="lineno">  623 </span><span class="spaces">      </span><span class="nottickedoff">_                                         -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  624 </span>-- Algebra.Bundles.Raw.RawLoop._//_
+<span class="lineno">  625 </span>d__'47''47'__392 :: T_RawLoop_366 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  626 </span><span class="decl"><span class="nottickedoff">d__'47''47'__392 v0</span>
+<span class="lineno">  627 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  628 </span><span class="spaces">      </span><span class="nottickedoff">C_RawLoop'46'constructor_5465 v3 v4 v5 v6 -&gt; coe v5</span>
+<span class="lineno">  629 </span><span class="spaces">      </span><span class="nottickedoff">_                                         -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  630 </span>-- Algebra.Bundles.Raw.RawLoop.ε
+<span class="lineno">  631 </span>d_ε_394 :: T_RawLoop_366 -&gt; AgdaAny
+<span class="lineno">  632 </span><span class="decl"><span class="nottickedoff">d_ε_394 v0</span>
+<span class="lineno">  633 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  634 </span><span class="spaces">      </span><span class="nottickedoff">C_RawLoop'46'constructor_5465 v3 v4 v5 v6 -&gt; coe v6</span>
+<span class="lineno">  635 </span><span class="spaces">      </span><span class="nottickedoff">_                                         -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  636 </span>-- Algebra.Bundles.Raw.RawLoop.rawQuasigroup
+<span class="lineno">  637 </span>d_rawQuasigroup_396 ::
+<span class="lineno">  638 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  639 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  640 </span>  T_RawLoop_366 -&gt; T_RawQuasigroup_326
+<span class="lineno">  641 </span><span class="decl"><span class="nottickedoff">d_rawQuasigroup_396 ~v0 ~v1 v2 = du_rawQuasigroup_396 v2</span></span>
+<span class="lineno">  642 </span>du_rawQuasigroup_396 :: T_RawLoop_366 -&gt; T_RawQuasigroup_326
+<span class="lineno">  643 </span><span class="decl"><span class="nottickedoff">du_rawQuasigroup_396 v0</span>
+<span class="lineno">  644 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  645 </span><span class="spaces">      </span><span class="nottickedoff">C_RawQuasigroup'46'constructor_4731 (d__'8729'__388 (coe v0))</span>
+<span class="lineno">  646 </span><span class="spaces">      </span><span class="nottickedoff">(d__'92''92'__390 (coe v0)) (d__'47''47'__392 (coe v0))</span></span>
+<span class="lineno">  647 </span>-- Algebra.Bundles.Raw.RawLoop._._≉_
+<span class="lineno">  648 </span>d__'8777'__400 ::
+<span class="lineno">  649 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  650 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  651 </span>  T_RawLoop_366 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  652 </span><span class="decl"><span class="nottickedoff">d__'8777'__400 = erased</span></span>
+<span class="lineno">  653 </span>-- Algebra.Bundles.Raw.RawLoop._.//-rawMagma
+<span class="lineno">  654 </span>d_'47''47''45'rawMagma_402 ::
+<span class="lineno">  655 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  656 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  657 </span>  T_RawLoop_366 -&gt; T_RawMagma_36
+<span class="lineno">  658 </span><span class="decl"><span class="nottickedoff">d_'47''47''45'rawMagma_402 ~v0 ~v1 v2</span>
+<span class="lineno">  659 </span><span class="spaces">  </span><span class="nottickedoff">= du_'47''47''45'rawMagma_402 v2</span></span>
+<span class="lineno">  660 </span>du_'47''47''45'rawMagma_402 :: T_RawLoop_366 -&gt; T_RawMagma_36
+<span class="lineno">  661 </span><span class="decl"><span class="nottickedoff">du_'47''47''45'rawMagma_402 v0</span>
+<span class="lineno">  662 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  663 </span><span class="spaces">      </span><span class="nottickedoff">du_'47''47''45'rawMagma_356 (coe du_rawQuasigroup_396 (coe v0))</span></span>
+<span class="lineno">  664 </span>-- Algebra.Bundles.Raw.RawLoop._.\\-rawMagma
+<span class="lineno">  665 </span>d_'92''92''45'rawMagma_404 ::
+<span class="lineno">  666 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  667 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  668 </span>  T_RawLoop_366 -&gt; T_RawMagma_36
+<span class="lineno">  669 </span><span class="decl"><span class="nottickedoff">d_'92''92''45'rawMagma_404 ~v0 ~v1 v2</span>
+<span class="lineno">  670 </span><span class="spaces">  </span><span class="nottickedoff">= du_'92''92''45'rawMagma_404 v2</span></span>
+<span class="lineno">  671 </span>du_'92''92''45'rawMagma_404 :: T_RawLoop_366 -&gt; T_RawMagma_36
+<span class="lineno">  672 </span><span class="decl"><span class="nottickedoff">du_'92''92''45'rawMagma_404 v0</span>
+<span class="lineno">  673 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  674 </span><span class="spaces">      </span><span class="nottickedoff">du_'92''92''45'rawMagma_354 (coe du_rawQuasigroup_396 (coe v0))</span></span>
+<span class="lineno">  675 </span>-- Algebra.Bundles.Raw.RawLoop._.∙-rawMagma
+<span class="lineno">  676 </span>d_'8729''45'rawMagma_406 ::
+<span class="lineno">  677 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  678 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  679 </span>  T_RawLoop_366 -&gt; T_RawMagma_36
+<span class="lineno">  680 </span><span class="decl"><span class="nottickedoff">d_'8729''45'rawMagma_406 ~v0 ~v1 v2 = du_'8729''45'rawMagma_406 v2</span></span>
+<span class="lineno">  681 </span>du_'8729''45'rawMagma_406 :: T_RawLoop_366 -&gt; T_RawMagma_36
+<span class="lineno">  682 </span><span class="decl"><span class="nottickedoff">du_'8729''45'rawMagma_406 v0</span>
+<span class="lineno">  683 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'8729''45'rawMagma_352 (coe du_rawQuasigroup_396 (coe v0))</span></span>
+<span class="lineno">  684 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra
+<span class="lineno">  685 </span><span class="decl"><span class="nottickedoff">d_RawKleeneAlgebra_412 a0 a1 = ()</span></span>
+<span class="lineno">  686 </span>data T_RawKleeneAlgebra_412
+<span class="lineno">  687 </span>  = C_RawKleeneAlgebra'46'constructor_6153 (AgdaAny -&gt;
+<span class="lineno">  688 </span>                                            AgdaAny -&gt; AgdaAny)
+<span class="lineno">  689 </span>                                           (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) (AgdaAny -&gt; AgdaAny)
+<span class="lineno">  690 </span>                                           AgdaAny AgdaAny
+<span class="lineno">  691 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra.Carrier
+<span class="lineno">  692 </span>d_Carrier_432 :: T_RawKleeneAlgebra_412 -&gt; ()
+<span class="lineno">  693 </span><span class="decl"><span class="nottickedoff">d_Carrier_432 = erased</span></span>
+<span class="lineno">  694 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._≈_
+<span class="lineno">  695 </span>d__'8776'__434 ::
+<span class="lineno">  696 </span>  T_RawKleeneAlgebra_412 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  697 </span><span class="decl"><span class="nottickedoff">d__'8776'__434 = erased</span></span>
+<span class="lineno">  698 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._+_
+<span class="lineno">  699 </span>d__'43'__436 ::
+<span class="lineno">  700 </span>  T_RawKleeneAlgebra_412 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  701 </span><span class="decl"><span class="nottickedoff">d__'43'__436 v0</span>
+<span class="lineno">  702 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  703 </span><span class="spaces">      </span><span class="nottickedoff">C_RawKleeneAlgebra'46'constructor_6153 v3 v4 v5 v6 v7 -&gt; coe v3</span>
+<span class="lineno">  704 </span><span class="spaces">      </span><span class="nottickedoff">_                                                     -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  705 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._*_
+<span class="lineno">  706 </span>d__'42'__438 ::
+<span class="lineno">  707 </span>  T_RawKleeneAlgebra_412 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  708 </span><span class="decl"><span class="nottickedoff">d__'42'__438 v0</span>
+<span class="lineno">  709 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  710 </span><span class="spaces">      </span><span class="nottickedoff">C_RawKleeneAlgebra'46'constructor_6153 v3 v4 v5 v6 v7 -&gt; coe v4</span>
+<span class="lineno">  711 </span><span class="spaces">      </span><span class="nottickedoff">_                                                     -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  712 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._⋆
+<span class="lineno">  713 </span>d__'8902'_440 :: T_RawKleeneAlgebra_412 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  714 </span><span class="decl"><span class="nottickedoff">d__'8902'_440 v0</span>
+<span class="lineno">  715 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  716 </span><span class="spaces">      </span><span class="nottickedoff">C_RawKleeneAlgebra'46'constructor_6153 v3 v4 v5 v6 v7 -&gt; coe v5</span>
+<span class="lineno">  717 </span><span class="spaces">      </span><span class="nottickedoff">_                                                     -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  718 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra.0#
+<span class="lineno">  719 </span>d_0'35'_442 :: T_RawKleeneAlgebra_412 -&gt; AgdaAny
+<span class="lineno">  720 </span><span class="decl"><span class="nottickedoff">d_0'35'_442 v0</span>
+<span class="lineno">  721 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  722 </span><span class="spaces">      </span><span class="nottickedoff">C_RawKleeneAlgebra'46'constructor_6153 v3 v4 v5 v6 v7 -&gt; coe v6</span>
+<span class="lineno">  723 </span><span class="spaces">      </span><span class="nottickedoff">_                                                     -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  724 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra.1#
+<span class="lineno">  725 </span>d_1'35'_444 :: T_RawKleeneAlgebra_412 -&gt; AgdaAny
+<span class="lineno">  726 </span><span class="decl"><span class="nottickedoff">d_1'35'_444 v0</span>
+<span class="lineno">  727 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  728 </span><span class="spaces">      </span><span class="nottickedoff">C_RawKleeneAlgebra'46'constructor_6153 v3 v4 v5 v6 v7 -&gt; coe v7</span>
+<span class="lineno">  729 </span><span class="spaces">      </span><span class="nottickedoff">_                                                     -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  730 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra.rawSemiring
+<span class="lineno">  731 </span>d_rawSemiring_446 ::
+<span class="lineno">  732 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  733 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  734 </span>  T_RawKleeneAlgebra_412 -&gt; T_RawSemiring_174
+<span class="lineno">  735 </span><span class="decl"><span class="nottickedoff">d_rawSemiring_446 ~v0 ~v1 v2 = du_rawSemiring_446 v2</span></span>
+<span class="lineno">  736 </span>du_rawSemiring_446 :: T_RawKleeneAlgebra_412 -&gt; T_RawSemiring_174
+<span class="lineno">  737 </span><span class="decl"><span class="nottickedoff">du_rawSemiring_446 v0</span>
+<span class="lineno">  738 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  739 </span><span class="spaces">      </span><span class="nottickedoff">C_RawSemiring'46'constructor_2353 (d__'43'__436 (coe v0))</span>
+<span class="lineno">  740 </span><span class="spaces">      </span><span class="nottickedoff">(d__'42'__438 (coe v0)) (d_0'35'_442 (coe v0))</span>
+<span class="lineno">  741 </span><span class="spaces">      </span><span class="nottickedoff">(d_1'35'_444 (coe v0))</span></span>
+<span class="lineno">  742 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._._≉_
+<span class="lineno">  743 </span>d__'8777'__450 ::
+<span class="lineno">  744 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  745 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  746 </span>  T_RawKleeneAlgebra_412 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  747 </span><span class="decl"><span class="nottickedoff">d__'8777'__450 = erased</span></span>
+<span class="lineno">  748 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._.*-rawMagma
+<span class="lineno">  749 </span>d_'42''45'rawMagma_452 ::
+<span class="lineno">  750 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  751 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  752 </span>  T_RawKleeneAlgebra_412 -&gt; T_RawMagma_36
+<span class="lineno">  753 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMagma_452 ~v0 ~v1 v2 = du_'42''45'rawMagma_452 v2</span></span>
+<span class="lineno">  754 </span>du_'42''45'rawMagma_452 :: T_RawKleeneAlgebra_412 -&gt; T_RawMagma_36
+<span class="lineno">  755 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMagma_452 v0</span>
+<span class="lineno">  756 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_rawSemiring_446 (coe v0) in</span>
+<span class="lineno">  757 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  758 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'42''45'rawMagma_168 (coe du_rawNearSemiring_204 (coe v1)))</span></span>
+<span class="lineno">  759 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._.*-rawMonoid
+<span class="lineno">  760 </span>d_'42''45'rawMonoid_454 ::
+<span class="lineno">  761 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  762 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  763 </span>  T_RawKleeneAlgebra_412 -&gt; T_RawMonoid_64
+<span class="lineno">  764 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMonoid_454 ~v0 ~v1 v2 = du_'42''45'rawMonoid_454 v2</span></span>
+<span class="lineno">  765 </span>du_'42''45'rawMonoid_454 ::
+<span class="lineno">  766 </span>  T_RawKleeneAlgebra_412 -&gt; T_RawMonoid_64
+<span class="lineno">  767 </span><span class="decl"><span class="nottickedoff">du_'42''45'rawMonoid_454 v0</span>
+<span class="lineno">  768 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'42''45'rawMonoid_216 (coe du_rawSemiring_446 (coe v0))</span></span>
+<span class="lineno">  769 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._.rawMagma
+<span class="lineno">  770 </span>d_rawMagma_456 ::
+<span class="lineno">  771 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  772 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  773 </span>  T_RawKleeneAlgebra_412 -&gt; T_RawMagma_36
+<span class="lineno">  774 </span><span class="decl"><span class="nottickedoff">d_rawMagma_456 ~v0 ~v1 v2 = du_rawMagma_456 v2</span></span>
+<span class="lineno">  775 </span>du_rawMagma_456 :: T_RawKleeneAlgebra_412 -&gt; T_RawMagma_36
+<span class="lineno">  776 </span><span class="decl"><span class="nottickedoff">du_rawMagma_456 v0</span>
+<span class="lineno">  777 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_rawSemiring_446 (coe v0) in</span>
+<span class="lineno">  778 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  779 </span><span class="spaces">      </span><span class="nottickedoff">(let v2 = coe du_rawNearSemiring_204 (coe v1) in</span>
+<span class="lineno">  780 </span><span class="spaces">       </span><span class="nottickedoff">coe (coe du_rawMagma_86 (coe du_'43''45'rawMonoid_160 (coe v2))))</span></span>
+<span class="lineno">  781 </span>-- Algebra.Bundles.Raw.RawKleeneAlgebra._.+-rawMonoid
+<span class="lineno">  782 </span>d_'43''45'rawMonoid_458 ::
+<span class="lineno">  783 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  784 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  785 </span>  T_RawKleeneAlgebra_412 -&gt; T_RawMonoid_64
+<span class="lineno">  786 </span><span class="decl"><span class="nottickedoff">d_'43''45'rawMonoid_458 ~v0 ~v1 v2 = du_'43''45'rawMonoid_458 v2</span></span>
+<span class="lineno">  787 </span>du_'43''45'rawMonoid_458 ::
+<span class="lineno">  788 </span>  T_RawKleeneAlgebra_412 -&gt; T_RawMonoid_64
+<span class="lineno">  789 </span><span class="decl"><span class="nottickedoff">du_'43''45'rawMonoid_458 v0</span>
+<span class="lineno">  790 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe du_rawSemiring_446 (coe v0) in</span>
+<span class="lineno">  791 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  792 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  793 </span><span class="spaces">         </span><span class="nottickedoff">du_'43''45'rawMonoid_160 (coe du_rawNearSemiring_204 (coe v1)))</span></span>
+
+</pre>
+</body>
+</html>

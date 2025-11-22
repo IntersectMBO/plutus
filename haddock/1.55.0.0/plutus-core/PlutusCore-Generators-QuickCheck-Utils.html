@@ -1,0 +1,678 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.QuickCheck.Utils</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.QuickCheck.Utils.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.QuickCheck.Utils</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Container"
+	      >Container</a
+	      > f <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><span class="keyword"
+		  >data</span
+		  > <a href="#t:OneHoleContext"
+		  >OneHoleContext</a
+		  > f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		  >Type</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		  >Type</a
+		  ></li
+		><li
+		><a href="#v:oneHoleContexts"
+		  >oneHoleContexts</a
+		  > &#8759; f a &#8594; [(<a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+		  >OneHoleContext</a
+		  > f a, a)]</li
+		><li
+		><a href="#v:plugHole"
+		  >plugHole</a
+		  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+		  >OneHoleContext</a
+		  > f a &#8594; a &#8594; f a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:uniqueVectorOf"
+	      >uniqueVectorOf</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > a &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:forAllDoc"
+	      >forAllDoc</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+	      >PrettyReadable</a
+	      > a, Testable p) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > a &#8594; (a &#8594; [a]) &#8594; (a &#8594; p) &#8594; Property</li
+	    ><li class="src short"
+	    ><a href="#v:ceDoc"
+	      >ceDoc</a
+	      > &#8759; Testable t &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann &#8594; t &#8594; Property</li
+	    ><li class="src short"
+	    ><a href="#v:letCE"
+	      >letCE</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+	      >PrettyReadable</a
+	      > a, Testable p) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; a &#8594; (a &#8594; p) &#8594; Property</li
+	    ><li class="src short"
+	    ><a href="#v:assertNoCounterexamples"
+	      >assertNoCounterexamples</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+	      >PrettyReadable</a
+	      > a &#8658; [a] &#8594; Property</li
+	    ><li class="src short"
+	    ><a href="#v:freshenTyNameWith"
+	      >freshenTyNameWith</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:maxUsedUnique"
+	      >maxUsedUnique</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:constrTypes"
+	      >constrTypes</a
+	      > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; [(<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())]</li
+	    ><li class="src short"
+	    ><a href="#v:matchType"
+	      >matchType</a
+	      > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    >module <a href="PlutusCore-Generators-QuickCheck-Split.html"
+	      >PlutusCore.Generators.QuickCheck.Split</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Container" class="def"
+	    >Container</a
+	    > f <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#Container" class="link"
+	    >Source</a
+	    > <a href="#t:Container" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A type is a container for the purposes of shrinking if it has:</p
+	    ></div
+	  ><div class="subs associated-types"
+	  ><p class="caption"
+	    >Associated Types</p
+	    ><p class="src"
+	    ><span class="keyword"
+	      >data</span
+	      > <a id="t:OneHoleContext" class="def"
+	      >OneHoleContext</a
+	      > f &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#OneHoleContext" class="link"
+	      >Source</a
+	      > <a href="#t:OneHoleContext" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >One hole context where we can shrink a single &quot;element&quot; of the container</p
+	      ></div
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:oneHoleContexts" class="def"
+	      >oneHoleContexts</a
+	      > &#8759; f a &#8594; [(<a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+	      >OneHoleContext</a
+	      > f a, a)] <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#oneHoleContexts" class="link"
+	      >Source</a
+	      > <a href="#v:oneHoleContexts" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >A way of getting all the one hole contexts of an `f a`</p
+	      ></div
+	    ><p class="src"
+	    ><a id="v:plugHole" class="def"
+	      >plugHole</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+	      >OneHoleContext</a
+	      > f a &#8594; a &#8594; f a <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#plugHole" class="link"
+	      >Source</a
+	      > <a href="#v:plugHole" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >A way to plug the hole with a new, shrunk, term</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Container"
+	    >Instances</h4
+	    ><details id="i:Container" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Container:Container:1"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:Container" title="PlutusCore.Generators.QuickCheck.Utils"
+		      >Container</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+		      >NonEmpty</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:Container" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >An analogous implementation of <code
+		      ><a href="PlutusCore-Generators-QuickCheck-Utils.html#t:Container" title="PlutusCore.Generators.QuickCheck.Utils"
+			>Container</a
+			></code
+		      > as for lists</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Container:Container:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Utils.html"
+			>PlutusCore.Generators.QuickCheck.Utils</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >data</span
+			  > <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+			  >OneHoleContext</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#OneHoleContext" class="link"
+			  >Source</a
+			  > <a href="#t:OneHoleContext" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:oneHoleContexts"
+			  >oneHoleContexts</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > a &#8594; [(<a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+			  >OneHoleContext</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > a, a)] <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#oneHoleContexts" class="link"
+			  >Source</a
+			  > <a href="#v:oneHoleContexts" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:plugHole"
+			  >plugHole</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+			  >OneHoleContext</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > a <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#plugHole" class="link"
+			  >Source</a
+			  > <a href="#v:plugHole" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Container:Container:2"
+		      ></span
+		      > <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:Container" title="PlutusCore.Generators.QuickCheck.Utils"
+		      >Container</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+		      >List</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#line-88" class="link"
+		    >Source</a
+		    > <a href="#t:Container" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Containers for lists is zipper like, a hole is a specific position in the list</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Container:Container:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-QuickCheck-Utils.html"
+			>PlutusCore.Generators.QuickCheck.Utils</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >data</span
+			  > <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+			  >OneHoleContext</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+			  >List</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#OneHoleContext" class="link"
+			  >Source</a
+			  > <a href="#t:OneHoleContext" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:oneHoleContexts"
+			  >oneHoleContexts</a
+			  > &#8759; [a] &#8594; [(<a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+			  >OneHoleContext</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+			  >List</a
+			  > a, a)] <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#oneHoleContexts" class="link"
+			  >Source</a
+			  > <a href="#v:oneHoleContexts" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:plugHole"
+			  >plugHole</a
+			  > &#8759; <a href="PlutusCore-Generators-QuickCheck-Utils.html#t:OneHoleContext" title="PlutusCore.Generators.QuickCheck.Utils"
+			  >OneHoleContext</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+			  >List</a
+			  > a &#8594; a &#8594; [a] <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#plugHole" class="link"
+			  >Source</a
+			  > <a href="#v:plugHole" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uniqueVectorOf" class="def"
+	    >uniqueVectorOf</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > a &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [a] <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#uniqueVectorOf" class="link"
+	    >Source</a
+	    > <a href="#v:uniqueVectorOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a list of the given length, all arguments of which are distinct. Takes O(n^2) time
+ or more if the generator is likely to generate equal values.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:forAllDoc" class="def"
+	    >forAllDoc</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+	    >PrettyReadable</a
+	    > a, Testable p) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > a &#8594; (a &#8594; [a]) &#8594; (a &#8594; p) &#8594; Property <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#forAllDoc" class="link"
+	    >Source</a
+	    > <a href="#v:forAllDoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      >forAllShrink</code
+	      > but displays the bound value as
+ a named pretty-printed binding like <code
+	      ><a href="PlutusCore-Generators-QuickCheck-Utils.html#v:letCE" title="PlutusCore.Generators.QuickCheck.Utils"
+		>letCE</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ceDoc" class="def"
+	    >ceDoc</a
+	    > &#8759; Testable t &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann &#8594; t &#8594; Property <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#ceDoc" class="link"
+	    >Source</a
+	    > <a href="#v:ceDoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Show a <code
+	      ><a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		>Doc</a
+		></code
+	      > when a property fails.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:letCE" class="def"
+	    >letCE</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+	    >PrettyReadable</a
+	    > a, Testable p) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; a &#8594; (a &#8594; p) &#8594; Property <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#letCE" class="link"
+	    >Source</a
+	    > <a href="#v:letCE" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Bind a value to a name in a property so that
+ it is displayed as a `name = thing` binding if the
+ property fails.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:assertNoCounterexamples" class="def"
+	    >assertNoCounterexamples</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+	    >PrettyReadable</a
+	    > a &#8658; [a] &#8594; Property <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#assertNoCounterexamples" class="link"
+	    >Source</a
+	    > <a href="#v:assertNoCounterexamples" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check that a list of potential counterexamples is empty and display the
+ list as a QuickCheck counterexample if its not.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:freshenTyNameWith" class="def"
+	    >freshenTyNameWith</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#freshenTyNameWith" class="link"
+	    >Source</a
+	    > <a href="#v:freshenTyNameWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Freshen a TyName so that it does not equal any of the names in the set.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:maxUsedUnique" class="def"
+	    >maxUsedUnique</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#maxUsedUnique" class="link"
+	    >Source</a
+	    > <a href="#v:maxUsedUnique" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:constrTypes" class="def"
+	    >constrTypes</a
+	    > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; [(<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ())] <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#constrTypes" class="link"
+	    >Source</a
+	    > <a href="#v:constrTypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the names and types of the constructors of a datatype.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:matchType" class="def"
+	    >matchType</a
+	    > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.Utils.html#matchType" class="link"
+	    >Source</a
+	    > <a href="#v:matchType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the name and type of the match function for a given datatype.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  >module <a href="PlutusCore-Generators-QuickCheck-Split.html"
+	    >PlutusCore.Generators.QuickCheck.Split</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

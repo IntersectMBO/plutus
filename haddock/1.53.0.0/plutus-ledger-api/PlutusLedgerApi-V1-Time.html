@@ -1,0 +1,3758 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.V1.Time</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.53.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.V1.Time.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.V1.Time</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >UTCTime and UTCTime ranges.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:POSIXTime"
+	      >POSIXTime</a
+	      > = <a href="#v:POSIXTime"
+	      >POSIXTime</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:getPOSIXTime"
+		  >getPOSIXTime</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:POSIXTimeRange"
+	      >POSIXTimeRange</a
+	      > = <a href="PlutusLedgerApi-V1-Interval.html#t:Interval" title="PlutusLedgerApi.V1.Interval"
+	      >Interval</a
+	      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+	      >POSIXTime</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:DiffMilliSeconds"
+	      >DiffMilliSeconds</a
+	      > = <a href="#v:DiffMilliSeconds"
+	      >DiffMilliSeconds</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromMilliSeconds"
+	      >fromMilliSeconds</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+	      >DiffMilliSeconds</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+	      >POSIXTime</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:POSIXTime" class="def"
+	    >POSIXTime</a
+	    > <a href="src/PlutusLedgerApi.V1.Time.html#POSIXTime" class="link"
+	    >Source</a
+	    > <a href="#t:POSIXTime" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >POSIX time is measured as the number of <em
+	      >milliseconds</em
+	      > since 1970-01-01T00:00:00Z.
+This is not the same as Haskell's <code
+	      ><a href="https://hackage.haskell.org/package/time-1.12.2/docs/Data-Time-Clock-POSIX.html#v:POSIXTime" title="Data.Time.Clock.POSIX"
+		>POSIXTime</a
+		></code
+	      ></p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:POSIXTime" class="def"
+		  >POSIXTime</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:getPOSIXTime" class="def"
+			  >getPOSIXTime</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:POSIXTime"
+	    >Instances</h4
+	    ><details id="i:POSIXTime" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Enum:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Enum:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Generic:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Generic:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > x &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Num:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Num:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negate"
+			  >negate</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:negate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:abs"
+			  >abs</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:abs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:signum"
+			  >signum</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:signum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromInteger"
+			  >fromInteger</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Integral:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+		      >Integral</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Integral:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:quot"
+			  >quot</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:quot" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:rem"
+			  >rem</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:div"
+			  >div</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:div" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mod"
+			  >mod</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mod" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:quotRem"
+			  >quotRem</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; (<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >, <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:quotRem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:divMod"
+			  >divMod</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; (<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >, <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:divMod" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toInteger"
+			  >toInteger</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Real:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Real" title="Prelude"
+		      >Real</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Real:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toRational"
+			  >toRational</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+			  >Rational</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toRational" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Show:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Show:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:NFData:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:NFData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Eq:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Eq:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Ord:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Ord:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:HasBlueprintDefinition:10"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:HasBlueprintDefinition:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			  >Unroll</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >] <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#t:Unroll" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:definitionId"
+			  >definitionId</a
+			  > &#8759; <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:definitionId" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Enum:11"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Enum.html#t:Enum" title="PlutusTx.Enum"
+		      >Enum</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Enum:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Eq:12"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-70" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Eq:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:FromData:13"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+		      >FromData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-74" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:FromData:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:ToData:14"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+		      >ToData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:ToData:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:UnsafeFromData:15"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:UnsafeFromData" title="PlutusLedgerApi.Common"
+		      >UnsafeFromData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:UnsafeFromData:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:AdditiveGroup:16"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		      >AdditiveGroup</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:AdditiveGroup:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:AdditiveMonoid:17"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:AdditiveMonoid:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:AdditiveSemigroup:18"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:AdditiveSemigroup:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Ord:19"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Ord:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Pretty:20"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-85" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Pretty:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:HasBlueprintSchema:21"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:HasBlueprintSchema:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="../plutus-tx/PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Lift:22"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Lift:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Typeable:23"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Typeable:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTime</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Rep:24"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Rep:24"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			>POSIXTime</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;POSIXTime&quot; &quot;PlutusLedgerApi.V1.Time&quot; &quot;plutus-ledger-api-1.53.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;POSIXTime&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;getPOSIXTime&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:POSIXTime:Unroll:25"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unroll</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		      >POSIXTime</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:POSIXTime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:POSIXTime:Unroll:25"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			>Unroll</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			>POSIXTime</a
+			> = <a href="../plutus-tx/PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+			>Insert</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			>POSIXTime</a
+			> (<a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			>GUnroll</a
+			> (<a href="../plutus-tx/PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+			>IfStuckRep</a
+			> (<a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:RepIsStuckError" title="PlutusTx.Blueprint.Definition.Unroll"
+			>RepIsStuckError</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			>POSIXTime</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+			>POSIXTime</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:POSIXTimeRange" class="def"
+	    >POSIXTimeRange</a
+	    > = <a href="PlutusLedgerApi-V1-Interval.html#t:Interval" title="PlutusLedgerApi.V1.Interval"
+	    >Interval</a
+	    > <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+	    >POSIXTime</a
+	    > <a href="src/PlutusLedgerApi.V1.Time.html#POSIXTimeRange" class="link"
+	    >Source</a
+	    > <a href="#t:POSIXTimeRange" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An <code
+	      ><a href="PlutusLedgerApi-V1-Interval.html#t:Interval" title="PlutusLedgerApi.V1.Interval"
+		>Interval</a
+		></code
+	      > of <code
+	      ><a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		>POSIXTime</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:DiffMilliSeconds" class="def"
+	    >DiffMilliSeconds</a
+	    > <a href="src/PlutusLedgerApi.V1.Time.html#DiffMilliSeconds" class="link"
+	    >Source</a
+	    > <a href="#t:DiffMilliSeconds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This is a length of time, as measured by a number of milliseconds.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:DiffMilliSeconds" class="def"
+		  >DiffMilliSeconds</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DiffMilliSeconds"
+	    >Instances</h4
+	    ><details id="i:DiffMilliSeconds" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Enum:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Enum:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; [<a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Generic:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Generic:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > x &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Num:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Num:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negate"
+			  >negate</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:negate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:abs"
+			  >abs</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:abs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:signum"
+			  >signum</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:signum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromInteger"
+			  >fromInteger</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Integral:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+		      >Integral</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-51" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Integral:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:quot"
+			  >quot</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:quot" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:rem"
+			  >rem</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:div"
+			  >div</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:div" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mod"
+			  >mod</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mod" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:quotRem"
+			  >quotRem</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; (<a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >, <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:quotRem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:divMod"
+			  >divMod</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; (<a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >, <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:divMod" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toInteger"
+			  >toInteger</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Real:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Real" title="Prelude"
+		      >Real</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Real:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toRational"
+			  >toRational</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+			  >Rational</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toRational" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Show:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Show:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:NFData:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-41" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:NFData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Eq:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Eq:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Ord:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Ord:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:HasBlueprintDefinition:10"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-41" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:HasBlueprintDefinition:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			  >Unroll</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >] <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#t:Unroll" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:definitionId"
+			  >definitionId</a
+			  > &#8759; <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:definitionId" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Eq:11"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Eq:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:FromData:12"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+		      >FromData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:FromData:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:ToData:13"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+		      >ToData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-52" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:ToData:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:UnsafeFromData:14"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:UnsafeFromData" title="PlutusLedgerApi.Common"
+		      >UnsafeFromData</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:UnsafeFromData:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:AdditiveGroup:15"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		      >AdditiveGroup</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:AdditiveGroup:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:AdditiveMonoid:16"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-45" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:AdditiveMonoid:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:AdditiveSemigroup:17"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-44" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:AdditiveSemigroup:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Ord:18"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Ord:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:HasBlueprintSchema:19"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-57" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:HasBlueprintSchema:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="../plutus-tx/PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Lift:20"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Lift:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Typeable:21"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Typeable:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			  >DiffMilliSeconds</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Rep:22"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Rep:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			>DiffMilliSeconds</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;DiffMilliSeconds&quot; &quot;PlutusLedgerApi.V1.Time&quot; &quot;plutus-ledger-api-1.53.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;DiffMilliSeconds&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DiffMilliSeconds:Unroll:23"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unroll</a
+		      > <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		      >DiffMilliSeconds</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Time.html#line-41" class="link"
+		    >Source</a
+		    > <a href="#t:DiffMilliSeconds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DiffMilliSeconds:Unroll:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Time.html"
+			>PlutusLedgerApi.V1.Time</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			>Unroll</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			>DiffMilliSeconds</a
+			> = <a href="../plutus-tx/PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+			>Insert</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			>DiffMilliSeconds</a
+			> (<a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			>GUnroll</a
+			> (<a href="../plutus-tx/PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+			>IfStuckRep</a
+			> (<a href="../plutus-tx/PlutusTx-Blueprint-Definition-Unroll.html#t:RepIsStuckError" title="PlutusTx.Blueprint.Definition.Unroll"
+			>RepIsStuckError</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			>DiffMilliSeconds</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+			>DiffMilliSeconds</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromMilliSeconds" class="def"
+	    >fromMilliSeconds</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+	    >DiffMilliSeconds</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+	    >POSIXTime</a
+	    > <a href="src/PlutusLedgerApi.V1.Time.html#fromMilliSeconds" class="link"
+	    >Source</a
+	    > <a href="#v:fromMilliSeconds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Simple conversion from <code
+	      ><a href="PlutusLedgerApi-V1-Time.html#t:DiffMilliSeconds" title="PlutusLedgerApi.V1.Time"
+		>DiffMilliSeconds</a
+		></code
+	      > to <code
+	      ><a href="PlutusLedgerApi-V1-Time.html#t:POSIXTime" title="PlutusLedgerApi.V1.Time"
+		>POSIXTime</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

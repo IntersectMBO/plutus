@@ -1,0 +1,779 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >FFI.Opts</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.52.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/FFI.Opts.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>FFI.Opts</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BudgetMode" class="def"
+	    >BudgetMode</a
+	    > a <a href="src/FFI.Opts.html#BudgetMode" class="link"
+	    >Source</a
+	    > <a href="#t:BudgetMode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Silent" class="def"
+		  >Silent</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Counting" class="def"
+		  >Counting</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Tallying" class="def"
+		  >Tallying</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BudgetMode"
+	    >Instances</h4
+	    ><details id="i:BudgetMode" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BudgetMode:Functor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+		      >BudgetMode</a
+		      ></span
+		    > <a href="src/FFI.Opts.html#line-28" class="link"
+		    >Source</a
+		    > <a href="#t:BudgetMode" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BudgetMode:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-Opts.html"
+			>FFI.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+			  >BudgetMode</a
+			  > a &#8594; <a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+			  >BudgetMode</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+			  >BudgetMode</a
+			  > b &#8594; <a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+			  >BudgetMode</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:countingbudget" class="def"
+	    >countingbudget</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > (<a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+	    >BudgetMode</a
+	    > ()) <a href="src/FFI.Opts.html#countingbudget" class="link"
+	    >Source</a
+	    > <a href="#v:countingbudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tallyingbudget" class="def"
+	    >tallyingbudget</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > (<a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+	    >BudgetMode</a
+	    > ()) <a href="src/FFI.Opts.html#tallyingbudget" class="link"
+	    >Source</a
+	    > <a href="#v:tallyingbudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:budgetmode" class="def"
+	    >budgetmode</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > (<a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+	    >BudgetMode</a
+	    > ()) <a href="src/FFI.Opts.html#budgetmode" class="link"
+	    >Source</a
+	    > <a href="#v:budgetmode" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvalMode" class="def"
+	    >EvalMode</a
+	    > <a href="src/FFI.Opts.html#EvalMode" class="link"
+	    >Source</a
+	    > <a href="#t:EvalMode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:U" class="def"
+		  >U</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TL" class="def"
+		  >TL</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TCK" class="def"
+		  >TCK</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TCEK" class="def"
+		  >TCEK</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvalMode"
+	    >Instances</h4
+	    ><details id="i:EvalMode" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalMode:Read:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+		      >Read</a
+		      > <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+		      >EvalMode</a
+		      ></span
+		    > <a href="src/FFI.Opts.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:EvalMode" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalMode:Read:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-Opts.html"
+			>FFI.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readsPrec"
+			  >readsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+			  >EvalMode</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readList"
+			  >readList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > [<a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+			  >EvalMode</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readPrec"
+			  >readPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+			  >EvalMode</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readListPrec"
+			  >readListPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > [<a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+			  >EvalMode</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readListPrec" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalMode:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+		      >EvalMode</a
+		      ></span
+		    > <a href="src/FFI.Opts.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:EvalMode" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalMode:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-Opts.html"
+			>FFI.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+			  >EvalMode</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+			  >EvalMode</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+			  >EvalMode</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvalOptions" class="def"
+	    >EvalOptions</a
+	    > a <a href="src/FFI.Opts.html#EvalOptions" class="link"
+	    >Source</a
+	    > <a href="#t:EvalOptions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:EvalOpts" class="def"
+		  >EvalOpts</a
+		  > <a href="../plutus-core/PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+		  >Input</a
+		  > <a href="../plutus-core/PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+		  >Format</a
+		  > <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+		  >EvalMode</a
+		  > (<a href="FFI-Opts.html#t:BudgetMode" title="FFI.Opts"
+		  >BudgetMode</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvalOptions"
+	    >Instances</h4
+	    ><details id="i:EvalOptions" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalOptions:Functor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="FFI-Opts.html#t:EvalOptions" title="FFI.Opts"
+		      >EvalOptions</a
+		      ></span
+		    > <a href="src/FFI.Opts.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:EvalOptions" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalOptions:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-Opts.html"
+			>FFI.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="FFI-Opts.html#t:EvalOptions" title="FFI.Opts"
+			  >EvalOptions</a
+			  > a &#8594; <a href="FFI-Opts.html#t:EvalOptions" title="FFI.Opts"
+			  >EvalOptions</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="FFI-Opts.html#t:EvalOptions" title="FFI.Opts"
+			  >EvalOptions</a
+			  > b &#8594; <a href="FFI-Opts.html#t:EvalOptions" title="FFI.Opts"
+			  >EvalOptions</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalMode" class="def"
+	    >evalMode</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="FFI-Opts.html#t:EvalMode" title="FFI.Opts"
+	    >EvalMode</a
+	    > <a href="src/FFI.Opts.html#evalMode" class="link"
+	    >Source</a
+	    > <a href="#v:evalMode" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalOpts" class="def"
+	    >evalOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > (<a href="FFI-Opts.html#t:EvalOptions" title="FFI.Opts"
+	    >EvalOptions</a
+	    > ()) <a href="src/FFI.Opts.html#evalOpts" class="link"
+	    >Source</a
+	    > <a href="#v:evalOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TypecheckOptions" class="def"
+	    >TypecheckOptions</a
+	    > <a href="src/FFI.Opts.html#TypecheckOptions" class="link"
+	    >Source</a
+	    > <a href="#t:TypecheckOptions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TCOpts" class="def"
+		  >TCOpts</a
+		  > <a href="../plutus-core/PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+		  >Input</a
+		  > <a href="../plutus-core/PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+		  >Format</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typecheckOpts" class="def"
+	    >typecheckOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="FFI-Opts.html#t:TypecheckOptions" title="FFI.Opts"
+	    >TypecheckOptions</a
+	    > <a href="src/FFI.Opts.html#typecheckOpts" class="link"
+	    >Source</a
+	    > <a href="#v:typecheckOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Command" class="def"
+	    >Command</a
+	    > a <a href="src/FFI.Opts.html#Command" class="link"
+	    >Source</a
+	    > <a href="#t:Command" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Eval" class="def"
+		  >Eval</a
+		  > (<a href="FFI-Opts.html#t:EvalOptions" title="FFI.Opts"
+		  >EvalOptions</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Typecheck" class="def"
+		  >Typecheck</a
+		  > <a href="FFI-Opts.html#t:TypecheckOptions" title="FFI.Opts"
+		  >TypecheckOptions</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Command"
+	    >Instances</h4
+	    ><details id="i:Command" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Command:Functor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+		      >Command</a
+		      ></span
+		    > <a href="src/FFI.Opts.html#line-74" class="link"
+		    >Source</a
+		    > <a href="#t:Command" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Command:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="FFI-Opts.html"
+			>FFI.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+			  >Command</a
+			  > a &#8594; <a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+			  >Command</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+			  >Command</a
+			  > b &#8594; <a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+			  >Command</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:commands" class="def"
+	    >commands</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > (<a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+	    >Command</a
+	    > ()) <a href="src/FFI.Opts.html#commands" class="link"
+	    >Source</a
+	    > <a href="#v:commands" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:CostModel" class="def"
+	    >CostModel</a
+	    > = (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    >, <a href="../plutus-core/PlutusCore-Evaluation-Machine-SimpleBuiltinCostModel.html#t:BuiltinCostMap" title="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel"
+	    >BuiltinCostMap</a
+	    >) <a href="src/FFI.Opts.html#CostModel" class="link"
+	    >Source</a
+	    > <a href="#t:CostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addJSONParameters" class="def"
+	    >addJSONParameters</a
+	    > &#8759; <a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+	    >Command</a
+	    > a &#8594; <a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+	    >Command</a
+	    > <a href="FFI-Opts.html#t:CostModel" title="FFI.Opts"
+	    >CostModel</a
+	    > <a href="src/FFI.Opts.html#addJSONParameters" class="link"
+	    >Source</a
+	    > <a href="#v:addJSONParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execP" class="def"
+	    >execP</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="FFI-Opts.html#t:Command" title="FFI.Opts"
+	    >Command</a
+	    > <a href="FFI-Opts.html#t:CostModel" title="FFI.Opts"
+	    >CostModel</a
+	    >) <a href="src/FFI.Opts.html#execP" class="link"
+	    >Source</a
+	    > <a href="#v:execP" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

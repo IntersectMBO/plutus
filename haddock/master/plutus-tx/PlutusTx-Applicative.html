@@ -1,0 +1,575 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Applicative</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.55.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Applicative.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Applicative</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="PlutusTx-Functor.html#t:Functor" title="PlutusTx.Functor"
+	      >Functor</a
+	      > f &#8658; <a href="#t:Applicative"
+	      >Applicative</a
+	      > f <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:pure"
+		  >pure</a
+		  > &#8759; a &#8594; f a</li
+		><li
+		><a href="#v:-60--42--62-"
+		  >(&lt;*&gt;)</a
+		  > &#8759; f (a &#8594; b) &#8594; f a &#8594; f b</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:liftA2"
+	      >liftA2</a
+	      > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	      >Applicative</a
+	      > f &#8658; (a &#8594; b &#8594; c) &#8594; f a &#8594; f b &#8594; f c</li
+	    ><li class="src short"
+	    ><a href="#v:-42--62-"
+	      >(*&gt;)</a
+	      > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	      >Applicative</a
+	      > f &#8658; f a &#8594; f b &#8594; f b</li
+	    ><li class="src short"
+	    ><a href="#v:-60--42-"
+	      >(&lt;*)</a
+	      > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	      >Applicative</a
+	      > f &#8658; f a &#8594; f b &#8594; f a</li
+	    ><li class="src short"
+	    ><a href="#v:unless"
+	      >unless</a
+	      > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	      >Applicative</a
+	      > f &#8658; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      > &#8594; f () &#8594; f ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="PlutusTx-Functor.html#t:Functor" title="PlutusTx.Functor"
+	    >Functor</a
+	    > f &#8658; <a id="t:Applicative" class="def"
+	    >Applicative</a
+	    > f <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Applicative.html#Applicative" class="link"
+	    >Source</a
+	    > <a href="#t:Applicative" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#v:Applicative" title="Control.Applicative"
+		>Applicative</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:pure" class="def"
+	      >pure</a
+	      > &#8759; a &#8594; f a <a href="src/PlutusTx.Applicative.html#pure" class="link"
+	      >Source</a
+	      > <a href="#v:pure" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Plutus Tx version of <code
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#v:pure" title="Control.Applicative"
+		  >pure</a
+		  ></code
+		>.</p
+	      ></div
+	    ><p class="src"
+	    ><a id="v:-60--42--62-" class="def"
+	      >(&lt;*&gt;)</a
+	      > &#8759; f (a &#8594; b) &#8594; f a &#8594; f b <span class="fixity"
+	      >infixl 4</span
+	      ><span class="rightedge"
+	      ></span
+	      > <a href="src/PlutusTx.Applicative.html#%3C%2A%3E" class="link"
+	      >Source</a
+	      > <a href="#v:-60--42--62-" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Plutus Tx version of <code
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#v:-60--42--62-" title="Control.Applicative"
+		  >(&lt;*&gt;)</a
+		  ></code
+		>.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Applicative"
+	    >Instances</h4
+	    ><details id="i:Applicative" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Applicative:Applicative:1"
+		      ></span
+		      > <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+		      >Applicative</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+		      >Identity</a
+		      ></span
+		    > <a href="src/PlutusTx.Applicative.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:Applicative" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Applicative:Applicative:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Applicative.html"
+			>PlutusTx.Applicative</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a <a href="src/PlutusTx.Applicative.html#pure" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > (a &#8594; b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > b <a href="src/PlutusTx.Applicative.html#%3C%2A%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Applicative:Applicative:2"
+		      ></span
+		      > <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+		      >Applicative</a
+		      > <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      ></span
+		    > <a href="src/PlutusTx.Applicative.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:Applicative" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Applicative:Applicative:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Applicative.html"
+			>PlutusTx.Applicative</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a <a href="src/PlutusTx.Applicative.html#pure" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (a &#8594; b) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > b <a href="src/PlutusTx.Applicative.html#%3C%2A%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Applicative:Applicative:3"
+		      ></span
+		      > <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+		      >Applicative</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+		      >List</a
+		      ></span
+		    > <a href="src/PlutusTx.Applicative.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:Applicative" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Applicative:Applicative:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Applicative.html"
+			>PlutusTx.Applicative</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; [a] <a href="src/PlutusTx.Applicative.html#pure" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; [a &#8594; b] &#8594; [a] &#8594; [b] <a href="src/PlutusTx.Applicative.html#%3C%2A%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Applicative:Applicative:4"
+		      ></span
+		      > <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+		      >Applicative</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Applicative.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:Applicative" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Applicative:Applicative:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Applicative.html"
+			>PlutusTx.Applicative</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a0 &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a a0 <a href="src/PlutusTx.Applicative.html#pure" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a (a0 &#8594; b) &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a a0 &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a b <a href="src/PlutusTx.Applicative.html#%3C%2A%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Applicative:Applicative:5"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > m &#8658; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+		      >Applicative</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Const.html#t:Const" title="Data.Functor.Const"
+		      >Const</a
+		      > m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusTx.Applicative.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:Applicative" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Applicative:Applicative:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Applicative.html"
+			>PlutusTx.Applicative</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Const.html#t:Const" title="Data.Functor.Const"
+			  >Const</a
+			  > m a <a href="src/PlutusTx.Applicative.html#pure" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Const.html#t:Const" title="Data.Functor.Const"
+			  >Const</a
+			  > m (a &#8594; b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Const.html#t:Const" title="Data.Functor.Const"
+			  >Const</a
+			  > m a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Const.html#t:Const" title="Data.Functor.Const"
+			  >Const</a
+			  > m b <a href="src/PlutusTx.Applicative.html#%3C%2A%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftA2" class="def"
+	    >liftA2</a
+	    > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	    >Applicative</a
+	    > f &#8658; (a &#8594; b &#8594; c) &#8594; f a &#8594; f b &#8594; f c <a href="src/PlutusTx.Applicative.html#liftA2" class="link"
+	    >Source</a
+	    > <a href="#v:liftA2" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#v:liftA2" title="Control.Applicative"
+		>liftA2</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-42--62-" class="def"
+	    >(*&gt;)</a
+	    > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	    >Applicative</a
+	    > f &#8658; f a &#8594; f b &#8594; f b <span class="fixity"
+	    >infixl 4</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.Applicative.html#%2A%3E" class="link"
+	    >Source</a
+	    > <a href="#v:-42--62-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#v:-42--62-" title="Control.Applicative"
+		>(*&gt;)</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-60--42-" class="def"
+	    >(&lt;*)</a
+	    > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	    >Applicative</a
+	    > f &#8658; f a &#8594; f b &#8594; f a <span class="fixity"
+	    >infixl 4</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.Applicative.html#%3C%2A" class="link"
+	    >Source</a
+	    > <a href="#v:-60--42-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#v:-60--42-" title="Control.Applicative"
+		>(&lt;*)</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unless" class="def"
+	    >unless</a
+	    > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	    >Applicative</a
+	    > f &#8658; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > &#8594; f () &#8594; f () <a href="src/PlutusTx.Applicative.html#unless" class="link"
+	    >Source</a
+	    > <a href="#v:unless" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#v:unless" title="Control.Monad"
+		>unless</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

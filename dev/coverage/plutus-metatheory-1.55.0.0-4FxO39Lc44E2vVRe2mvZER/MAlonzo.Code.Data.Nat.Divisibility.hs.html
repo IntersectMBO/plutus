@@ -1,0 +1,1363 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Nat.Divisibility where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Bool qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Nat qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Data.Irrelevant qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Data.Nat.Base qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Data.Nat.Divisibility.Core qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Data.Nat.Properties qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Function.Bundles qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Relation.Binary.Bundles qualified
+<span class="lineno">   25 </span>import MAlonzo.Code.Relation.Binary.PropositionalEquality.Core qualified
+<span class="lineno">   26 </span>import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
+<span class="lineno">   27 </span>import MAlonzo.Code.Relation.Binary.Reasoning.Base.Double qualified
+<span class="lineno">   28 </span>import MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple qualified
+<span class="lineno">   29 </span>import MAlonzo.Code.Relation.Binary.Reasoning.Syntax qualified
+<span class="lineno">   30 </span>import MAlonzo.Code.Relation.Binary.Structures qualified
+<span class="lineno">   31 </span>import MAlonzo.Code.Relation.Nullary.Decidable qualified
+<span class="lineno">   32 </span>import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
+<span class="lineno">   33 </span>import MAlonzo.Code.Relation.Nullary.Reflects qualified
+<span class="lineno">   34 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   35 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   36 </span>                    word64ToNat)
+<span class="lineno">   37 </span>import MAlonzo.RTE qualified
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- Data.Nat.Divisibility.quotient≢0
+<span class="lineno">   40 </span>d_quotient'8802'0_18 ::
+<span class="lineno">   41 </span>  Integer -&gt;
+<span class="lineno">   42 </span>  Integer -&gt;
+<span class="lineno">   43 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">   44 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">   45 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">d_quotient'8802'0_18 ~v0 ~v1 ~v2 ~v3 = du_quotient'8802'0_18</span></span>
+<span class="lineno">   47 </span>du_quotient'8802'0_18 :: MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">du_quotient'8802'0_18</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_m'42'n'8802'0'8658'm'8802'0_3850</span></span>
+<span class="lineno">   51 </span>-- Data.Nat.Divisibility.m∣n⇒n≡quotient*m
+<span class="lineno">   52 </span>d_m'8739'n'8658'n'8801'quotient'42'm_28 ::
+<span class="lineno">   53 </span>  Integer -&gt;
+<span class="lineno">   54 </span>  Integer -&gt;
+<span class="lineno">   55 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">   56 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">d_m'8739'n'8658'n'8801'quotient'42'm_28 = erased</span></span>
+<span class="lineno">   58 </span>-- Data.Nat.Divisibility.m∣n⇒n≡m*quotient
+<span class="lineno">   59 </span>d_m'8739'n'8658'n'8801'm'42'quotient_34 ::
+<span class="lineno">   60 </span>  Integer -&gt;
+<span class="lineno">   61 </span>  Integer -&gt;
+<span class="lineno">   62 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">   63 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">d_m'8739'n'8658'n'8801'm'42'quotient_34 = erased</span></span>
+<span class="lineno">   65 </span>-- Data.Nat.Divisibility.quotient-∣
+<span class="lineno">   66 </span>d_quotient'45''8739'_46 ::
+<span class="lineno">   67 </span>  Integer -&gt;
+<span class="lineno">   68 </span>  Integer -&gt;
+<span class="lineno">   69 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">   70 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">d_quotient'45''8739'_46 v0 ~v1 ~v2 = du_quotient'45''8739'_46 v0</span></span>
+<span class="lineno">   72 </span>du_quotient'45''8739'_46 ::
+<span class="lineno">   73 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">du_quotient'45''8739'_46 v0</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v0</span></span>
+<span class="lineno">   76 </span>-- Data.Nat.Divisibility.quotient&gt;1
+<span class="lineno">   77 </span>d_quotient'62'1_54 ::
+<span class="lineno">   78 </span>  Integer -&gt;
+<span class="lineno">   79 </span>  Integer -&gt;
+<span class="lineno">   80 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">   81 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno">   82 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">d_quotient'62'1_54 v0 v1 v2 v3</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.d_'42''45'cancel'737''45''60'_4208</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">v0 (1 :: Integer)</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2))</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">(let v4</span>
+<span class="lineno">   89 </span><span class="spaces">             </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   90 </span><span class="spaces">                 </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_strictRelation_202 in</span>
+<span class="lineno">   91 </span><span class="spaces">       </span><span class="nottickedoff">coe</span>
+<span class="lineno">   92 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   93 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__126</span>
+<span class="lineno">   94 </span><span class="spaces">            </span><span class="nottickedoff">(coe v4) (coe mulInt (coe v0) (coe (1 :: Integer)))</span>
+<span class="lineno">   95 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   96 </span><span class="spaces">               </span><span class="nottickedoff">mulInt (coe v0)</span>
+<span class="lineno">   97 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   98 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2)))</span>
+<span class="lineno">   99 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  100 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436</span>
+<span class="lineno">  101 </span><span class="spaces">               </span><span class="nottickedoff">(\ v5 v6 v7 v8 v9 -&gt; v9) (mulInt (coe v0) (coe (1 :: Integer))) v0</span>
+<span class="lineno">  102 </span><span class="spaces">               </span><span class="nottickedoff">(mulInt</span>
+<span class="lineno">  103 </span><span class="spaces">                  </span><span class="nottickedoff">(coe v0)</span>
+<span class="lineno">  104 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  105 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2)))</span>
+<span class="lineno">  106 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  107 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''60'_312</span>
+<span class="lineno">  108 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  109 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_'60''45'go_152</span>
+<span class="lineno">  110 </span><span class="spaces">                     </span><span class="nottickedoff">(\ v5 v6 v7 v8 v9 -&gt;</span>
+<span class="lineno">  111 </span><span class="spaces">                        </span><span class="nottickedoff">coe</span>
+<span class="lineno">  112 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_'60''45'trans_2980 v6 v8 v9)</span>
+<span class="lineno">  113 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  114 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Core.du_resp'8322'_160)</span>
+<span class="lineno">  115 </span><span class="spaces">                     </span><span class="nottickedoff">(\ v5 v6 v7 v8 v9 -&gt;</span>
+<span class="lineno">  116 </span><span class="spaces">                        </span><span class="nottickedoff">coe</span>
+<span class="lineno">  117 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_'60''45''8804''45'trans_2992 v8</span>
+<span class="lineno">  118 </span><span class="spaces">                          </span><span class="nottickedoff">v9))</span>
+<span class="lineno">  119 </span><span class="spaces">                  </span><span class="nottickedoff">v0 v1</span>
+<span class="lineno">  120 </span><span class="spaces">                  </span><span class="nottickedoff">(mulInt</span>
+<span class="lineno">  121 </span><span class="spaces">                     </span><span class="nottickedoff">(coe v0)</span>
+<span class="lineno">  122 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  123 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2)))</span>
+<span class="lineno">  124 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  125 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436</span>
+<span class="lineno">  126 </span><span class="spaces">                     </span><span class="nottickedoff">(\ v5 v6 v7 v8 v9 -&gt; v9) v1</span>
+<span class="lineno">  127 </span><span class="spaces">                     </span><span class="nottickedoff">(mulInt</span>
+<span class="lineno">  128 </span><span class="spaces">                        </span><span class="nottickedoff">(coe v0)</span>
+<span class="lineno">  129 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  130 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2)))</span>
+<span class="lineno">  131 </span><span class="spaces">                     </span><span class="nottickedoff">(mulInt</span>
+<span class="lineno">  132 </span><span class="spaces">                        </span><span class="nottickedoff">(coe v0)</span>
+<span class="lineno">  133 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  134 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2)))</span>
+<span class="lineno">  135 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  136 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  137 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  138 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_stop_166</span>
+<span class="lineno">  139 </span><span class="spaces">                           </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2810))</span>
+<span class="lineno">  140 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  141 </span><span class="spaces">                           </span><span class="nottickedoff">mulInt (coe v0)</span>
+<span class="lineno">  142 </span><span class="spaces">                           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  143 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2))))</span>
+<span class="lineno">  144 </span><span class="spaces">                     </span><span class="nottickedoff">erased)</span>
+<span class="lineno">  145 </span><span class="spaces">                  </span><span class="nottickedoff">v3)</span>
+<span class="lineno">  146 </span><span class="spaces">               </span><span class="nottickedoff">erased)))</span></span>
+<span class="lineno">  147 </span>-- Data.Nat.Divisibility.quotient-&lt;
+<span class="lineno">  148 </span>d_quotient'45''60'_70 ::
+<span class="lineno">  149 </span>  Integer -&gt;
+<span class="lineno">  150 </span>  Integer -&gt;
+<span class="lineno">  151 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  152 </span>  MAlonzo.Code.Data.Nat.Base.T_NonTrivial_152 -&gt;
+<span class="lineno">  153 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  154 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22
+<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">d_quotient'45''60'_70 v0 v1 v2 ~v3 ~v4</span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="nottickedoff">= du_quotient'45''60'_70 v0 v1 v2</span></span>
+<span class="lineno">  157 </span>du_quotient'45''60'_70 ::
+<span class="lineno">  158 </span>  Integer -&gt;
+<span class="lineno">  159 </span>  Integer -&gt;
+<span class="lineno">  160 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  161 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22
+<span class="lineno">  162 </span><span class="decl"><span class="nottickedoff">du_quotient'45''60'_70 v0 v1 v2</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="nottickedoff">= let v3</span>
+<span class="lineno">  164 </span><span class="spaces">          </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  165 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_strictRelation_202 in</span>
+<span class="lineno">  166 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  167 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  168 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__126</span>
+<span class="lineno">  169 </span><span class="spaces">         </span><span class="nottickedoff">(coe v3)</span>
+<span class="lineno">  170 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  171 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2))</span>
+<span class="lineno">  172 </span><span class="spaces">         </span><span class="nottickedoff">(coe v1)</span>
+<span class="lineno">  173 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  174 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''60'_312</span>
+<span class="lineno">  175 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  176 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_'60''45'go_152</span>
+<span class="lineno">  177 </span><span class="spaces">               </span><span class="nottickedoff">(\ v4 v5 v6 v7 v8 -&gt;</span>
+<span class="lineno">  178 </span><span class="spaces">                  </span><span class="nottickedoff">coe</span>
+<span class="lineno">  179 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_'60''45'trans_2980 v5 v7 v8)</span>
+<span class="lineno">  180 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  181 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Core.du_resp'8322'_160)</span>
+<span class="lineno">  182 </span><span class="spaces">               </span><span class="nottickedoff">(\ v4 v5 v6 v7 v8 -&gt;</span>
+<span class="lineno">  183 </span><span class="spaces">                  </span><span class="nottickedoff">coe</span>
+<span class="lineno">  184 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_'60''45''8804''45'trans_2992 v7</span>
+<span class="lineno">  185 </span><span class="spaces">                    </span><span class="nottickedoff">v8))</span>
+<span class="lineno">  186 </span><span class="spaces">            </span><span class="nottickedoff">(MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2))</span>
+<span class="lineno">  187 </span><span class="spaces">            </span><span class="nottickedoff">(mulInt</span>
+<span class="lineno">  188 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  189 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2))</span>
+<span class="lineno">  190 </span><span class="spaces">               </span><span class="nottickedoff">(coe v0))</span>
+<span class="lineno">  191 </span><span class="spaces">            </span><span class="nottickedoff">v1</span>
+<span class="lineno">  192 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  193 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_448</span>
+<span class="lineno">  194 </span><span class="spaces">               </span><span class="nottickedoff">(\ v4 v5 v6 v7 v8 -&gt; v8)</span>
+<span class="lineno">  195 </span><span class="spaces">               </span><span class="nottickedoff">(mulInt</span>
+<span class="lineno">  196 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  197 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2))</span>
+<span class="lineno">  198 </span><span class="spaces">                  </span><span class="nottickedoff">(coe v0))</span>
+<span class="lineno">  199 </span><span class="spaces">               </span><span class="nottickedoff">v1 v1</span>
+<span class="lineno">  200 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  201 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  202 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  203 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_stop_166</span>
+<span class="lineno">  204 </span><span class="spaces">                     </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2810))</span>
+<span class="lineno">  205 </span><span class="spaces">                  </span><span class="nottickedoff">(coe v1))</span>
+<span class="lineno">  206 </span><span class="spaces">               </span><span class="nottickedoff">erased)</span>
+<span class="lineno">  207 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  208 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_m'60'm'42'n_4152</span>
+<span class="lineno">  209 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  210 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2))</span>
+<span class="lineno">  211 </span><span class="spaces">               </span><span class="nottickedoff">(coe v0)</span>
+<span class="lineno">  212 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.du_nonTrivial'8658'n'62'1_174))))</span></span>
+<span class="lineno">  213 </span>-- Data.Nat.Divisibility.n/m≡quotient
+<span class="lineno">  214 </span>d_n'47'm'8801'quotient_88 ::
+<span class="lineno">  215 </span>  Integer -&gt;
+<span class="lineno">  216 </span>  Integer -&gt;
+<span class="lineno">  217 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  218 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  219 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  220 </span><span class="decl"><span class="nottickedoff">d_n'47'm'8801'quotient_88 = erased</span></span>
+<span class="lineno">  221 </span>-- Data.Nat.Divisibility.m%n≡0⇒n∣m
+<span class="lineno">  222 </span>d_m'37'n'8801'0'8658'n'8739'm_100 ::
+<span class="lineno">  223 </span>  Integer -&gt;
+<span class="lineno">  224 </span>  Integer -&gt;
+<span class="lineno">  225 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  226 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  227 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  228 </span><span class="decl"><span class="nottickedoff">d_m'37'n'8801'0'8658'n'8739'm_100 v0 v1 ~v2 ~v3</span>
+<span class="lineno">  229 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'37'n'8801'0'8658'n'8739'm_100 v0 v1</span></span>
+<span class="lineno">  230 </span>du_m'37'n'8801'0'8658'n'8739'm_100 ::
+<span class="lineno">  231 </span>  Integer -&gt;
+<span class="lineno">  232 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  233 </span><span class="decl"><span class="nottickedoff">du_m'37'n'8801'0'8658'n'8739'm_100 v0 v1</span>
+<span class="lineno">  234 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  235 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  236 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.du__'47'__314 (coe v0) (coe v1))</span></span>
+<span class="lineno">  237 </span>-- Data.Nat.Divisibility._.[m/n]*n
+<span class="lineno">  238 </span>d_'91'm'47'n'93''42'n_112 ::
+<span class="lineno">  239 </span>  Integer -&gt;
+<span class="lineno">  240 </span>  Integer -&gt;
+<span class="lineno">  241 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  242 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; Integer
+<span class="lineno">  243 </span><span class="decl"><span class="nottickedoff">d_'91'm'47'n'93''42'n_112 v0 v1 ~v2 ~v3</span>
+<span class="lineno">  244 </span><span class="spaces">  </span><span class="nottickedoff">= du_'91'm'47'n'93''42'n_112 v0 v1</span></span>
+<span class="lineno">  245 </span>du_'91'm'47'n'93''42'n_112 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  246 </span><span class="decl"><span class="nottickedoff">du_'91'm'47'n'93''42'n_112 v0 v1</span>
+<span class="lineno">  247 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  248 </span><span class="spaces">      </span><span class="nottickedoff">mulInt</span>
+<span class="lineno">  249 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.du__'47'__314 (coe v0) (coe v1))</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="nottickedoff">(coe v1)</span></span>
+<span class="lineno">  251 </span>-- Data.Nat.Divisibility.n∣m⇒m%n≡0
+<span class="lineno">  252 </span>d_n'8739'm'8658'm'37'n'8801'0_122 ::
+<span class="lineno">  253 </span>  Integer -&gt;
+<span class="lineno">  254 </span>  Integer -&gt;
+<span class="lineno">  255 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  256 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  257 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  258 </span><span class="decl"><span class="nottickedoff">d_n'8739'm'8658'm'37'n'8801'0_122 = erased</span></span>
+<span class="lineno">  259 </span>-- Data.Nat.Divisibility.m%n≡0⇔n∣m
+<span class="lineno">  260 </span>d_m'37'n'8801'0'8660'n'8739'm_134 ::
+<span class="lineno">  261 </span>  Integer -&gt;
+<span class="lineno">  262 </span>  Integer -&gt;
+<span class="lineno">  263 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  264 </span>  MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+<span class="lineno">  265 </span><span class="decl"><span class="nottickedoff">d_m'37'n'8801'0'8660'n'8739'm_134 v0 v1 ~v2</span>
+<span class="lineno">  266 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'37'n'8801'0'8660'n'8739'm_134 v0 v1</span></span>
+<span class="lineno">  267 </span>du_m'37'n'8801'0'8660'n'8739'm_134 ::
+<span class="lineno">  268 </span>  Integer -&gt;
+<span class="lineno">  269 </span>  Integer -&gt; MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+<span class="lineno">  270 </span><span class="decl"><span class="nottickedoff">du_m'37'n'8801'0'8660'n'8739'm_134 v0 v1</span>
+<span class="lineno">  271 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  272 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Bundles.du_mk'8660'_2298</span>
+<span class="lineno">  273 </span><span class="spaces">      </span><span class="nottickedoff">(\ v2 -&gt; coe du_m'37'n'8801'0'8658'n'8739'm_100 (coe v0) (coe v1))</span>
+<span class="lineno">  274 </span><span class="spaces">      </span><span class="nottickedoff">erased</span></span>
+<span class="lineno">  275 </span>-- Data.Nat.Divisibility.∣⇒≤
+<span class="lineno">  276 </span>d_'8739''8658''8804'_142 ::
+<span class="lineno">  277 </span>  Integer -&gt;
+<span class="lineno">  278 </span>  Integer -&gt;
+<span class="lineno">  279 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  280 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  281 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22
+<span class="lineno">  282 </span><span class="decl"><span class="nottickedoff">d_'8739''8658''8804'_142 ~v0 v1 ~v2 v3</span>
+<span class="lineno">  283 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739''8658''8804'_142 v1 v3</span></span>
+<span class="lineno">  284 </span>du_'8739''8658''8804'_142 ::
+<span class="lineno">  285 </span>  Integer -&gt;
+<span class="lineno">  286 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  287 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22
+<span class="lineno">  288 </span><span class="decl"><span class="nottickedoff">du_'8739''8658''8804'_142 v0 v1</span>
+<span class="lineno">  289 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  290 </span><span class="spaces">      </span><span class="nottickedoff">seq (coe v1)</span>
+<span class="lineno">  291 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  292 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_m'8804'm'43'n_3482 (coe v0))</span></span>
+<span class="lineno">  293 </span>-- Data.Nat.Divisibility.&gt;⇒∤
+<span class="lineno">  294 </span>d_'62''8658''8740'_154 ::
+<span class="lineno">  295 </span>  Integer -&gt;
+<span class="lineno">  296 </span>  Integer -&gt;
+<span class="lineno">  297 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  298 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno">  299 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  300 </span>  MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+<span class="lineno">  301 </span><span class="decl"><span class="nottickedoff">d_'62''8658''8740'_154 = erased</span></span>
+<span class="lineno">  302 </span>-- Data.Nat.Divisibility.∣-reflexive
+<span class="lineno">  303 </span>d_'8739''45'reflexive_162 ::
+<span class="lineno">  304 </span>  Integer -&gt;
+<span class="lineno">  305 </span>  Integer -&gt;
+<span class="lineno">  306 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  307 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  308 </span><span class="decl"><span class="nottickedoff">d_'8739''45'reflexive_162 ~v0 ~v1 ~v2 = du_'8739''45'reflexive_162</span></span>
+<span class="lineno">  309 </span>du_'8739''45'reflexive_162 ::
+<span class="lineno">  310 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  311 </span><span class="decl"><span class="nottickedoff">du_'8739''45'reflexive_162</span>
+<span class="lineno">  312 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  313 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 (1 :: Integer)</span></span>
+<span class="lineno">  314 </span>-- Data.Nat.Divisibility.∣-refl
+<span class="lineno">  315 </span>d_'8739''45'refl_166 ::
+<span class="lineno">  316 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  317 </span><span class="decl"><span class="nottickedoff">d_'8739''45'refl_166 ~v0 = du_'8739''45'refl_166</span></span>
+<span class="lineno">  318 </span>du_'8739''45'refl_166 ::
+<span class="lineno">  319 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  320 </span><span class="decl"><span class="nottickedoff">du_'8739''45'refl_166 = coe du_'8739''45'reflexive_162</span></span>
+<span class="lineno">  321 </span>-- Data.Nat.Divisibility.∣-trans
+<span class="lineno">  322 </span>d_'8739''45'trans_168 ::
+<span class="lineno">  323 </span>  Integer -&gt;
+<span class="lineno">  324 </span>  Integer -&gt;
+<span class="lineno">  325 </span>  Integer -&gt;
+<span class="lineno">  326 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  327 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  328 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  329 </span><span class="decl"><span class="nottickedoff">d_'8739''45'trans_168 ~v0 ~v1 ~v2 v3 v4</span>
+<span class="lineno">  330 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739''45'trans_168 v3 v4</span></span>
+<span class="lineno">  331 </span>du_'8739''45'trans_168 ::
+<span class="lineno">  332 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  333 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  334 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  335 </span><span class="decl"><span class="nottickedoff">du_'8739''45'trans_168 v0 v1</span>
+<span class="lineno">  336 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  337 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v2</span>
+<span class="lineno">  338 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  339 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno">  340 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  341 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  342 </span><span class="spaces">                    </span><span class="nottickedoff">(mulInt (coe v4) (coe v2))</span>
+<span class="lineno">  343 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  344 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  345 </span>-- Data.Nat.Divisibility.∣-antisym
+<span class="lineno">  346 </span>d_'8739''45'antisym_174 ::
+<span class="lineno">  347 </span>  Integer -&gt;
+<span class="lineno">  348 </span>  Integer -&gt;
+<span class="lineno">  349 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  350 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  351 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  352 </span><span class="decl"><span class="nottickedoff">d_'8739''45'antisym_174 = erased</span></span>
+<span class="lineno">  353 </span>-- Data.Nat.Divisibility._∣?_
+<span class="lineno">  354 </span>d__'8739''63'__192 ::
+<span class="lineno">  355 </span>  Integer -&gt;
+<span class="lineno">  356 </span>  Integer -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  357 </span><span class="decl"><span class="nottickedoff">d__'8739''63'__192 v0 v1</span>
+<span class="lineno">  358 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  359 </span><span class="spaces">      </span><span class="nottickedoff">0 -&gt; case coe v1 of</span>
+<span class="lineno">  360 </span><span class="spaces">             </span><span class="nottickedoff">0 -&gt; coe</span>
+<span class="lineno">  361 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  362 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)</span>
+<span class="lineno">  363 </span><span class="spaces">                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  364 </span><span class="spaces">                       </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22</span>
+<span class="lineno">  365 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  366 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  367 </span><span class="spaces">                          </span><span class="nottickedoff">(0 :: Integer)))</span>
+<span class="lineno">  368 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; coe</span>
+<span class="lineno">  369 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  370 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span>
+<span class="lineno">  371 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)</span>
+<span class="lineno">  372 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; coe</span>
+<span class="lineno">  373 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.du_map_18</span>
+<span class="lineno">  374 </span><span class="spaces">             </span><span class="nottickedoff">(coe du_m'37'n'8801'0'8660'n'8739'm_134 (coe v1) (coe v0))</span>
+<span class="lineno">  375 </span><span class="spaces">             </span><span class="nottickedoff">(MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688</span>
+<span class="lineno">  376 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.du__'37'__326 (coe v1) (coe v0))</span>
+<span class="lineno">  377 </span><span class="spaces">                </span><span class="nottickedoff">(coe (0 :: Integer)))</span></span>
+<span class="lineno">  378 </span>-- Data.Nat.Divisibility.∣-isPreorder
+<span class="lineno">  379 </span>d_'8739''45'isPreorder_200 ::
+<span class="lineno">  380 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+<span class="lineno">  381 </span><span class="decl"><span class="nottickedoff">d_'8739''45'isPreorder_200</span>
+<span class="lineno">  382 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  383 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsPreorder'46'constructor_4003</span>
+<span class="lineno">  384 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  385 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_isEquivalence_396)</span>
+<span class="lineno">  386 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt; coe du_'8739''45'reflexive_162)</span>
+<span class="lineno">  387 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 v3 v4 -&gt; coe du_'8739''45'trans_168 v3 v4)</span></span>
+<span class="lineno">  388 </span>-- Data.Nat.Divisibility.∣-isPartialOrder
+<span class="lineno">  389 </span>d_'8739''45'isPartialOrder_202 ::
+<span class="lineno">  390 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPartialOrder_174
+<span class="lineno">  391 </span><span class="decl"><span class="nottickedoff">d_'8739''45'isPartialOrder_202</span>
+<span class="lineno">  392 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsPartialOrder'46'constructor_9853</span>
+<span class="lineno">  394 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_'8739''45'isPreorder_200) erased</span></span>
+<span class="lineno">  395 </span>-- Data.Nat.Divisibility.∣-preorder
+<span class="lineno">  396 </span>d_'8739''45'preorder_204 ::
+<span class="lineno">  397 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Preorder_132
+<span class="lineno">  398 </span><span class="decl"><span class="nottickedoff">d_'8739''45'preorder_204</span>
+<span class="lineno">  399 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  400 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.C_Preorder'46'constructor_2267</span>
+<span class="lineno">  401 </span><span class="spaces">      </span><span class="nottickedoff">d_'8739''45'isPreorder_200</span></span>
+<span class="lineno">  402 </span>-- Data.Nat.Divisibility.∣-poset
+<span class="lineno">  403 </span>d_'8739''45'poset_206 ::
+<span class="lineno">  404 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Poset_314
+<span class="lineno">  405 </span><span class="decl"><span class="nottickedoff">d_'8739''45'poset_206</span>
+<span class="lineno">  406 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  407 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.C_Poset'46'constructor_6389</span>
+<span class="lineno">  408 </span><span class="spaces">      </span><span class="nottickedoff">d_'8739''45'isPartialOrder_202</span></span>
+<span class="lineno">  409 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base._IsRelatedTo_
+<span class="lineno">  410 </span><span class="decl"><span class="nottickedoff">d__IsRelatedTo__212 a0 a1 = ()</span></span>
+<span class="lineno">  411 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base._∎
+<span class="lineno">  412 </span>d__'8718'_214 ::
+<span class="lineno">  413 </span>  Integer -&gt;
+<span class="lineno">  414 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  415 </span><span class="decl"><span class="nottickedoff">d__'8718'_214</span>
+<span class="lineno">  416 </span><span class="spaces">  </span><span class="nottickedoff">= let v0 = d_'8739''45'preorder_204 in</span>
+<span class="lineno">  417 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  418 </span><span class="spaces">      </span><span class="nottickedoff">(let v1</span>
+<span class="lineno">  419 </span><span class="spaces">             </span><span class="nottickedoff">= MAlonzo.Code.Relation.Binary.Bundles.d_isPreorder_154 (coe v0) in</span>
+<span class="lineno">  420 </span><span class="spaces">       </span><span class="nottickedoff">coe</span>
+<span class="lineno">  421 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  422 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  423 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  424 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_stop_116</span>
+<span class="lineno">  425 </span><span class="spaces">               </span><span class="nottickedoff">(coe v1))))</span></span>
+<span class="lineno">  426 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.IsEquality
+<span class="lineno">  427 </span><span class="decl"><span class="nottickedoff">d_IsEquality_216 a0 a1 a2 = ()</span></span>
+<span class="lineno">  428 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.IsEquality?
+<span class="lineno">  429 </span>d_IsEquality'63'_218 ::
+<span class="lineno">  430 </span>  Integer -&gt;
+<span class="lineno">  431 </span>  Integer -&gt;
+<span class="lineno">  432 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  433 </span>  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  434 </span><span class="decl"><span class="nottickedoff">d_IsEquality'63'_218 v0 v1 v2</span>
+<span class="lineno">  435 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  436 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_IsEquality'63'_138</span>
+<span class="lineno">  437 </span><span class="spaces">      </span><span class="nottickedoff">v2</span></span>
+<span class="lineno">  438 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.begin_
+<span class="lineno">  439 </span>d_begin__220 ::
+<span class="lineno">  440 </span>  Integer -&gt;
+<span class="lineno">  441 </span>  Integer -&gt;
+<span class="lineno">  442 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  443 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  444 </span><span class="decl"><span class="nottickedoff">d_begin__220</span>
+<span class="lineno">  445 </span><span class="spaces">  </span><span class="nottickedoff">= let v0 = d_'8739''45'preorder_204 in</span>
+<span class="lineno">  446 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  447 </span><span class="spaces">      </span><span class="nottickedoff">(let v1</span>
+<span class="lineno">  448 </span><span class="spaces">             </span><span class="nottickedoff">= MAlonzo.Code.Relation.Binary.Bundles.d_isPreorder_154 (coe v0) in</span>
+<span class="lineno">  449 </span><span class="spaces">       </span><span class="nottickedoff">coe</span>
+<span class="lineno">  450 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  451 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno">  452 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  453 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_start_76</span>
+<span class="lineno">  454 </span><span class="spaces">               </span><span class="nottickedoff">(coe v1))))</span></span>
+<span class="lineno">  455 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.begin_
+<span class="lineno">  456 </span>d_begin__222 ::
+<span class="lineno">  457 </span>  Integer -&gt;
+<span class="lineno">  458 </span>  Integer -&gt;
+<span class="lineno">  459 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  460 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  461 </span><span class="decl"><span class="nottickedoff">d_begin__222 = erased</span></span>
+<span class="lineno">  462 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.equalitySubRelation
+<span class="lineno">  463 </span>d_equalitySubRelation_224 ::
+<span class="lineno">  464 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Syntax.T_SubRelation_60
+<span class="lineno">  465 </span><span class="decl"><span class="nottickedoff">d_equalitySubRelation_224</span>
+<span class="lineno">  466 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  467 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_equalitySubRelation_152</span></span>
+<span class="lineno">  468 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.extractEquality
+<span class="lineno">  469 </span>d_extractEquality_228 ::
+<span class="lineno">  470 </span>  Integer -&gt;
+<span class="lineno">  471 </span>  Integer -&gt;
+<span class="lineno">  472 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  473 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T_IsEquality_122 -&gt;
+<span class="lineno">  474 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  475 </span><span class="decl"><span class="nottickedoff">d_extractEquality_228 = erased</span></span>
+<span class="lineno">  476 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.start
+<span class="lineno">  477 </span>d_start_234 ::
+<span class="lineno">  478 </span>  Integer -&gt;
+<span class="lineno">  479 </span>  Integer -&gt;
+<span class="lineno">  480 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  481 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  482 </span><span class="decl"><span class="nottickedoff">d_start_234</span>
+<span class="lineno">  483 </span><span class="spaces">  </span><span class="nottickedoff">= let v0 = d_'8739''45'preorder_204 in</span>
+<span class="lineno">  484 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  485 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  486 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_start_76</span>
+<span class="lineno">  487 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  488 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.d_isPreorder_154 (coe v0)))</span></span>
+<span class="lineno">  489 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.step-≡
+<span class="lineno">  490 </span>d_step'45''8801'_246 ::
+<span class="lineno">  491 </span>  Integer -&gt;
+<span class="lineno">  492 </span>  Integer -&gt;
+<span class="lineno">  493 </span>  Integer -&gt;
+<span class="lineno">  494 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  495 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  496 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  497 </span><span class="decl"><span class="nottickedoff">d_step'45''8801'_246</span>
+<span class="lineno">  498 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  499 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801'_450</span>
+<span class="lineno">  500 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno">  501 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.step-≡-∣
+<span class="lineno">  502 </span>d_step'45''8801''45''8739'_248 ::
+<span class="lineno">  503 </span>  Integer -&gt;
+<span class="lineno">  504 </span>  Integer -&gt;
+<span class="lineno">  505 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  506 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  507 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''8739'_248 ~v0 ~v1 v2</span>
+<span class="lineno">  508 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''45''8739'_248 v2</span></span>
+<span class="lineno">  509 </span>du_step'45''8801''45''8739'_248 ::
+<span class="lineno">  510 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  511 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  512 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''45''8739'_248 v0 = coe v0</span></span>
+<span class="lineno">  513 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.step-≡-⟨
+<span class="lineno">  514 </span>d_step'45''8801''45''10216'_250 ::
+<span class="lineno">  515 </span>  Integer -&gt;
+<span class="lineno">  516 </span>  Integer -&gt;
+<span class="lineno">  517 </span>  Integer -&gt;
+<span class="lineno">  518 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  519 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  520 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  521 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''10216'_250</span>
+<span class="lineno">  522 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  523 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_448</span>
+<span class="lineno">  524 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno">  525 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.step-≡-⟩
+<span class="lineno">  526 </span>d_step'45''8801''45''10217'_252 ::
+<span class="lineno">  527 </span>  Integer -&gt;
+<span class="lineno">  528 </span>  Integer -&gt;
+<span class="lineno">  529 </span>  Integer -&gt;
+<span class="lineno">  530 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  531 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  532 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  533 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''10217'_252</span>
+<span class="lineno">  534 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  535 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436</span>
+<span class="lineno">  536 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno">  537 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.step-≡˘
+<span class="lineno">  538 </span>d_step'45''8801''728'_254 ::
+<span class="lineno">  539 </span>  Integer -&gt;
+<span class="lineno">  540 </span>  Integer -&gt;
+<span class="lineno">  541 </span>  Integer -&gt;
+<span class="lineno">  542 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  543 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  544 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  545 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''728'_254</span>
+<span class="lineno">  546 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  547 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''728'_452</span>
+<span class="lineno">  548 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno">  549 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.stop
+<span class="lineno">  550 </span>d_stop_258 ::
+<span class="lineno">  551 </span>  Integer -&gt;
+<span class="lineno">  552 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  553 </span><span class="decl"><span class="nottickedoff">d_stop_258</span>
+<span class="lineno">  554 </span><span class="spaces">  </span><span class="nottickedoff">= let v0 = d_'8739''45'preorder_204 in</span>
+<span class="lineno">  555 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  556 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  557 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_stop_116</span>
+<span class="lineno">  558 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  559 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.d_isPreorder_154 (coe v0)))</span></span>
+<span class="lineno">  560 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.≈-go
+<span class="lineno">  561 </span>d_'8776''45'go_260 ::
+<span class="lineno">  562 </span>  Integer -&gt;
+<span class="lineno">  563 </span>  Integer -&gt;
+<span class="lineno">  564 </span>  Integer -&gt;
+<span class="lineno">  565 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  566 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  567 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  568 </span><span class="decl"><span class="nottickedoff">d_'8776''45'go_260</span>
+<span class="lineno">  569 </span><span class="spaces">  </span><span class="nottickedoff">= let v0 = d_'8739''45'preorder_204 in</span>
+<span class="lineno">  570 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  571 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  572 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_'8776''45'go_106</span>
+<span class="lineno">  573 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  574 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.d_isPreorder_154 (coe v0)))</span></span>
+<span class="lineno">  575 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.≡-go
+<span class="lineno">  576 </span>d_'8801''45'go_262 ::
+<span class="lineno">  577 </span>  Integer -&gt;
+<span class="lineno">  578 </span>  Integer -&gt;
+<span class="lineno">  579 </span>  Integer -&gt;
+<span class="lineno">  580 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  581 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  582 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  583 </span><span class="decl"><span class="nottickedoff">d_'8801''45'go_262 ~v0 ~v1 ~v2 ~v3 v4 = du_'8801''45'go_262 v4</span></span>
+<span class="lineno">  584 </span>du_'8801''45'go_262 ::
+<span class="lineno">  585 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  586 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  587 </span><span class="decl"><span class="nottickedoff">du_'8801''45'go_262 v0 = coe v0</span></span>
+<span class="lineno">  588 </span>-- Data.Nat.Divisibility.∣-Reasoning.Base.≲-go
+<span class="lineno">  589 </span>d_'8818''45'go_264 ::
+<span class="lineno">  590 </span>  Integer -&gt;
+<span class="lineno">  591 </span>  Integer -&gt;
+<span class="lineno">  592 </span>  Integer -&gt;
+<span class="lineno">  593 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  594 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  595 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  596 </span><span class="decl"><span class="nottickedoff">d_'8818''45'go_264</span>
+<span class="lineno">  597 </span><span class="spaces">  </span><span class="nottickedoff">= let v0 = d_'8739''45'preorder_204 in</span>
+<span class="lineno">  598 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  599 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  600 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_'8818''45'go_96</span>
+<span class="lineno">  601 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  602 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.d_isPreorder_154 (coe v0)))</span></span>
+<span class="lineno">  603 </span>-- Data.Nat.Divisibility.∣-Reasoning._.step-∣
+<span class="lineno">  604 </span>d_step'45''8739'_278 ::
+<span class="lineno">  605 </span>  Integer -&gt;
+<span class="lineno">  606 </span>  Integer -&gt;
+<span class="lineno">  607 </span>  Integer -&gt;
+<span class="lineno">  608 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62 -&gt;
+<span class="lineno">  609 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  610 </span>  MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.T__IsRelatedTo__62
+<span class="lineno">  611 </span><span class="decl"><span class="nottickedoff">d_step'45''8739'_278</span>
+<span class="lineno">  612 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  613 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8739'_332</span>
+<span class="lineno">  614 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  615 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_'8818''45'go_96</span>
+<span class="lineno">  616 </span><span class="spaces">         </span><span class="nottickedoff">(coe d_'8739''45'isPreorder_200))</span></span>
+<span class="lineno">  617 </span>-- Data.Nat.Divisibility._∣0
+<span class="lineno">  618 </span>d__'8739'0_282 ::
+<span class="lineno">  619 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  620 </span><span class="decl"><span class="nottickedoff">d__'8739'0_282 ~v0 = du__'8739'0_282</span></span>
+<span class="lineno">  621 </span>du__'8739'0_282 ::
+<span class="lineno">  622 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  623 </span><span class="decl"><span class="nottickedoff">du__'8739'0_282</span>
+<span class="lineno">  624 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  625 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 (0 :: Integer)</span></span>
+<span class="lineno">  626 </span>-- Data.Nat.Divisibility.0∣⇒≡0
+<span class="lineno">  627 </span>d_0'8739''8658''8801'0_286 ::
+<span class="lineno">  628 </span>  Integer -&gt;
+<span class="lineno">  629 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  630 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  631 </span><span class="decl"><span class="nottickedoff">d_0'8739''8658''8801'0_286 = erased</span></span>
+<span class="lineno">  632 </span>-- Data.Nat.Divisibility.1∣_
+<span class="lineno">  633 </span>d_1'8739'__294 ::
+<span class="lineno">  634 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  635 </span><span class="decl"><span class="nottickedoff">d_1'8739'__294 v0</span>
+<span class="lineno">  636 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v0</span></span>
+<span class="lineno">  637 </span>-- Data.Nat.Divisibility.∣1⇒≡1
+<span class="lineno">  638 </span>d_'8739'1'8658''8801'1_298 ::
+<span class="lineno">  639 </span>  Integer -&gt;
+<span class="lineno">  640 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  641 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  642 </span><span class="decl"><span class="nottickedoff">d_'8739'1'8658''8801'1_298 = erased</span></span>
+<span class="lineno">  643 </span>-- Data.Nat.Divisibility.n∣n
+<span class="lineno">  644 </span>d_n'8739'n_304 ::
+<span class="lineno">  645 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  646 </span><span class="decl"><span class="nottickedoff">d_n'8739'n_304 ~v0 = du_n'8739'n_304</span></span>
+<span class="lineno">  647 </span>du_n'8739'n_304 ::
+<span class="lineno">  648 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  649 </span><span class="decl"><span class="nottickedoff">du_n'8739'n_304 = coe du_'8739''45'refl_166</span></span>
+<span class="lineno">  650 </span>-- Data.Nat.Divisibility.∣m∣n⇒∣m+n
+<span class="lineno">  651 </span>d_'8739'm'8739'n'8658''8739'm'43'n_306 ::
+<span class="lineno">  652 </span>  Integer -&gt;
+<span class="lineno">  653 </span>  Integer -&gt;
+<span class="lineno">  654 </span>  Integer -&gt;
+<span class="lineno">  655 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  656 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  657 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  658 </span><span class="decl"><span class="nottickedoff">d_'8739'm'8739'n'8658''8739'm'43'n_306 ~v0 ~v1 ~v2 v3 v4</span>
+<span class="lineno">  659 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739'm'8739'n'8658''8739'm'43'n_306 v3 v4</span></span>
+<span class="lineno">  660 </span>du_'8739'm'8739'n'8658''8739'm'43'n_306 ::
+<span class="lineno">  661 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  662 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  663 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  664 </span><span class="decl"><span class="nottickedoff">du_'8739'm'8739'n'8658''8739'm'43'n_306 v0 v1</span>
+<span class="lineno">  665 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  666 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v2</span>
+<span class="lineno">  667 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  668 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno">  669 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  670 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  671 </span><span class="spaces">                    </span><span class="nottickedoff">(addInt (coe v2) (coe v4))</span>
+<span class="lineno">  672 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  673 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  674 </span>-- Data.Nat.Divisibility.∣m+n∣m⇒∣n
+<span class="lineno">  675 </span>d_'8739'm'43'n'8739'm'8658''8739'n_312 ::
+<span class="lineno">  676 </span>  Integer -&gt;
+<span class="lineno">  677 </span>  Integer -&gt;
+<span class="lineno">  678 </span>  Integer -&gt;
+<span class="lineno">  679 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  680 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  681 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  682 </span><span class="decl"><span class="nottickedoff">d_'8739'm'43'n'8739'm'8658''8739'n_312 ~v0 ~v1 ~v2 v3 v4</span>
+<span class="lineno">  683 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739'm'43'n'8739'm'8658''8739'n_312 v3 v4</span></span>
+<span class="lineno">  684 </span>du_'8739'm'43'n'8739'm'8658''8739'n_312 ::
+<span class="lineno">  685 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  686 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  687 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  688 </span><span class="decl"><span class="nottickedoff">du_'8739'm'43'n'8739'm'8658''8739'n_312 v0 v1</span>
+<span class="lineno">  689 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  690 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v2</span>
+<span class="lineno">  691 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  692 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno">  693 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  694 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  695 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22 v2 v4)</span>
+<span class="lineno">  696 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  697 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  698 </span>-- Data.Nat.Divisibility.n∣m*n
+<span class="lineno">  699 </span>d_n'8739'm'42'n_338 ::
+<span class="lineno">  700 </span>  Integer -&gt;
+<span class="lineno">  701 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  702 </span><span class="decl"><span class="nottickedoff">d_n'8739'm'42'n_338 v0 ~v1 = du_n'8739'm'42'n_338 v0</span></span>
+<span class="lineno">  703 </span>du_n'8739'm'42'n_338 ::
+<span class="lineno">  704 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  705 </span><span class="decl"><span class="nottickedoff">du_n'8739'm'42'n_338 v0</span>
+<span class="lineno">  706 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v0</span></span>
+<span class="lineno">  707 </span>-- Data.Nat.Divisibility.m∣m*n
+<span class="lineno">  708 </span>d_m'8739'm'42'n_346 ::
+<span class="lineno">  709 </span>  Integer -&gt;
+<span class="lineno">  710 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  711 </span><span class="decl"><span class="nottickedoff">d_m'8739'm'42'n_346 ~v0 v1 = du_m'8739'm'42'n_346 v1</span></span>
+<span class="lineno">  712 </span>du_m'8739'm'42'n_346 ::
+<span class="lineno">  713 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  714 </span><span class="decl"><span class="nottickedoff">du_m'8739'm'42'n_346 v0</span>
+<span class="lineno">  715 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v0</span></span>
+<span class="lineno">  716 </span>-- Data.Nat.Divisibility.n∣m*n*o
+<span class="lineno">  717 </span>d_n'8739'm'42'n'42'o_356 ::
+<span class="lineno">  718 </span>  Integer -&gt;
+<span class="lineno">  719 </span>  Integer -&gt;
+<span class="lineno">  720 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  721 </span><span class="decl"><span class="nottickedoff">d_n'8739'm'42'n'42'o_356 v0 ~v1 v2</span>
+<span class="lineno">  722 </span><span class="spaces">  </span><span class="nottickedoff">= du_n'8739'm'42'n'42'o_356 v0 v2</span></span>
+<span class="lineno">  723 </span>du_n'8739'm'42'n'42'o_356 ::
+<span class="lineno">  724 </span>  Integer -&gt;
+<span class="lineno">  725 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  726 </span><span class="decl"><span class="nottickedoff">du_n'8739'm'42'n'42'o_356 v0 v1</span>
+<span class="lineno">  727 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  728 </span><span class="spaces">      </span><span class="nottickedoff">du_'8739''45'trans_168 (coe du_n'8739'm'42'n_338 (coe v0))</span>
+<span class="lineno">  729 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_m'8739'm'42'n_346 (coe v1))</span></span>
+<span class="lineno">  730 </span>-- Data.Nat.Divisibility.∣m⇒∣m*n
+<span class="lineno">  731 </span>d_'8739'm'8658''8739'm'42'n_364 ::
+<span class="lineno">  732 </span>  Integer -&gt;
+<span class="lineno">  733 </span>  Integer -&gt;
+<span class="lineno">  734 </span>  Integer -&gt;
+<span class="lineno">  735 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  736 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  737 </span><span class="decl"><span class="nottickedoff">d_'8739'm'8658''8739'm'42'n_364 ~v0 ~v1 v2 v3</span>
+<span class="lineno">  738 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739'm'8658''8739'm'42'n_364 v2 v3</span></span>
+<span class="lineno">  739 </span>du_'8739'm'8658''8739'm'42'n_364 ::
+<span class="lineno">  740 </span>  Integer -&gt;
+<span class="lineno">  741 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  742 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  743 </span><span class="decl"><span class="nottickedoff">du_'8739'm'8658''8739'm'42'n_364 v0 v1</span>
+<span class="lineno">  744 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  745 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v2</span>
+<span class="lineno">  746 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  747 </span><span class="spaces">             </span><span class="nottickedoff">du_'8739''45'trans_168 (coe du_n'8739'm'42'n_338 (coe v2))</span>
+<span class="lineno">  748 </span><span class="spaces">             </span><span class="nottickedoff">(coe du_m'8739'm'42'n_346 (coe v0))</span>
+<span class="lineno">  749 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  750 </span>-- Data.Nat.Divisibility.∣n⇒∣m*n
+<span class="lineno">  751 </span>d_'8739'n'8658''8739'm'42'n_374 ::
+<span class="lineno">  752 </span>  Integer -&gt;
+<span class="lineno">  753 </span>  Integer -&gt;
+<span class="lineno">  754 </span>  Integer -&gt;
+<span class="lineno">  755 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  756 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  757 </span><span class="decl"><span class="nottickedoff">d_'8739'n'8658''8739'm'42'n_374 ~v0 v1 ~v2</span>
+<span class="lineno">  758 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739'n'8658''8739'm'42'n_374 v1</span></span>
+<span class="lineno">  759 </span>du_'8739'n'8658''8739'm'42'n_374 ::
+<span class="lineno">  760 </span>  Integer -&gt;
+<span class="lineno">  761 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  762 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  763 </span><span class="decl"><span class="nottickedoff">du_'8739'n'8658''8739'm'42'n_374 v0</span>
+<span class="lineno">  764 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'8739'm'8658''8739'm'42'n_364 (coe v0)</span></span>
+<span class="lineno">  765 </span>-- Data.Nat.Divisibility.m*n∣⇒m∣
+<span class="lineno">  766 </span>d_m'42'n'8739''8658'm'8739'_388 ::
+<span class="lineno">  767 </span>  Integer -&gt;
+<span class="lineno">  768 </span>  Integer -&gt;
+<span class="lineno">  769 </span>  Integer -&gt;
+<span class="lineno">  770 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  771 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  772 </span><span class="decl"><span class="nottickedoff">d_m'42'n'8739''8658'm'8739'_388 ~v0 ~v1 v2 v3</span>
+<span class="lineno">  773 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'42'n'8739''8658'm'8739'_388 v2 v3</span></span>
+<span class="lineno">  774 </span>du_m'42'n'8739''8658'm'8739'_388 ::
+<span class="lineno">  775 </span>  Integer -&gt;
+<span class="lineno">  776 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  777 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  778 </span><span class="decl"><span class="nottickedoff">du_m'42'n'8739''8658'm'8739'_388 v0 v1</span>
+<span class="lineno">  779 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  780 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v2</span>
+<span class="lineno">  781 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  782 </span><span class="spaces">             </span><span class="nottickedoff">du_'8739'n'8658''8739'm'42'n_374 v2</span>
+<span class="lineno">  783 </span><span class="spaces">             </span><span class="nottickedoff">(coe du_m'8739'm'42'n_346 (coe v0))</span>
+<span class="lineno">  784 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  785 </span>-- Data.Nat.Divisibility.m*n∣⇒n∣
+<span class="lineno">  786 </span>d_m'42'n'8739''8658'n'8739'_400 ::
+<span class="lineno">  787 </span>  Integer -&gt;
+<span class="lineno">  788 </span>  Integer -&gt;
+<span class="lineno">  789 </span>  Integer -&gt;
+<span class="lineno">  790 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  791 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  792 </span><span class="decl"><span class="nottickedoff">d_m'42'n'8739''8658'n'8739'_400 ~v0 v1 ~v2</span>
+<span class="lineno">  793 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'42'n'8739''8658'n'8739'_400 v1</span></span>
+<span class="lineno">  794 </span>du_m'42'n'8739''8658'n'8739'_400 ::
+<span class="lineno">  795 </span>  Integer -&gt;
+<span class="lineno">  796 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  797 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  798 </span><span class="decl"><span class="nottickedoff">du_m'42'n'8739''8658'n'8739'_400 v0</span>
+<span class="lineno">  799 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_m'42'n'8739''8658'm'8739'_388 (coe v0)</span></span>
+<span class="lineno">  800 </span>-- Data.Nat.Divisibility.*-pres-∣
+<span class="lineno">  801 </span>d_'42''45'pres'45''8739'_410 ::
+<span class="lineno">  802 </span>  Integer -&gt;
+<span class="lineno">  803 </span>  Integer -&gt;
+<span class="lineno">  804 </span>  Integer -&gt;
+<span class="lineno">  805 </span>  Integer -&gt;
+<span class="lineno">  806 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  807 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  808 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  809 </span><span class="decl"><span class="nottickedoff">d_'42''45'pres'45''8739'_410 ~v0 ~v1 ~v2 ~v3 v4 v5</span>
+<span class="lineno">  810 </span><span class="spaces">  </span><span class="nottickedoff">= du_'42''45'pres'45''8739'_410 v4 v5</span></span>
+<span class="lineno">  811 </span>du_'42''45'pres'45''8739'_410 ::
+<span class="lineno">  812 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  813 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  814 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  815 </span><span class="decl"><span class="nottickedoff">du_'42''45'pres'45''8739'_410 v0 v1</span>
+<span class="lineno">  816 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  817 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v2</span>
+<span class="lineno">  818 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  819 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno">  820 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  821 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  822 </span><span class="spaces">                    </span><span class="nottickedoff">(mulInt (coe v2) (coe v4))</span>
+<span class="lineno">  823 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  824 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  825 </span>-- Data.Nat.Divisibility.*-monoʳ-∣
+<span class="lineno">  826 </span>d_'42''45'mono'691''45''8739'_426 ::
+<span class="lineno">  827 </span>  Integer -&gt;
+<span class="lineno">  828 </span>  Integer -&gt;
+<span class="lineno">  829 </span>  Integer -&gt;
+<span class="lineno">  830 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  831 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  832 </span><span class="decl"><span class="nottickedoff">d_'42''45'mono'691''45''8739'_426 ~v0 ~v1 ~v2</span>
+<span class="lineno">  833 </span><span class="spaces">  </span><span class="nottickedoff">= du_'42''45'mono'691''45''8739'_426</span></span>
+<span class="lineno">  834 </span>du_'42''45'mono'691''45''8739'_426 ::
+<span class="lineno">  835 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  836 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  837 </span><span class="decl"><span class="nottickedoff">du_'42''45'mono'691''45''8739'_426</span>
+<span class="lineno">  838 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'42''45'pres'45''8739'_410 (coe du_'8739''45'refl_166)</span></span>
+<span class="lineno">  839 </span>-- Data.Nat.Divisibility.*-monoˡ-∣
+<span class="lineno">  840 </span>d_'42''45'mono'737''45''8739'_432 ::
+<span class="lineno">  841 </span>  Integer -&gt;
+<span class="lineno">  842 </span>  Integer -&gt;
+<span class="lineno">  843 </span>  Integer -&gt;
+<span class="lineno">  844 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  845 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  846 </span><span class="decl"><span class="nottickedoff">d_'42''45'mono'737''45''8739'_432 ~v0 ~v1 ~v2 v3</span>
+<span class="lineno">  847 </span><span class="spaces">  </span><span class="nottickedoff">= du_'42''45'mono'737''45''8739'_432 v3</span></span>
+<span class="lineno">  848 </span>du_'42''45'mono'737''45''8739'_432 ::
+<span class="lineno">  849 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  850 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  851 </span><span class="decl"><span class="nottickedoff">du_'42''45'mono'737''45''8739'_432 v0</span>
+<span class="lineno">  852 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  853 </span><span class="spaces">      </span><span class="nottickedoff">du_'42''45'pres'45''8739'_410 (coe v0) (coe du_'8739''45'refl_166)</span></span>
+<span class="lineno">  854 </span>-- Data.Nat.Divisibility.*-cancelˡ-∣
+<span class="lineno">  855 </span>d_'42''45'cancel'737''45''8739'_440 ::
+<span class="lineno">  856 </span>  Integer -&gt;
+<span class="lineno">  857 </span>  Integer -&gt;
+<span class="lineno">  858 </span>  Integer -&gt;
+<span class="lineno">  859 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  860 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  861 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  862 </span><span class="decl"><span class="nottickedoff">d_'42''45'cancel'737''45''8739'_440 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  863 </span><span class="spaces">  </span><span class="nottickedoff">= du_'42''45'cancel'737''45''8739'_440 v4</span></span>
+<span class="lineno">  864 </span>du_'42''45'cancel'737''45''8739'_440 ::
+<span class="lineno">  865 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  866 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  867 </span><span class="decl"><span class="nottickedoff">du_'42''45'cancel'737''45''8739'_440 v0</span>
+<span class="lineno">  868 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  869 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  870 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_q_454 (coe v0))</span></span>
+<span class="lineno">  871 </span>-- Data.Nat.Divisibility._.q
+<span class="lineno">  872 </span>d_q_454 ::
+<span class="lineno">  873 </span>  Integer -&gt;
+<span class="lineno">  874 </span>  Integer -&gt;
+<span class="lineno">  875 </span>  Integer -&gt;
+<span class="lineno">  876 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  877 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt; Integer
+<span class="lineno">  878 </span><span class="decl"><span class="nottickedoff">d_q_454 ~v0 ~v1 ~v2 ~v3 v4 = du_q_454 v4</span></span>
+<span class="lineno">  879 </span>du_q_454 ::
+<span class="lineno">  880 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt; Integer
+<span class="lineno">  881 </span><span class="decl"><span class="nottickedoff">du_q_454 v0</span>
+<span class="lineno">  882 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  883 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v0)</span></span>
+<span class="lineno">  884 </span>-- Data.Nat.Divisibility.*-cancelʳ-∣
+<span class="lineno">  885 </span>d_'42''45'cancel'691''45''8739'_462 ::
+<span class="lineno">  886 </span>  Integer -&gt;
+<span class="lineno">  887 </span>  Integer -&gt;
+<span class="lineno">  888 </span>  Integer -&gt;
+<span class="lineno">  889 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  890 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  891 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  892 </span><span class="decl"><span class="nottickedoff">d_'42''45'cancel'691''45''8739'_462 ~v0 ~v1 ~v2 ~v3</span>
+<span class="lineno">  893 </span><span class="spaces">  </span><span class="nottickedoff">= du_'42''45'cancel'691''45''8739'_462</span></span>
+<span class="lineno">  894 </span>du_'42''45'cancel'691''45''8739'_462 ::
+<span class="lineno">  895 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  896 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  897 </span><span class="decl"><span class="nottickedoff">du_'42''45'cancel'691''45''8739'_462</span>
+<span class="lineno">  898 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'42''45'cancel'737''45''8739'_440</span></span>
+<span class="lineno">  899 </span>-- Data.Nat.Divisibility.∣m∸n∣n⇒∣m
+<span class="lineno">  900 </span>d_'8739'm'8760'n'8739'n'8658''8739'm_480 ::
+<span class="lineno">  901 </span>  Integer -&gt;
+<span class="lineno">  902 </span>  Integer -&gt;
+<span class="lineno">  903 </span>  Integer -&gt;
+<span class="lineno">  904 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno">  905 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  906 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  907 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  908 </span><span class="decl"><span class="nottickedoff">d_'8739'm'8760'n'8739'n'8658''8739'm_480 ~v0 ~v1 ~v2 ~v3 v4 v5</span>
+<span class="lineno">  909 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739'm'8760'n'8739'n'8658''8739'm_480 v4 v5</span></span>
+<span class="lineno">  910 </span>du_'8739'm'8760'n'8739'n'8658''8739'm_480 ::
+<span class="lineno">  911 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  912 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  913 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  914 </span><span class="decl"><span class="nottickedoff">du_'8739'm'8760'n'8739'n'8658''8739'm_480 v0 v1</span>
+<span class="lineno">  915 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  916 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v2</span>
+<span class="lineno">  917 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  918 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno">  919 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  920 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno">  921 </span><span class="spaces">                    </span><span class="nottickedoff">(addInt (coe v2) (coe v4))</span>
+<span class="lineno">  922 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  923 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  924 </span>-- Data.Nat.Divisibility.m/n∣m
+<span class="lineno">  925 </span>d_m'47'n'8739'm_504 ::
+<span class="lineno">  926 </span>  Integer -&gt;
+<span class="lineno">  927 </span>  Integer -&gt;
+<span class="lineno">  928 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  929 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  930 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  931 </span><span class="decl"><span class="nottickedoff">d_m'47'n'8739'm_504 v0 v1 ~v2 v3 = du_m'47'n'8739'm_504 v0 v1 v3</span></span>
+<span class="lineno">  932 </span>du_m'47'n'8739'm_504 ::
+<span class="lineno">  933 </span>  Integer -&gt;
+<span class="lineno">  934 </span>  Integer -&gt;
+<span class="lineno">  935 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  936 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  937 </span><span class="decl"><span class="nottickedoff">du_m'47'n'8739'm_504 v0 v1 v2</span>
+<span class="lineno">  938 </span><span class="spaces">  </span><span class="nottickedoff">= let v3 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno">  939 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  940 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  941 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno">  942 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  943 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_start_76</span>
+<span class="lineno">  944 </span><span class="spaces">            </span><span class="nottickedoff">(coe v3))</span>
+<span class="lineno">  945 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.du__'47'__314 (coe v1) (coe v0)) v1</span>
+<span class="lineno">  946 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  947 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436</span>
+<span class="lineno">  948 </span><span class="spaces">            </span><span class="nottickedoff">(\ v4 v5 v6 v7 v8 -&gt; v8)</span>
+<span class="lineno">  949 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.du__'47'__314 (coe v1) (coe v0))</span>
+<span class="lineno">  950 </span><span class="spaces">            </span><span class="nottickedoff">(MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2)) v1</span>
+<span class="lineno">  951 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  952 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8739'_332</span>
+<span class="lineno">  953 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  954 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_'8818''45'go_96</span>
+<span class="lineno">  955 </span><span class="spaces">                  </span><span class="nottickedoff">(coe d_'8739''45'isPreorder_200))</span>
+<span class="lineno">  956 </span><span class="spaces">               </span><span class="nottickedoff">(MAlonzo.Code.Data.Nat.Divisibility.Core.d_quotient_30 (coe v2)) v1</span>
+<span class="lineno">  957 </span><span class="spaces">               </span><span class="nottickedoff">v1</span>
+<span class="lineno">  958 </span><span class="spaces">               </span><span class="nottickedoff">(let v4 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno">  959 </span><span class="spaces">                </span><span class="nottickedoff">coe</span>
+<span class="lineno">  960 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  961 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  962 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  963 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_stop_116</span>
+<span class="lineno">  964 </span><span class="spaces">                        </span><span class="nottickedoff">(coe v4))</span>
+<span class="lineno">  965 </span><span class="spaces">                     </span><span class="nottickedoff">(coe v1)))</span>
+<span class="lineno">  966 </span><span class="spaces">               </span><span class="nottickedoff">(coe du_quotient'45''8739'_46 (coe v0)))</span>
+<span class="lineno">  967 </span><span class="spaces">            </span><span class="nottickedoff">erased))</span></span>
+<span class="lineno">  968 </span>-- Data.Nat.Divisibility.m*n∣o⇒m∣o/n
+<span class="lineno">  969 </span>d_m'42'n'8739'o'8658'm'8739'o'47'n_522 ::
+<span class="lineno">  970 </span>  Integer -&gt;
+<span class="lineno">  971 </span>  Integer -&gt;
+<span class="lineno">  972 </span>  Integer -&gt;
+<span class="lineno">  973 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  974 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  975 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  976 </span><span class="decl"><span class="nottickedoff">d_m'42'n'8739'o'8658'm'8739'o'47'n_522 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  977 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'42'n'8739'o'8658'm'8739'o'47'n_522 v4</span></span>
+<span class="lineno">  978 </span>du_m'42'n'8739'o'8658'm'8739'o'47'n_522 ::
+<span class="lineno">  979 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  980 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  981 </span><span class="decl"><span class="nottickedoff">du_m'42'n'8739'o'8658'm'8739'o'47'n_522 v0 = coe v0</span></span>
+<span class="lineno">  982 </span>-- Data.Nat.Divisibility.m*n∣o⇒n∣o/m
+<span class="lineno">  983 </span>d_m'42'n'8739'o'8658'n'8739'o'47'm_542 ::
+<span class="lineno">  984 </span>  Integer -&gt;
+<span class="lineno">  985 </span>  Integer -&gt;
+<span class="lineno">  986 </span>  Integer -&gt;
+<span class="lineno">  987 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno">  988 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  989 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  990 </span><span class="decl"><span class="nottickedoff">d_m'42'n'8739'o'8658'n'8739'o'47'm_542 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  991 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'42'n'8739'o'8658'n'8739'o'47'm_542 v4</span></span>
+<span class="lineno">  992 </span>du_m'42'n'8739'o'8658'n'8739'o'47'm_542 ::
+<span class="lineno">  993 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno">  994 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno">  995 </span><span class="decl"><span class="nottickedoff">du_m'42'n'8739'o'8658'n'8739'o'47'm_542 v0 = coe v0</span></span>
+<span class="lineno">  996 </span>-- Data.Nat.Divisibility.m∣n/o⇒m*o∣n
+<span class="lineno">  997 </span>d_m'8739'n'47'o'8658'm'42'o'8739'n_554 ::
+<span class="lineno">  998 </span>  Integer -&gt;
+<span class="lineno">  999 </span>  Integer -&gt;
+<span class="lineno"> 1000 </span>  Integer -&gt;
+<span class="lineno"> 1001 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno"> 1002 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1003 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1004 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1005 </span><span class="decl"><span class="nottickedoff">d_m'8739'n'47'o'8658'm'42'o'8739'n_554 v0 ~v1 v2 ~v3 v4 v5</span>
+<span class="lineno"> 1006 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'8739'n'47'o'8658'm'42'o'8739'n_554 v0 v2 v4 v5</span></span>
+<span class="lineno"> 1007 </span>du_m'8739'n'47'o'8658'm'42'o'8739'n_554 ::
+<span class="lineno"> 1008 </span>  Integer -&gt;
+<span class="lineno"> 1009 </span>  Integer -&gt;
+<span class="lineno"> 1010 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1011 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1012 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1013 </span><span class="decl"><span class="nottickedoff">du_m'8739'n'47'o'8658'm'42'o'8739'n_554 v0 v1 v2 v3</span>
+<span class="lineno"> 1014 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno"> 1015 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno"> 1016 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; let v6 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno"> 1017 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno"> 1018 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1019 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno"> 1020 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1021 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_start_76</span>
+<span class="lineno"> 1022 </span><span class="spaces">                   </span><span class="nottickedoff">(coe v6))</span>
+<span class="lineno"> 1023 </span><span class="spaces">                </span><span class="nottickedoff">(mulInt (coe v1) (coe v0)) (mulInt (coe v4) (coe v0))</span>
+<span class="lineno"> 1024 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1025 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8739'_332</span>
+<span class="lineno"> 1026 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1027 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_'8818''45'go_96</span>
+<span class="lineno"> 1028 </span><span class="spaces">                      </span><span class="nottickedoff">(coe d_'8739''45'isPreorder_200))</span>
+<span class="lineno"> 1029 </span><span class="spaces">                   </span><span class="nottickedoff">(mulInt (coe v1) (coe v0)) (mulInt (coe v4) (coe v0))</span>
+<span class="lineno"> 1030 </span><span class="spaces">                   </span><span class="nottickedoff">(mulInt (coe v4) (coe v0))</span>
+<span class="lineno"> 1031 </span><span class="spaces">                   </span><span class="nottickedoff">(let v7 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno"> 1032 </span><span class="spaces">                    </span><span class="nottickedoff">coe</span>
+<span class="lineno"> 1033 </span><span class="spaces">                      </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1034 </span><span class="spaces">                         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno"> 1035 </span><span class="spaces">                         </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1036 </span><span class="spaces">                            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_stop_116</span>
+<span class="lineno"> 1037 </span><span class="spaces">                            </span><span class="nottickedoff">(coe v7))</span>
+<span class="lineno"> 1038 </span><span class="spaces">                         </span><span class="nottickedoff">(coe mulInt (coe v4) (coe v0))))</span>
+<span class="lineno"> 1039 </span><span class="spaces">                   </span><span class="nottickedoff">(coe du_'42''45'mono'737''45''8739'_432 (coe v3))))</span>
+<span class="lineno"> 1040 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno"> 1041 </span>-- Data.Nat.Divisibility.m∣n/o⇒o*m∣n
+<span class="lineno"> 1042 </span>d_m'8739'n'47'o'8658'o'42'm'8739'n_574 ::
+<span class="lineno"> 1043 </span>  Integer -&gt;
+<span class="lineno"> 1044 </span>  Integer -&gt;
+<span class="lineno"> 1045 </span>  Integer -&gt;
+<span class="lineno"> 1046 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno"> 1047 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1048 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1049 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1050 </span><span class="decl"><span class="nottickedoff">d_m'8739'n'47'o'8658'o'42'm'8739'n_574 v0 ~v1 v2 ~v3</span>
+<span class="lineno"> 1051 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'8739'n'47'o'8658'o'42'm'8739'n_574 v0 v2</span></span>
+<span class="lineno"> 1052 </span>du_m'8739'n'47'o'8658'o'42'm'8739'n_574 ::
+<span class="lineno"> 1053 </span>  Integer -&gt;
+<span class="lineno"> 1054 </span>  Integer -&gt;
+<span class="lineno"> 1055 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1056 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1057 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1058 </span><span class="decl"><span class="nottickedoff">du_m'8739'n'47'o'8658'o'42'm'8739'n_574 v0 v1</span>
+<span class="lineno"> 1059 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_m'8739'n'47'o'8658'm'42'o'8739'n_554 (coe v0) (coe v1)</span></span>
+<span class="lineno"> 1060 </span>-- Data.Nat.Divisibility.m/n∣o⇒m∣o*n
+<span class="lineno"> 1061 </span>d_m'47'n'8739'o'8658'm'8739'o'42'n_586 ::
+<span class="lineno"> 1062 </span>  Integer -&gt;
+<span class="lineno"> 1063 </span>  Integer -&gt;
+<span class="lineno"> 1064 </span>  Integer -&gt;
+<span class="lineno"> 1065 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno"> 1066 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1067 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1068 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1069 </span><span class="decl"><span class="nottickedoff">d_m'47'n'8739'o'8658'm'8739'o'42'n_586 v0 ~v1 v2 ~v3 v4 v5</span>
+<span class="lineno"> 1070 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'47'n'8739'o'8658'm'8739'o'42'n_586 v0 v2 v4 v5</span></span>
+<span class="lineno"> 1071 </span>du_m'47'n'8739'o'8658'm'8739'o'42'n_586 ::
+<span class="lineno"> 1072 </span>  Integer -&gt;
+<span class="lineno"> 1073 </span>  Integer -&gt;
+<span class="lineno"> 1074 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1075 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1076 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1077 </span><span class="decl"><span class="nottickedoff">du_m'47'n'8739'o'8658'm'8739'o'42'n_586 v0 v1 v2 v3</span>
+<span class="lineno"> 1078 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno"> 1079 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno"> 1080 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; let v6 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno"> 1081 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno"> 1082 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1083 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno"> 1084 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1085 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_start_76</span>
+<span class="lineno"> 1086 </span><span class="spaces">                   </span><span class="nottickedoff">(coe v6))</span>
+<span class="lineno"> 1087 </span><span class="spaces">                </span><span class="nottickedoff">(mulInt (coe v4) (coe v0)) (mulInt (coe v1) (coe v0))</span>
+<span class="lineno"> 1088 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1089 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8739'_332</span>
+<span class="lineno"> 1090 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1091 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_'8818''45'go_96</span>
+<span class="lineno"> 1092 </span><span class="spaces">                      </span><span class="nottickedoff">(coe d_'8739''45'isPreorder_200))</span>
+<span class="lineno"> 1093 </span><span class="spaces">                   </span><span class="nottickedoff">(mulInt (coe v4) (coe v0)) (mulInt (coe v1) (coe v0))</span>
+<span class="lineno"> 1094 </span><span class="spaces">                   </span><span class="nottickedoff">(mulInt (coe v1) (coe v0))</span>
+<span class="lineno"> 1095 </span><span class="spaces">                   </span><span class="nottickedoff">(let v7 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno"> 1096 </span><span class="spaces">                    </span><span class="nottickedoff">coe</span>
+<span class="lineno"> 1097 </span><span class="spaces">                      </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1098 </span><span class="spaces">                         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno"> 1099 </span><span class="spaces">                         </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1100 </span><span class="spaces">                            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_stop_116</span>
+<span class="lineno"> 1101 </span><span class="spaces">                            </span><span class="nottickedoff">(coe v7))</span>
+<span class="lineno"> 1102 </span><span class="spaces">                         </span><span class="nottickedoff">(coe mulInt (coe v1) (coe v0))))</span>
+<span class="lineno"> 1103 </span><span class="spaces">                   </span><span class="nottickedoff">(coe du_'42''45'mono'737''45''8739'_432 (coe v3))))</span>
+<span class="lineno"> 1104 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno"> 1105 </span>-- Data.Nat.Divisibility.m∣n*o⇒m/n∣o
+<span class="lineno"> 1106 </span>d_m'8739'n'42'o'8658'm'47'n'8739'o_606 ::
+<span class="lineno"> 1107 </span>  Integer -&gt;
+<span class="lineno"> 1108 </span>  Integer -&gt;
+<span class="lineno"> 1109 </span>  Integer -&gt;
+<span class="lineno"> 1110 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno"> 1111 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1112 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1113 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1114 </span><span class="decl"><span class="nottickedoff">d_m'8739'n'42'o'8658'm'47'n'8739'o_606 v0 ~v1 v2 ~v3 v4 v5</span>
+<span class="lineno"> 1115 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'8739'n'42'o'8658'm'47'n'8739'o_606 v0 v2 v4 v5</span></span>
+<span class="lineno"> 1116 </span>du_m'8739'n'42'o'8658'm'47'n'8739'o_606 ::
+<span class="lineno"> 1117 </span>  Integer -&gt;
+<span class="lineno"> 1118 </span>  Integer -&gt;
+<span class="lineno"> 1119 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1120 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1121 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1122 </span><span class="decl"><span class="nottickedoff">du_m'8739'n'42'o'8658'm'47'n'8739'o_606 v0 v1 v2 v3</span>
+<span class="lineno"> 1123 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno"> 1124 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno"> 1125 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; let v6 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno"> 1126 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno"> 1127 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1128 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno"> 1129 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1130 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_start_76</span>
+<span class="lineno"> 1131 </span><span class="spaces">                   </span><span class="nottickedoff">(coe v6))</span>
+<span class="lineno"> 1132 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1133 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'47'__314</span>
+<span class="lineno"> 1134 </span><span class="spaces">                   </span><span class="nottickedoff">(coe mulInt (coe v4) (coe v0)) (coe v0))</span>
+<span class="lineno"> 1135 </span><span class="spaces">                </span><span class="nottickedoff">v1</span>
+<span class="lineno"> 1136 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1137 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436</span>
+<span class="lineno"> 1138 </span><span class="spaces">                   </span><span class="nottickedoff">(\ v7 v8 v9 v10 v11 -&gt; v11)</span>
+<span class="lineno"> 1139 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1140 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'47'__314</span>
+<span class="lineno"> 1141 </span><span class="spaces">                      </span><span class="nottickedoff">(coe mulInt (coe v4) (coe v0)) (coe v0))</span>
+<span class="lineno"> 1142 </span><span class="spaces">                   </span><span class="nottickedoff">v4 v1</span>
+<span class="lineno"> 1143 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1144 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8739'_332</span>
+<span class="lineno"> 1145 </span><span class="spaces">                      </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1146 </span><span class="spaces">                         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_'8818''45'go_96</span>
+<span class="lineno"> 1147 </span><span class="spaces">                         </span><span class="nottickedoff">(coe d_'8739''45'isPreorder_200))</span>
+<span class="lineno"> 1148 </span><span class="spaces">                      </span><span class="nottickedoff">v4 v1 v1</span>
+<span class="lineno"> 1149 </span><span class="spaces">                      </span><span class="nottickedoff">(let v7 = d_'8739''45'isPreorder_200 in</span>
+<span class="lineno"> 1150 </span><span class="spaces">                       </span><span class="nottickedoff">coe</span>
+<span class="lineno"> 1151 </span><span class="spaces">                         </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1152 </span><span class="spaces">                            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno"> 1153 </span><span class="spaces">                            </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1154 </span><span class="spaces">                               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Double.du_stop_116</span>
+<span class="lineno"> 1155 </span><span class="spaces">                               </span><span class="nottickedoff">(coe v7))</span>
+<span class="lineno"> 1156 </span><span class="spaces">                            </span><span class="nottickedoff">(coe v1)))</span>
+<span class="lineno"> 1157 </span><span class="spaces">                      </span><span class="nottickedoff">(coe du_'42''45'cancel'691''45''8739'_462 v3))</span>
+<span class="lineno"> 1158 </span><span class="spaces">                   </span><span class="nottickedoff">erased))</span>
+<span class="lineno"> 1159 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno"> 1160 </span>-- Data.Nat.Divisibility.∣n∣m%n⇒∣m
+<span class="lineno"> 1161 </span>d_'8739'n'8739'm'37'n'8658''8739'm_624 ::
+<span class="lineno"> 1162 </span>  Integer -&gt;
+<span class="lineno"> 1163 </span>  Integer -&gt;
+<span class="lineno"> 1164 </span>  Integer -&gt;
+<span class="lineno"> 1165 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno"> 1166 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1167 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1168 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1169 </span><span class="decl"><span class="nottickedoff">d_'8739'n'8739'm'37'n'8658''8739'm_624 ~v0 v1 v2 ~v3 v4 v5</span>
+<span class="lineno"> 1170 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8739'n'8739'm'37'n'8658''8739'm_624 v1 v2 v4 v5</span></span>
+<span class="lineno"> 1171 </span>du_'8739'n'8739'm'37'n'8658''8739'm_624 ::
+<span class="lineno"> 1172 </span>  Integer -&gt;
+<span class="lineno"> 1173 </span>  Integer -&gt;
+<span class="lineno"> 1174 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1175 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1176 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1177 </span><span class="decl"><span class="nottickedoff">du_'8739'n'8739'm'37'n'8658''8739'm_624 v0 v1 v2 v3</span>
+<span class="lineno"> 1178 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno"> 1179 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno"> 1180 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v3 of</span>
+<span class="lineno"> 1181 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v6</span>
+<span class="lineno"> 1182 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno"> 1183 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno"> 1184 </span><span class="spaces">                    </span><span class="nottickedoff">(addInt</span>
+<span class="lineno"> 1185 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1186 </span><span class="spaces">                          </span><span class="nottickedoff">mulInt</span>
+<span class="lineno"> 1187 </span><span class="spaces">                          </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1188 </span><span class="spaces">                             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'47'__314 (coe v1)</span>
+<span class="lineno"> 1189 </span><span class="spaces">                             </span><span class="nottickedoff">(coe mulInt (coe v4) (coe v0)))</span>
+<span class="lineno"> 1190 </span><span class="spaces">                          </span><span class="nottickedoff">(coe v4))</span>
+<span class="lineno"> 1191 </span><span class="spaces">                       </span><span class="nottickedoff">(coe v6))</span>
+<span class="lineno"> 1192 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno"> 1193 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno"> 1194 </span>-- Data.Nat.Divisibility.%-presˡ-∣
+<span class="lineno"> 1195 </span>d_'37''45'pres'737''45''8739'_648 ::
+<span class="lineno"> 1196 </span>  Integer -&gt;
+<span class="lineno"> 1197 </span>  Integer -&gt;
+<span class="lineno"> 1198 </span>  Integer -&gt;
+<span class="lineno"> 1199 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno"> 1200 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1201 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1202 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1203 </span><span class="decl"><span class="nottickedoff">d_'37''45'pres'737''45''8739'_648 v0 v1 ~v2 ~v3 v4 v5</span>
+<span class="lineno"> 1204 </span><span class="spaces">  </span><span class="nottickedoff">= du_'37''45'pres'737''45''8739'_648 v0 v1 v4 v5</span></span>
+<span class="lineno"> 1205 </span>du_'37''45'pres'737''45''8739'_648 ::
+<span class="lineno"> 1206 </span>  Integer -&gt;
+<span class="lineno"> 1207 </span>  Integer -&gt;
+<span class="lineno"> 1208 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1209 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1210 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1211 </span><span class="decl"><span class="nottickedoff">du_'37''45'pres'737''45''8739'_648 v0 v1 v2 v3</span>
+<span class="lineno"> 1212 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno"> 1213 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v4</span>
+<span class="lineno"> 1214 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v3 of</span>
+<span class="lineno"> 1215 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34 v6</span>
+<span class="lineno"> 1216 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno"> 1217 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_divides_34</span>
+<span class="lineno"> 1218 </span><span class="spaces">                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1219 </span><span class="spaces">                       </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22 v4</span>
+<span class="lineno"> 1220 </span><span class="spaces">                       </span><span class="nottickedoff">(mulInt</span>
+<span class="lineno"> 1221 </span><span class="spaces">                          </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1222 </span><span class="spaces">                             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'47'__314</span>
+<span class="lineno"> 1223 </span><span class="spaces">                             </span><span class="nottickedoff">(coe mulInt (coe v4) (coe v1)) (coe v0))</span>
+<span class="lineno"> 1224 </span><span class="spaces">                          </span><span class="nottickedoff">(coe v6)))</span>
+<span class="lineno"> 1225 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno"> 1226 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno"> 1227 </span>-- Data.Nat.Divisibility.m≤n⇒m!∣n!
+<span class="lineno"> 1228 </span>d_m'8804'n'8658'm'33''8739'n'33'_670 ::
+<span class="lineno"> 1229 </span>  Integer -&gt;
+<span class="lineno"> 1230 </span>  Integer -&gt;
+<span class="lineno"> 1231 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno"> 1232 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1233 </span><span class="decl"><span class="nottickedoff">d_m'8804'n'8658'm'33''8739'n'33'_670 ~v0 v1 v2</span>
+<span class="lineno"> 1234 </span><span class="spaces">  </span><span class="nottickedoff">= du_m'8804'n'8658'm'33''8739'n'33'_670 v1 v2</span></span>
+<span class="lineno"> 1235 </span>du_m'8804'n'8658'm'33''8739'n'33'_670 ::
+<span class="lineno"> 1236 </span>  Integer -&gt;
+<span class="lineno"> 1237 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno"> 1238 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1239 </span><span class="decl"><span class="nottickedoff">du_m'8804'n'8658'm'33''8739'n'33'_670 v0 v1</span>
+<span class="lineno"> 1240 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno"> 1241 </span><span class="spaces">      </span><span class="nottickedoff">du_help_678 (coe v0)</span>
+<span class="lineno"> 1242 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1243 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_'8804''8658''8804''8242'_6128</span>
+<span class="lineno"> 1244 </span><span class="spaces">         </span><span class="nottickedoff">(coe v0) (coe v1))</span></span>
+<span class="lineno"> 1245 </span>-- Data.Nat.Divisibility._.help
+<span class="lineno"> 1246 </span>d_help_678 ::
+<span class="lineno"> 1247 </span>  Integer -&gt;
+<span class="lineno"> 1248 </span>  Integer -&gt;
+<span class="lineno"> 1249 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno"> 1250 </span>  Integer -&gt;
+<span class="lineno"> 1251 </span>  Integer -&gt;
+<span class="lineno"> 1252 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -&gt;
+<span class="lineno"> 1253 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1254 </span><span class="decl"><span class="nottickedoff">d_help_678 ~v0 ~v1 ~v2 ~v3 v4 v5 = du_help_678 v4 v5</span></span>
+<span class="lineno"> 1255 </span>du_help_678 ::
+<span class="lineno"> 1256 </span>  Integer -&gt;
+<span class="lineno"> 1257 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -&gt;
+<span class="lineno"> 1258 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20
+<span class="lineno"> 1259 </span><span class="decl"><span class="nottickedoff">du_help_678 v0 v1</span>
+<span class="lineno"> 1260 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno"> 1261 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.C_'8804''8242''45'refl_342</span>
+<span class="lineno"> 1262 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe du_'8739''45'refl_166</span>
+<span class="lineno"> 1263 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.C_'8804''8242''45'step_348 v3</span>
+<span class="lineno"> 1264 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; let v4 = subInt (coe v0) (coe (1 :: Integer)) in</span>
+<span class="lineno"> 1265 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno"> 1266 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1267 </span><span class="spaces">                </span><span class="nottickedoff">du_'8739'n'8658''8739'm'42'n_374 v0</span>
+<span class="lineno"> 1268 </span><span class="spaces">                </span><span class="nottickedoff">(coe du_help_678 (coe v4) (coe v3)))</span>
+<span class="lineno"> 1269 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno"> 1270 </span>-- Data.Nat.Divisibility.hasNonTrivialDivisor-≢
+<span class="lineno"> 1271 </span>d_hasNonTrivialDivisor'45''8802'_684 ::
+<span class="lineno"> 1272 </span>  Integer -&gt;
+<span class="lineno"> 1273 </span>  Integer -&gt;
+<span class="lineno"> 1274 </span>  MAlonzo.Code.Data.Nat.Base.T_NonTrivial_152 -&gt;
+<span class="lineno"> 1275 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt;
+<span class="lineno"> 1276 </span>  (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1277 </span>   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno"> 1278 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1279 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50
+<span class="lineno"> 1280 </span><span class="decl"><span class="nottickedoff">d_hasNonTrivialDivisor'45''8802'_684 v0 v1 ~v2 ~v3 ~v4 v5</span>
+<span class="lineno"> 1281 </span><span class="spaces">  </span><span class="nottickedoff">= du_hasNonTrivialDivisor'45''8802'_684 v0 v1 v5</span></span>
+<span class="lineno"> 1282 </span>du_hasNonTrivialDivisor'45''8802'_684 ::
+<span class="lineno"> 1283 </span>  Integer -&gt;
+<span class="lineno"> 1284 </span>  Integer -&gt;
+<span class="lineno"> 1285 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1286 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50
+<span class="lineno"> 1287 </span><span class="decl"><span class="nottickedoff">du_hasNonTrivialDivisor'45''8802'_684 v0 v1 v2</span>
+<span class="lineno"> 1288 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno"> 1289 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_hasNonTrivialDivisor_72</span>
+<span class="lineno"> 1290 </span><span class="spaces">      </span><span class="nottickedoff">v0</span>
+<span class="lineno"> 1291 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1292 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_'8804''8743''8802''8658''60'_2918</span>
+<span class="lineno"> 1293 </span><span class="spaces">         </span><span class="nottickedoff">(coe v1) (coe du_'8739''8658''8804'_142 (coe v0) (coe v2)))</span>
+<span class="lineno"> 1294 </span><span class="spaces">      </span><span class="nottickedoff">v2</span></span>
+<span class="lineno"> 1295 </span>-- Data.Nat.Divisibility.hasNonTrivialDivisor-∣
+<span class="lineno"> 1296 </span>d_hasNonTrivialDivisor'45''8739'_690 ::
+<span class="lineno"> 1297 </span>  Integer -&gt;
+<span class="lineno"> 1298 </span>  Integer -&gt;
+<span class="lineno"> 1299 </span>  Integer -&gt;
+<span class="lineno"> 1300 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50 -&gt;
+<span class="lineno"> 1301 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1302 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50
+<span class="lineno"> 1303 </span><span class="decl"><span class="nottickedoff">d_hasNonTrivialDivisor'45''8739'_690 ~v0 ~v1 ~v2 v3 v4</span>
+<span class="lineno"> 1304 </span><span class="spaces">  </span><span class="nottickedoff">= du_hasNonTrivialDivisor'45''8739'_690 v3 v4</span></span>
+<span class="lineno"> 1305 </span>du_hasNonTrivialDivisor'45''8739'_690 ::
+<span class="lineno"> 1306 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50 -&gt;
+<span class="lineno"> 1307 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__'8739'__20 -&gt;
+<span class="lineno"> 1308 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50
+<span class="lineno"> 1309 </span><span class="decl"><span class="nottickedoff">du_hasNonTrivialDivisor'45''8739'_690 v0 v1</span>
+<span class="lineno"> 1310 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno"> 1311 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_hasNonTrivialDivisor_72 v2 v4 v5</span>
+<span class="lineno"> 1312 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno"> 1313 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_hasNonTrivialDivisor_72</span>
+<span class="lineno"> 1314 </span><span class="spaces">             </span><span class="nottickedoff">v2 v4 (coe du_'8739''45'trans_168 (coe v5) (coe v1))</span>
+<span class="lineno"> 1315 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno"> 1316 </span>-- Data.Nat.Divisibility.hasNonTrivialDivisor-≤
+<span class="lineno"> 1317 </span>d_hasNonTrivialDivisor'45''8804'_698 ::
+<span class="lineno"> 1318 </span>  Integer -&gt;
+<span class="lineno"> 1319 </span>  Integer -&gt;
+<span class="lineno"> 1320 </span>  Integer -&gt;
+<span class="lineno"> 1321 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50 -&gt;
+<span class="lineno"> 1322 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno"> 1323 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50
+<span class="lineno"> 1324 </span><span class="decl"><span class="nottickedoff">d_hasNonTrivialDivisor'45''8804'_698 ~v0 ~v1 ~v2 v3 v4</span>
+<span class="lineno"> 1325 </span><span class="spaces">  </span><span class="nottickedoff">= du_hasNonTrivialDivisor'45''8804'_698 v3 v4</span></span>
+<span class="lineno"> 1326 </span>du_hasNonTrivialDivisor'45''8804'_698 ::
+<span class="lineno"> 1327 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50 -&gt;
+<span class="lineno"> 1328 </span>  MAlonzo.Code.Data.Nat.Base.T__'8804'__22 -&gt;
+<span class="lineno"> 1329 </span>  MAlonzo.Code.Data.Nat.Divisibility.Core.T__HasNonTrivialDivisorLessThan__50
+<span class="lineno"> 1330 </span><span class="decl"><span class="nottickedoff">du_hasNonTrivialDivisor'45''8804'_698 v0 v1</span>
+<span class="lineno"> 1331 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno"> 1332 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_hasNonTrivialDivisor_72 v2 v4 v5</span>
+<span class="lineno"> 1333 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno"> 1334 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Divisibility.Core.C_hasNonTrivialDivisor_72</span>
+<span class="lineno"> 1335 </span><span class="spaces">             </span><span class="nottickedoff">v2</span>
+<span class="lineno"> 1336 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno"> 1337 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Properties.du_'60''45''8804''45'trans_2992</span>
+<span class="lineno"> 1338 </span><span class="spaces">                </span><span class="nottickedoff">(coe v4) (coe v1))</span>
+<span class="lineno"> 1339 </span><span class="spaces">             </span><span class="nottickedoff">v5</span>
+<span class="lineno"> 1340 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+
+</pre>
+</body>
+</html>

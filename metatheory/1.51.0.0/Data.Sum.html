@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Sum</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Sums (disjoint unions)</a>
+<a id="132" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="206" class="Symbol">{-#</a> <a id="210" class="Keyword">OPTIONS</a> <a id="218" class="Pragma">--cubical-compatible</a> <a id="239" class="Pragma">--safe</a> <a id="246" class="Symbol">#-}</a>
+
+<a id="251" class="Keyword">module</a> <a id="258" href="Data.Sum.html" class="Module">Data.Sum</a> <a id="267" class="Keyword">where</a>
+
+<a id="274" class="Keyword">open</a> <a id="279" class="Keyword">import</a> <a id="286" href="Data.Unit.Polymorphic.Base.html" class="Module">Data.Unit.Polymorphic.Base</a> <a id="313" class="Keyword">using</a> <a id="319" class="Symbol">(</a><a id="320" href="Data.Unit.Polymorphic.Base.html#489" class="Function">⊤</a><a id="321" class="Symbol">;</a> <a id="323" href="Data.Unit.Polymorphic.Base.html#533" class="Function">tt</a><a id="325" class="Symbol">)</a>
+<a id="327" class="Keyword">open</a> <a id="332" class="Keyword">import</a> <a id="339" href="Data.Maybe.Base.html" class="Module">Data.Maybe.Base</a> <a id="355" class="Keyword">using</a> <a id="361" class="Symbol">(</a><a id="362" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a><a id="367" class="Symbol">;</a> <a id="369" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a><a id="373" class="Symbol">;</a> <a id="375" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a><a id="382" class="Symbol">)</a>
+<a id="384" class="Keyword">open</a> <a id="389" class="Keyword">import</a> <a id="396" href="Level.html" class="Module">Level</a>
+<a id="402" class="Keyword">import</a> <a id="409" href="Relation.Nullary.Decidable.Core.html" class="Module">Relation.Nullary.Decidable.Core</a> <a id="441" class="Symbol">as</a> <a id="444" class="Module">Dec</a>
+
+<a id="449" class="Keyword">private</a>
+  <a id="459" class="Keyword">variable</a>
+    <a id="472" href="Data.Sum.html#472" class="Generalizable">a</a> <a id="474" href="Data.Sum.html#474" class="Generalizable">b</a> <a id="476" class="Symbol">:</a> <a id="478" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+    <a id="488" href="Data.Sum.html#488" class="Generalizable">A</a> <a id="490" href="Data.Sum.html#490" class="Generalizable">B</a> <a id="492" class="Symbol">:</a> <a id="494" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="498" href="Data.Sum.html#472" class="Generalizable">a</a>
+
+<a id="501" class="Comment">------------------------------------------------------------------------</a>
+<a id="574" class="Comment">-- Re-export content from base module</a>
+
+<a id="613" class="Keyword">open</a> <a id="618" class="Keyword">import</a> <a id="625" href="Data.Sum.Base.html" class="Module">Data.Sum.Base</a> <a id="639" class="Keyword">public</a>
+
+<a id="647" class="Comment">------------------------------------------------------------------------</a>
+<a id="720" class="Comment">-- Additional functions</a>
+
+<a id="745" class="Keyword">module</a> <a id="752" href="Data.Sum.html#752" class="Module">_</a> <a id="754" class="Symbol">{</a><a id="755" href="Data.Sum.html#755" class="Bound">A</a> <a id="757" class="Symbol">:</a> <a id="759" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="763" href="Data.Sum.html#472" class="Generalizable">a</a><a id="764" class="Symbol">}</a> <a id="766" class="Symbol">{</a><a id="767" href="Data.Sum.html#767" class="Bound">B</a> <a id="769" class="Symbol">:</a> <a id="771" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="775" href="Data.Sum.html#474" class="Generalizable">b</a><a id="776" class="Symbol">}</a> <a id="778" class="Keyword">where</a>
+
+  <a id="787" href="Data.Sum.html#787" class="Function">isInj₁</a> <a id="794" class="Symbol">:</a> <a id="796" href="Data.Sum.html#755" class="Bound">A</a> <a id="798" href="Data.Sum.Base.html#625" class="Datatype Operator">⊎</a> <a id="800" href="Data.Sum.html#767" class="Bound">B</a> <a id="802" class="Symbol">→</a> <a id="804" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="810" href="Data.Sum.html#755" class="Bound">A</a>
+  <a id="814" href="Data.Sum.html#787" class="Function">isInj₁</a> <a id="821" class="Symbol">(</a><a id="822" href="Data.Sum.Base.html#675" class="InductiveConstructor">inj₁</a> <a id="827" href="Data.Sum.html#827" class="Bound">x</a><a id="828" class="Symbol">)</a> <a id="830" class="Symbol">=</a> <a id="832" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="837" href="Data.Sum.html#827" class="Bound">x</a>
+  <a id="841" href="Data.Sum.html#787" class="Function">isInj₁</a> <a id="848" class="Symbol">(</a><a id="849" href="Data.Sum.Base.html#700" class="InductiveConstructor">inj₂</a> <a id="854" href="Data.Sum.html#854" class="Bound">y</a><a id="855" class="Symbol">)</a> <a id="857" class="Symbol">=</a> <a id="859" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a>
+
+  <a id="870" href="Data.Sum.html#870" class="Function">isInj₂</a> <a id="877" class="Symbol">:</a> <a id="879" href="Data.Sum.html#755" class="Bound">A</a> <a id="881" href="Data.Sum.Base.html#625" class="Datatype Operator">⊎</a> <a id="883" href="Data.Sum.html#767" class="Bound">B</a> <a id="885" class="Symbol">→</a> <a id="887" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="893" href="Data.Sum.html#767" class="Bound">B</a>
+  <a id="897" href="Data.Sum.html#870" class="Function">isInj₂</a> <a id="904" class="Symbol">(</a><a id="905" href="Data.Sum.Base.html#675" class="InductiveConstructor">inj₁</a> <a id="910" href="Data.Sum.html#910" class="Bound">x</a><a id="911" class="Symbol">)</a> <a id="913" class="Symbol">=</a> <a id="915" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a>
+  <a id="925" href="Data.Sum.html#870" class="Function">isInj₂</a> <a id="932" class="Symbol">(</a><a id="933" href="Data.Sum.Base.html#700" class="InductiveConstructor">inj₂</a> <a id="938" href="Data.Sum.html#938" class="Bound">y</a><a id="939" class="Symbol">)</a> <a id="941" class="Symbol">=</a> <a id="943" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="948" href="Data.Sum.html#938" class="Bound">y</a>
+
+  <a id="953" href="Data.Sum.html#953" class="Function">From-inj₁</a> <a id="963" class="Symbol">:</a> <a id="965" href="Data.Sum.html#755" class="Bound">A</a> <a id="967" href="Data.Sum.Base.html#625" class="Datatype Operator">⊎</a> <a id="969" href="Data.Sum.html#767" class="Bound">B</a> <a id="971" class="Symbol">→</a> <a id="973" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="977" href="Data.Sum.html#763" class="Bound">a</a>
+  <a id="981" href="Data.Sum.html#953" class="Function">From-inj₁</a> <a id="991" class="Symbol">(</a><a id="992" href="Data.Sum.Base.html#675" class="InductiveConstructor">inj₁</a> <a id="997" class="Symbol">_)</a> <a id="1000" class="Symbol">=</a> <a id="1002" href="Data.Sum.html#755" class="Bound">A</a>
+  <a id="1006" href="Data.Sum.html#953" class="Function">From-inj₁</a> <a id="1016" class="Symbol">(</a><a id="1017" href="Data.Sum.Base.html#700" class="InductiveConstructor">inj₂</a> <a id="1022" class="Symbol">_)</a> <a id="1025" class="Symbol">=</a> <a id="1027" href="Data.Unit.Polymorphic.Base.html#489" class="Function">⊤</a>
+
+  <a id="1032" href="Data.Sum.html#1032" class="Function">from-inj₁</a> <a id="1042" class="Symbol">:</a> <a id="1044" class="Symbol">(</a><a id="1045" href="Data.Sum.html#1045" class="Bound">x</a> <a id="1047" class="Symbol">:</a> <a id="1049" href="Data.Sum.html#755" class="Bound">A</a> <a id="1051" href="Data.Sum.Base.html#625" class="Datatype Operator">⊎</a> <a id="1053" href="Data.Sum.html#767" class="Bound">B</a><a id="1054" class="Symbol">)</a> <a id="1056" class="Symbol">→</a> <a id="1058" href="Data.Sum.html#953" class="Function">From-inj₁</a> <a id="1068" href="Data.Sum.html#1045" class="Bound">x</a>
+  <a id="1072" href="Data.Sum.html#1032" class="Function">from-inj₁</a> <a id="1082" class="Symbol">(</a><a id="1083" href="Data.Sum.Base.html#675" class="InductiveConstructor">inj₁</a> <a id="1088" href="Data.Sum.html#1088" class="Bound">x</a><a id="1089" class="Symbol">)</a> <a id="1091" class="Symbol">=</a> <a id="1093" href="Data.Sum.html#1088" class="Bound">x</a>
+  <a id="1097" href="Data.Sum.html#1032" class="Function">from-inj₁</a> <a id="1107" class="Symbol">(</a><a id="1108" href="Data.Sum.Base.html#700" class="InductiveConstructor">inj₂</a> <a id="1113" class="Symbol">_)</a> <a id="1116" class="Symbol">=</a> <a id="1118" class="Symbol">_</a>
+
+  <a id="1123" href="Data.Sum.html#1123" class="Function">From-inj₂</a> <a id="1133" class="Symbol">:</a> <a id="1135" href="Data.Sum.html#755" class="Bound">A</a> <a id="1137" href="Data.Sum.Base.html#625" class="Datatype Operator">⊎</a> <a id="1139" href="Data.Sum.html#767" class="Bound">B</a> <a id="1141" class="Symbol">→</a> <a id="1143" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="1147" href="Data.Sum.html#775" class="Bound">b</a>
+  <a id="1151" href="Data.Sum.html#1123" class="Function">From-inj₂</a> <a id="1161" class="Symbol">(</a><a id="1162" href="Data.Sum.Base.html#675" class="InductiveConstructor">inj₁</a> <a id="1167" class="Symbol">_)</a> <a id="1170" class="Symbol">=</a> <a id="1172" href="Data.Unit.Polymorphic.Base.html#489" class="Function">⊤</a>
+  <a id="1176" href="Data.Sum.html#1123" class="Function">From-inj₂</a> <a id="1186" class="Symbol">(</a><a id="1187" href="Data.Sum.Base.html#700" class="InductiveConstructor">inj₂</a> <a id="1192" class="Symbol">_)</a> <a id="1195" class="Symbol">=</a> <a id="1197" href="Data.Sum.html#767" class="Bound">B</a>
+
+  <a id="1202" href="Data.Sum.html#1202" class="Function">from-inj₂</a> <a id="1212" class="Symbol">:</a> <a id="1214" class="Symbol">(</a><a id="1215" href="Data.Sum.html#1215" class="Bound">x</a> <a id="1217" class="Symbol">:</a> <a id="1219" href="Data.Sum.html#755" class="Bound">A</a> <a id="1221" href="Data.Sum.Base.html#625" class="Datatype Operator">⊎</a> <a id="1223" href="Data.Sum.html#767" class="Bound">B</a><a id="1224" class="Symbol">)</a> <a id="1226" class="Symbol">→</a> <a id="1228" href="Data.Sum.html#1123" class="Function">From-inj₂</a> <a id="1238" href="Data.Sum.html#1215" class="Bound">x</a>
+  <a id="1242" href="Data.Sum.html#1202" class="Function">from-inj₂</a> <a id="1252" class="Symbol">(</a><a id="1253" href="Data.Sum.Base.html#675" class="InductiveConstructor">inj₁</a> <a id="1258" class="Symbol">_)</a> <a id="1261" class="Symbol">=</a> <a id="1263" class="Symbol">_</a>
+  <a id="1267" href="Data.Sum.html#1202" class="Function">from-inj₂</a> <a id="1277" class="Symbol">(</a><a id="1278" href="Data.Sum.Base.html#700" class="InductiveConstructor">inj₂</a> <a id="1283" href="Data.Sum.html#1283" class="Bound">x</a><a id="1284" class="Symbol">)</a> <a id="1286" class="Symbol">=</a> <a id="1288" href="Data.Sum.html#1283" class="Bound">x</a>
+
+<a id="1291" class="Comment">------------------------------------------------------------------------</a>
+<a id="1364" class="Comment">-- DEPRECATED NAMES</a>
+<a id="1384" class="Comment">------------------------------------------------------------------------</a>
+<a id="1457" class="Comment">-- Please use the new names as continuing support for the old names is</a>
+<a id="1528" class="Comment">-- not guaranteed.</a>
+
+<a id="1548" class="Comment">-- Version 2.1</a>
+
+<a id="1564" class="Keyword">open</a> <a id="1569" href="Relation.Nullary.Decidable.Core.html" class="Module">Dec</a> <a id="1573" class="Keyword">public</a> <a id="1580" class="Keyword">using</a> <a id="1586" class="Symbol">(</a><a id="1587" href="Relation.Nullary.Decidable.Core.html#7418" class="Function">fromDec</a><a id="1594" class="Symbol">;</a> <a id="1596" href="Relation.Nullary.Decidable.Core.html#7569" class="Function">toDec</a><a id="1601" class="Symbol">)</a>
+
+</pre></body></html>
