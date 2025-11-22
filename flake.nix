@@ -1,44 +1,35 @@
 {
-  description = "Plutus Core";
+  description = "Custom Haskell environment with GHC 8.10.7 and cabal-install 3.8.1.0";
 
   inputs = {
-    nixpkgs-2405.follows = "haskell-nix/nixpkgs-2405";
-
-    nixpkgs.follows = "haskell-nix/nixpkgs";
-
-    hackage = {
-      url = "github:input-output-hk/hackage.nix";
-      flake = false;
-    };
-
-    CHaP = {
-      url = "github:IntersectMBO/cardano-haskell-packages?ref=repo";
-      flake = false;
-    };
-
-    haskell-nix = {
-      url = "github:input-output-hk/haskell.nix";
-      inputs.hackage.follows = "hackage";
-    };
-
-    iohk-nix = {
-      url = "github:input-output-hk/iohk-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     flake-utils.url = "github:numtide/flake-utils";
-
-    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
   };
 
-  outputs = inputs: inputs.flake-utils.lib.eachDefaultSystem (system:
-    import ./nix/outputs.nix { inherit inputs system; }
-  );
-
-  nixConfig = {
-    extra-substituters = [ "https://cache.iog.io" ];
-    extra-trusted-public-keys =
-      [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
-    allow-import-from-derivation = true;
-  };
+  outputs = { self, nixpkgs, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+        haskellPackages = pkgs.haskell.packages.ghc8107;
+        buildInputs = [
+          haskellPackages.ghc
+          haskellPackages.cabal-install
+          pkgs.git
+          pkgs.curl
+          pkgs.zlib
+          pkgs.pkg-config
+          pkgs.libsodium
+          pkgs.secp256k1
+        ];
+        libPath = pkgs.lib.makeLibraryPath buildInputs;
+      in {
+        devShell = pkgs.mkShell {
+          inherit buildInputs;
+          shellHook = ''
+            export LD_LIBRARY_PATH="${libPath}:$LD_LIBRARY_PATH"
+            echo "GHC version: $(ghc --version)"
+            echo "Cabal version: $(cabal --version)"
+          '';
+        };
+      });
 }
