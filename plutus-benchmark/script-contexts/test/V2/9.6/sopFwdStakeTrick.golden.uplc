@@ -400,107 +400,232 @@
                                                                               (\a
                                                                                 ds ->
                                                                                  (\obsScriptCred' ->
-                                                                                    (\`$fEqStakingCredential_$c==` ->
-                                                                                       (\go ->
-                                                                                          (\cse ->
-                                                                                             case
-                                                                                               (cse
-                                                                                                  a)
-                                                                                               [ (case
-                                                                                                    (cse
-                                                                                                       a)
-                                                                                                    [ (go
-                                                                                                         ds)
-                                                                                                    , (constr 0
-                                                                                                         [  ]) ])
-                                                                                               , (constr 0
-                                                                                                    [  ]) ])
-                                                                                            (`$fEqStakingCredential_$c==`
-                                                                                               obsScriptCred'))
-                                                                                         ((\s ->
-                                                                                             s
-                                                                                               s)
-                                                                                            (\s
-                                                                                              ds ->
-                                                                                               case
-                                                                                                 ds
-                                                                                                 [ ((\x ->
-                                                                                                       error)
-                                                                                                      (force
-                                                                                                         trace
-                                                                                                         "not found"
-                                                                                                         (constr 0
-                                                                                                            [  ])))
-                                                                                                 , (\ds
-                                                                                                     xs' ->
-                                                                                                      case
-                                                                                                        ds
-                                                                                                        [ (\c'
-                                                                                                            i ->
-                                                                                                             case
-                                                                                                               (`$fEqStakingCredential_$c==`
-                                                                                                                  c'
-                                                                                                                  obsScriptCred')
-                                                                                                               [ (s
-                                                                                                                    s
-                                                                                                                    xs')
-                                                                                                               , (constr 0
-                                                                                                                    [  ]) ]) ]) ])))
-                                                                                      (\ds
-                                                                                        ds ->
-                                                                                         case
-                                                                                           ds
-                                                                                           [ (\l ->
-                                                                                                case
-                                                                                                  ds
-                                                                                                  [ (\r ->
-                                                                                                       case
-                                                                                                         l
-                                                                                                         [ (\l ->
-                                                                                                              case
-                                                                                                                r
-                                                                                                                [ (\r ->
-                                                                                                                     equalsByteString
-                                                                                                                       l
-                                                                                                                       r)
-                                                                                                                , (\ipv ->
-                                                                                                                     False) ])
-                                                                                                         , (\a ->
-                                                                                                              case
-                                                                                                                r
-                                                                                                                [ (\ipv ->
-                                                                                                                     False)
-                                                                                                                , (\a' ->
-                                                                                                                     equalsByteString
-                                                                                                                       a
-                                                                                                                       a') ]) ])
-                                                                                                  , (\ipv
-                                                                                                      ipv
-                                                                                                      ipv ->
-                                                                                                       False) ])
-                                                                                           , (\a
-                                                                                               b
-                                                                                               c ->
-                                                                                                case
-                                                                                                  ds
-                                                                                                  [ (\ipv ->
-                                                                                                       False)
-                                                                                                  , (\a'
-                                                                                                      b'
-                                                                                                      c' ->
-                                                                                                       case
-                                                                                                         (equalsInteger
-                                                                                                            a
-                                                                                                            a')
-                                                                                                         [ False
-                                                                                                         , (case
-                                                                                                              (equalsInteger
-                                                                                                                 b
-                                                                                                                 b')
-                                                                                                              [ False
-                                                                                                              , (equalsInteger
-                                                                                                                   c
-                                                                                                                   c') ]) ]) ]) ]))
+                                                                                    (\go ->
+                                                                                       (\`$j` ->
+                                                                                          case
+                                                                                            obsScriptCred'
+                                                                                            [ (\l ->
+                                                                                                 case
+                                                                                                   a
+                                                                                                   [ (\r ->
+                                                                                                        case
+                                                                                                          l
+                                                                                                          [ (\l ->
+                                                                                                               case
+                                                                                                                 r
+                                                                                                                 [ (\r ->
+                                                                                                                      case
+                                                                                                                        (equalsByteString
+                                                                                                                           l
+                                                                                                                           r)
+                                                                                                                        [ (force
+                                                                                                                             `$j`)
+                                                                                                                        , (constr 0
+                                                                                                                             [  ]) ])
+                                                                                                                 , (\ipv ->
+                                                                                                                      force
+                                                                                                                        `$j`) ])
+                                                                                                          , (\a ->
+                                                                                                               case
+                                                                                                                 r
+                                                                                                                 [ (\ipv ->
+                                                                                                                      force
+                                                                                                                        `$j`)
+                                                                                                                 , (\a' ->
+                                                                                                                      case
+                                                                                                                        (equalsByteString
+                                                                                                                           a
+                                                                                                                           a')
+                                                                                                                        [ (force
+                                                                                                                             `$j`)
+                                                                                                                        , (constr 0
+                                                                                                                             [  ]) ]) ]) ])
+                                                                                                   , (\ipv
+                                                                                                       ipv
+                                                                                                       ipv ->
+                                                                                                        force
+                                                                                                          `$j`) ])
+                                                                                            , (\a
+                                                                                                b
+                                                                                                c ->
+                                                                                                 case
+                                                                                                   a
+                                                                                                   [ (\ipv ->
+                                                                                                        force
+                                                                                                          `$j`)
+                                                                                                   , (\a'
+                                                                                                       b'
+                                                                                                       c' ->
+                                                                                                        case
+                                                                                                          (case
+                                                                                                             (equalsInteger
+                                                                                                                a
+                                                                                                                a')
+                                                                                                             [ False
+                                                                                                             , (case
+                                                                                                                  (equalsInteger
+                                                                                                                     b
+                                                                                                                     b')
+                                                                                                                  [ False
+                                                                                                                  , (equalsInteger
+                                                                                                                       c
+                                                                                                                       c') ]) ])
+                                                                                                          [ (force
+                                                                                                               `$j`)
+                                                                                                          , (constr 0
+                                                                                                               [  ]) ]) ]) ])
+                                                                                         (delay
+                                                                                            (case
+                                                                                               obsScriptCred'
+                                                                                               [ (\l ->
+                                                                                                    case
+                                                                                                      a
+                                                                                                      [ (\r ->
+                                                                                                           case
+                                                                                                             l
+                                                                                                             [ (\l ->
+                                                                                                                  case
+                                                                                                                    r
+                                                                                                                    [ (\r ->
+                                                                                                                         case
+                                                                                                                           (equalsByteString
+                                                                                                                              l
+                                                                                                                              r)
+                                                                                                                           [ (go
+                                                                                                                                ds)
+                                                                                                                           , (constr 0
+                                                                                                                                [  ]) ])
+                                                                                                                    , (\ipv ->
+                                                                                                                         go
+                                                                                                                           ds) ])
+                                                                                                             , (\a ->
+                                                                                                                  case
+                                                                                                                    r
+                                                                                                                    [ (\ipv ->
+                                                                                                                         go
+                                                                                                                           ds)
+                                                                                                                    , (\a' ->
+                                                                                                                         case
+                                                                                                                           (equalsByteString
+                                                                                                                              a
+                                                                                                                              a')
+                                                                                                                           [ (go
+                                                                                                                                ds)
+                                                                                                                           , (constr 0
+                                                                                                                                [  ]) ]) ]) ])
+                                                                                                      , (\ipv
+                                                                                                          ipv
+                                                                                                          ipv ->
+                                                                                                           go
+                                                                                                             ds) ])
+                                                                                               , (\a
+                                                                                                   b
+                                                                                                   c ->
+                                                                                                    case
+                                                                                                      a
+                                                                                                      [ (\ipv ->
+                                                                                                           go
+                                                                                                             ds)
+                                                                                                      , (\a'
+                                                                                                          b'
+                                                                                                          c' ->
+                                                                                                           case
+                                                                                                             (case
+                                                                                                                (equalsInteger
+                                                                                                                   a
+                                                                                                                   a')
+                                                                                                                [ False
+                                                                                                                , (case
+                                                                                                                     (equalsInteger
+                                                                                                                        b
+                                                                                                                        b')
+                                                                                                                     [ False
+                                                                                                                     , (equalsInteger
+                                                                                                                          c
+                                                                                                                          c') ]) ])
+                                                                                                             [ (go
+                                                                                                                  ds)
+                                                                                                             , (constr 0
+                                                                                                                  [  ]) ]) ]) ])))
+                                                                                      ((\s ->
+                                                                                          s
+                                                                                            s)
+                                                                                         (\s
+                                                                                           ds ->
+                                                                                            case
+                                                                                              ds
+                                                                                              [ ((\x ->
+                                                                                                    error)
+                                                                                                   (force
+                                                                                                      trace
+                                                                                                      "not found"
+                                                                                                      (constr 0
+                                                                                                         [  ])))
+                                                                                              , (\ds
+                                                                                                  xs' ->
+                                                                                                   case
+                                                                                                     ds
+                                                                                                     [ (\c'
+                                                                                                         i ->
+                                                                                                          case
+                                                                                                            (case
+                                                                                                               c'
+                                                                                                               [ (\l ->
+                                                                                                                    case
+                                                                                                                      obsScriptCred'
+                                                                                                                      [ (\r ->
+                                                                                                                           case
+                                                                                                                             l
+                                                                                                                             [ (\l ->
+                                                                                                                                  case
+                                                                                                                                    r
+                                                                                                                                    [ (\r ->
+                                                                                                                                         equalsByteString
+                                                                                                                                           l
+                                                                                                                                           r)
+                                                                                                                                    , (\ipv ->
+                                                                                                                                         False) ])
+                                                                                                                             , (\a ->
+                                                                                                                                  case
+                                                                                                                                    r
+                                                                                                                                    [ (\ipv ->
+                                                                                                                                         False)
+                                                                                                                                    , (\a' ->
+                                                                                                                                         equalsByteString
+                                                                                                                                           a
+                                                                                                                                           a') ]) ])
+                                                                                                                      , (\ipv
+                                                                                                                          ipv
+                                                                                                                          ipv ->
+                                                                                                                           False) ])
+                                                                                                               , (\a
+                                                                                                                   b
+                                                                                                                   c ->
+                                                                                                                    case
+                                                                                                                      obsScriptCred'
+                                                                                                                      [ (\ipv ->
+                                                                                                                           False)
+                                                                                                                      , (\a'
+                                                                                                                          b'
+                                                                                                                          c' ->
+                                                                                                                           case
+                                                                                                                             (equalsInteger
+                                                                                                                                a
+                                                                                                                                a')
+                                                                                                                             [ False
+                                                                                                                             , (case
+                                                                                                                                  (equalsInteger
+                                                                                                                                     b
+                                                                                                                                     b')
+                                                                                                                                  [ False
+                                                                                                                                  , (equalsInteger
+                                                                                                                                       c
+                                                                                                                                       c') ]) ]) ]) ])
+                                                                                                            [ (s
+                                                                                                                 s
+                                                                                                                 xs')
+                                                                                                            , (constr 0
+                                                                                                                 [  ]) ]) ]) ])))
                                                                                    (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
                                                                                       obsScriptCred)))))))) ]) ])
                                           ((\s ->

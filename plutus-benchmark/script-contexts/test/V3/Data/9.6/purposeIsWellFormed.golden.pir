@@ -1,4 +1,24 @@
 let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !`$dEq` : Maybe integer -> Maybe integer -> bool
+    = \(ds : Maybe integer) (ds : Maybe integer) ->
+        Maybe_match
+          {integer}
+          ds
+          {all dead. bool}
+          (\(a : integer) ->
+             /\dead ->
+               Maybe_match
+                 {integer}
+                 ds
+                 {bool}
+                 (\(a : integer) -> equalsInteger a a)
+                 False)
+          (/\dead ->
+             Maybe_match {integer} ds {bool} (\(ipv : integer) -> False) True)
+          {all dead. dead}
   !`$fEqCredential_$c==` : data -> data -> bool
     = \(ds : data) (ds : data) ->
         let
@@ -337,9 +357,6 @@ let
                    (headList {data} l)
                    (unIData (headList {data} (tailList {data} l)))) ]
             {all dead. dead}
-  data (Maybe :: * -> *) a | Maybe_match where
-    Just : a -> Maybe a
-    Nothing : Maybe a
   !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
      all a. (\a -> data -> a) a -> data -> Maybe a
     = /\a ->
@@ -1173,35 +1190,7 @@ in
                                                                a')
                                                             [ (/\dead -> False)
                                                             , (/\dead ->
-                                                                 Maybe_match
-                                                                   {integer}
-                                                                   b
-                                                                   {all dead.
-                                                                      bool}
-                                                                   (\(a :
-                                                                        integer) ->
-                                                                      /\dead ->
-                                                                        Maybe_match
-                                                                          {integer}
-                                                                          b'
-                                                                          {bool}
-                                                                          (\(a :
-                                                                               integer) ->
-                                                                             equalsInteger
-                                                                               a
-                                                                               a)
-                                                                          False)
-                                                                   (/\dead ->
-                                                                      Maybe_match
-                                                                        {integer}
-                                                                        b'
-                                                                        {bool}
-                                                                        (\(ipv :
-                                                                             integer) ->
-                                                                           False)
-                                                                        True)
-                                                                   {all dead.
-                                                                      dead}) ]
+                                                                 `$dEq` b b') ]
                                                             {all dead. dead})
                                                        (\(void : unit) ->
                                                           fail ()))
@@ -1210,8 +1199,7 @@ in
                                         `$mTxCertRegStaking`
                                           {bool}
                                           eta
-                                          (\(a : data)
-                                            (b : Maybe integer) ->
+                                          (\(a : data) (b : Maybe integer) ->
                                              `$mTxCertRegStaking`
                                                {bool}
                                                v
@@ -1221,33 +1209,7 @@ in
                                                     (all dead. bool)
                                                     (`$fEqCredential_$c==` a a')
                                                     [ (/\dead -> False)
-                                                    , (/\dead ->
-                                                         Maybe_match
-                                                           {integer}
-                                                           b
-                                                           {all dead. bool}
-                                                           (\(a : integer) ->
-                                                              /\dead ->
-                                                                Maybe_match
-                                                                  {integer}
-                                                                  b'
-                                                                  {bool}
-                                                                  (\(a :
-                                                                       integer) ->
-                                                                     equalsInteger
-                                                                       a
-                                                                       a)
-                                                                  False)
-                                                           (/\dead ->
-                                                              Maybe_match
-                                                                {integer}
-                                                                b'
-                                                                {bool}
-                                                                (\(ipv :
-                                                                     integer) ->
-                                                                   False)
-                                                                True)
-                                                           {all dead. dead}) ]
+                                                    , (/\dead -> `$dEq` b b') ]
                                                     {all dead. dead})
                                                (\(void : unit) -> fail ()))
                                           (\(void : unit) -> fail ()))
