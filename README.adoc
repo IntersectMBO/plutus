@@ -70,4 +70,4 @@ The documentation for the metatheory can be found https://plutus.cardano.interse
 
 You are free to copy, modify, and distribute this software under the terms of the Apache 2.0 license.
 
-See the link:./LICENSE.md[LICENSE] and link:./NOTICE[NOTICE] files for details.
+See the link:./LICENSE.md[LICENSE] and link:./NOTICE.md[NOTICE] files for details.
