@@ -389,32 +389,11 @@ valueContains v1 v2
   | otherwise = BuiltinSuccess $ Map.isSubmapOfBy (Map.isSubmapOfBy (<=)) (unpack v2) (unpack v1)
 {-# INLINEABLE valueContains #-}
 
-{-| \(O(n_{1}) + O(n_{2})\), where \(n_{1}\) and \(n_{2}\) are the total sizes
-(i.e., sum of inner map sizes) of the two maps.
--}
-unionValue :: Value -> Value -> BuiltinResult Value
-unionValue (unpack -> vA) (unpack -> vB) =
-  pack' <$>
-    M.mergeA
-      M.preserveMissing
-      M.preserveMissing
-      ( M.zipWithMaybeAMatched \_ innerA innerB ->
-          fmap (\inner -> if Map.null inner then Nothing else Just inner) $
-            M.mergeA
-              M.preserveMissing
-              M.preserveMissing
-              ( M.zipWithMaybeAMatched \_ x y ->
-                  case addQuantity x y of
-                    Just z -> pure if z == zeroQuantity then Nothing else Just z
-                    Nothing ->
-                      fail "unionValue: quantity is out of the signed 128-bit integer bounds"
-              )
-              innerA
-              innerB
-      )
-      vA
-      vB
-{-# INLINEABLE unionValue #-}
+
+valueOk :: NestedMap -> Bool
+valueOk = Map.foldr (\i acc -> acc && innerOk i && acc) True
+  where innerOk = Map.foldr (\q acc -> acc && minBound <= q && q <= maxBound) True
+{-# INLINEABLE valueOk #-}
 
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
 This is the denotation of @ValueData@ in Plutus V1, V2 and V3.
