@@ -264,7 +264,7 @@ scaleValueBenchmark gen =
 scaleValueArgs :: (StatefulGen g m) => g -> m [(Integer, Value)]
 scaleValueArgs gen = do
   replicateM 100 $ do
-    (i1, i2) <- genBoundedProduct gen
+    (i1, _i2) <- genBoundedProduct gen
     val <- generateValueWithQuantity (mkQuantity $ sqrtMax - 1000) gen
     pure (i1, val)
 
@@ -450,7 +450,8 @@ genBoundedProduct gen = do
   pure (i1, i2)
 
 sqrtMax :: Integer
-sqrtMax = floor . sqrt . fromIntegral $ unQuantity (maxBound :: Quantity)
+sqrtMax = floor  (sqrt . fromIntegral $ unQuantity (maxBound :: Quantity) :: Double)
+
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------

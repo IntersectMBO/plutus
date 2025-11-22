@@ -75,8 +75,7 @@ renderSquareOfTwoVariableSumFunction
   -> String
   -> String
 renderSquareOfTwoVariableSumFunction
-  (SquareOfTwoVariableSumFunction c00 c11) var1 var2 =
-    undefined
+  (SquareOfTwoVariableSumFunction _c00 _c11) _var1 _var2 = "sq"
 
 renderExpModCostingFunction
   :: ExpModCostingFunction
