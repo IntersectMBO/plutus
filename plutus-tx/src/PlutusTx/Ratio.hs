@@ -31,9 +31,6 @@ module PlutusTx.Ratio (
   recip,
   abs,
   negate,
-  half,
-  fromGHC,
-  toGHC,
   gcd,
 ) where
 
@@ -49,13 +46,13 @@ import PlutusTx.Maybe qualified as P
 import PlutusTx.Numeric qualified as P
 import PlutusTx.Ord qualified as P
 import PlutusTx.Trace qualified as P
+import PlutusTx.Enum
 
 import PlutusTx.Builtins qualified as Builtins
 
 import Control.Monad (guard)
 import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.:))
 import GHC.Generics
-import GHC.Real qualified as Ratio
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), HasSchemaDefinition)
 import Prelude (Ord (..), Show, (*))
@@ -228,12 +225,6 @@ ratio n d
               (d `Builtins.quotientInteger` gcd')
 {-# INLINEABLE ratio #-}
 
-{-| Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value. Does not
-work on-chain.
--}
-toGHC :: Rational -> Ratio.Rational
-toGHC (Rational n d) = n Ratio.% d
-
 {-| Returns the numerator of its argument.
 
 = Note
@@ -259,19 +250,10 @@ denominator :: Rational -> Integer
 denominator (Rational _ d) = d
 {-# INLINEABLE denominator #-}
 
--- | 0.5
-half :: Rational
-half = Rational 1 2
-{-# INLINEABLE half #-}
-
 -- | Converts an 'Integer' into the equivalent 'Rational'.
 fromInteger :: Integer -> Rational
 fromInteger num = Rational num P.one
 {-# INLINEABLE fromInteger #-}
-
--- | Converts a GHC 'Ratio.Rational', preserving value. Does not work on-chain.
-fromGHC :: Ratio.Rational -> Rational
-fromGHC r = unsafeRatio (Ratio.numerator r) (Ratio.denominator r)
 
 {-| Produces the additive inverse of its argument.
 
@@ -342,6 +324,7 @@ round :: Rational -> Integer
 round x =
   let (n, r) = properFraction x
       m = if r P.< P.zero then n P.- P.one else n P.+ P.one
+      half = Rational 1 2
       flag = abs r P.- half
    in if
         | flag P.< P.zero -> n
@@ -374,6 +357,40 @@ euclid x y
   | y P.== P.zero = x
   | P.True = euclid y (x `Builtins.modInteger` y)
 {-# INLINEABLE euclid #-}
+
+instance Enum Rational where
+  {-# INLINEABLE succ #-}
+  succ (Rational n d) = Rational (n `Builtins.addInteger` d) d
+  {-# INLINEABLE pred #-}
+  pred (Rational n d) = Rational (n `Builtins.subtractInteger` d) d
+  {-# INLINEABLE toEnum #-}
+  toEnum = fromInteger
+  {-# INLINEABLE fromEnum #-}
+  fromEnum = truncate
+  {-# INLINEABLE enumFromTo #-}
+  enumFromTo x lim
+    -- See why adding half is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
+    | x > lim P.+ Rational 1 2 = []
+    | P.True = x : enumFromTo (succ x) lim
+  {-# INLINEABLE enumFromThenTo #-}
+  enumFromThenTo x y lim =
+    if delta >= P.zero
+      then up_list x
+      else dn_list x
+   where
+    delta = y P.- x
+    -- denominator of delta cannot be zero because it is constructed from two well-formed ratios. So it is safe to use unsafeRatio
+    mid = numerator delta `unsafeRatio` (denominator delta P.* 2)
+    up_list x1 =
+      -- See why adding mid is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
+      if x1 > lim P.+ mid
+        then []
+        else x1 : up_list (x1 P.+ delta)
+    dn_list x1 =
+      -- See why adding mid is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
+      if x1 < lim P.+ mid
+        then []
+        else x1 : dn_list (x1 P.+ delta)
 
 $(makeLift ''Rational)
 

@@ -17,7 +17,7 @@ import Control.Exception (SomeException, evaluate, try)
 import Control.Monad.Except (runExceptT)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Proxy (Proxy (..))
-import Data.Ratio ((%))
+import Data.Ratio (Ratio,(%), numerator, denominator)
 import GHC.Exts (fromString)
 import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
@@ -50,7 +50,7 @@ tests =
       [ embed testRatioInterop
       , testRatioProperty "round" Ratio.round round
       , testRatioProperty "truncate" Ratio.truncate truncate
-      , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs
+      , testRatioProperty "abs" (fmap (\ r -> Ratio.numerator r % Ratio.denominator r) Ratio.abs) abs
       , embed $ testPropertyNamed "ord" "testOrd" testOrd
       , embed $ testPropertyNamed "divMod" "testDivMod" testDivMod
       , embed $ testPropertyNamed "quotRem" "testQuotRem" testQuotRem
@@ -69,9 +69,12 @@ tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
 -- the body, i.e. outside of the call to 'try', defeating the whole purpose.
 tryHard ~a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
 
+fromGHC :: Ratio Integer -> Ratio.Rational
+fromGHC r = Ratio.unsafeRatio (numerator r) (denominator r)
+
 testRatioInterop :: TestTree
 testRatioInterop = testCase "ratioInterop" do
-  runExceptT (runUPlc [getPlcNoAnn roundPlc, snd (Lift.liftProgramDef (Ratio.fromGHC 3.75))])
+  runExceptT (runUPlc [getPlcNoAnn roundPlc, snd (Lift.liftProgramDef (fromGHC 3.75))])
     >>= \case
       Left e -> assertFailure (show e)
       Right r -> r @?= Core.mkConstant () (4 :: Integer)
@@ -82,7 +85,7 @@ testRatioProperty nm plutusFunc ghcFunc =
   embed $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
     rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
     let ghcResult = ghcFunc rat
-        plutusResult = plutusFunc $ Ratio.fromGHC rat
+        plutusResult = plutusFunc $ fromGHC rat
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -117,7 +120,7 @@ testOrd = Hedgehog.property $ do
   n1 <- Hedgehog.forAll $ (%) <$> gen <*> gen'
   n2 <- Hedgehog.forAll $ (%) <$> gen <*> gen'
   ghcResult <- tryHard $ n1 <= n2
-  plutusResult <- tryHard $ (PlutusTx.<=) (Ratio.fromGHC n1) (Ratio.fromGHC n2)
+  plutusResult <- tryHard $ (PlutusTx.<=) (fromGHC n1) (fromGHC n2)
   Hedgehog.annotateShow ghcResult
   Hedgehog.annotateShow plutusResult
   Hedgehog.assert (ghcResult == plutusResult)
