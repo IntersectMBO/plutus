@@ -32,8 +32,8 @@ let
   project = import ./project.nix
     { inherit inputs pkgs lib metatheory r-with-packages utils; };
 
-  mkShell = ghc: import ./shell.nix
-    { inherit inputs pkgs lib project agda-tools metatheory r-with-packages ghc; };
+  mkShell = project-variant: import ./shell.nix
+    { inherit inputs pkgs lib project agda-tools metatheory r-with-packages project-variant; };
 
   exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
@@ -113,7 +113,7 @@ let
 
   devShells =
     (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.ghc96-profiled; } //
+    { profiled = mkShell "ghc96-profiled"; } //
     { metatheory-jailbreak = metatheory-jailbreak-shell; };
 
   full-nested-ci-jobs = {
