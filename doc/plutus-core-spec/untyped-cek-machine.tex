@@ -126,7 +126,7 @@ state.
  s;\rho & \compute \delay{M}                         &~\mapsto~& s\return \VDelay{M}{\rho}\\
  s;\rho & \compute \force{M}                         &~\mapsto~& \inForceFrame{} \cons s;\rho \compute M \\
  s;\rho & \compute \appU{M}{N}                       &~\mapsto~& \inAppLeftFrame{(N,\rho)} \cons s ;\rho \compute M\\
- s;\rho & \compute \constr{i}{M \cons \repetition{M}} &~\mapsto~& \inConstrFrame{i}{}{(\repetition{M},\rho)} \cons s ;\rho \compute M\\
+  s;\rho & \compute \constr{i}{M \cons \repetition{M}} &~\mapsto~& \inConstrFrame{i}{[]}{(\repetition{M},\rho)} \cons s ;\rho \compute M\\
  s;\rho & \compute \constr{i}{[]} &~\mapsto~&  s \return \VConstr{i}{[]}\\
  s;\rho & \compute \kase{N}{\repetition{M}} &~\mapsto~&  \inCaseFrame{(\repetition{M},\rho)} \cons s ;\rho \compute N\\
 % No nullary builtins (yet)
@@ -155,7 +155,7 @@ state.
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
                          s \return \VConstr{i}{\repetition{V} \cons V} \\
 \inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
-                         \inAppLeftFrame{V_m} \cons \cdots \cons \inAppLeftFrame{V_1} \cons s ;\rho \compute M_{i+1} \enskip \text{if $0 \leq i \leq n-1$}
+                         \inAppLeftFrame{V_1} \cons \cdots \cons \inAppLeftFrame{V_m} \cons s ;\rho \compute M_{i+1} \enskip \text{if $0 \leq i \leq n-1$}
 \end{alignat*}
 \end{minipage}
     \caption{CEK machine transitions for Plutus Core}
