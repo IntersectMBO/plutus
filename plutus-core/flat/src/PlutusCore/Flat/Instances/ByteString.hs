@@ -1,8 +1,7 @@
--- | Flat instances for the bytestring library
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module PlutusCore.Flat.Instances.ByteString
-  ()
+-- | Flat instances for the bytestring library
+module PlutusCore.Flat.Instances.ByteString ()
 where
 
 import Data.ByteString qualified as B
@@ -12,12 +11,12 @@ import PlutusCore.Flat.Class
 import PlutusCore.Flat.Decoder
 import PlutusCore.Flat.Encoder
 
--- $setup
--- >>> import PlutusCore.Flat.Instances.Test
--- >>> import PlutusCore.Flat.Instances.Base
--- >>> import qualified Data.ByteString               as B
--- >>> import qualified Data.ByteString.Lazy          as L
--- >>> import qualified Data.ByteString.Short         as SBS
+{-$setup
+>>> import PlutusCore.Flat.Instances.Test
+>>> import PlutusCore.Flat.Instances.Base
+>>> import qualified Data.ByteString               as B
+>>> import qualified Data.ByteString.Lazy          as L
+>>> import qualified Data.ByteString.Short         as SBS -}
 
 {-|
 ByteString, ByteString.Lazy and ByteString.Short are all encoded as Prealigned Arrays:
@@ -61,28 +60,24 @@ Pre-alignment ensures that a ByteString always starts at a byte boundary:
 All ByteStrings are encoded in the same way:
 
 >>> all (tst (B.pack [55]) ==) [tst (L.pack [55]),tst (SBS.pack [55])]
-True
--}
+True -}
 instance Flat B.ByteString where
   encode = eBytes
-  size   = sBytes
+  size = sBytes
   decode = dByteString
 
-{- |
+{-|
 >>>  tst ((False,True,False,L.pack [11,22,33]))
-(True,51,[65,3,11,22,33,0])
--}
+(True,51,[65,3,11,22,33,0]) -}
 instance Flat L.ByteString where
   encode = eLazyBytes
-  size   = sLazyBytes
+  size = sLazyBytes
   decode = dLazyByteString
 
-{- |
+{-|
 >>>  tst ((False,True,False,SBS.pack [11,22,33]))
-(True,51,[65,3,11,22,33,0])
--}
+(True,51,[65,3,11,22,33,0]) -}
 instance Flat SBS.ShortByteString where
   encode = eShortBytes
-  size   = sShortBytes
+  size = sShortBytes
   decode = dShortByteString
-

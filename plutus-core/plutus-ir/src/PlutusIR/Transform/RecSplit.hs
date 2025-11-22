@@ -1,9 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
-module PlutusIR.Transform.RecSplit
-    (recSplit, recSplitPass) where
+{-# LANGUAGE TupleSections #-}
+
+module PlutusIR.Transform.RecSplit (recSplit, recSplitPass) where
 
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
@@ -76,38 +76,44 @@ recSplitPass
 recSplitPass tcconfig = simplePass "recursive let split" tcconfig recSplit
 
 {-|
-Apply letrec splitting, recursively in bottom-up fashion.
--}
-recSplit :: forall uni fun a name tyname.
-           (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-         => Term tyname name uni fun a
-         -> Term tyname name uni fun a
+Apply letrec splitting, recursively in bottom-up fashion. -}
+recSplit
+  :: forall uni fun a name tyname
+   . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+  => Term tyname name uni fun a
+  -> Term tyname name uni fun a
 recSplit = transformOf termSubterms recSplitStep
 
 {-|
-Apply splitting for a single letrec group.
--}
-recSplitStep :: forall uni fun a name tyname.
-               (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-             => Term tyname name uni fun a -> Term tyname name uni fun a
+Apply splitting for a single letrec group. -}
+recSplitStep
+  :: forall uni fun a name tyname
+   . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+  => Term tyname name uni fun a -> Term tyname name uni fun a
 recSplitStep = \case
-    -- See Note [LetRec splitting pass]
-    Let a Rec bs t ->
-        let -- a table from principal id to the its corresponding 'Binding'
-            bindingsTable :: M.Map PLC.Unique (Binding tyname name uni fun a)
-            bindingsTable = M.fromList . NE.toList $ fmap (\ b -> (principal b, b)) bs
-            hereSccs =
-                       fromRight (error "Cycle detected in the scc-graph. This shouldn't happen in the first place.")
-                       -- we take the topological sort (for the correct order)
-                       -- from the SCCs (for the correct grouping) of the local dep-graph
-                       . AM.topSort . AM.scc $ buildLocalDepGraph bs
+  -- See Note [LetRec splitting pass]
+  Let a Rec bs t ->
+    let
+      -- a table from principal id to the its corresponding 'Binding'
+      bindingsTable :: M.Map PLC.Unique (Binding tyname name uni fun a)
+      bindingsTable = M.fromList . NE.toList $ fmap (\b -> (principal b, b)) bs
+      hereSccs =
+        fromRight (error "Cycle detected in the scc-graph. This shouldn't happen in the first place.")
+          -- we take the topological sort (for the correct order)
+          -- from the SCCs (for the correct grouping) of the local dep-graph
+          . AM.topSort
+          . AM.scc
+          $ buildLocalDepGraph bs
 
-            genLetFromScc acc scc = mkLet a
-                (if isAcyclic scc then NonRec else Rec)
-                (M.elems . M.restrictKeys bindingsTable $ AMN.vertexSet scc)
-                acc
-        in Foldable.foldl' genLetFromScc t hereSccs
-    t  -> t
+      genLetFromScc acc scc =
+        mkLet
+          a
+          (if isAcyclic scc then NonRec else Rec)
+          (M.elems . M.restrictKeys bindingsTable $ AMN.vertexSet scc)
+          acc
+     in
+      Foldable.foldl' genLetFromScc t hereSccs
+  t -> t
 
 {-|
 It constructs a dependency graph for the currently-examined let-group.
@@ -117,49 +123,49 @@ dependencies between those bindings.
 
 This local graph may contain loops:
 - A "self-edge" indicates a self-recursive binding.
-- Any other loop indicates mutual-recursive bindings.
--}
-buildLocalDepGraph :: forall uni fun a name tyname.
-                     (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-                   => NE.NonEmpty (Binding tyname name uni fun a) -> AM.AdjacencyMap PLC.Unique
+- Any other loop indicates mutual-recursive bindings. -}
+buildLocalDepGraph
+  :: forall uni fun a name tyname
+   . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+  => NE.NonEmpty (Binding tyname name uni fun a) -> AM.AdjacencyMap PLC.Unique
 buildLocalDepGraph bs =
-    -- join together
-    AM.overlays . NE.toList $ fmap bindingSubGraph bs
-    where
-      -- a map of a all introduced binding ids of this letgroup to their belonging principal id
-      idTable :: M.Map PLC.Unique PLC.Unique
-      idTable = foldMap1 (\ b -> M.fromList (fmap (,principal b) $ b^..bindingIds)) bs
+  -- join together
+  AM.overlays . NE.toList $ fmap bindingSubGraph bs
+  where
+    -- a map of a all introduced binding ids of this letgroup to their belonging principal id
+    idTable :: M.Map PLC.Unique PLC.Unique
+    idTable = foldMap1 (\b -> M.fromList (fmap (,principal b) $ b ^.. bindingIds)) bs
 
-      -- Given a binding, it intersects the free uniques of the binding,
-      -- with the introduced uniques of the current let group (all bindings).
-      -- The result of this intersection is the "local" dependencies of the binding to other
-      -- "sibling" bindings of this let group or to itself (if self-recursive).
-      -- It returns a graph which connects this binding to all of its calculated "local" dependencies.
-      bindingSubGraph :: Binding tyname name uni fun a -> AM.AdjacencyMap PLC.Unique
-      bindingSubGraph b =
-          -- the free uniques (variables or tyvariables) that occur inside this binding
-          -- Special case for datatype bindings:
-          -- To find out if the binding is self-recursive,
-          -- we treat it like it was originally belonging to a let-nonrec (`ftvBinding NonRec`).
-          -- Then, if it the datatype is indeed self-recursive, the call to `ftvBinding NonRec` will return
-          -- its typeconstructor as free.
-          let freeUniques = setOf (fvBinding . PLC.theUnique <^> ftvBinding NonRec . PLC.theUnique) b
-              -- the "local" dependencies
-              occursIds = M.keysSet idTable `S.intersection` freeUniques
-              -- maps the ids of the "local" dependencies to their principal uniques.
-              -- See Note [Principal id]
-              occursPrincipals = nub $ M.elems $ idTable `M.restrictKeys` occursIds
-          in AM.connect (AM.vertex $ principal b) (AM.vertices occursPrincipals)
-
+    -- Given a binding, it intersects the free uniques of the binding,
+    -- with the introduced uniques of the current let group (all bindings).
+    -- The result of this intersection is the "local" dependencies of the binding to other
+    -- "sibling" bindings of this let group or to itself (if self-recursive).
+    -- It returns a graph which connects this binding to all of its calculated "local" dependencies.
+    bindingSubGraph :: Binding tyname name uni fun a -> AM.AdjacencyMap PLC.Unique
+    bindingSubGraph b =
+      -- the free uniques (variables or tyvariables) that occur inside this binding
+      -- Special case for datatype bindings:
+      -- To find out if the binding is self-recursive,
+      -- we treat it like it was originally belonging to a let-nonrec (`ftvBinding NonRec`).
+      -- Then, if it the datatype is indeed self-recursive, the call to `ftvBinding NonRec` will return
+      -- its typeconstructor as free.
+      let freeUniques = setOf (fvBinding . PLC.theUnique <^> ftvBinding NonRec . PLC.theUnique) b
+          -- the "local" dependencies
+          occursIds = M.keysSet idTable `S.intersection` freeUniques
+          -- maps the ids of the "local" dependencies to their principal uniques.
+          -- See Note [Principal id]
+          occursPrincipals = nub $ M.elems $ idTable `M.restrictKeys` occursIds
+       in AM.connect (AM.vertex $ principal b) (AM.vertices occursPrincipals)
 
 {-|
 A function that returns a single 'Unique' for a particular binding.
-See Note [Principal id]
--}
-principal :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-            => Binding tyname name uni fun a
-            -> PLC.Unique
-principal = \case TermBind _ _ (VarDecl _ n _) _                             -> n^. PLC.theUnique
-                  TypeBind _ (TyVarDecl _ n _) _                             -> n ^. PLC.theUnique
-                  -- arbitrary: uses the type constructor's unique as the principal unique of this data binding group
-                  DatatypeBind _ (Datatype _ (TyVarDecl _ tyConstr _) _ _ _) -> tyConstr ^. PLC.theUnique
+See Note [Principal id] -}
+principal
+  :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+  => Binding tyname name uni fun a
+  -> PLC.Unique
+principal = \case
+  TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.theUnique
+  TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.theUnique
+  -- arbitrary: uses the type constructor's unique as the principal unique of this data binding group
+  DatatypeBind _ (Datatype _ (TyVarDecl _ tyConstr _) _ _ _) -> tyConstr ^. PLC.theUnique

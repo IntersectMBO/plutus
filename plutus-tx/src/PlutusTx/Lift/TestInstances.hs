@@ -1,12 +1,12 @@
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE QuantifiedConstraints    #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE UndecidableSuperClasses  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module PlutusTx.Lift.TestInstances () where
 
@@ -23,18 +23,17 @@ type BuiltinSatisfies
   -> (GHC.Type -> GHC.Constraint)
   -> GHC.Type
   -> GHC.Constraint
-class ((pre (ToBuiltin a)) => post (ToBuiltin a)) => BuiltinSatisfies pre post a
+class (pre (ToBuiltin a) => post (ToBuiltin a)) => BuiltinSatisfies pre post a
 
-instance ((pre (ToBuiltin a)) => post (ToBuiltin a)) => BuiltinSatisfies pre post a
+instance (pre (ToBuiltin a) => post (ToBuiltin a)) => BuiltinSatisfies pre post a
 
 {-| Test that each built-in type @a@ from 'PLC.DefaultUni' satisfies @post (ToBuiltin a)@ given
-@pre (ToBuiltin a)@.
--}
+@pre (ToBuiltin a)@. -}
 type TestAllBuiltinsSatisfy
   :: (GHC.Type -> GHC.Constraint)
   -> (GHC.Type -> GHC.Constraint)
   -> GHC.Constraint
-class (PLC.DefaultUni `PLC.Everywhere` BuiltinSatisfies pre post) => TestAllBuiltinsSatisfy pre post
+class PLC.DefaultUni `PLC.Everywhere` BuiltinSatisfies pre post => TestAllBuiltinsSatisfy pre post
 
 -- | Test that each built-in type from 'PLC.DefaultUni' has a 'Typeable' instance.
 instance
@@ -45,8 +44,7 @@ instance
 {-| Test that each built-in type from 'PLC.DefaultUni' has a 'Lift' instance. Since the 'Lift'
 instances are defined in terms of 'fromBuiltin', this also tests that each built-in type has a
 'FromBuiltin' instance. Which in turn requires a 'ToBuiltin' instance to exist due to the
-superclass constraint, so this is implicitly tested as well.
--}
+superclass constraint, so this is implicitly tested as well. -}
 instance
   TestAllBuiltinsSatisfy
     (PLC.AllBuiltinArgs PLC.DefaultUni HasFromBuiltin)

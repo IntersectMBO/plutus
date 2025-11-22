@@ -1,13 +1,12 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeFamilies #-}
 
-{- |
+{-|
 Call site inlining machinery. We inline if the size of the inlined result is not larger.
-See Note [Inlining and beta reduction of functions].
--}
+See Note [Inlining and beta reduction of functions]. -}
 module PlutusIR.Transform.Inline.CallSiteInline where
 
 import PlutusCore qualified as PLC
@@ -56,22 +55,21 @@ perform beta reduction.
 
 -}
 
-{- | Apply the RHS of the given variable to the given arguments, and beta-reduce
-the application, if possible.
--}
-applyAndBetaReduce ::
-  forall tyname name uni fun ann.
-  (InliningConstraints tyname name uni fun) =>
-  -- | The rhs of the variable, should have been renamed already
-  Term tyname name uni fun ann ->
-  -- | The arguments, already processed
-  AppContext tyname name uni fun ann ->
-  InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+{-| Apply the RHS of the given variable to the given arguments, and beta-reduce
+the application, if possible. -}
+applyAndBetaReduce
+  :: forall tyname name uni fun ann
+   . InliningConstraints tyname name uni fun
+  => Term tyname name uni fun ann
+  -- ^ The rhs of the variable, should have been renamed already
+  -> AppContext tyname name uni fun ann
+  -- ^ The arguments, already processed
+  -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 applyAndBetaReduce rhs args0 = do
-  let go ::
-        Term tyname name uni fun ann ->
-        AppContext tyname name uni fun ann ->
-        InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+  let go
+        :: Term tyname name uni fun ann
+        -> AppContext tyname name uni fun ann
+        -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc args = case (acc, args) of
         (LamAbs _ann n _ty tm, TermAppContext arg _ args') -> do
           safe <- safeToBetaReduce n arg tm
@@ -79,8 +77,8 @@ applyAndBetaReduce rhs args0 = do
             then do
               acc' <- do
                 termSubstNamesM -- substitute the term param with the arg in the function body
-                  -- rename before substitution to ensure global uniqueness (may not be needed but
-                  -- no harm in renaming just to be sure)
+                -- rename before substitution to ensure global uniqueness (may not be needed but
+                -- no harm in renaming just to be sure)
                   (\tmName -> if tmName == n then Just <$> PLC.rename arg else pure Nothing)
                   tm -- drop the beta reduced term lambda
               go acc' args'
@@ -93,67 +91,70 @@ applyAndBetaReduce rhs args0 = do
               tm -- drop the beta reduced type lambda
           go acc' args'
         -- term/type argument mismatch, don't inline
-        (LamAbs{}, TypeAppContext{}) -> pure Nothing
-        (TyAbs{}, TermAppContext{}) -> pure Nothing
+        (LamAbs {}, TypeAppContext {}) -> pure Nothing
+        (TyAbs {}, TermAppContext {}) -> pure Nothing
         -- no more lambda abstraction, just return the processed application
         (_, _) -> pure . Just $ fillAppContext acc args
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
       -- `let !a = arg in body`.
-      safeToBetaReduce ::
+      safeToBetaReduce
         -- `a`
-        name ->
+        :: name
         -- `arg`
-        Term tyname name uni fun ann ->
+        -> Term tyname name uni fun ann
         -- the body `a` will be beta reduced in
-        Term tyname name uni fun ann ->
-        InlineM tyname name uni fun ann Bool
+        -> Term tyname name uni fun ann
+        -> InlineM tyname name uni fun ann Bool
       safeToBetaReduce = shouldUnconditionallyInline False Strict
   go rhs args0
 
 -- | Consider inlining a variable. For applications, consider whether to apply and beta reduce.
-callSiteInline ::
-  forall tyname name uni fun ann.
-  (InliningConstraints tyname name uni fun) =>
-  -- | The term size if it were not inlined.
-  AstSize ->
-  -- | The `Utils.VarInfo` of the variable (the head of the term).
-  InlineVarInfo tyname name uni fun ann ->
-  -- | The application context of the term, already processed.
-  AppContext tyname name uni fun ann ->
-  InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+callSiteInline
+  :: forall tyname name uni fun ann
+   . InliningConstraints tyname name uni fun
+  => AstSize
+  -- ^ The term size if it were not inlined.
+  -> InlineVarInfo tyname name uni fun ann
+  -- ^ The `Utils.VarInfo` of the variable (the head of the term).
+  -> AppContext tyname name uni fun ann
+  -- ^ The application context of the term, already processed.
+  -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 callSiteInline processedTSize = go
   where
     go varInfo args = do
-        let
-          defAsInlineTerm = varRhs varInfo
-          inlineTermToTerm :: InlineTerm tyname name uni fun ann
-              -> Term tyname name uni fun ann
-          inlineTermToTerm (Done (Dupable var)) = var
-          -- extract out the rhs without renaming, we only rename
-          -- when we know there's substitution
-          headRhs = inlineTermToTerm defAsInlineTerm
-          -- The definition itself will be inlined, so we need to check that the cost
-          -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
-          -- We would have paid that regardless.
-          -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
-          -- every call site regardless. The work that is being duplicated is
-          -- the work for the lambda.
-          costIsOk = costIsAcceptable headRhs
-        -- check if binding is pure to avoid duplicated effects.
-        -- For strict bindings we can't accidentally make any effects happen less often
-        -- than it would have before, but we can make it happen more often.
-        -- We could potentially do this safely in non-conservative mode.
-        rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
-        thresh <- view iiInlineCallsiteGrowth
-        if costIsOk && rhsPure then do
+      let
+        defAsInlineTerm = varRhs varInfo
+        inlineTermToTerm
+          :: InlineTerm tyname name uni fun ann
+          -> Term tyname name uni fun ann
+        inlineTermToTerm (Done (Dupable var)) = var
+        -- extract out the rhs without renaming, we only rename
+        -- when we know there's substitution
+        headRhs = inlineTermToTerm defAsInlineTerm
+        -- The definition itself will be inlined, so we need to check that the cost
+        -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+        -- We would have paid that regardless.
+        -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
+        -- every call site regardless. The work that is being duplicated is
+        -- the work for the lambda.
+        costIsOk = costIsAcceptable headRhs
+      -- check if binding is pure to avoid duplicated effects.
+      -- For strict bindings we can't accidentally make any effects happen less often
+      -- than it would have before, but we can make it happen more often.
+      -- We could potentially do this safely in non-conservative mode.
+      rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
+      thresh <- view iiInlineCallsiteGrowth
+      if costIsOk && rhsPure
+        then do
           -- rename the rhs of the variable before any substitution
           renamedRhs <- rename headRhs
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
-              let -- Inline only if the size is no bigger than not inlining plus threshold.
-                  sizeIsOk = termAstSize inlined <= processedTSize + max 0 thresh
+              let
+                -- Inline only if the size is no bigger than not inlining plus threshold.
+                sizeIsOk = termAstSize inlined <= processedTSize + max 0 thresh
               pure $ if sizeIsOk then Just inlined else Nothing
             Nothing -> pure Nothing
         else pure Nothing

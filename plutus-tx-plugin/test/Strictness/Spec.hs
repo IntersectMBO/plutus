@@ -1,6 +1,6 @@
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE Strict          #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
@@ -11,8 +11,8 @@ import Test.Tasty.Extras
 import PlutusTx qualified as Tx
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 tests :: TestNested
 tests =

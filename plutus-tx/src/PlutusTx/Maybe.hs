@@ -18,8 +18,7 @@ import Prelude (Maybe (..))
   >>> isJust Nothing
   False
   >>> isJust (Just "plutus")
-  True
--}
+  True -}
 isJust :: Maybe a -> Bool
 isJust m = case m of Just _ -> True; _ -> False
 {-# INLINEABLE isJust #-}
@@ -29,8 +28,7 @@ isJust m = case m of Just _ -> True; _ -> False
   >>> isNothing Nothing
   True
   >>> isNothing (Just "plutus")
-  False
--}
+  False -}
 isNothing :: Maybe a -> Bool
 isNothing m = case m of Just _ -> False; _ -> True
 {-# INLINEABLE isNothing #-}
@@ -40,12 +38,11 @@ isNothing m = case m of Just _ -> False; _ -> True
   >>> maybe "platypus" (\s -> s) (Just "plutus")
   "plutus"
   >>> maybe "platypus" (\s -> s) Nothing
-  "platypus"
--}
+  "platypus" -}
 maybe :: b -> (a -> b) -> Maybe a -> b
 maybe b f m = case m of
   Nothing -> b
-  Just a  -> f a
+  Just a -> f a
 {-# INLINEABLE maybe #-}
 
 -- | Plutus Tx version of 'Data.Maybe.fromMaybe'
@@ -56,8 +53,7 @@ fromMaybe a = maybe a id
 {-| Plutus Tx version of 'Data.Maybe.mapMaybe'.
 
   >>> mapMaybe (\i -> if i == 2 then Just '2' else Nothing) [1, 2, 3, 4]
-  "2"
--}
+  "2" -}
 mapMaybe :: (a -> Maybe b) -> [a] -> [b]
 mapMaybe p = foldr (\e xs -> maybe xs (: xs) (p e)) []
 {-# INLINEABLE mapMaybe #-}

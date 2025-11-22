@@ -1,12 +1,12 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 
 module PlutusTx.Blueprint.Definition.Derive where
 
@@ -16,19 +16,18 @@ import PlutusTx.Blueprint.Definition.Unroll (HasBlueprintDefinition (definitionI
 import PlutusTx.Blueprint.Schema (Schema (..))
 
 -- | Derive a 'Definitions' value for a list of types.
-deriveDefinitions :: forall ts. (DefinitionsFor (UnrollAll ts)) => Definitions (UnrollAll ts)
+deriveDefinitions :: forall ts. DefinitionsFor (UnrollAll ts) => Definitions (UnrollAll ts)
 deriveDefinitions = definitionsFor @(UnrollAll ts)
 
 -- | Construct a 'Schema' that is a reference to a schema definition.
-definitionRef :: forall t ts. (HasBlueprintDefinition t) => Schema ts
+definitionRef :: forall t ts. HasBlueprintDefinition t => Schema ts
 definitionRef = SchemaDefinitionRef (definitionId @t)
 
 {-| This class and its two instances are used internally to derive 'Definitions'
-for a given list of types.
--}
+for a given list of types. -}
 type DefinitionsFor ts = DefinitionsFor' ts ts
 
-definitionsFor :: forall ts. (DefinitionsFor ts) => Definitions ts
+definitionsFor :: forall ts. DefinitionsFor ts => Definitions ts
 definitionsFor = definitionsFor' @ts @ts
 
 class DefinitionsFor' referencedTypes acc where

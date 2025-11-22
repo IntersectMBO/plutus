@@ -1,6 +1,6 @@
-{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Show.Spec where
 
@@ -16,11 +16,11 @@ import Data.Text qualified as Text
 import Hedgehog
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Prelude hiding (Show (..))
 import System.FilePath
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
+import Prelude hiding (Show (..))
 
 toHaskellString :: BuiltinString -> String
 toHaskellString (BI.BuiltinString t) = Text.unpack t
@@ -37,7 +37,7 @@ showByteStringBase16 = property $ do
       builtinBytestring = BI.BuiltinByteString bytestring
   toHaskellString (show builtinBytestring) === Char8.unpack hex
 
-goldenShow :: forall a. (Show a) => TestName -> a -> TestNested
+goldenShow :: forall a. Show a => TestName -> a -> TestNested
 goldenShow name x = do
   path <- ask
   let fp = foldr (</>) (name ++ ".golden.show") path

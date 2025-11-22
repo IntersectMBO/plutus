@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.Parser.Builtin where
@@ -58,13 +58,12 @@ hexByte = do
 conBS :: Parser ByteString
 conBS = lexeme . fmap pack $ char '#' *> many hexByte
 
-{- | Parser for string constants (wrapped in double quotes).  Note that
+{-| Parser for string constants (wrapped in double quotes).  Note that
  Data.Text.pack "performs replacement on invalid scalar values", which means
  that Unicode surrogate code points (corresponding to integers in the range
  0xD800-0xDFFF) are converted to the Unicode replacement character U+FFFD
  (decimal 65533).  Thus `(con string "X\xD800Z")` parses to a `Text` object
- whose second character is U+FFFD.
--}
+ whose second character is U+FFFD. -}
 conText :: Parser T.Text
 conText = lexeme . fmap T.pack $ char '\"' *> manyTill Lex.charLiteral (char '\"')
 
@@ -82,8 +81,9 @@ conBool =
 
 -- | Parser for lists.
 conList :: DefaultUni (Esc a) -> Parser [a]
-conList uniA = trailingWhitespace . inBrackets $
-  constantOf ExpectParensNo uniA `sepBy` symbol ","
+conList uniA =
+  trailingWhitespace . inBrackets $
+    constantOf ExpectParensNo uniA `sepBy` symbol ","
 
 -- | Parser for arrays.
 conArray :: DefaultUni (Esc a) -> Parser (Vector a)
@@ -98,18 +98,27 @@ conValue = do
     PlutusCore.Builtin.Result.BuiltinSuccessWithLogs _logs v -> pure v
     PlutusCore.Builtin.Result.BuiltinFailure logs _trace ->
       fail $ "Failed to construct Value: " <> show logs
- where
-  validateToken (token, amt) = do
-    tk <- maybe (fail $ "Token name exceeds maximum length of 32 bytes: " <> show (unpack token))
-               pure (Value.k token)
-    qty <- maybe (fail $ "Token quantity out of signed 128-bit integer bounds: " <> show amt)
-                pure (Value.quantity amt)
-    pure (tk, qty)
-  validateKeys (currency, tokens) = do
-    ck <- maybe (fail $ "Currency symbol exceeds maximum length of 32 bytes: " <> show (unpack currency))
-                pure (Value.k currency)
-    tks <- traverse validateToken tokens
-    pure (ck, tks)
+  where
+    validateToken (token, amt) = do
+      tk <-
+        maybe
+          (fail $ "Token name exceeds maximum length of 32 bytes: " <> show (unpack token))
+          pure
+          (Value.k token)
+      qty <-
+        maybe
+          (fail $ "Token quantity out of signed 128-bit integer bounds: " <> show amt)
+          pure
+          (Value.quantity amt)
+      pure (tk, qty)
+    validateKeys (currency, tokens) = do
+      ck <-
+        maybe
+          (fail $ "Currency symbol exceeds maximum length of 32 bytes: " <> show (unpack currency))
+          pure
+          (Value.k currency)
+      tks <- traverse validateToken tokens
+      pure (ck, tks)
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
@@ -121,17 +130,17 @@ conPair uniA uniB = trailingWhitespace . inParens $ do
 
 conDataNoParens :: Parser Data
 conDataNoParens =
-    choice
-        [ symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
-        , symbol "Map" *> (Map <$> conList knownUni)
-        , symbol "List" *> (List <$> conList knownUni)
-        , symbol "I" *> (I <$> conInteger)
-        , symbol "B" *> (B <$> conBS)
-        ]
+  choice
+    [ symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
+    , symbol "Map" *> (Map <$> conList knownUni)
+    , symbol "List" *> (List <$> conList knownUni)
+    , symbol "I" *> (I <$> conInteger)
+    , symbol "B" *> (B <$> conBS)
+    ]
 
 conData :: ExpectParens -> Parser Data
 conData ExpectParensYes = trailingWhitespace $ inParens conDataNoParens
-conData ExpectParensNo  = conDataNoParens
+conData ExpectParensNo = conDataNoParens
 
 -- Serialised BLS12_381 elements are "0x" followed by a hex string of even
 -- length.  Maybe we should just use the usual bytestring syntax.
@@ -140,37 +149,37 @@ con0xBS = lexeme . fmap pack $ string "0x" *> many hexByte
 
 conBLS12_381_G1_Element :: Parser BLS12_381.G1.Element
 conBLS12_381_G1_Element = do
-    s <- con0xBS
-    case BLS12_381.G1.uncompress s of
-      Left err -> fail $ "Failed to decode value of type bls12_381_G1_element: " ++ show err
-      Right e  -> pure e
+  s <- con0xBS
+  case BLS12_381.G1.uncompress s of
+    Left err -> fail $ "Failed to decode value of type bls12_381_G1_element: " ++ show err
+    Right e -> pure e
 
 conBLS12_381_G2_Element :: Parser BLS12_381.G2.Element
 conBLS12_381_G2_Element = do
-    s <- con0xBS
-    case BLS12_381.G2.uncompress s of
-      Left err -> fail $ "Failed to decode value of type bls12_381_G2_element: " ++ show err
-      Right e  -> pure e
+  s <- con0xBS
+  case BLS12_381.G2.uncompress s of
+    Left err -> fail $ "Failed to decode value of type bls12_381_G2_element: " ++ show err
+    Right e -> pure e
 
 -- | Parser for constants of the given type.
 constantOf :: ExpectParens -> DefaultUni (Esc a) -> Parser a
 constantOf expectParens uni =
   case uni of
-    DefaultUniInteger                                                 -> conInteger
-    DefaultUniByteString                                              -> conBS
-    DefaultUniString                                                  -> conText
-    DefaultUniUnit                                                    -> conUnit
-    DefaultUniBool                                                    -> conBool
-    DefaultUniValue                                                   -> conValue
-    DefaultUniProtoList `DefaultUniApply` uniA                        -> conList uniA
-    DefaultUniProtoArray `DefaultUniApply` uniA                       -> conArray uniA
+    DefaultUniInteger -> conInteger
+    DefaultUniByteString -> conBS
+    DefaultUniString -> conText
+    DefaultUniUnit -> conUnit
+    DefaultUniBool -> conBool
+    DefaultUniValue -> conValue
+    DefaultUniProtoList `DefaultUniApply` uniA -> conList uniA
+    DefaultUniProtoArray `DefaultUniApply` uniA -> conArray uniA
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
-    f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
-    DefaultUniData                                                    -> conData expectParens
-    DefaultUniBLS12_381_G1_Element                                    -> conBLS12_381_G1_Element
-    DefaultUniBLS12_381_G2_Element                                    -> conBLS12_381_G2_Element
-    DefaultUniBLS12_381_MlResult
-        -> fail "Constants of type bls12_381_mlresult are not supported"
+    f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions f
+    DefaultUniData -> conData expectParens
+    DefaultUniBLS12_381_G1_Element -> conBLS12_381_G1_Element
+    DefaultUniBLS12_381_G2_Element -> conBLS12_381_G2_Element
+    DefaultUniBLS12_381_MlResult ->
+      fail "Constants of type bls12_381_mlresult are not supported"
 
 -- | Parser of constants whose type is in 'DefaultUni'.
 constant :: Parser (Some (ValueOf DefaultUni))

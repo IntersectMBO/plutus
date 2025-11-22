@@ -10,12 +10,28 @@ module PlutusBenchmark.Marlowe.Util (
 ) where
 
 import Codec.Serialise (deserialise)
-import PlutusLedgerApi.V2 (Address (Address), BuiltinData, Credential (..), Datum (Datum),
-                           DatumHash, LedgerBytes (getLedgerBytes),
-                           OutputDatum (NoOutputDatum, OutputDatumHash), Redeemer (Redeemer),
-                           ScriptHash, ScriptPurpose, TxId, TxInInfo (..), TxOut (..),
-                           TxOutRef (TxOutRef), Value, adaSymbol, adaToken, dataToBuiltinData,
-                           fromBuiltin, singleton)
+import PlutusLedgerApi.V2 (
+  Address (Address),
+  BuiltinData,
+  Credential (..),
+  Datum (Datum),
+  DatumHash,
+  LedgerBytes (getLedgerBytes),
+  OutputDatum (NoOutputDatum, OutputDatumHash),
+  Redeemer (Redeemer),
+  ScriptHash,
+  ScriptPurpose,
+  TxId,
+  TxInInfo (..),
+  TxOut (..),
+  TxOutRef (TxOutRef),
+  Value,
+  adaSymbol,
+  adaToken,
+  dataToBuiltinData,
+  fromBuiltin,
+  singleton,
+ )
 
 import Data.ByteString.Lazy qualified as LBS (fromStrict)
 import PlutusTx.AssocMap qualified as AM (Map, singleton)

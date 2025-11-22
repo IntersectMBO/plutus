@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module PlutusIR.Purity.Tests where
 
 import Test.Tasty.Extras
@@ -41,13 +42,15 @@ dangerTerm = runQuote $ do
 
 test_evalOrder :: TestTree
 test_evalOrder =
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Purity"]
-        [ goldenEvalOrder "letFun"
-        , goldenEvalOrder "builtinAppUnsaturated"
-        , goldenEvalOrder "builtinAppSaturated"
-        , goldenEvalOrder "pureLet"
-        , goldenEvalOrder "nestedLets1"
-        , goldenEvalOrder "ifThenElse"
-        , embed $ testCase "evalOrderLazy" $
-            4 @=? length (unEvalOrder $ computeEvalOrderCoarse dangerTerm)
-        ]
+  runTestNested
+    ["plutus-ir", "test", "PlutusIR", "Purity"]
+    [ goldenEvalOrder "letFun"
+    , goldenEvalOrder "builtinAppUnsaturated"
+    , goldenEvalOrder "builtinAppSaturated"
+    , goldenEvalOrder "pureLet"
+    , goldenEvalOrder "nestedLets1"
+    , goldenEvalOrder "ifThenElse"
+    , embed $
+        testCase "evalOrderLazy" $
+          4 @=? length (unEvalOrder $ computeEvalOrderCoarse dangerTerm)
+    ]

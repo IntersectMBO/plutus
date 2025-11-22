@@ -1,13 +1,12 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE ViewPatterns          #-}
-
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=SumsOfProducts #-}
 
 module Spec.ReturnUnit.V3 where
@@ -41,32 +40,32 @@ evalCtx =
   fst . unsafeFromRight . runWriterT . V3.mkEvaluationContext $
     fmap snd V3.costModelParamsForTesting
 
-expectSuccess ::
-  forall a.
-  TestName ->
-  CompiledCode (BuiltinData -> a) ->
-  -- | Script argument
-  Data ->
-  TestTree
+expectSuccess
+  :: forall a
+   . TestName
+  -> CompiledCode (BuiltinData -> a)
+  -> Data
+  -- ^ Script argument
+  -> TestTree
 expectSuccess name code arg = testCase name $ case res of
-  Left _  -> assertFailure "fails"
+  Left _ -> assertFailure "fails"
   Right _ -> pure ()
   where
     sScript = serialiseCompiledCode code
     script = either (error . show) id $ V3.deserialiseScript changPV sScript
     (_, res) = V3.evaluateScriptCounting changPV V3.Quiet evalCtx script arg
 
-expectFailure ::
-  forall a.
-  TestName ->
-  CompiledCode (BuiltinData -> a) ->
-  -- | Script argument
-  Data ->
-  TestTree
+expectFailure
+  :: forall a
+   . TestName
+  -> CompiledCode (BuiltinData -> a)
+  -> Data
+  -- ^ Script argument
+  -> TestTree
 expectFailure name code arg = testCase name $ case res of
   Left InvalidReturnValue -> pure ()
-  Left _                  -> assertFailure "evaluation failed for a different reason"
-  Right _                 -> assertFailure "evaluation succeeded"
+  Left _ -> assertFailure "evaluation failed for a different reason"
+  Right _ -> assertFailure "evaluation succeeded"
   where
     sScript = serialiseCompiledCode code
     script = either (error . show) id $ V3.deserialiseScript changPV sScript

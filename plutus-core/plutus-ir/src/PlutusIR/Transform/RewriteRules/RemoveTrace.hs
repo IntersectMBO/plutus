@@ -1,10 +1,10 @@
-{-# LANGUAGE BlockArguments  #-}
-{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternSynonyms #-}
 
-module PlutusIR.Transform.RewriteRules.RemoveTrace
-  ( rewriteRuleRemoveTrace
-  ) where
+module PlutusIR.Transform.RewriteRules.RemoveTrace (
+  rewriteRuleRemoveTrace,
+) where
 
 import PlutusCore.Default (DefaultFun)
 import PlutusCore.Default.Builtins qualified as Builtin

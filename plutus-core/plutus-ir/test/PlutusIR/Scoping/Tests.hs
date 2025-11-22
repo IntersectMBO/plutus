@@ -27,7 +27,9 @@ import Test.Tasty
 
 -- See Note [Scoping tests API].
 test_names :: TestTree
-test_names = testGroup "names"
+test_names =
+  testGroup
+    "names"
     [ T.test_scopingGood "beta-reduction" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . beta
     , T.test_scopingGood "case-of-known-constructor" genTerm T.BindingRemovalOk T.PrerenameYes $
@@ -51,34 +53,36 @@ test_names = testGroup "names"
         "match-against-known-constructor"
         genTerm
         T.BindingRemovalNotOk
-        T.PrerenameYes $
-        (pure . knownCon)
+        T.PrerenameYes
+        $ (pure . knownCon)
     , T.test_scopingGood "floating bindings inwards" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         (pure . In.floatTerm def True)
-    -- Can't test 'Out.floatTerm', because it requires the type of annotations to implement
-    -- 'Semigroup' and it's not clear what that means for 'NameAnn'.
-    , T.test_scopingGood "merging lets" genTerm T.BindingRemovalNotOk T.PrerenameYes $
+    , -- Can't test 'Out.floatTerm', because it requires the type of annotations to implement
+      -- 'Semigroup' and it's not clear what that means for 'NameAnn'.
+      T.test_scopingGood "merging lets" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . letMerge
     , -- The pass breaks global uniqueness, but it's not clear whether this is by design or not.
       T.test_scopingBad
         "compilation of non-strict bindings"
         genTerm
         T.BindingRemovalOk
-        T.PrerenameYes $
-        compileNonStrictBindings True
+        T.PrerenameYes
+        $ compileNonStrictBindings True
     , T.test_scopingGood
         "match-against-known-constructor"
         genTerm
         T.BindingRemovalNotOk
-        T.PrerenameYes $
-        pure . recSplit
+        T.PrerenameYes
+        $ pure . recSplit
     , T.test_scopingGood "renaming" genProgram T.BindingRemovalNotOk T.PrerenameNo $
         rename
-    , T.test_scopingSpoilRenamer genProgram markNonFreshProgram
+    , T.test_scopingSpoilRenamer
+        genProgram
+        markNonFreshProgram
         renameProgramM
-    -- Can't test substitution procedures at the moment, because that requires generating
-    -- functions.
-    , -- The pass breals global uniqueness by design.
+    , -- Can't test substitution procedures at the moment, because that requires generating
+      -- functions.
+      -- The pass breals global uniqueness by design.
       T.test_scopingBad "thunking recursions" genTerm T.BindingRemovalOk T.PrerenameYes $
         pure . thunkRecursions def
     , T.test_scopingGood "unwrap-wrap cancelling" genTerm T.BindingRemovalNotOk T.PrerenameYes $

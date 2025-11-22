@@ -1,9 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 
-{- | This benchmark cases measures efficiency of builtin case operations. Each branches exclusively
-   contain casing operations only.
--}
-
+{-| This benchmark cases measures efficiency of builtin case operations. Each branches exclusively
+   contain casing operations only. -}
 module Main (main) where
 
 import Criterion.Main
@@ -18,7 +16,8 @@ import Data.Functor
 
 benchmarks :: EvaluationContext -> [Benchmark]
 benchmarks ctx =
-    [ bgroup "casing"
+  [ bgroup
+      "casing"
       [ mkBMs "pairFstSnd" Casing.pairFstSnd
       , mkBMs "pairCasing" Casing.pairCasing
       , mkBMs "chooseUnit" Casing.chooseUnit
@@ -33,13 +32,15 @@ benchmarks ctx =
       , mkBMsSmall "regularApply" Casing.regularApply
       , mkBMsSmall "caseApply" Casing.caseApply
       ]
-    ]
-    where
-      mkBMs name f =
-        bgroup name $ [2000, 4000..12000] <&> \n ->
+  ]
+  where
+    mkBMs name f =
+      bgroup name $
+        [2000, 4000 .. 12000] <&> \n ->
           bench (show n) $ benchTermCek ctx (f n)
-      mkBMsSmall name f =
-        bgroup name $ [3, 10, 30, 100, 500, 1000] <&> \n ->
+    mkBMsSmall name f =
+      bgroup name $
+        [3, 10, 30, 100, 500, 1000] <&> \n ->
           bench (show n) $ benchTermCek ctx (f n)
 
 main :: IO ()

@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module PlutusTx.Builtins.HasBuiltin where
 
@@ -38,20 +38,18 @@ useFromOpaque x = x
 -- Also see Note [Built-in types and their Haskell counterparts].
 
 {-| A class for converting values of Haskell-defined built-in types to their Plutus Tx
-counterparts.
--}
+counterparts. -}
 type HasToBuiltin :: GHC.Type -> GHC.Constraint
-class (PLC.DefaultUni `PLC.Contains` a) => HasToBuiltin a where
+class PLC.DefaultUni `PLC.Contains` a => HasToBuiltin a where
   type ToBuiltin a
   toBuiltin :: a -> ToBuiltin a
 
 -- Also see Note [Built-in types and their Haskell counterparts].
 
 {-| A class for converting values of Plutus Tx built-in types to their Haskell-defined
-counterparts.
--}
+counterparts. -}
 type HasFromBuiltin :: GHC.Type -> GHC.Constraint
-class (HasToBuiltin (FromBuiltin arep)) => HasFromBuiltin arep where
+class HasToBuiltin (FromBuiltin arep) => HasFromBuiltin arep where
   type FromBuiltin arep
   fromBuiltin :: arep -> FromBuiltin arep
 
@@ -90,17 +88,17 @@ instance HasFromBuiltin Bool where
   type FromBuiltin Bool = Bool
   fromBuiltin = id
 
-instance (HasToBuiltin a) => HasToBuiltin [a] where
+instance HasToBuiltin a => HasToBuiltin [a] where
   type ToBuiltin [a] = BuiltinList (ToBuiltin a)
   toBuiltin = useToOpaque BuiltinList . map toBuiltin
-instance (HasFromBuiltin a) => HasFromBuiltin (BuiltinList a) where
+instance HasFromBuiltin a => HasFromBuiltin (BuiltinList a) where
   type FromBuiltin (BuiltinList a) = [FromBuiltin a]
   fromBuiltin (BuiltinList xs) = map fromBuiltin xs
 
-instance (HasToBuiltin a) => HasToBuiltin (Strict.Vector a) where
+instance HasToBuiltin a => HasToBuiltin (Strict.Vector a) where
   type ToBuiltin (Strict.Vector a) = BuiltinArray (ToBuiltin a)
   toBuiltin = useToOpaque (BuiltinArray . fmap toBuiltin)
-instance (HasFromBuiltin a) => HasFromBuiltin (BuiltinArray a) where
+instance HasFromBuiltin a => HasFromBuiltin (BuiltinArray a) where
   type FromBuiltin (BuiltinArray a) = Strict.Vector (FromBuiltin a)
   fromBuiltin (BuiltinArray xs) = fmap fromBuiltin xs
 

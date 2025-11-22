@@ -1,5 +1,4 @@
-{- | Benchmarks for string builtins.  Remember that "strings" are actually Text. -}
-
+-- | Benchmarks for string builtins.  Remember that "strings" are actually Text.
 module Benchmarks.Strings (makeSizedTextStrings, makeBenchmarks) where
 
 import Common
@@ -10,7 +9,6 @@ import PlutusCore
 import Criterion.Main
 import Data.Text qualified as T
 import System.Random (StdGen)
-
 
 {- The memory usage of a string is defined to be four bytes per character.  Plutus
  strings are implemented as Text objects, which are UTF-16 encoded sequences of
@@ -77,7 +75,6 @@ average number of bytes per character is 3/2).
    decodeUtf8 with different kinds of input to check which gave the worst case,
    and we use the worst-case inputs for the costing benchmarks above.
 
-
    encodeUtf8: we looked at two different types of input, both containing n
    64-bit words and generated with Hedgehog's 'text' generator:
 
@@ -94,7 +91,6 @@ average number of bytes per character is 3/2).
    takes 2.5-3 times as long as inputs of type A, so we use B as the benchmark
    inputs to covert the worst case.  The strings we're likely to see in practice
    will be of type A, so we'll overestimate the cost of encoding them.
-
 
    decodeUtf8: similarly to encodeUtf8, we looked at two different types of
    UTF-8 encoded inputs generated with the 'utf8' generator, each requiring 8n
@@ -125,39 +121,41 @@ average number of bytes per character is 3/2).
 -}
 
 oneArgumentSizes :: [Integer]
-oneArgumentSizes = [0, 100..10000] -- 101 entries
+oneArgumentSizes = [0, 100 .. 10000] -- 101 entries
 
 twoArgumentSizes :: [Integer]
-twoArgumentSizes = [0, 250..5000]  -- 21 entries
+twoArgumentSizes = [0, 250 .. 5000] -- 21 entries
 
 {- This is for benchmarking DecodeUtf8.  That fails if the encoded data is
    invalid, so we make sure that the input data is valid data for it by using
    data produced by G.utf8 (see above). -}
 benchOneUtf8ByteString :: DefaultFun -> Benchmark
 benchOneUtf8ByteString name =
-    createOneTermBuiltinBench name [] $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
+  createOneTermBuiltinBench name [] $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
 
 benchOneTextString :: DefaultFun -> Benchmark
 benchOneTextString name =
-    createOneTermBuiltinBench name [] $ makeSizedTextStrings seedA oneArgumentSizes
+  createOneTermBuiltinBench name [] $ makeSizedTextStrings seedA oneArgumentSizes
 
 benchTwoTextStrings :: DefaultFun -> Benchmark
 benchTwoTextStrings name =
-    let s1 = makeSizedTextStrings seedA twoArgumentSizes
-        s2 = makeSizedTextStrings seedB twoArgumentSizes
-    in createTwoTermBuiltinBench name [] s1 s2
+  let s1 = makeSizedTextStrings seedA twoArgumentSizes
+      s2 = makeSizedTextStrings seedB twoArgumentSizes
+   in createTwoTermBuiltinBench name [] s1 s2
 
 -- Benchmark times for a function applied to equal arguments.  This is used for
 -- benchmarking EqualsString on the diagonal.  Copy the string here, because
 -- otherwise it'll be exactly the same and the equality will short-circuit.
 benchSameTwoTextStrings :: DefaultFun -> Benchmark
 benchSameTwoTextStrings name =
-    createTwoTermBuiltinBenchElementwise name [] $ pairWith T.copy inputs
-    where inputs = makeSizedTextStrings seedA oneArgumentSizes
+  createTwoTermBuiltinBenchElementwise name [] $ pairWith T.copy inputs
+  where
+    inputs = makeSizedTextStrings seedA oneArgumentSizes
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
-                      , benchOneUtf8ByteString DecodeUtf8
-                      , benchTwoTextStrings AppendString
-                      , benchSameTwoTextStrings EqualsString
-                      ]
+makeBenchmarks _gen =
+  [ benchOneTextString EncodeUtf8
+  , benchOneUtf8ByteString DecodeUtf8
+  , benchTwoTextStrings AppendString
+  , benchSameTwoTextStrings EqualsString
+  ]

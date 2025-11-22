@@ -1,16 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module UntypedPlutusCore.Simplify.Opts
-  ( SimplifyOpts (..)
-  , soMaxSimplifierIterations
-  , soMaxCseIterations
-  , soInlineHints
-  , soConservativeOpts
-  , soInlineConstants
-  , soInlineCallsiteGrowth
-  , soPreserveLogging
-  , defaultSimplifyOpts
-  ) where
+module UntypedPlutusCore.Simplify.Opts (
+  SimplifyOpts (..),
+  soMaxSimplifierIterations,
+  soMaxCseIterations,
+  soInlineHints,
+  soConservativeOpts,
+  soInlineConstants,
+  soInlineCallsiteGrowth,
+  soPreserveLogging,
+  defaultSimplifyOpts,
+) where
 
 import Control.Lens.TH (makeLenses)
 import Data.Default.Class
@@ -20,12 +20,12 @@ import PlutusCore.AstSize
 
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
-  , _soMaxCseIterations        :: Int
-  , _soConservativeOpts        :: Bool
-  , _soInlineHints             :: InlineHints name a
-  , _soInlineConstants         :: Bool
-  , _soInlineCallsiteGrowth    :: AstSize
-  , _soPreserveLogging         :: Bool
+  , _soMaxCseIterations :: Int
+  , _soConservativeOpts :: Bool
+  , _soInlineHints :: InlineHints name a
+  , _soInlineConstants :: Bool
+  , _soInlineCallsiteGrowth :: AstSize
+  , _soPreserveLogging :: Bool
   }
   deriving stock (Show)
 

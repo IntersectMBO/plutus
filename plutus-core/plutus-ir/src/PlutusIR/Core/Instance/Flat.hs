@@ -1,7 +1,8 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -Wno-orphans       #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module PlutusIR.Core.Instance.Flat () where
 
 import PlutusIR.Core.Type
@@ -18,37 +19,45 @@ the underlying representation can vary. The `Generic` instances of the
 terms can thus be used as backwards compatibility is not required.
 -}
 
-deriving anyclass instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Flat
-         , Flat a
-         , Flat tyname
-         , Flat name
-         ) => Flat (Datatype tyname name uni a)
+deriving anyclass instance
+  ( PLC.Closed uni
+  , uni `PLC.Everywhere` Flat
+  , Flat a
+  , Flat tyname
+  , Flat name
+  )
+  => Flat (Datatype tyname name uni a)
 
 deriving anyclass instance Flat Recursivity
 
 deriving anyclass instance Flat Strictness
 
-deriving anyclass instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Flat
-         , Flat fun
-         , Flat a
-         , Flat tyname
-         , Flat name
-         ) => Flat (Binding tyname name uni fun a)
+deriving anyclass instance
+  ( PLC.Closed uni
+  , uni `PLC.Everywhere` Flat
+  , Flat fun
+  , Flat a
+  , Flat tyname
+  , Flat name
+  )
+  => Flat (Binding tyname name uni fun a)
 
-deriving anyclass instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Flat
-         , Flat fun
-         , Flat a
-         , Flat tyname
-         , Flat name
-         ) => Flat (Term tyname name uni fun a)
+deriving anyclass instance
+  ( PLC.Closed uni
+  , uni `PLC.Everywhere` Flat
+  , Flat fun
+  , Flat a
+  , Flat tyname
+  , Flat name
+  )
+  => Flat (Term tyname name uni fun a)
 
-deriving anyclass instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Flat
-         , Flat fun
-         , Flat a
-         , Flat tyname
-         , Flat name
-         ) => Flat (Program tyname name uni fun a)
+deriving anyclass instance
+  ( PLC.Closed uni
+  , uni `PLC.Everywhere` Flat
+  , Flat fun
+  , Flat a
+  , Flat tyname
+  , Flat name
+  )
+  => Flat (Program tyname name uni fun a)

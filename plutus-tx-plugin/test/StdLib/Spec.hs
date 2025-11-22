@@ -1,8 +1,8 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
@@ -37,8 +37,8 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio qualified as Ratio
 import PlutusTx.Test (goldenPirReadable)
 import Test.Tasty (TestName, TestTree)
-import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
@@ -62,8 +62,7 @@ tests =
 -- places.
 
 {-| Evaluate (deeply, to get through tuples) a value, throwing away any exception and just
-representing it as 'Nothing'.
--}
+representing it as 'Nothing'. -}
 tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
 -- We have @Strict@ enabled, hence without the tilda this function evaluates @a@ before evaluating
 -- the body, i.e. outside of the call to 'try', defeating the whole purpose.
@@ -130,7 +129,7 @@ eqData = Hedgehog.property $ do
   Hedgehog.annotateShow theData
   Hedgehog.assert (ghcResult && plutusResult)
 
-genData :: (MonadGen m) => m PLC.Data
+genData :: MonadGen m => m PLC.Data
 genData =
   let genInteger = Gen.integral (Range.linear (-10000) 100000)
       genBytes = Gen.bytes (Range.linear 0 1000)

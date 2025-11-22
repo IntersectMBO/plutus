@@ -11,7 +11,7 @@ module PlutusBenchmark.Coop.TestContext (
   correctFsMpBurningContext,
   correctAuthMpMintingContext,
   correctAuthMpBurningContext,
-  ) where
+) where
 
 import PlutusLedgerApi.V1.Address (scriptHashAddress)
 import PlutusLedgerApi.V1.Value (AssetClass, CurrencySymbol (..), TokenName (..), assetClass)

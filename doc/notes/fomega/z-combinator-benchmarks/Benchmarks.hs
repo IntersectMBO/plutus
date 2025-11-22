@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RankNTypes #-}
+
 module Main where
 
 import Criterion.Main
@@ -42,17 +43,20 @@ z2 = \f -> let a = \r x -> (f $! unroll r) $! x in a (Self a)
 
 countdownBy
   :: (((Int -> Bool) -> Int -> Bool) -> Int -> Bool)
-  -> Int -> Bool
+  -> Int
+  -> Bool
 countdownBy recurse = recurse $ \r x -> x == 0 || r (x - 1)
 
 natSumUpToBy
   :: (((Int -> Int -> Int) -> Int -> Int -> Int) -> Int -> Int -> Int)
-  -> Int -> Int
+  -> Int
+  -> Int
 natSumUpToBy recurse = recurse (\r a x -> if x == 0 then 0 else r (a + x) (x - 1)) 0
 
 leakingNatSumUpToBy
   :: (((Int -> Int) -> Int -> Int) -> Int -> Int)
-  -> Int -> Int
+  -> Int
+  -> Int
 leakingNatSumUpToBy recurse = recurse $ \r x -> if x == 0 then 0 else x + r (x - 1)
 
 ----------------
@@ -63,13 +67,15 @@ bench_fixed_points
   :: String
   -> ((forall a b. ((a -> b) -> a -> b) -> a -> b) -> Int -> c)
   -> Benchmark
-bench_fixed_points name fun = bgroup name $ [10^5, 10^6, 10^7] >>= \n ->
-  [ bench ("fix'/" ++ show n) $ whnf (fun fix') n
-  , bench ("bz1/"  ++ show n) $ whnf (fun bz1 ) n
-  , bench ("bz2/"  ++ show n) $ whnf (fun bz2 ) n
-  , bench ("z1/"   ++ show n) $ whnf (fun z1  ) n
-  , bench ("z2/"   ++ show n) $ whnf (fun z2  ) n
-  ]
+bench_fixed_points name fun =
+  bgroup name $
+    [10 ^ 5, 10 ^ 6, 10 ^ 7] >>= \n ->
+      [ bench ("fix'/" ++ show n) $ whnf (fun fix') n
+      , bench ("bz1/" ++ show n) $ whnf (fun bz1) n
+      , bench ("bz2/" ++ show n) $ whnf (fun bz2) n
+      , bench ("z1/" ++ show n) $ whnf (fun z1) n
+      , bench ("z2/" ++ show n) $ whnf (fun z2) n
+      ]
 
 bench_countdownBy :: Benchmark
 bench_countdownBy = bench_fixed_points "countdownBy" countdownBy
@@ -81,8 +87,9 @@ bench_leakingNatSumUpToBy :: Benchmark
 bench_leakingNatSumUpToBy = bench_fixed_points "leakingNatSumUpToBy" leakingNatSumUpToBy
 
 main :: IO ()
-main = defaultMain
-  [ bench_countdownBy
-  , bench_natSumUpToBy
-  , bench_leakingNatSumUpToBy
-  ]
+main =
+  defaultMain
+    [ bench_countdownBy
+    , bench_natSumUpToBy
+    , bench_leakingNatSumUpToBy
+    ]

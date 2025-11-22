@@ -1,16 +1,16 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
-module PlutusBenchmark.Ed25519.Compiled
-  ( checkValidCompiled
-  , msgAsData
-  , signatureAsData
-  , pkAsData
-  ) where
+module PlutusBenchmark.Ed25519.Compiled (
+  checkValidCompiled,
+  msgAsData,
+  signatureAsData,
+  pkAsData,
+) where
 
 import PlutusBenchmark.Ed25519 (checkValid)
 import PlutusTx.Code (CompiledCode)

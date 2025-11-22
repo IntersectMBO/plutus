@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main where
@@ -39,7 +39,6 @@ import Options.Applicative
 type PirError a = PIR.Error PLC.DefaultUni PLC.DefaultFun a
 type UnitProvenance = PIR.Provenance ()
 
-
 {- Note [De Bruijn indices and PIR]
    The `plc` and `uplc` commands both support ASTs whose "names" are de Bruijn
    indices.  These aren't supported for PIR because PIR has `Let` blocks of
@@ -59,31 +58,32 @@ data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output PirFormat Pr
 
 data PirConvertOptions = PirConvertOptions Input PirFormat Output PirFormat PrintMode
 
--- | So that we can just use the generic `runConvert` function but still
--- disallow unsupported name types.
+{-| So that we can just use the generic `runConvert` function but still
+disallow unsupported name types. -}
 toConvertOptions :: PirConvertOptions -> ConvertOptions
 toConvertOptions (PirConvertOptions inp ifmt outp ofmt mode) =
-    ConvertOptions inp (pirFormatToFormat ifmt) outp (pirFormatToFormat ofmt) mode
+  ConvertOptions inp (pirFormatToFormat ifmt) outp (pirFormatToFormat ofmt) mode
 
 data AnalyseOptions = AnalyseOptions Input PirFormat Output -- Input is a program, output is text
 
 -- | Compilation options: target language, whether to optimise or not, input and output streams and types
-data CompileOptions =
-    CompileOptions Language
-                   Bool   -- Optimise or not?
-                   Bool   -- True -> just report if compilation was successful; False -> write output
-                   Input
-                   PirFormat
-                   Output
-                   Format
-                   PrintMode
+data CompileOptions
+  = CompileOptions
+      Language
+      Bool -- Optimise or not?
+      Bool -- True -> just report if compilation was successful; False -> write output
+      Input
+      PirFormat
+      Output
+      Format
+      PrintMode
 
-data Command = Analyse  AnalyseOptions
-             | Compile  CompileOptions
-             | Convert  PirConvertOptions
-             | Optimise PirOptimiseOptions
-             | Print    PrintOptions
-
+data Command
+  = Analyse AnalyseOptions
+  | Compile CompileOptions
+  | Convert PirConvertOptions
+  | Optimise PirOptimiseOptions
+  | Print PrintOptions
 
 ---------------- Option parsers ----------------
 
@@ -96,101 +96,127 @@ pPirConvertOptions = PirConvertOptions <$> input <*> pPirInputFormat <*> output 
 pAnalyseOptions :: Parser AnalyseOptions
 pAnalyseOptions = AnalyseOptions <$> input <*> pPirInputFormat <*> output
 
--- | Whether to perform optimisations or not.  The default here is True,
--- ie *do* optimise; specifying --dont-optimise returns False.
+{-| Whether to perform optimisations or not.  The default here is True,
+ie *do* optimise; specifying --dont-optimise returns False. -}
 pOptimise :: Parser Bool
-pOptimise = flag True False
-            (  long "dont-optimise"
-            <> long "dont-optimize"
-            <> help "Turn off optimisations"
-            )
+pOptimise =
+  flag
+    True
+    False
+    ( long "dont-optimise"
+        <> long "dont-optimize"
+        <> help "Turn off optimisations"
+    )
 
 pJustTest :: Parser Bool
-pJustTest = switch ( long "test"
-                   <> help "Just report success or failure, don't produce an output file"
-                   )
+pJustTest =
+  switch
+    ( long "test"
+        <> help "Just report success or failure, don't produce an output file"
+    )
 
 pCompileOptions :: Parser CompileOptions
-pCompileOptions = CompileOptions
-               <$> pLanguage
-               <*> pOptimise
-               <*> pJustTest
-               <*> input
-               <*> pPirInputFormat
-               <*> output
-               <*> outputformat
-               <*> printmode
+pCompileOptions =
+  CompileOptions
+    <$> pLanguage
+    <*> pOptimise
+    <*> pJustTest
+    <*> input
+    <*> pPirInputFormat
+    <*> output
+    <*> outputformat
+    <*> printmode
 
 pPirOptions :: Parser Command
-pPirOptions = hsubparser $
-              command "analyse" (
-                      analyse ("Given a PIR program in flat format, deserialise and analyse the program, " <>
-                               "looking for variables with the largest retained size."))
-           <> command "analyze" (analyse "Same as 'analyse'.")
-           <> command "compile"
-                  (info (Compile <$> pCompileOptions) $
-                   progDesc $
-                   "Given a PIR program in flat format, deserialise it, " <>
-                   "and test if it can be successfully compiled to PLC.")
-           <> command "convert"
-                  (info (Convert <$> pPirConvertOptions)
-                  (progDesc "Convert a program between textual and flat-named format."))
-           <> command "optimise" (optimise "Run the PIR optimisation pipeline on the input.")
-           <> command "optimize" (optimise "Same as 'optimise'.")
-           <> command "print"
-                  (info (Print <$> printOpts) $
-                 progDesc $
-                   "Given a PIR program in textual format, " <>
-                   "read it in and print it in the selected format.")
-           where
-             analyse desc = info (Analyse <$> pAnalyseOptions) $ progDesc desc
-             optimise desc = info (Optimise <$> pPirOptimiseOptions) $ progDesc desc
-
+pPirOptions =
+  hsubparser $
+    command
+      "analyse"
+      ( analyse
+          ( "Given a PIR program in flat format, deserialise and analyse the program, "
+              <> "looking for variables with the largest retained size."
+          )
+      )
+      <> command "analyze" (analyse "Same as 'analyse'.")
+      <> command
+        "compile"
+        ( info (Compile <$> pCompileOptions) $
+            progDesc $
+              "Given a PIR program in flat format, deserialise it, "
+                <> "and test if it can be successfully compiled to PLC."
+        )
+      <> command
+        "convert"
+        ( info
+            (Convert <$> pPirConvertOptions)
+            (progDesc "Convert a program between textual and flat-named format.")
+        )
+      <> command "optimise" (optimise "Run the PIR optimisation pipeline on the input.")
+      <> command "optimize" (optimise "Same as 'optimise'.")
+      <> command
+        "print"
+        ( info (Print <$> printOpts) $
+            progDesc $
+              "Given a PIR program in textual format, "
+                <> "read it in and print it in the selected format."
+        )
+  where
+    analyse desc = info (Analyse <$> pAnalyseOptions) $ progDesc desc
+    optimise desc = info (Optimise <$> pPirOptimiseOptions) $ progDesc desc
 
 ---------------- Compilation ----------------
 
 compileToPlc :: Bool -> PirProg () -> Either (PirError UnitProvenance) (PlcProg ())
 compileToPlc optimise p = do
-    plcTcConfig <- modifyError (PIR.PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig PIR.noProvenance
-    let ctx = getCtx plcTcConfig
-    plcProg <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileProgram p
-    pure $ void plcProg
+  plcTcConfig <- modifyError (PIR.PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig PIR.noProvenance
+  let ctx = getCtx plcTcConfig
+  plcProg <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileProgram p
+  pure $ void plcProg
   where
-    getCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+    getCtx
+      :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
       -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
     getCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig
-         & PIR.ccOpts . PIR.coOptimize .~ optimise
-    -- See PlutusIR.Compiler.Types.CompilerOpts for other compilation flags,
-    -- including coPedantic, which causes the result of every stage in the
-    -- pipeline to be typechecked.
+        & PIR.ccOpts
+        . PIR.coOptimize
+        .~ optimise
+
+-- See PlutusIR.Compiler.Types.CompilerOpts for other compilation flags,
+-- including coPedantic, which causes the result of every stage in the
+-- pipeline to be typechecked.
 
 compileToUplc :: Bool -> PlcProg () -> UplcProg ()
 compileToUplc optimise plcProg =
-    let plcCompilerOpts =
-            if optimise
-            then PLC.defaultCompilationOpts
-            else PLC.defaultCompilationOpts
-                    & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
-    in runQuote $ flip runReaderT plcCompilerOpts $ PLC.compileProgram plcProg
+  let plcCompilerOpts =
+        if optimise
+          then PLC.defaultCompilationOpts
+          else
+            PLC.defaultCompilationOpts
+              & PLC.coSimplifyOpts
+              . UPLC.soMaxSimplifierIterations
+              .~ 0
+   in runQuote $ flip runReaderT plcCompilerOpts $ PLC.compileProgram plcProg
 
 loadPirAndCompile :: CompileOptions -> IO ()
-loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
-    pirProg <- readProgram (pirFormatToFormat ifmt) inp
-    when test $ putStrLn "!!! Compiling"
-    -- Now compile to plc, maybe optimising
-    case compileToPlc optimise (void pirProg) of
-      Left pirError -> error $ show pirError
-      Right plcProg ->
-          case language of
-            PLC  -> if test
-                    then putStrLn "!!! Compilation successful"
-                    else writeProgram outp ofmt mode plcProg
-            UPLC -> do  -- compile the PLC to UPLC
-              let uplcProg = compileToUplc optimise plcProg
-              if test then putStrLn "!!! Compilation successful"
-              else writeProgram outp ofmt mode uplcProg
-
+loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode) = do
+  pirProg <- readProgram (pirFormatToFormat ifmt) inp
+  when test $ putStrLn "!!! Compiling"
+  -- Now compile to plc, maybe optimising
+  case compileToPlc optimise (void pirProg) of
+    Left pirError -> error $ show pirError
+    Right plcProg ->
+      case language of
+        PLC ->
+          if test
+            then putStrLn "!!! Compilation successful"
+            else writeProgram outp ofmt mode plcProg
+        UPLC -> do
+          -- compile the PLC to UPLC
+          let uplcProg = compileToUplc optimise plcProg
+          if test
+            then putStrLn "!!! Compilation successful"
+            else writeProgram outp ofmt mode uplcProg
 
 ---------------- Optimisation ----------------
 
@@ -201,65 +227,73 @@ doOptimisations term = do
   runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.runCompilerPass PIR.simplifier (PIR.Original () <$ term)
   where
     getCtx
-        :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
-        -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
+      :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+      -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
     getCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig
-         & PIR.ccOpts . PIR.coOptimize .~ True
-         -- This is on by default anyway, but let's make certain.
+        & PIR.ccOpts
+        . PIR.coOptimize
+        .~ True
+
+-- This is on by default anyway, but let's make certain.
 
 -- | Run the PIR optimisations
-runOptimisations:: PirOptimiseOptions -> IO ()
+runOptimisations :: PirOptimiseOptions -> IO ()
 runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
   Program _ _ term <- readProgram (pirFormatToFormat ifmt) inp
   case doOptimisations term of
-    Left e  -> error $ show e
-    Right t -> writeProgram outp (pirFormatToFormat ofmt) mode
-               (Program () PLC.latestVersion(void t))
-
+    Left e -> error $ show e
+    Right t ->
+      writeProgram
+        outp
+        (pirFormatToFormat ofmt)
+        mode
+        (Program () PLC.latestVersion (void t))
 
 ---------------- Analysis ----------------
 
 -- | a csv-outputtable record row of {name,unique,size}
-data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.AstSize}
-    deriving stock (Generic, Show)
-    deriving anyclass Csv.ToNamedRecord
-    deriving anyclass Csv.DefaultOrdered
+data RetentionRecord = RetentionRecord {name :: T.Text, unique :: Int, size :: PIR.AstSize}
+  deriving stock (Generic, Show)
+  deriving anyclass (Csv.ToNamedRecord)
+  deriving anyclass (Csv.DefaultOrdered)
+
 deriving newtype instance Csv.ToField PIR.AstSize
 
 loadPirAndAnalyse :: AnalyseOptions -> IO ()
 loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
-    -- load pir and make sure that it is globally unique (required for retained size)
-    p :: PirProg PLC.SrcSpan <- readProgram (pirFormatToFormat ifmt) inp
-    let PIR.Program _ _ term = runQuote . PLC.rename $ void p
-    putStrLn "!!! Analysing for retention"
-    let
-        -- all the variable names (tynames coerced to names)
-        names = term ^.. termSubtermsDeep.termBindings.bindingNames ++
-                term ^.. termSubtermsDeep.termBindings.bindingTyNames.coerced
-        -- a helper lookup table of uniques to their textual representation
-        nameTable :: IM.IntMap T.Text
-        nameTable = IM.fromList [(coerce $ _nameUnique n , _nameText n) | n <- names]
+  -- load pir and make sure that it is globally unique (required for retained size)
+  p :: PirProg PLC.SrcSpan <- readProgram (pirFormatToFormat ifmt) inp
+  let PIR.Program _ _ term = runQuote . PLC.rename $ void p
+  putStrLn "!!! Analysing for retention"
+  let
+    -- all the variable names (tynames coerced to names)
+    names =
+      term ^.. termSubtermsDeep . termBindings . bindingNames
+        ++ term ^.. termSubtermsDeep . termBindings . bindingTyNames . coerced
+    -- a helper lookup table of uniques to their textual representation
+    nameTable :: IM.IntMap T.Text
+    nameTable = IM.fromList [(coerce $ _nameUnique n, _nameText n) | n <- names]
 
-        -- build the retentionMap
-        retentionMap = PIR.termRetentionMap def (termVarInfo term) term
-        -- sort the map by decreasing retained size
-        sortedRetained = sortOn (negate . snd) $ IM.assocs retentionMap
+    -- build the retentionMap
+    retentionMap = PIR.termRetentionMap def (termVarInfo term) term
+    -- sort the map by decreasing retained size
+    sortedRetained = sortOn (negate . snd) $ IM.assocs retentionMap
 
-        -- change uniques to texts and use csv-outputtable records
-        sortedRecords :: [RetentionRecord]
-        sortedRecords =
-          sortedRetained <&> \(i, s) ->
-            RetentionRecord (IM.findWithDefault "given key is not in map" i nameTable) i s
+    -- change uniques to texts and use csv-outputtable records
+    sortedRecords :: [RetentionRecord]
+    sortedRecords =
+      sortedRetained <&> \(i, s) ->
+        RetentionRecord (IM.findWithDefault "given key is not in map" i nameTable) i s
 
-    -- encode to csv and output it
-    Csv.encodeDefaultOrderedByName sortedRecords &
-        case outp of
-            FileOutput path -> BSL.writeFile path
-            StdOutput       -> BSL.putStr
-            -- NoOutput supresses the output of programs/terms, but that's not
-            -- what we've got here.
-            NoOutput        -> BSL.putStr
+  -- encode to csv and output it
+  Csv.encodeDefaultOrderedByName sortedRecords
+    & case outp of
+      FileOutput path -> BSL.writeFile path
+      StdOutput -> BSL.putStr
+      -- NoOutput supresses the output of programs/terms, but that's not
+      -- what we've got here.
+      NoOutput -> BSL.putStr
 
 ---------------- Parse and print a PIR source file ----------------
 -- This option for PIR source file does NOT check for @UniqueError@'s.
@@ -267,22 +301,21 @@ loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp outp mode) = do
-    contents <- getInput inp
-    -- parse the program
-    case parseNamedProgram (show inp) contents of
-      -- when fail, pretty print the parse errors.
-      Left (ParseErrorB err) ->
-          errorWithoutStackTrace $ errorBundlePretty err
-      -- otherwise,
-      Right (p::PirProg PLC.SrcSpan) -> do
-        let
-            printed :: String
-            printed = show $ prettyPrintByMode mode p
-        case outp of
-            FileOutput path -> writeFile path printed
-            StdOutput       -> putStrLn printed
-            NoOutput        -> pure ()
-
+  contents <- getInput inp
+  -- parse the program
+  case parseNamedProgram (show inp) contents of
+    -- when fail, pretty print the parse errors.
+    Left (ParseErrorB err) ->
+      errorWithoutStackTrace $ errorBundlePretty err
+    -- otherwise,
+    Right (p :: PirProg PLC.SrcSpan) -> do
+      let
+        printed :: String
+        printed = show $ prettyPrintByMode mode p
+      case outp of
+        FileOutput path -> writeFile path printed
+        StdOutput -> putStrLn printed
+        NoOutput -> pure ()
 
 versioner :: Parser (a -> a)
 versioner = simpleVersioner (gitAwareVersionInfo Paths.version)
@@ -291,18 +324,21 @@ versioner = simpleVersioner (gitAwareVersionInfo Paths.version)
 
 main :: IO ()
 main = do
-    comm <- customExecParser (prefs showHelpOnEmpty) infoOpts
-    case comm of
-        Analyse  opts -> loadPirAndAnalyse opts
-        Compile  opts -> loadPirAndCompile opts
-        Convert  opts -> runConvert @PirProg (toConvertOptions opts)
-        Optimise opts -> runOptimisations opts
-        Print    opts -> runPrint opts
+  comm <- customExecParser (prefs showHelpOnEmpty) infoOpts
+  case comm of
+    Analyse opts -> loadPirAndAnalyse opts
+    Compile opts -> loadPirAndCompile opts
+    Convert opts -> runConvert @PirProg (toConvertOptions opts)
+    Optimise opts -> runOptimisations opts
+    Print opts -> runPrint opts
   where
     infoOpts =
-      info (pPirOptions <**> versioner <**> helper)
-           ( fullDesc
-           <> header "PIR tool"
-           <> progDesc ("This program provides a number of utilities for dealing with "
-           <> "PIR programs, including printing, analysis, optimisation, and compilation to UPLC and PLC."))
-
+      info
+        (pPirOptions <**> versioner <**> helper)
+        ( fullDesc
+            <> header "PIR tool"
+            <> progDesc
+              ( "This program provides a number of utilities for dealing with "
+                  <> "PIR programs, including printing, analysis, optimisation, and compilation to UPLC and PLC."
+              )
+        )

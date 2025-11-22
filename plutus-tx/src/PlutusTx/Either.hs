@@ -13,18 +13,18 @@ import Prelude (Either (..))
 
 -- | Return `True` if the given value is a `Left`-value, `False` otherwise.
 isLeft :: Either a b -> Bool
-isLeft (Left _)  = True
+isLeft (Left _) = True
 isLeft (Right _) = False
 {-# INLINEABLE isLeft #-}
 
 -- | Return `True` if the given value is a `Right`-value, `False` otherwise.
 isRight :: Either a b -> Bool
-isRight (Left _)  = False
+isRight (Left _) = False
 isRight (Right _) = True
 {-# INLINEABLE isRight #-}
 
 -- | Plutus Tx version of 'Prelude.either'
 either :: (a -> c) -> (b -> c) -> Either a b -> c
-either f _ (Left x)  = f x
+either f _ (Left x) = f x
 either _ g (Right y) = g y
 {-# INLINEABLE either #-}

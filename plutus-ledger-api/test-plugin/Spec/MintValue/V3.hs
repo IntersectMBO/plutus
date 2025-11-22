@@ -1,7 +1,7 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -26,12 +26,12 @@ import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as List
-import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
-import Prelude qualified as Haskell
+import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import Test.QuickCheck qualified as QC
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (Property, testProperty, (===))
+import Prelude qualified as Haskell
 
 tests :: TestTree
 tests = testGroup "MintValue" [testPropsInHaskell, testPropsInPlinth]
@@ -43,7 +43,7 @@ prop_MintValueBuiltinData :: Either Value MintValue -> Bool
 prop_MintValueBuiltinData values =
   let (value, mintValue) =
         case values of
-          Left v   -> (v, coerce v)
+          Left v -> (v, coerce v)
           Right mv -> (coerce mv, mv)
    in toBuiltinData mintValue == toBuiltinData value
 
@@ -143,10 +143,9 @@ test_Plinth_MintValueBurnedIsPositive =
 --------------------------------------------------------------------------------
 -- Helper functions ------------------------------------------------------------
 
-scaleTestsBy :: (QC.Testable prop) => Haskell.Int -> prop -> QC.Property
+scaleTestsBy :: QC.Testable prop => Haskell.Int -> prop -> QC.Property
 scaleTestsBy factor =
   QC.withMaxSuccess (100 Haskell.* factor) . QC.mapSize (Haskell.* factor)
 
 cekProp :: CompiledCode Bool -> Property
 cekProp code = evaluationResultMatchesHaskell code (===) True
-

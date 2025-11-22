@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ViewPatterns #-}
 
-{- | Property tests for the `lessThanInteger` and `lessThanEqualsInteger` builtins
+{-| Property tests for the `lessThanInteger` and `lessThanEqualsInteger` builtins
    and their interaction with the arithmetic functions. -}
 module Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
 where
@@ -40,13 +40,13 @@ lte_antisymmetric :: BigInteger -> BigInteger -> Property
 lte_antisymmetric (biginteger -> a) (biginteger -> b) =
   evalOkTrue $
     (lessThanEqualsInteger a b `and` lessThanEqualsInteger b a)
-    `implies` equalsInteger a b
+      `implies` equalsInteger a b
 
 lte_transitive :: BigInteger -> BigInteger -> BigInteger -> Property
 lte_transitive (biginteger -> a) (biginteger -> b) (biginteger -> c) =
   evalOkTrue $
     (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c)
-    `implies` lessThanEqualsInteger a c
+      `implies` lessThanEqualsInteger a c
 
 -- This implies that lessThanEqualsInteger is a total order.
 trichotomy :: BigInteger -> BigInteger -> Property
@@ -72,7 +72,7 @@ add_pairs :: BigInteger -> BigInteger -> BigInteger -> BigInteger -> Property
 add_pairs (biginteger -> a) (biginteger -> b) (biginteger -> c) (biginteger -> d) =
   evalOkTrue $
     (lessThanEqualsInteger a b `and` lessThanEqualsInteger c d)
-    `implies` lessThanEqualsInteger (addInteger a c) (addInteger b d)
+      `implies` lessThanEqualsInteger (addInteger a c) (addInteger b d)
 
 -- Test that the signs of various types of product are correct.
 mul_pos_pos :: NonNegative BigInteger -> NonNegative BigInteger -> Property
@@ -93,7 +93,8 @@ mul_neg_neg (NonPositive (biginteger -> a)) (NonPositive (biginteger -> b)) =
 
 test_integer_order_properties :: TestTree
 test_integer_order_properties =
-  testGroup "Property tests involving integer ordering"
+  testGroup
+    "Property tests involving integer ordering"
     [ testProp "lessThanEqualsInteger is reflexive" lte_reflexive
     , testProp "lessThanEqualsInteger is antisymmetric" lte_antisymmetric
     , testProp "lessThanEqualsInteger is transitive" lte_transitive

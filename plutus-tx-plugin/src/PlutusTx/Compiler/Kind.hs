@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -- | Functions for compiling GHC kinds into PlutusCore kinds.
 module PlutusTx.Compiler.Kind (compileKind) where
@@ -15,7 +15,7 @@ import GHC.Plugins qualified as GHC
 
 import PlutusCore qualified as PLC
 
-compileKind :: (Compiling uni fun m ann) => GHC.Kind -> m (PLC.Kind ())
+compileKind :: Compiling uni fun m ann => GHC.Kind -> m (PLC.Kind ())
 compileKind k = traceCompilation 2 ("Compiling kind:" GHC.<+> GHC.ppr k) $ case k of
   -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
   (GHC.isLiftedTypeKind -> True) -> pure $ PLC.Type ()

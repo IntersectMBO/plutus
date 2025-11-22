@@ -14,8 +14,7 @@ will be compiled with the Plutus Tx compiler.
 @
     :set -XNoImplicitPrelude
     import PlutusTx.Prelude
-@
--}
+@ -}
 module PlutusTx.Prelude (
   -- * Classes
   module Eq,
@@ -168,24 +167,68 @@ import PlutusCore.Data (Data (..))
 import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
-import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
-                          BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinByteStringUtf8 (..),
-                          BuiltinData, BuiltinString, Integer, appendByteString, appendString,
-                          blake2b_224, blake2b_256, bls12_381_G1_add, bls12_381_G1_compress,
-                          bls12_381_G1_compressed_generator, bls12_381_G1_compressed_zero,
-                          bls12_381_G1_equals, bls12_381_G1_hashToGroup, bls12_381_G1_neg,
-                          bls12_381_G1_scalarMul, bls12_381_G1_uncompress, bls12_381_G2_add,
-                          bls12_381_G2_compress, bls12_381_G2_compressed_generator,
-                          bls12_381_G2_compressed_zero, bls12_381_G2_equals,
-                          bls12_381_G2_hashToGroup, bls12_381_G2_neg, bls12_381_G2_scalarMul,
-                          bls12_381_G2_uncompress, bls12_381_finalVerify, bls12_381_millerLoop,
-                          bls12_381_mulMlResult, byteStringToInteger, consByteString, decodeUtf8,
-                          emptyByteString, emptyString, encodeUtf8, equalsByteString, equalsString,
-                          error, fromBuiltin, fromOpaque, greaterThanByteString, indexByteString,
-                          integerToByteString, keccak_256, lengthOfByteString, lessThanByteString,
-                          ripemd_160, sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque,
-                          trace, verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
-                          verifySchnorrSecp256k1Signature)
+import PlutusTx.Builtins (
+  BuiltinBLS12_381_G1_Element,
+  BuiltinBLS12_381_G2_Element,
+  BuiltinBLS12_381_MlResult,
+  BuiltinByteString,
+  BuiltinByteStringUtf8 (..),
+  BuiltinData,
+  BuiltinString,
+  Integer,
+  appendByteString,
+  appendString,
+  blake2b_224,
+  blake2b_256,
+  bls12_381_G1_add,
+  bls12_381_G1_compress,
+  bls12_381_G1_compressed_generator,
+  bls12_381_G1_compressed_zero,
+  bls12_381_G1_equals,
+  bls12_381_G1_hashToGroup,
+  bls12_381_G1_neg,
+  bls12_381_G1_scalarMul,
+  bls12_381_G1_uncompress,
+  bls12_381_G2_add,
+  bls12_381_G2_compress,
+  bls12_381_G2_compressed_generator,
+  bls12_381_G2_compressed_zero,
+  bls12_381_G2_equals,
+  bls12_381_G2_hashToGroup,
+  bls12_381_G2_neg,
+  bls12_381_G2_scalarMul,
+  bls12_381_G2_uncompress,
+  bls12_381_finalVerify,
+  bls12_381_millerLoop,
+  bls12_381_mulMlResult,
+  byteStringToInteger,
+  consByteString,
+  decodeUtf8,
+  emptyByteString,
+  emptyString,
+  encodeUtf8,
+  equalsByteString,
+  equalsString,
+  error,
+  fromBuiltin,
+  fromOpaque,
+  greaterThanByteString,
+  indexByteString,
+  integerToByteString,
+  keccak_256,
+  lengthOfByteString,
+  lessThanByteString,
+  ripemd_160,
+  sha2_256,
+  sha3_256,
+  sliceByteString,
+  toBuiltin,
+  toOpaque,
+  trace,
+  verifyEcdsaSecp256k1Signature,
+  verifyEd25519Signature,
+  verifySchnorrSecp256k1Signature,
+ )
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
@@ -218,8 +261,7 @@ check b = if b then BI.unitval else traceError checkHasFailedError
 {-| Integer division, rounding downwards
 
   >>> divide (-41) 5
-  -9
--}
+  -9 -}
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
 {-# INLINEABLE divide #-}
@@ -227,8 +269,7 @@ divide = Builtins.divideInteger
 {-| Integer remainder, always positive for a positive divisor
 
   >>> modulo (-41) 5
-  4
--}
+  4 -}
 modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
 {-# INLINEABLE modulo #-}
@@ -241,8 +282,7 @@ expMod = Builtins.expModInteger
 {-| Integer division, rouding towards zero
 
   >>> quotient (-41) 5
-  -8
--}
+  -8 -}
 {-# INLINEABLE quotient #-}
 quotient :: Integer -> Integer -> Integer
 quotient = Builtins.quotientInteger
@@ -250,8 +290,7 @@ quotient = Builtins.quotientInteger
 {-| Integer remainder, same sign as dividend
 
   >>> remainder (-41) 5
-  -1
--}
+  -1 -}
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
 {-# INLINEABLE remainder #-}

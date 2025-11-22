@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module CallTrace.Lib where
 
@@ -39,7 +39,7 @@ goldenEvalCekTraceWithEmitter emitter name compiledCode =
       traceMsg =
         case logOut of
           [] -> ["No Trace Produced"]
-          x  -> ["Trace:", vsep $ pretty <$> x]
+          x -> ["Trace:", vsep $ pretty <$> x]
 
     pure $ render @Text $ case evalRes of
       Left evalErr ->

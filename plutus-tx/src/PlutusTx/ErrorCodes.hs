@@ -36,32 +36,33 @@ When writing a new error description please follow existing patterns:
 
 -- | All error codes used in the plutus prelude associated with a human-readable description.
 plutusPreludeErrorCodes :: Map Builtins.BuiltinString String
-plutusPreludeErrorCodes = Map.fromList
-  [ ("PT1", "TH Generation of Indexed Data Error")
-  , ("PT2", "PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported")
-  , ("PT3", "PlutusTx.Ratio: zero denominator")
-  , ("PT5", "PlutusTx.Prelude.check: input is 'False'")
-  , ("PT6", "PlutusTx.List.!!: negative index")
-  , ("PT7", "PlutusTx.List.!!: index too large")
-  , ("PT8", "PlutusTx.List.head: empty list")
-  , ("PT9", "PlutusTx.List.tail: empty list")
-  , ("PT10", "PlutusTx.Enum.().succ: bad argument")
-  , ("PT11", "PlutusTx.Enum.().pred: bad argument")
-  , ("PT12", "PlutusTx.Enum.().toEnum: bad argument")
-  , ("PT13", "PlutusTx.Enum.Bool.succ: bad argument")
-  , ("PT14", "PlutusTx.Enum.Bool.pred: bad argument")
-  , ("PT15", "PlutusTx.Enum.Bool.toEnum: bad argument")
-  , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
-  , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
-  , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
-  , ("PT19", "PlutusTx.List.last: empty list")
-  , ("PT20", "PlutusTx.Ratio.recip: reciprocal of zero")
-  , ("PT21", "PlutusTx.BuiltinList.!!: negative index")
-  , ("PT22", "PlutusTx.BuiltinList.!!: index too large")
-  , ("PT23", "PlutusTx.BuiltinList.head: empty list")
-  , ("PT24", "PlutusTx.BuiltinList.tail: empty list")
-  , ("PT25", "PlutusTx.BuiltinList.last: empty list")
-  ]
+plutusPreludeErrorCodes =
+  Map.fromList
+    [ ("PT1", "TH Generation of Indexed Data Error")
+    , ("PT2", "PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported")
+    , ("PT3", "PlutusTx.Ratio: zero denominator")
+    , ("PT5", "PlutusTx.Prelude.check: input is 'False'")
+    , ("PT6", "PlutusTx.List.!!: negative index")
+    , ("PT7", "PlutusTx.List.!!: index too large")
+    , ("PT8", "PlutusTx.List.head: empty list")
+    , ("PT9", "PlutusTx.List.tail: empty list")
+    , ("PT10", "PlutusTx.Enum.().succ: bad argument")
+    , ("PT11", "PlutusTx.Enum.().pred: bad argument")
+    , ("PT12", "PlutusTx.Enum.().toEnum: bad argument")
+    , ("PT13", "PlutusTx.Enum.Bool.succ: bad argument")
+    , ("PT14", "PlutusTx.Enum.Bool.pred: bad argument")
+    , ("PT15", "PlutusTx.Enum.Bool.toEnum: bad argument")
+    , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
+    , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
+    , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
+    , ("PT19", "PlutusTx.List.last: empty list")
+    , ("PT20", "PlutusTx.Ratio.recip: reciprocal of zero")
+    , ("PT21", "PlutusTx.BuiltinList.!!: negative index")
+    , ("PT22", "PlutusTx.BuiltinList.!!: index too large")
+    , ("PT23", "PlutusTx.BuiltinList.head: empty list")
+    , ("PT24", "PlutusTx.BuiltinList.tail: empty list")
+    , ("PT25", "PlutusTx.BuiltinList.last: empty list")
+    ]
 
 -- | The error happens in TH generation of indexed data
 reconstructCaseError :: Builtins.BuiltinString
@@ -166,19 +167,19 @@ builtinListNegativeIndexError = "PT21"
 -- | PlutusTx.BuiltinList.!!: index too large
 builtinListIndexTooLargeError :: Builtins.BuiltinString
 builtinListIndexTooLargeError = "PT22"
-{-# INLINABLE builtinListIndexTooLargeError #-}
+{-# INLINEABLE builtinListIndexTooLargeError #-}
 
 -- | PlutusTx.BuiltinList.head: empty list
 headEmptyBuiltinListError :: Builtins.BuiltinString
 headEmptyBuiltinListError = "PT23"
-{-# INLINABLE headEmptyBuiltinListError #-}
+{-# INLINEABLE headEmptyBuiltinListError #-}
 
 -- | PlutusTx.BuiltinList.tail: empty list
 tailEmptyBuiltinListError :: Builtins.BuiltinString
 tailEmptyBuiltinListError = "PT24"
-{-# INLINABLE tailEmptyBuiltinListError #-}
+{-# INLINEABLE tailEmptyBuiltinListError #-}
 
 -- | PlutusTx.BuiltinList.last: empty list
 lastEmptyBuiltinListError :: Builtins.BuiltinString
 lastEmptyBuiltinListError = "PT25"
-{-# INLINABLE lastEmptyBuiltinListError #-}
+{-# INLINEABLE lastEmptyBuiltinListError #-}

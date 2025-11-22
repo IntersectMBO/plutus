@@ -1,6 +1,6 @@
 # editorconfig-checker-disable-file
 
-{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages, ghc }:
+{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages, ghc, mkFourmolu }:
 
 let
 
@@ -10,14 +10,14 @@ let
     "ghc96".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest";
     "ghc96".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest";
     "ghc96".stylish-haskell = project.projectVariants.ghc96.tool "stylish-haskell" "latest";
-    "ghc96".fourmolu = project.projectVariants.ghc96.tool "fourmolu" "0.17.0.0"; # fourmolu 0.18.0.0 and hlint 3.10 require GHC >=9.8
+    "ghc96".fourmolu = mkFourmolu ghc;
     "ghc96".hlint = project.projectVariants.ghc96.tool "hlint" "3.8";
 
     "ghc912".cabal = project.projectVariants.ghc912.tool "cabal" "latest";
     "ghc912".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc9122
     "ghc912".haskell-language-server = project.projectVariants.ghc912.tool "haskell-language-server" "latest";
     "ghc912".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
-    "ghc912".fourmolu = project.projectVariants.ghc912.tool "fourmolu" "latest";
+    "ghc912".fourmolu = mkFourmolu ghc;
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
   };
 
@@ -36,15 +36,16 @@ let
         package = tools.cabal-fmt;
       };
       stylish-haskell = {
-        enable = true;
+        enable = false;
         package = tools.stylish-haskell;
         args = [ "--config" ".stylish-haskell.yaml" ];
         excludes = [ "^plutus-metatheory/src/MAlonzo" ];
       };
       fourmolu = {
-        enable = false;
+        enable = true;
         package = tools.fourmolu;
-        args = [ "--mode" "inplace" ];
+        args = [ "--unsafe" ];
+        excludes = [ "^plutus-metatheory/src/MAlonzo" ];
       };
       hlint = {
         enable = false;

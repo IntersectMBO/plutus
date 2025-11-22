@@ -24,8 +24,7 @@ module PlutusLedgerApi.Common (
 
   -- * Network's versioning
   {-| The network's behaviour (and plutus's by extension) can change via /hard forks/,
-  which directly correspond to major-number protocol version bumps.
-  -}
+  which directly correspond to major-number protocol version bumps. -}
   Versions.MajorProtocolVersion (..),
   Versions.PlutusLedgerLanguage (..),
   Versions.Version (..),
@@ -62,8 +61,7 @@ module PlutusLedgerApi.Common (
   Plutus attaches names to the network's cost model parameters (values)
   either in a raw textual form or typed by a specific plutus version.
 
-  See Note [Cost model parameters]
-  -}
+  See Note [Cost model parameters] -}
   PLC.CostModelParams,
   ParamName.toCostModelParams,
   Eval.assertWellFormedCostModelParams,

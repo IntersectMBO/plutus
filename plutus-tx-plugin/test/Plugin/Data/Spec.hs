@@ -1,11 +1,11 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE NegativeLiterals    #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -75,9 +75,9 @@ data MyMonoData = Mono1 Integer Integer | Mono2 Integer | Mono3 Integer
 instance P.Eq MyMonoData where
   {-# INLINEABLE (==) #-}
   (Mono1 i1 j1) == (Mono1 i2 j2) = i1 P.== i2 && j1 P.== j2
-  (Mono2 i1) == (Mono2 i2)       = i1 P.== i2
-  (Mono3 i1) == (Mono3 i2)       = i1 P.== i2
-  _ == _                         = False
+  (Mono2 i1) == (Mono2 i2) = i1 P.== i2
+  (Mono3 i1) == (Mono3 i2) = i1 P.== i2
+  _ == _ = False
 
 -- pattern match to avoid type getting simplified away
 monoDataType :: CompiledCode (MyMonoData -> Integer)
@@ -211,8 +211,8 @@ data MyPolyData a b = Poly1 a b | Poly2 a
 instance (P.Eq a, P.Eq b) => P.Eq (MyPolyData a b) where
   {-# INLINEABLE (==) #-}
   (Poly1 a1 b1) == (Poly1 a2 b2) = a1 P.== a2 && b1 P.== b2
-  (Poly2 a1) == (Poly2 a2)       = a1 P.== a2
-  _ == _                         = False
+  (Poly2 a1) == (Poly2 a2) = a1 P.== a2
+  _ == _ = False
 
 -- pattern match to avoid type getting simplified away
 polyDataType :: CompiledCode (MyPolyData Integer Integer -> Integer)
@@ -340,7 +340,7 @@ polyRec =
     ( let
         depth :: B a -> Integer
         depth tree = case tree of
-          One _     -> 1
+          One _ -> 1
           Two inner -> Builtins.addInteger 1 (depth inner)
        in
         \(t :: B Integer) -> depth t
@@ -374,7 +374,7 @@ sameEmptyRose =
           (|.) :: ([EmptyRose] -> EmptyRose) -> (EmptyRose -> [EmptyRose]) -> EmptyRose -> EmptyRose
           (|.) = \g f x -> g (f x)
           map :: (EmptyRose -> EmptyRose) -> [EmptyRose] -> [EmptyRose]
-          map _ []       = []
+          map _ [] = []
           map f (x : xs) = f x : map f xs
           unEmptyRose (EmptyRose x) = x
           go = EmptyRose |. (map go .| unEmptyRose)
@@ -384,8 +384,7 @@ sameEmptyRose =
 -- See Note [Non-regular data types in tests].
 
 {-| A type of lists containing two values at each node, with the types of those values getting
-swapped each time we move from one node to the next one.
--}
+swapped each time we move from one node to the next one. -}
 data InterList a b
   = InterNil
   | InterCons a b (InterList b a) -- Note that the parameters get swapped.
@@ -402,10 +401,10 @@ processInterList =
     (Proxy @"foldrInterList")
     ( let foldrInterList :: forall a b r. (a -> b -> r -> r) -> r -> InterList a b -> r
           foldrInterList f0 z = go f0
-           where
-            go :: forall a b. (a -> b -> r -> r) -> InterList a b -> r
-            go _ InterNil           = z
-            go f (InterCons x y xs) = f x y (go (flip f) xs)
+            where
+              go :: forall a b. (a -> b -> r -> r) -> InterList a b -> r
+              go _ InterNil = z
+              go f (InterCons x y xs) = f x y (go (flip f) xs)
        in foldrInterList (\x b r -> if b then x else r) 0
     )
 

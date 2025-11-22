@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Transform.Simplify.Spec where
 
@@ -38,10 +38,9 @@ caseOfCase1 = runQuote $ do
       alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
-{- | This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
+{-| This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
 Unless both branches are known constructors, the case-of-case transformation
-may increase the program size.
--}
+may increase the program size. -}
 caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase2 = runQuote $ do
   b <- freshName "b"
@@ -52,9 +51,8 @@ caseOfCase2 = runQuote $ do
       alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
-{- | Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
-@[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@).
--}
+{-| Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
+@[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@). -}
 caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase3 = runQuote $ do
   b <- freshName "b"
@@ -81,9 +79,8 @@ floatDelay1 = runQuote $ do
       lam = LamAbs () a body
   pure $ Apply () lam (Delay () (mkConstant @Integer () 1))
 
-{- | The `Delay` should not be floated into the lambda, because the argument (1 + 2)
-is not work-free.
--}
+{-| The `Delay` should not be floated into the lambda, because the argument (1 + 2)
+is not work-free. -}
 floatDelay2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 floatDelay2 = runQuote $ do
   a <- freshName "a"
@@ -100,10 +97,9 @@ floatDelay2 = runQuote $ do
           (mkConstant @Integer () 2)
   pure $ Apply () lam (Delay () arg)
 
-{- | The `Delay` should not be floated into the lambda in the first simplifier iteration,
+{-| The `Delay` should not be floated into the lambda in the first simplifier iteration,
 because one of the occurrences of `a` is not under `Force`. It should be floated into
-the lambda in the second simplifier iteration, after `b` is inlined.
--}
+the lambda in the second simplifier iteration, after `b` is inlined. -}
 floatDelay3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 floatDelay3 = runQuote $ do
   a <- freshName "a"
@@ -118,11 +114,11 @@ basicInline = runQuote $ do
   n <- freshName "a"
   pure $ Apply () (LamAbs () n (Var () n)) (mkConstant @Integer () 1)
 
--- | A helper function to create a term which tests whether the inliner
--- behaves as expected for a given pure or impure term. It receives
--- a 'Quote' that produces a term together with a list of free variables.
--- The free variables are bound at the top level of the final term in order
--- to ensure that the produced final term is well-scoped.
+{-| A helper function to create a term which tests whether the inliner
+behaves as expected for a given pure or impure term. It receives
+a 'Quote' that produces a term together with a list of free variables.
+The free variables are bound at the top level of the final term in order
+to ensure that the produced final term is well-scoped. -}
 mkInlinePurityTest
   :: Quote ([Name], Term Name PLC.DefaultUni PLC.DefaultFun ())
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -135,9 +131,9 @@ mkInlinePurityTest termToInline = runQuote $ do
   let withTopLevelBindings =
         mkIterLamAbs
           (UVarDecl () <$> freeVars)
-  pure
-    $ withTopLevelBindings
-    $ Apply () (LamAbs () a $ LamAbs () b $ Var () a) term
+  pure $
+    withTopLevelBindings $
+      Apply () (LamAbs () a $ LamAbs () b $ Var () a) term
 
 -- | A single @Var@ is pure.
 inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -145,22 +141,20 @@ inlinePure1 = mkInlinePurityTest $ do
   a <- freshName "a"
   pure ([a], Var () a)
 
-{- | @force (delay a)@ is pure.
+{-| @force (delay a)@ is pure.
 
 Note that this relies on @forceDelayCancel@ to cancel the @force@ and the @delay@,
-otherwise the inliner would treat the term as impure.
--}
+otherwise the inliner would treat the term as impure. -}
 inlinePure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlinePure2 = mkInlinePurityTest $ do
   a <- freshName "a"
   pure ([a], Force () $ Delay () $ Var () a)
 
-{- | @[(\x -> \y -> [x x]) (con integer 1)]@ is pure.
+{-| @[(\x -> \y -> [x x]) (con integer 1)]@ is pure.
 
 Note that the @(con integer 1)@ won't get inlined: it isn't pre-inlined because
 @x@ occurs twice, and it isn't post-inlined because @costIsAcceptable Constant{} = False@.
-However, the entire term will be inlined since it is pure.
--}
+However, the entire term will be inlined since it is pure. -}
 inlinePure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlinePure3 = mkInlinePurityTest $ do
   x <- freshName "x"
@@ -173,20 +167,19 @@ inlinePure3 = mkInlinePurityTest $ do
       vars = []
   pure (vars, t)
 
-{- | @force ([(\x -> delay (\y -> [x x])) (delay ([error (con integer 1)]))])@ is pure,
+{-| @force ([(\x -> delay (\y -> [x x])) (delay ([error (con integer 1)]))])@ is pure,
 but it is very tricky to see so. It requires us to match up a force and a
-delay through several steps of intervening computation.
--}
+delay through several steps of intervening computation. -}
 inlinePure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlinePure4 = mkInlinePurityTest $ do
   x <- freshName "x"
   y <- freshName "y"
   let term =
-        Force ()
-        $ Apply
-          ()
-          (LamAbs () x $ Delay () $ LamAbs () y $ Apply () (Var () x) (Var () x))
-          (Delay () $ Apply () (Error ()) $ mkConstant @Integer () 1)
+        Force () $
+          Apply
+            ()
+            (LamAbs () x $ Delay () $ LamAbs () y $ Apply () (Var () x) (Var () x))
+            (Delay () $ Apply () (Error ()) $ mkConstant @Integer () 1)
   pure ([], term)
 
 -- | @error@ is impure.
@@ -197,47 +190,44 @@ inlineImpure1 = mkInlinePurityTest $ pure ([], Error ())
 inlineImpure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure2 = mkInlinePurityTest $ pure ([], Force () . Delay () $ Error ())
 
-{- | @force (force (force (delay (delay (delay (error))))))@ is impure, since it
-is the same as @error@.
--}
+{-| @force (force (force (delay (delay (delay (error))))))@ is impure, since it
+is the same as @error@. -}
 inlineImpure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure3 =
-  mkInlinePurityTest
-    $ pure
+  mkInlinePurityTest $
+    pure
       ( []
       , Force ()
-      . Force ()
-      . Force ()
-      . Delay ()
-      . Delay ()
-      . Delay ()
-      $ Error ()
+          . Force ()
+          . Force ()
+          . Delay ()
+          . Delay ()
+          . Delay ()
+          $ Error ()
       )
 
-{- | @force (force (force (delay (delay a))))@ is impure, since @a@ may expand
-to an impure term such as @error@.
--}
+{-| @force (force (force (delay (delay a))))@ is impure, since @a@ may expand
+to an impure term such as @error@. -}
 inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure4 = mkInlinePurityTest $ do
   a <- freshName "a"
   let term =
         Force ()
-        . Force ()
-        . Force ()
-        . Delay ()
-        . Delay ()
-        . Var ()
-        $ a
+          . Force ()
+          . Force ()
+          . Delay ()
+          . Delay ()
+          . Var ()
+          $ a
   pure ([a], term)
 
-{- | @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
+{-| @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
 
 The first occurrence of `a` should be inlined because doing so does not increase
 the size or the cost.
 
 The second occurrence of `a` should be unconditionally inlined in the second simplifier
-iteration, but in this test we are only running one iteration.
--}
+iteration, but in this test we are only running one iteration. -}
 callsiteInline :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 callsiteInline = runQuote $ do
   a <- freshName "a"
@@ -283,14 +273,13 @@ forceDelayNoAppsLayered = runQuote $ do
       term = Force () $ Force () $ Force () $ Delay () $ Delay () $ Delay () one
   pure term
 
-{- | The UPLC term in this test should come from the following TPLC term after erasing its types:
+{-| The UPLC term in this test should come from the following TPLC term after erasing its types:
 
 > (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z)
 >   Int 1 Int 2 Int 3
 
 This case is simple in the sense that each type abstraction
-is followed by a single term abstraction.
--}
+is followed by a single term abstraction. -}
 forceDelaySimple :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceDelaySimple = runQuote $ do
   x <- freshName "x"
@@ -303,9 +292,8 @@ forceDelaySimple = runQuote $ do
       app = Apply () (Force () (Apply () (Force () (Apply () (Force () t) one)) two)) three
   pure app
 
-{- | A test for the case when there are multiple applications between the 'Force' at the top
-and the 'Delay' at the top of the term inside the abstractions/applications.
--}
+{-| A test for the case when there are multiple applications between the 'Force' at the top
+and the 'Delay' at the top of the term inside the abstractions/applications. -}
 forceDelayMultiApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceDelayMultiApply = runQuote $ do
   x1 <- freshName "x1"
@@ -317,22 +305,21 @@ forceDelayMultiApply = runQuote $ do
       two = mkConstant @Integer () 2
       three = mkConstant @Integer () 3
       term =
-        LamAbs () funcVar
-        $ Force ()
-          $ mkIterAppNoAnn
-            ( LamAbs () x1 $
-                LamAbs () x2 $
-                  LamAbs () x3 $
-                    LamAbs () f $
-                      Delay () $
-                        mkIterAppNoAnn (Var () f) [Var () x1, Var () x2, Var () x3]
-            )
-            [one, two, three, Var () funcVar]
+        LamAbs () funcVar $
+          Force () $
+            mkIterAppNoAnn
+              ( LamAbs () x1 $
+                  LamAbs () x2 $
+                    LamAbs () x3 $
+                      LamAbs () f $
+                        Delay () $
+                          mkIterAppNoAnn (Var () f) [Var () x1, Var () x2, Var () x3]
+              )
+              [one, two, three, Var () funcVar]
   pure term
 
-{- | A test for the case when there are multiple type abstractions over a single term
-abstraction/application.
--}
+{-| A test for the case when there are multiple type abstractions over a single term
+abstraction/application. -}
 forceDelayMultiForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceDelayMultiForce = runQuote $ do
   x <- freshName "x"
@@ -352,7 +339,7 @@ forceDelayMultiForce = runQuote $ do
                 one
   pure term
 
-{- | The UPLC term in this test should come from the following TPLC term after erasing its types:
+{-| The UPLC term in this test should come from the following TPLC term after erasing its types:
 
 > (/\(p1 :: *) (p2 :: *) -> \(x : p2) ->
 >   /\(q1 :: *) (q2 :: *) (q3 :: *) -> \(y1 : q1) (y2 : q2) (y3 : String) ->
@@ -362,8 +349,7 @@ forceDelayMultiForce = runQuote $ do
 > ) Int Int 1 Int String Int 2 "foo" "bar" Int 3 3 ByteString
 > (funcVar : Int -> Int -> String -> String -> Int -> String)
 
-Note this term has multiple interleaved type and term instantiations/applications.
--}
+Note this term has multiple interleaved type and term instantiations/applications. -}
 forceDelayComplex :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceDelayComplex = runQuote $ do
   x <- freshName "x"
@@ -404,26 +390,26 @@ forceDelayComplex = runQuote $ do
                                       , Var () z2
                                       ]
       app =
-        LamAbs () funcVar
-        $ Apply
-          ()
-          ( Force () $
-              mkIterAppNoAnn
-                ( Force () $
-                    mkIterAppNoAnn
-                      ( Force () $
-                          Force () $
+        LamAbs () funcVar $
+          Apply
+            ()
+            ( Force () $
+                mkIterAppNoAnn
+                  ( Force () $
+                      mkIterAppNoAnn
+                        ( Force () $
                             Force () $
-                              Apply
-                                ()
-                                (Force () $ Force () term)
-                                one
-                      )
-                      [two, foo, bar]
-                )
-                [three, three]
-          )
-          (Var () funcVar)
+                              Force () $
+                                Apply
+                                  ()
+                                  (Force () $ Force () term)
+                                  one
+                        )
+                        [two, foo, bar]
+                  )
+                  [three, three]
+            )
+            (Var () funcVar)
   pure app
 
 forceCaseDelayNoApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -431,9 +417,9 @@ forceCaseDelayNoApps1 = runQuote $ do
   scrut <- freshName "scrut"
   let one = mkConstant @Integer () 1
       term =
-        LamAbs () scrut
-        $ Force ()
-        $ Case () (Var () scrut) (V.fromList [Delay () one])
+        LamAbs () scrut $
+          Force () $
+            Case () (Var () scrut) (V.fromList [Delay () one])
   pure term
 
 forceCaseDelayWithApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -442,11 +428,12 @@ forceCaseDelayWithApps1 = runQuote $ do
   x <- freshName "x"
   let one = mkConstant @Integer () 1
       term =
-        LamAbs () scrut
-        $ Force ()
-        $ Case ()
-          (Var () scrut)
-          (V.fromList [LamAbs () x $ Delay () one])
+        LamAbs () scrut $
+          Force () $
+            Case
+              ()
+              (Var () scrut)
+              (V.fromList [LamAbs () x $ Delay () one])
   pure term
 
 forceCaseDelayNoApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -455,11 +442,12 @@ forceCaseDelayNoApps2 = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        LamAbs () scrut
-        $ Force ()
-        $ Case ()
-          (Var () scrut)
-          (V.fromList [Delay () one, Delay () two])
+        LamAbs () scrut $
+          Force () $
+            Case
+              ()
+              (Var () scrut)
+              (V.fromList [Delay () one, Delay () two])
   pure term
 
 forceCaseDelayWithApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -469,11 +457,12 @@ forceCaseDelayWithApps2 = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        LamAbs () scrut
-        $ Force ()
-        $ Case ()
-          (Var () scrut)
-          (V.fromList [LamAbs () x $ Delay () one, Delay () two])
+        LamAbs () scrut $
+          Force () $
+            Case
+              ()
+              (Var () scrut)
+              (V.fromList [LamAbs () x $ Delay () one, Delay () two])
   pure term
 
 forceCaseDelayNoApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -482,11 +471,12 @@ forceCaseDelayNoApps2Fail = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        LamAbs () scrut
-        $ Force ()
-        $ Case ()
-          (Var () scrut)
-          (V.fromList [Delay () one, two])
+        LamAbs () scrut $
+          Force () $
+            Case
+              ()
+              (Var () scrut)
+              (V.fromList [Delay () one, two])
   pure term
 
 forceCaseDelayWithApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -497,15 +487,16 @@ forceCaseDelayWithApps2Fail = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        LamAbs () scrut
-        $ Force ()
-        $ Case ()
-          (Var () scrut)
-          (V.fromList
-            [ LamAbs () x $ LamAbs () y $ Delay () one
-            , LamAbs () x two
-            ]
-          )
+        LamAbs () scrut $
+          Force () $
+            Case
+              ()
+              (Var () scrut)
+              ( V.fromList
+                  [ LamAbs () x $ LamAbs () y $ Delay () one
+                  , LamAbs () x two
+                  ]
+              )
   pure term
 
 -- | This is the first example in Note [CSE].
@@ -615,4 +606,4 @@ test_simplify =
   testGroup
     "simplify"
     $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
-    <> fmap (uncurry goldenVsCse) testCseInputs
+      <> fmap (uncurry goldenVsCse) testCseInputs

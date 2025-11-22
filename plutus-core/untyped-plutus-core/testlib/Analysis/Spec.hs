@@ -75,21 +75,21 @@ testSomeTypeSomeTermArgsLeft :: TestTree
 testSomeTypeSomeTermArgsLeft =
   testCase "some type args and some term args are unapplied" $
     map (isPure builtinSemantics) terms @?= [True, True]
- where
-  terms :: [Term Name DefaultUni DefaultFun ()] =
-    [ Builtin () Trace -- 1 type arg and 2 term args are unapplied
-    , Force () (Builtin () FstPair) -- 2 type args, 1 applied and 1 left
-    ]
+  where
+    terms :: [Term Name DefaultUni DefaultFun ()] =
+      [ Builtin () Trace -- 1 type arg and 2 term args are unapplied
+      , Force () (Builtin () FstPair) -- 2 type args, 1 applied and 1 left
+      ]
 
 testNoTypeSomeTermArgsLeft :: TestTree
 testNoTypeSomeTermArgsLeft =
   testCase "no type args and some term args are unapplied" $
     map (isPure builtinSemantics) terms @?= [True, True]
- where
-  terms :: [Term Name DefaultUni DefaultFun ()] =
-    [ Builtin () EncodeUtf8 -- no type args, 1 term arg left to apply
-    , Force () (Builtin () Trace) -- 1 type arg applied, 2 term args left
-    ]
+  where
+    terms :: [Term Name DefaultUni DefaultFun ()] =
+      [ Builtin () EncodeUtf8 -- no type args, 1 term arg left to apply
+      , Force () (Builtin () Trace) -- 1 type arg applied, 2 term args left
+      ]
 
 testNoTypeNoTermArgsLeft :: TestTree
 testNoTypeNoTermArgsLeft =
@@ -98,16 +98,16 @@ testNoTypeNoTermArgsLeft =
     [ testAddInteger
     , testIfThenElse
     ]
- where
-  testAddInteger :: TestTree =
-    testCase "AddInteger" $ isPure builtinSemantics term @?= False
-   where
-    term :: Term Name DefaultUni DefaultFun () =
-      Apply () (Apply () (Builtin () AddInteger) (termVar 1)) (termVar 2)
+  where
+    testAddInteger :: TestTree =
+      testCase "AddInteger" $ isPure builtinSemantics term @?= False
+      where
+        term :: Term Name DefaultUni DefaultFun () =
+          Apply () (Apply () (Builtin () AddInteger) (termVar 1)) (termVar 2)
 
-  testIfThenElse :: TestTree =
-    testCase "IfThenElseApplied" $
-      isPure builtinSemantics termIfThenElse @?= False
+    testIfThenElse :: TestTree =
+      testCase "IfThenElseApplied" $
+        isPure builtinSemantics termIfThenElse @?= False
 
 testForceNoTypeParam :: TestTree
 testForceNoTypeParam =
@@ -123,8 +123,8 @@ testApplyNoTermParam =
     , testCase "when a builtin is saturated" $
         isPure builtinSemantics termSaturated @?= False
     ]
- where
-  termExpectingType :: Term Name DefaultUni DefaultFun () =
-    Apply () (Builtin () Trace) (termVar 1)
-  termSaturated :: Term Name DefaultUni DefaultFun () =
-    Apply () (Builtin () EncodeUtf8) (termVar 1)
+  where
+    termExpectingType :: Term Name DefaultUni DefaultFun () =
+      Apply () (Builtin () Trace) (termVar 1)
+    termSaturated :: Term Name DefaultUni DefaultFun () =
+      Apply () (Builtin () EncodeUtf8) (termVar 1)
