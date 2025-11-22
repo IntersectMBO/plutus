@@ -393,7 +393,7 @@ unionValue (unpack -> vA) (unpack -> vB) =
   let r = Map.unionWith unionCurrency vA vB
   in if valueOk r
      then pure $ pack r
-     else fail ""
+     else fail "unionValue: quantity is out of the signed 128-bit integer bounds"
   where unionCurrency :: Map K Quantity -> Map K Quantity -> Map K Quantity
         unionCurrency =
           Map.unionWith
