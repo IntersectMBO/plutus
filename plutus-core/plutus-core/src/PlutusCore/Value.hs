@@ -390,6 +390,9 @@ valueContains v1 v2
 
 
 unionValue :: Value -> Value -> BuiltinResult Value
+unionValue (unpack -> u) (unpack -> v) = BuiltinSuccess . pack $ Map.unionWith Map.union u v
+{-# INLINEABLE unionValue #-}
+{-
 unionValue (unpack -> vA) (unpack -> vB) =
   let r = Map.unionWith unionCurrency vA vB
   in if valueOk r
@@ -407,6 +410,8 @@ valueOk :: NestedMap -> Bool
 valueOk = Map.foldr (\i acc -> acc && innerOk i && acc) True
   where innerOk = Map.foldr (\q acc -> acc && minBound <= q && q <= maxBound) True
 {-# INLINEABLE valueOk #-}
+
+-}
 
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
 This is the denotation of @ValueData@ in Plutus V1, V2 and V3.
