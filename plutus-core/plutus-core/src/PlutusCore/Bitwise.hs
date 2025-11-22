@@ -2,7 +2,9 @@
 
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE MagicHash         #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UnboxedTuples     #-}
 
 -- | Implementations for CIP-121, CIP-122 and CIP-123. Grouped because they all operate on
 -- 'ByteString's, and require similar functionality.
@@ -26,24 +28,27 @@ module PlutusCore.Bitwise (
 
 import PlutusCore.Builtin (BuiltinResult, builtinResultFailure, emit)
 
-import ByteString.StrictBuilder (Builder)
-import ByteString.StrictBuilder qualified as Builder
 import Control.Exception (Exception, throwIO, try)
-import Control.Monad (guard, unless, when)
-import Data.Bits (unsafeShiftL, unsafeShiftR, (.|.))
+import Control.Monad (unless, when)
 import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Internal qualified as BSI
+import Data.ByteString.Unsafe qualified as BSU
 import Data.Foldable (for_)
+import Data.Primitive.ByteArray (ByteArray (ByteArray), copyByteArrayToAddr)
 import Data.Text (pack)
-import Data.Word (Word64, Word8)
+import Data.Word (Word16, Word64, byteSwap16, byteSwap64)
 import Foreign.Marshal.Utils (copyBytes, fillBytes)
-import Foreign.Ptr (Ptr, castPtr, plusPtr)
-import Foreign.Storable (peekByteOff, peekElemOff, pokeByteOff, pokeElemOff)
+import Foreign.Ptr (castPtr, plusPtr)
+import Foreign.Storable (peek, peekByteOff, peekElemOff, poke, pokeByteOff, pokeElemOff)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
+import GHC.Exts (ByteArray#, Int (I#), Int#, Ptr (Ptr), clz#, indexWord8Array#, int2Word#,
+                 int8ToWord8#, intToInt8#, isTrue#, neWord8#, quotInt#, quotRemInt#,
+                 sizeofByteArray#, word2Int#, wordToWord8#, (-#), (<#), (==#))
 import GHC.IO.Unsafe (unsafeDupablePerformIO)
-import GHC.Num.Integer (integerLog2)
+import GHC.Num.Integer (Integer (IN, IP, IS), integerFromAddr, integerLog2)
+import GHC.Word (Word8 (W8#))
 
 {- Note [Input length limitation for IntegerToByteString].
 We make `integerToByteString` and `replicateByte` fail if they're called with arguments which would
@@ -124,116 +129,149 @@ endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
 -- 'ByteOrder', and the length argument is an 'Int'.
 -- This may not actually be unsafe, but it shouldn't be used outside this module.
 unsafeIntegerToByteString :: ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
-unsafeIntegerToByteString requestedByteOrder requestedLength input
-  | input < 0 = Left NegativeInput
-  | input == 0 = Right . BS.replicate requestedLength $ 0x00
-  -- We use manual specialization to ensure as few branches in loop bodies as
-  -- we can. See Note [Manual specialization] for details.
-  | requestedLength == 0 = Right . Builder.builderBytes $ case requestedByteOrder of
-      LittleEndian -> goLENoLimit mempty input
-      BigEndian    -> goBENoLimit mempty input
-  | otherwise = do
-      let result = case requestedByteOrder of
-                    LittleEndian -> goLELimit mempty input
-                    BigEndian    -> goBELimit mempty input
-      case result of
-        Nothing -> Left NotEnoughDigits
-        Just b  -> Right . Builder.builderBytes $ b
+unsafeIntegerToByteString requestedByteOrder requestedLength input = case input of
+  IS i# -> if | isTrue# (i# ==# 0#) -> Right . BS.replicate requestedLength $ 0x00
+              | isTrue# (i# <# 0#) -> Left NegativeInput
+              | otherwise ->
+                  -- This is a somewhat long-winded way to do a base-256
+                  -- logarithm of `i#`. This works because the number of bytes
+                  -- we need to represent any given (positive) `Int#` will
+                  -- directly depend on the number of leading zeroes: every full
+                  -- 8 leading zeroes means a byte we _don't_ need to use. We
+                  -- can then figure out the number of unused bytes (all-zero)
+                  -- byt taking the quotient of the leading zero count by 8.
+                  let counted# = clz# (int2Word# i#)
+                      minLength = 8 - I# (quotInt# (word2Int# counted#) 8#)
+                    in if | requestedLength == 0        -> Right (mkSmall minLength i#)
+                          | requestedLength < minLength -> Left NotEnoughDigits
+                          | otherwise                   ->  Right (mkSmall requestedLength i#)
+  IP ba# ->
+      -- Because logarithms in base 256 are not (yet) optimized (see
+      -- https://hackage-content.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.BigNat.html#bigNatLogBaseWord%23)
+      -- and we must have nonzero 64 bit limbs in all positions
+      -- (https://hackage-content.haskell.org/package/ghc-bignum-1.3/docs/GHC-Num-BigNat.html#t:BigNat-35-),
+      -- it's cheaper for us to count zero bytes at the end, as this loop will
+      -- take a maximum of 7 steps ever on every platform we care about,
+      -- whereas a logarithm will be Theta(n) on the length of `ba#`.
+      let len# = sizeofByteArray# ba#
+          zeroesAtEnd = countZeroesAtEnd ba# 0 (len# -# 1#)
+          minLength = I# len# - zeroesAtEnd
+        in if
+            | requestedLength == 0        -> Right (mkLarge minLength minLength ba#)
+            | requestedLength < minLength -> Left NotEnoughDigits
+            | otherwise                   -> Right (mkLarge minLength requestedLength ba#)
+  IN _ -> Left NegativeInput
   where
-    goLELimit :: Builder -> Integer -> Maybe Builder
-    goLELimit acc remaining
-      | remaining == 0 = pure $ padLE acc
+    mkSmall :: Int -> Int# -> ByteString
+    mkSmall desiredLength i# = BSI.unsafeCreate desiredLength $ \ptr -> do
+      fillBytes ptr 0x00 desiredLength
+      case requestedByteOrder of
+        -- We use manual specialization to ensure as few branches in loop bodies
+        -- as we can. See Note [Manual specialization] for details.
+        LittleEndian -> goSmallLE ptr 0 i#
+        BigEndian    -> goSmallBE ptr (desiredLength - 1) i#
+    countZeroesAtEnd :: ByteArray# -> Int -> Int# -> Int
+    countZeroesAtEnd ba# acc ix# =
+      let w8# = indexWord8Array# ba# ix#
+        in if isTrue# (neWord8# w8# (wordToWord8# 0##))
+            then acc
+            else countZeroesAtEnd ba# (acc + 1) (ix# -# 1#)
+    mkLarge :: Int -> Int -> ByteArray# -> ByteString
+    mkLarge minLength desiredLength ba# = BSI.unsafeCreate desiredLength $ \ptr -> do
+      fillBytes ptr 0x00 desiredLength
+      -- Because `copyByteArrayToAddr` is essentially `memcpy` or `copyBytes`,
+      -- it may as well be a constant-time operation for anything that isn't
+      -- at least multiple memory pages in size. Given that memory pages are on
+      -- the order of 8KiB on every platform we care about, we're better off
+      -- blindly copying over the `Integer` data, then reversing the result in
+      -- place if we need it 'big endian'. This is because no backward copying
+      -- routine we could write can compete with `memcpy` at no FFI penalty, and
+      -- reversing in-place requires only half the iterations that a copy would
+      -- in any case.
+      copyByteArrayToAddr ptr (ByteArray ba#) 0 minLength
+      case requestedByteOrder of
+        LittleEndian -> pure ()
+        BigEndian    -> reverseBuffer ptr desiredLength
+    goSmallLE :: Ptr Word8 -> Int -> Int# -> IO ()
+    goSmallLE ptr offset remaining#
+      | isTrue# (remaining# ==# 0#) = pure ()
       | otherwise = do
-          -- builderLength is constant time, so we don't track the length ourselves
-          guard (Builder.builderLength acc < requestedLength)
-          -- This allows extracting eight digits at once. See Note [Loop sectioning] for details on
-          -- why we do this. We also duplicate this code in several places: see Note [Manual
-          -- specialization] for why.
-          --
-          -- The code is basically equivalent to remaining `quotRem` 2^64, but more efficient. This
-          -- is for two reasons: firstly, GHC does not optimize divisions into shifts for Integer
-          -- (even if the divisor is constant), and secondly, the pair generated by `quotRem` costs
-          -- us as much as 15% peformance, and GHC seems unable to eliminate it. Thus, we have to do
-          -- it like this instead.
-          let newRemaining = remaining `unsafeShiftR` 64
-          -- Given that remaining must be non-negative, fromInteger here effectively truncates to a
-          -- Word64, by retaining only the least-significant 8 bytes.
-          let digitGroup :: Word64 = fromInteger remaining
-          case newRemaining of
-            0 -> finishLELimit acc digitGroup
-            _ -> goLELimit (acc <> Builder.storable digitGroup) newRemaining
-    finishLELimit :: Builder -> Word64 -> Maybe Builder
-    finishLELimit acc remaining
-      | remaining == 0 = pure $ padLE acc
+          let !(# q#, r# #) = quotRemInt# remaining# 256#
+          pokeByteOff ptr offset (W8# (int8ToWord8# (intToInt8# r#)))
+          goSmallLE ptr (offset + 1) q#
+    goSmallBE :: Ptr Word8 -> Int -> Int# -> IO ()
+    goSmallBE ptr offset remaining#
+      | isTrue# (remaining# ==# 0#) = pure ()
       | otherwise = do
-          guard (Builder.builderLength acc < requestedLength)
-          -- This is equivalent to 'remaining `quotRem` 256' followed by a conversion of the
-          -- remainder, but faster. This is similar to the larger example above, and we do it for
-          -- the same reasons.
-          let newRemaining = remaining `unsafeShiftR` 8
-          let digit :: Word8 = fromIntegral remaining
-          finishLELimit (acc <> Builder.word8 digit) newRemaining
-    -- By separating the case where we don't need to concern ourselves with a
-    -- user-specified limit, we can avoid branching needlessly, or doing a
-    -- complex expression check on every loop. See Note [Manual specialization]
-    -- for why this matters.
-    goLENoLimit :: Builder -> Integer -> Builder
-    goLENoLimit acc remaining
-      | remaining == 0 = acc
-      | otherwise = let newRemaining = remaining `unsafeShiftR` 64
-                        digitGroup :: Word64 = fromInteger remaining
-                      in case newRemaining of
-                        0 -> finishLENoLimit acc digitGroup
-                        _ -> goLENoLimit (acc <> Builder.storable digitGroup) newRemaining
-    finishLENoLimit :: Builder -> Word64 -> Builder
-    finishLENoLimit acc remaining
-      | remaining == 0 = acc
-      | otherwise =
-          let newRemaining = remaining `unsafeShiftR` 8
-              digit :: Word8 = fromIntegral remaining
-           in finishLENoLimit (acc <> Builder.word8 digit) newRemaining
-    padLE :: Builder -> Builder
-    padLE acc = let paddingLength = requestedLength - Builder.builderLength acc
-      in acc <> Builder.bytes (BS.replicate paddingLength 0x0)
-    -- We manually specialize the big-endian case: see Note [Manual specialization] for why.
-    goBELimit :: Builder -> Integer -> Maybe Builder
-    goBELimit acc remaining
-      | remaining == 0 = pure $ padBE acc
+          let !(# q#, r# #) = quotRemInt# remaining# 256#
+          pokeByteOff ptr offset (W8# (int8ToWord8# (intToInt8# r#)))
+          goSmallBE ptr (offset - 1) q#
+    -- We use loop sectioning here so that we can reverse more quickly.
+    -- Specifically, we do two kinds of 'steps':
+    --
+    -- 1. 'Large' steps, where we reverse 16 bytes at once (8 from each end);
+    --     followed by
+    -- 2. 'Small' steps, where we reverse 4 bytes at once (2 from each end).
+    --
+    -- See Note [Loop sectioning] for details on why we do this.
+    reverseBuffer :: Ptr Word8 -> Int -> IO ()
+    reverseBuffer ptr remainingSpan
+      | remainingSpan < 16 = finishUp ptr remainingSpan
+        -- We use a standard 'two-finger' technique for reversing a buffer. We
+        -- maintain a pair of pointers (or in our case, a pointer and an offset
+        -- for easier control), representing the start and end of the
+        -- un-reversed region. We then read the 'start pointer' forward a block,
+        -- and the 'end pointer' backward a block. Lastly, we swap the byte
+        -- order in both blocks, the write the 'start block' to the end and the
+        -- 'end block' to the start. We then adjust our pointers forward (or
+        -- back) one block.
       | otherwise = do
-          guard (Builder.builderLength acc < requestedLength)
-          let newRemaining = remaining `unsafeShiftR` 64
-          let digitGroup :: Word64 = fromInteger remaining
-          case newRemaining of
-            0 -> finishBELimit acc digitGroup
-            _ -> goBELimit (Builder.word64BE digitGroup <> acc) newRemaining
-    finishBELimit :: Builder -> Word64 -> Maybe Builder
-    finishBELimit acc remaining
-      | remaining == 0 = pure $ padBE acc
+          let pStart :: Ptr Word64 = castPtr ptr
+          let pEnd :: Ptr Word64 = castPtr (plusPtr ptr (remainingSpan - 8))
+          wStart <- peek pStart
+          wEnd <- peek pEnd
+          poke pEnd (byteSwap64 wStart)
+          poke pStart (byteSwap64 wEnd)
+          reverseBuffer (plusPtr ptr 8) (remainingSpan - 16)
+    finishUp :: Ptr Word8 -> Int -> IO ()
+    finishUp ptr remaining
+      -- If we have exactly zero or exactly one byte left, we've reached the
+      -- middle: either our 'fingers' met, or there's one element between them.
+      -- In either case, no further action is needed.
+      | remaining <= 1 = pure ()
+      -- If we have exactly two elements left, we can swap them and stop.
+      | remaining == 2 = do
+          wLeft <- peek ptr
+          wRight <- peek (plusPtr ptr 1)
+          poke ptr wRight
+          poke (plusPtr ptr 1) wLeft
+      -- The special case where we have 3 bytes left to swap bears closer
+      -- examination, and is the reason why our 'small steps' can be as large as
+      -- they are. Consider the case below, where `...` marks equal-size
+      -- 'already reversed' regions:
+      --
+      -- [..., x, y, z, ...]
+      --
+      -- Our 'fingers' would read as follows:
+      --
+      -- 1. The 'left finger' would read `x, y`; and
+      -- 2. Our 'right finger' would read `y, z`.
+      --
+      -- After byteswapping, we have a new 'right side' of `y, x`, and a new
+      -- 'left side' of `z, y`. Since the `y` in both sides overlaps, we can
+      -- safely have this write overlap, as this will not affect the result.
       | otherwise = do
-          guard (Builder.builderLength acc < requestedLength)
-          let newRemaining = remaining `unsafeShiftR` 8
-          let digit = fromIntegral remaining
-          finishBELimit (Builder.word8 digit <> acc) newRemaining
-    goBENoLimit :: Builder -> Integer -> Builder
-    goBENoLimit acc remaining
-      | remaining == 0 = acc
-      | otherwise = let newRemaining = remaining `unsafeShiftR` 64
-                        digitGroup = fromInteger remaining
-                      in case newRemaining of
-                        0 -> finishBENoLimit acc digitGroup
-                        _ -> goBENoLimit (Builder.word64BE digitGroup <> acc) newRemaining
-    finishBENoLimit :: Builder -> Word64 -> Builder
-    finishBENoLimit acc remaining
-      | remaining == 0 = acc
-      | otherwise = let newRemaining = remaining `unsafeShiftR` 8
-                        digit = fromIntegral remaining
-                      in finishBENoLimit (Builder.word8 digit <> acc) newRemaining
-    padBE :: Builder -> Builder
-    padBE acc = let paddingLength = requestedLength - Builder.builderLength acc in
-      Builder.bytes (BS.replicate paddingLength 0x0) <> acc
+          let pStart :: Ptr Word16 = castPtr ptr
+          let pEnd :: Ptr Word16 = castPtr (plusPtr ptr (remaining - 2))
+          wStart <- peek pStart
+          wEnd <- peek pEnd
+          poke pEnd (byteSwap16 wStart)
+          poke pStart (byteSwap16 wEnd)
+          finishUp (plusPtr ptr 2) (remaining - 4)
 
 -- | Conversion from 'ByteString' to 'Integer', as per
 -- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
+
 
 -- | Wrapper for 'unsafeByteStringToInteger' to make it more convenient to define as a builtin.
 byteStringToInteger ::
@@ -245,101 +283,13 @@ byteStringToInteger statedEndiannessArg input =
 -- For clarity, the stated endianness argument uses 'ByteOrder'.
 -- This function may not actually be unsafe, but it shouldn't be used outside this module.
 unsafeByteStringToInteger :: ByteOrder -> ByteString -> Integer
-  -- We use manual specialization to ensure as few branches in loop bodies as we can. See Note
-  -- [Manual specialization] for details.
-unsafeByteStringToInteger statedByteOrder input = case statedByteOrder of
-    -- Since padding bytes in the most-significant-last representation go at
-    -- the end of the input, we can skip decoding them, as they won't affect
-    -- the result in any way.
-    LittleEndian -> case BS.findIndexEnd (/= 0x00) input of
-      -- If there are no nonzero bytes, it must be zero.
-      Nothing  -> 0
-      Just end -> goLE 0 end 0
-    -- Since padding bytes in the most-significant-first representation go at
-    -- the beginning of the input, we can skip decoding them, as they won't
-    -- affect the result in any way.
-    BigEndian -> case BS.findIndex (/= 0x00) input of
-      Nothing  -> 0
-      Just end -> goBE 0 end 0 (BS.length input - 1)
-  where
-    -- Like with toByteString, we use loop sectioning to decode eight digits at once. See Note [Loop
-    -- sectioning] for why we do this.
-    goLE :: Integer -> Int -> Int -> Integer
-    goLE acc limit ix
-      | ix <= (limit - 7) =
-          let digitGroup = read64LE ix
-              -- Same as ix * 8, but faster. GHC might already do this optimization, but we may as
-              -- well be sure.
-              shift = ix `unsafeShiftL` 3
-              newIx = ix + 8
-              -- We use unsafeShiftL to move a group of eight digits into the right position in
-              -- the result, then combine with the accumulator. This is equivalent to a
-              -- multiplication by 2^64*k, but significantly faster, as GHC doesn't optimize
-              -- such multiplications into shifts for Integers.
-              newAcc = acc + fromIntegral digitGroup `unsafeShiftL` shift
-            in goLE newAcc limit newIx
-      | otherwise = finishLE acc limit ix
-    finishLE :: Integer -> Int -> Int -> Integer
-    finishLE acc limit ix
-      | ix > limit = acc
-      | otherwise =
-          let digit = BS.index input ix
-              shift = ix `unsafeShiftL` 3
-              newIx = ix + 1
-              -- Similarly to before, we use unsafeShiftL to move a single digit into the right
-              -- position in the result.
-              newAcc = acc + fromIntegral digit `unsafeShiftL` shift
-            in finishLE newAcc limit newIx
-    -- Technically, ByteString does not allow reading of anything bigger than a single byte.
-    -- However, because ByteStrings are counted arrays, caching already brings in adjacent bytes,
-    -- which makes fetching them quite cheap. Additionally, GHC appears to optimize this into a
-    -- block read of 64 bits at once, which saves memory movement. See Note [Superscalarity and
-    -- caching] for details of why this matters.
-    read64LE :: Int -> Word64
-    read64LE startIx =
-      fromIntegral (BS.index input startIx)
-        .|. (fromIntegral (BS.index input (startIx + 1)) `unsafeShiftL` 8)
-        .|. (fromIntegral (BS.index input (startIx + 2)) `unsafeShiftL` 16)
-        .|. (fromIntegral (BS.index input (startIx + 3)) `unsafeShiftL` 24)
-        .|. (fromIntegral (BS.index input (startIx + 4)) `unsafeShiftL` 32)
-        .|. (fromIntegral (BS.index input (startIx + 5)) `unsafeShiftL` 40)
-        .|. (fromIntegral (BS.index input (startIx + 6)) `unsafeShiftL` 48)
-        .|. (fromIntegral (BS.index input (startIx + 7)) `unsafeShiftL` 56)
-    -- We manually specialize the big-endian cases: see Note [Manual specialization] for why.
-    --
-    -- In the big-endian case, shifts and indexes change in different ways: indexes start _high_
-    -- and _reduce_, but shifts start _low_ and rise. This is different to the little-endian case,
-    -- where both start low and rise. Thus, we track the index and shift separately in the
-    -- big-endian case: it makes the adjustments easier, and doesn't really change anything, as if
-    -- we wanted to compute the shift, we'd have to pass an offset argument anyway.
-    goBE :: Integer -> Int -> Int -> Int -> Integer
-    goBE acc limit shift ix
-      | ix >= (limit + 7) =
-          let digitGroup = read64BE ix
-              newShift = shift + 64
-              newIx = ix - 8
-              newAcc = acc + fromIntegral digitGroup `unsafeShiftL` shift
-           in goBE newAcc limit newShift newIx
-      | otherwise = finishBE acc limit shift ix
-    finishBE :: Integer -> Int -> Int -> Int -> Integer
-    finishBE acc limit shift ix
-      | ix < limit = acc
-      | otherwise =
-          let digit = BS.index input ix
-              newShift = shift + 8
-              newIx = ix - 1
-              newAcc = acc + fromIntegral digit `unsafeShiftL` shift
-           in finishBE newAcc limit newShift newIx
-    read64BE :: Int -> Word64
-    read64BE endIx =
-      fromIntegral (BS.index input endIx)
-        .|. (fromIntegral (BS.index input (endIx - 1)) `unsafeShiftL` 8)
-        .|. (fromIntegral (BS.index input (endIx - 2)) `unsafeShiftL` 16)
-        .|. (fromIntegral (BS.index input (endIx - 3)) `unsafeShiftL` 24)
-        .|. (fromIntegral (BS.index input (endIx - 4)) `unsafeShiftL` 32)
-        .|. (fromIntegral (BS.index input (endIx - 5)) `unsafeShiftL` 40)
-        .|. (fromIntegral (BS.index input (endIx - 6)) `unsafeShiftL` 48)
-        .|. (fromIntegral (BS.index input (endIx - 7)) `unsafeShiftL` 56)
+unsafeByteStringToInteger statedByteOrder input
+  | BS.null input = 0
+  | otherwise = let bo# = case statedByteOrder of
+                            LittleEndian -> 0#
+                            BigEndian    -> 1#
+                    in unsafeDupablePerformIO . BSU.unsafeUseAsCStringLen input $ \(Ptr addr#, I# len#) ->
+                      integerFromAddr (int2Word# len#) addr# bo#
 
 {- Note [Binary bitwise operation implementation and manual specialization]
 
