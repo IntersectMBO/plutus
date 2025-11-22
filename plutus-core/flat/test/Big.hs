@@ -15,6 +15,7 @@ import PlutusCore.Flat (Decoded, Flat (..), flat, unflat, unflatWith)
 import PlutusCore.Flat.AsBin (AsBin, unbin)
 import PlutusCore.Flat.AsSize
 import PlutusCore.Flat.Decoder (Get, listTDecoder)
+import System.Environment.IgnoreAccept
 import System.TimeIt (timeIt)
 
 -- Big is a type that has a small encoded representation but a very large in-memory footprint.
@@ -42,7 +43,7 @@ instance Flat Big where
     decode = newBig <$> decode
 
 main :: IO ()
-main = tbig
+main = ignoreAcceptOption tbig
 
 tbig = do
     let numOfBigs = 5
