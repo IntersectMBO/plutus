@@ -53,11 +53,10 @@ common lang
     ghc-options: -Wno-x-partial
 
 common ghc-version-support
-  -- See the section on GHC versions in CONTRIBUTING
+  -- Supported GHC versions: >=9.6 && <9.7 (others disabled)
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
--- This means that we no longer support uplc/plc/pir on Windows
 common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
@@ -69,17 +68,17 @@ executable pir
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
-    , bytestring
-    , cassava
-    , containers
-    , lens
-    , megaparsec
-    , mtl
-    , optparse-applicative
-    , plutus-core                      ^>=1.55
+    , bytestring                       >=0.10 && <0.12
+    , cassava                          ^>=0.6
+    , containers                        >=0.6 && <0.7
+    , lens                              >=5.0 && <6
+    , megaparsec                        >=9.0 && <10
+    , mtl                               >=2.2 && <2.3
+    , optparse-applicative              >=0.16 && <1
+    , plutus-core                       ^>=1.55
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
-    , text
+    , text                              >=1.2 && <1.3
 
 executable plc
   import:         lang
@@ -88,10 +87,10 @@ executable plc
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
-    , bytestring
-    , mtl
-    , optparse-applicative
-    , plutus-core                      ^>=1.55
+    , bytestring                       >=0.10 && <0.12
+    , mtl                               >=2.2 && <2.3
+    , optparse-applicative              >=0.16 && <1
+    , plutus-core                       ^>=1.55
     , plutus-core:flat
     , plutus-core:plutus-core-execlib
 
@@ -102,20 +101,20 @@ executable uplc
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
-    , bytestring
-    , criterion
+    , bytestring                       >=0.10 && <0.12
+    , criterion                         >=1.8 && <1.9
     , deepseq
-    , haskeline
-    , mtl
-    , optparse-applicative
-    , plutus-core                      ^>=1.55
+    , haskeline                        >=0.8 && <0.9
+    , mtl                               >=2.2 && <2.3
+    , optparse-applicative              >=0.16 && <1
+    , plutus-core                       ^>=1.55
     , plutus-core:flat
     , plutus-core:plutus-core-execlib
-    , plutus-metatheory                ^>=1.55
-    , prettyprinter
-    , serialise
-    , split
-    , text
+    , plutus-metatheory                 ^>=1.55
+    , prettyprinter                     >=1.7 && <1.8
+    , serialise                         >=0.3 && <0.4
+    , split                             >=0.2 && <0.3
+    , text                              >=1.2 && <1.3
 
 test-suite test-simple
   import:             lang, os-support, ghc-version-support
@@ -124,7 +123,7 @@ test-suite test-simple
   hs-source-dirs:     test/simple
   build-depends:
     , base
-    , extra
+    , extra                             >=1.7 && <1.8
     , plutus-metatheory  ^>=1.55
     , process
 
@@ -140,13 +139,13 @@ test-suite test-detailed
   build-depends:
     , base
     , directory
-    , extra
+    , extra                             >=1.7 && <1.8
     , plutus-core        ^>=1.55
     , plutus-metatheory  ^>=1.55
     , process
     , tasty
     , tasty-hunit
-    , text
+    , text                              >=1.2 && <1.3
 
   build-tool-depends:
     , plutus-executables:plc
@@ -166,4 +165,5 @@ test-suite test-certifier
     , tasty
     , tasty-hunit
 
-  build-tool-depends: plutus-executables:uplc
+  build-tool-depends:
+    , plutus-executables:uplc
