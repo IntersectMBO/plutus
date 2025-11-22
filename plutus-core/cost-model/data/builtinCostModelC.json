@@ -633,7 +633,7 @@
                 "intercept": 352998,
                 "slope": 19410
             },
-            "type": "linear_in_w"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 1,
@@ -1197,10 +1197,10 @@
     "unionValue": {
         "cpu": {
             "arguments": {
-                "square_of_sum_coefficient00": 3128363791,
-                "square_of_sum_coefficient11": 5
+                "intercept": 1163050,
+                "slope": 1470
             },
-            "type": "square_of_sum"
+            "type": "multiplied_sizes"
         },
         "memory": {
             "arguments": 1,

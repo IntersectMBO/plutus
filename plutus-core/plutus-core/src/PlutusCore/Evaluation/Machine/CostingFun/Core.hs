@@ -635,7 +635,7 @@ runTwoArgumentModel
              let !size1 = sumCostStream costs1
                  !size2 = sumCostStream costs2
              in CostLast $ evaluateTwoVariableQuadraticFunction f size1 size2
-runTwoArgumentModel (ModelTwoArgumentsSquareOfSum f) = undefined
+runTwoArgumentModel (ModelTwoArgumentsSquareOfSum _) = \_ _ -> CostLast 10000
 {-# OPAQUE runTwoArgumentModel #-}
 
 
@@ -750,6 +750,7 @@ runCostingFunThreeArguments (CostingFun cpu mem) =
 data ModelFourArguments
     = ModelFourArgumentsConstantCost CostingInteger
     | ModelFourArgumentsLinearInW OneVariableLinearFunction
+    | ModelFourArgumentsLinearInX OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -771,6 +772,10 @@ runFourArgumentModel
     (ModelFourArgumentsLinearInW (OneVariableLinearFunction intercept slope)) =
         lazy $ \_ _ _ costs4 ->
             scaleLinearly intercept slope costs4
+runFourArgumentModel
+    (ModelFourArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
+        lazy $ \costs1 _ _ _ ->
+            scaleLinearly intercept slope costs1
 {-# OPAQUE runFourArgumentModel #-}
 
 -- See Note [runCostingFun* API].
