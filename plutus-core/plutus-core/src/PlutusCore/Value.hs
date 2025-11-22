@@ -47,7 +47,6 @@ import Data.Foldable (find)
 import Data.Hashable (Hashable (..))
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
-import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Text.Encoding qualified as Text
@@ -389,6 +388,19 @@ valueContains v1 v2
   | otherwise = BuiltinSuccess $ Map.isSubmapOfBy (Map.isSubmapOfBy (<=)) (unpack v2) (unpack v1)
 {-# INLINEABLE valueContains #-}
 
+unionValue :: Value -> Value -> BuiltinResult Value
+unionValue (unpack -> vA) (unpack -> vB) =
+  let r = Map.unionWith unionCurrency vA vB
+  in if valueOk r
+     then pure $ pack r
+     else fail ""
+  where unionCurrency :: Map K Quantity -> Map K Quantity -> Map K Quantity
+        unionCurrency =
+          Map.unionWith
+          (\(UnsafeQuantity x) (UnsafeQuantity y) -> UnsafeQuantity (x+y)
+          )
+        {-# INLINEABLE unionCurrency #-}
+{-# INLINEABLE unionValue #-}
 
 valueOk :: NestedMap -> Bool
 valueOk = Map.foldr (\i acc -> acc && innerOk i && acc) True
