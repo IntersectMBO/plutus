@@ -390,7 +390,7 @@ valueContains v1 v2
 
 
 unionValue :: Value -> Value -> BuiltinResult Value
-unionValue (unpack -> u) (unpack -> v) = BuiltinSuccess . pack $ Map.unionWith Map.union u v
+unionValue (unpack -> u) (unpack -> v) = BuiltinSuccess . pack' $ Map.unionWith Map.union u v
 {-# INLINEABLE unionValue #-}
 {-
 unionValue (unpack -> vA) (unpack -> vB) =
