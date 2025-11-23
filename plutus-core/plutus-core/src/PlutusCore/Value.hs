@@ -217,16 +217,14 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' v = Value v mempty 1000 0
-{-
+pack' v = Value v sizes size neg
   where
   (sizes, size, neg) = Map.foldl' alg (mempty, 0, 0) v
   alg (ss, s, n) inner =
     ( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss
     , s + Map.size inner
-    , n + Map.size (Map.filter (< zeroQuantity) inner)
+    , n -- + Map.size (Map.filter (< zeroQuantity) inner)
     )
--}
 {-# INLINEABLE pack' #-}
 
 {-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
