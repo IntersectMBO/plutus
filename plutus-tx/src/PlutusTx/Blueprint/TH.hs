@@ -38,6 +38,9 @@ import PlutusTx.IsData.TH (makeIsDataIndexed)
   Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasBlueprintSchema' instances for a type,
   using an explicit mapping of constructor names to indices.
   Use this for types where you need to keep the representation stable.
+
+Note: Requires ViewPatterns, FlexibleInstances, UndecidableInstances, MultiParamTypeClasses, TypeApplications language extensions
+and an `import PlutusTx.Blueprint.Definition (definitionRef)`.
 -}
 makeIsDataSchemaIndexed :: TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceDec]
 makeIsDataSchemaIndexed dataTypeName indices = do
@@ -45,6 +48,13 @@ makeIsDataSchemaIndexed dataTypeName indices = do
   hasSchemaInstance <- makeHasSchemaInstance dataTypeName indices
   pure $ hasSchemaInstance ++ dataInstances
 
+{-|   Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasBlueprintSchema' instances for a type,
+  using an implicit mapping of constructor names to indices [0..]
+  As the name suggests the representation can become unstable when constructors are added/removed.
+
+Note: Requires ViewPatterns, FlexibleInstances, UndecidableInstances, MultiParamTypeClasses, TypeApplications language extensions
+and an `import PlutusTx.Blueprint.Definition (definitionRef)`.
+-}
 unstableMakeIsDataSchema :: TH.Name -> TH.Q [TH.Dec]
 unstableMakeIsDataSchema name = do
   info <- TH.reifyDatatype name

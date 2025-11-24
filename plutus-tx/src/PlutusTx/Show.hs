@@ -25,7 +25,6 @@ import PlutusTx.List (foldr)
 import PlutusTx.Maybe
 import PlutusTx.Prelude
 import PlutusTx.Show.TH
-import PlutusTx.These
 
 instance Show Builtins.Integer where
   {-# INLINEABLE showsPrec #-}
@@ -161,4 +160,3 @@ deriveShow ''(,,,,,,,,,,,,,,,,,,,,,,,,,)
 deriveShow ''(,,,,,,,,,,,,,,,,,,,,,,,,,,)
 deriveShow ''Maybe
 deriveShow ''Either
-deriveShow ''These

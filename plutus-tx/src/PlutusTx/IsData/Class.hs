@@ -10,7 +10,14 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
-module PlutusTx.IsData.Class where
+module PlutusTx.IsData.Class
+  ( ToData (..)
+  , FromData (..)
+  , UnsafeFromData (..)
+  , toData
+  , fromData
+  , unsafeFromData
+  ) where
 
 import Prelude qualified as Haskell (Int, error)
 
@@ -208,14 +215,24 @@ instance
   where
   unsafeFromBuiltinData = Haskell.error "unsupported"
 
--- | Convert a value to 'PLC.Data'.
+{-| Convert a value to 'PLC.Data'.
+
+Note: off-chain only.
+
+-}
 toData :: (ToData a) => a -> PLC.Data
 toData a = builtinDataToData (toBuiltinData a)
 
--- | Convert a value from 'PLC.Data', returning 'Nothing' if this fails.
+{-| Convert a value from 'PLC.Data', returning 'Nothing' if this fails.
+
+Note: off-chain only.
+-}
 fromData :: (FromData a) => PLC.Data -> Maybe a
 fromData d = fromBuiltinData (BuiltinData d)
 
--- | Convert a value from 'PLC.Data', throwing if this fails.
+{-| Convert a value from 'PLC.Data', throwing if this fails.
+
+Note: off-chain only.
+-}
 unsafeFromData :: (UnsafeFromData a) => PLC.Data -> a
 unsafeFromData d = unsafeFromBuiltinData (BuiltinData d)

@@ -434,6 +434,10 @@ compileConstructorDecl TH.ConstructorInfo{TH.constructorName = name, TH.construc
         pure $ VarDecl () constrName constrTy
     ||]
 
+{-| Given a universe, derive a Typeable instance for a given Plinth datatype
+
+NOTE: it requires `MultiParamTypeClasses` language extension
+-}
 makeTypeable :: TH.Type -> TH.Name -> TH.Q [TH.Dec]
 makeTypeable uni name = do
   requireExtension TH.ScopedTypeVariables
@@ -525,6 +529,10 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName = tyName, TH.datatyp
           ||]
   pure $ TH.clause [pat] (TH.normalB $ [|unCompileTerm $(TH.unTypeQ rhsExpr)|]) []
 
+{-| Derive `Lift` and `Typeable` instances for Plinth types
+
+NOTE: it requires `MultiParamTypeClasses`,`FlexibleContexts` language extensions
+-}
 makeLift :: TH.Name -> TH.Q [TH.Dec]
 makeLift name = do
   requireExtension TH.ScopedTypeVariables
