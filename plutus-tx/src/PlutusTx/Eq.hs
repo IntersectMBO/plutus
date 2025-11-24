@@ -5,7 +5,6 @@ module PlutusTx.Eq (Eq (..), (/=)) where
 import PlutusTx.Bool
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either (Either (..))
-import PlutusTx.These
 import Prelude (Maybe (..))
 
 {- HLINT ignore -}
@@ -80,10 +79,3 @@ instance Eq () where
 instance (Eq a, Eq b) => Eq (a, b) where
   {-# INLINEABLE (==) #-}
   (a, b) == (a', b') = a == a' && b == b'
-
-instance (Eq a, Eq b) => Eq (These a b) where
-  {-# INLINEABLE (==) #-}
-  (This a) == (This a')        = a == a'
-  (That b) == (That b')        = b == b'
-  (These a b) == (These a' b') = a == a' && b == b'
-  _ == _                       = False

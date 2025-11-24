@@ -12,7 +12,6 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either (Either (..))
 import PlutusTx.Eq
-import PlutusTx.These
 import Prelude (Maybe (..), Ordering (..))
 
 {- HLINT ignore -}
@@ -131,17 +130,3 @@ instance (Ord a, Ord b) => Ord (a, b) where
     case compare a a' of
       EQ -> compare b b'
       c  -> c
-
-instance (Ord a, Ord b) => Ord (These a b) where
-  {-# INLINEABLE compare #-}
-  compare (This a) (This a') = compare a a'
-  compare (That b) (That b') = compare b b'
-  compare (These a b) (These a' b') =
-    case compare a a' of
-      EQ -> compare b b'
-      c  -> c
-  compare (This _) _ = LT
-  compare (That _) (This _) = GT
-  compare (That _) (These _ _) = LT
-  compare (These _ _) (This _) = GT
-  compare (These _ _) (That _) = GT

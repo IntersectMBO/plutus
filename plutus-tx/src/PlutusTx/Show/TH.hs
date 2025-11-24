@@ -77,7 +77,10 @@ concatBuiltinStrings = \case
      in concatBuiltinStrings ys `appendString` concatBuiltinStrings zs
 {-# INLINEABLE concatBuiltinStrings #-}
 
--- | Derive `Show` instance. Adapted from @Text.Show.Deriving.deriveShow@.
+{- | Derive `Show` instance. Adapted from @Text.Show.Deriving.deriveShow@.
+
+Note: It requires the OverloadedStrings language extension.
+-}
 deriveShow :: TH.Name -> TH.Q [TH.Dec]
 deriveShow name = do
   TH.DatatypeInfo
