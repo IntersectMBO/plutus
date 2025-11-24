@@ -21,6 +21,7 @@ module Plugin.Basic.Spec where
 
 import PlutusCore.Test (goldenUEval)
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.HasOpaque qualified as P
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
 import PlutusTx.Prelude qualified as P
@@ -51,7 +52,23 @@ basic =
       , goldenPirReadable "defaultCaseDuplicationNested" defaultCaseDuplicationNested
       , goldenPirReadable "integerPatternMatch" integerPatternMatch
       , goldenPirReadable "integerCase" integerCase
+      , goldenPirReadable "emptyBoolArray" emptyBoolArray
+      , goldenPirReadable "emptyByteStringArray" emptyByteStringArray
+      , goldenPirReadable "emptyComplexArray" emptyComplexArray
       ]
+
+emptyBoolArray :: CompiledCode (P.BuiltinList (P.BuiltinList Bool))
+emptyBoolArray = plc (Proxy @"emptyBoolArray") (P.mkNil @(P.BuiltinList Bool))
+
+emptyByteStringArray :: CompiledCode (P.BuiltinList P.BuiltinByteString)
+emptyByteStringArray = plc (Proxy @"emptyByteStringArray") (P.mkNil @P.BuiltinByteString)
+
+emptyComplexArray
+  :: CompiledCode
+      (P.BuiltinList
+         (P.BuiltinList
+            (P.BuiltinPair P.BuiltinByteString (P.BuiltinPair (P.BuiltinList Integer) Bool))))
+emptyComplexArray = plc (Proxy @"emptyComplexArray") P.mkNil
 
 monoId :: CompiledCode (Integer -> Integer)
 monoId = plc (Proxy @"monoId") \(x :: Integer) -> x
