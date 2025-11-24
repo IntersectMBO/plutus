@@ -8,9 +8,10 @@ module PlutusBenchmark.Coop.Types where
 import Prelude qualified as HS
 
 import Control.Lens (makeFields)
-import PlutusLedgerApi.V1.Value (AssetClass)
-import PlutusLedgerApi.V3 (Address, CurrencySymbol, Extended, LedgerBytes, POSIXTime,
-                           POSIXTimeRange, PubKeyHash)
+
+import PlutusLedgerApi.Data.V2
+import PlutusLedgerApi.V1.Data.Value (AssetClass)
+
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift qualified as PlutusTx
 import PlutusTx.Prelude

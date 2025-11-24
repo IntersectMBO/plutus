@@ -14,21 +14,16 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 import Prelude ()
 
-import PlutusLedgerApi.V1.Interval (contains)
-import PlutusLedgerApi.V1.Value (AssetClass (AssetClass), isZero, unAssetClass, valueOf,
-                                 withCurrencySymbol)
-import PlutusLedgerApi.V1.Value qualified as Value
-import PlutusLedgerApi.V2 (Datum, Extended (PosInf), Interval (Interval, ivTo),
-                           LedgerBytes (getLedgerBytes), LowerBound (LowerBound),
-                           ScriptContext (ScriptContext), ScriptPurpose (Minting),
-                           TokenName (TokenName), TxId (getTxId), TxInInfo (TxInInfo),
-                           TxInfo (TxInfo, txInfoData, txInfoInputs, txInfoMint, txInfoOutputs, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange),
-                           TxOut (TxOut, txOutAddress, txOutDatum, txOutValue),
-                           TxOutRef (TxOutRef, txOutRefId, txOutRefIdx), UpperBound (UpperBound),
-                           Value (Value, getValue))
-import PlutusTx.AssocMap qualified as AssocMap
+import PlutusLedgerApi.Data.V2
+import PlutusLedgerApi.V1.Data.Interval (contains)
+import PlutusLedgerApi.V1.Data.Value (isZero, unAssetClass, valueOf, withCurrencySymbol)
+import PlutusLedgerApi.V1.Data.Value qualified as Value
+
+import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.List (elem, find, foldl, null)
+import PlutusTx.Data.AssocMap qualified as AssocMap
+import PlutusTx.Data.List (elem, foldl)
+import PlutusTx.List qualified as BIList
 
 import PlutusBenchmark.Coop.Types
 import PlutusBenchmark.Coop.Utils
@@ -114,7 +109,7 @@ fsMp'
             let
               predicate (CertDatum {..}) =
                 0 < valueOf txInVal ap'authTokenCs (TokenName $ getLedgerBytes cert'id)
-            in case find predicate validCerts of
+            in case BIList.find predicate validCerts of
               Nothing -> traceError "$AUTH must be validated with a $CERT"
               Just (CertDatum {..}) ->
                 let
@@ -152,13 +147,13 @@ fsMp'
              matchWithAuth (myFsTn', unusedAuthInputs'') authInput =
                (myFsTn', (authInput : unusedAuthInputs''))
 
-             (mayFsTn, unusedAuthInputs') = foldl matchWithAuth (Nothing, mempty) unusedAuthInputs
+             (mayFsTn, unusedAuthInputs') = BIList.foldl matchWithAuth (Nothing, mempty) unusedAuthInputs
            in case mayFsTn of
                  Nothing -> traceError "$FS must have a token name formed from a matching $AUTH input"
                  Just fsTn -> (fsToMint' <> Value.singleton ownCs fsTn 1, unusedAuthInputs')
 
     (fsToMint, restAuths) = foldl go (mempty, validAuthInputs) txInfoOutputs
-    !_checkAuthUse = errorIfFalse "Auth inputs must ALL be used" $ null restAuths
+    !_checkAuthUse = errorIfFalse "Auth inputs must ALL be used" $ BIList.null restAuths
     !_checkBurn =
       errorIfFalse "" $
         currencyValue ownCs txInfoMint == fsToMint
@@ -211,13 +206,11 @@ authMp'
            "Must mint at least one $AUTH token:\n"
            <> "Must have a specified CurrencySymbol in the Value"
        Just tokenNameMap ->
-         case AssocMap.toList tokenNameMap of
-           [(k, v)] | k == (TokenName authId) ->
-                      errorIfFalse "Must mint at least one $AUTH token" (0 < v)
-           _ ->
-             traceError $
-               "Must mint at least one $AUTH token: \n"
-               <> "Must have exactly one TokenName under specified CurrencySymbol"
+         let
+           (kv, rest) = Builtins.unsafeUncons (AssocMap.toBuiltinList tokenNameMap)
+           k = BI.unsafeDataAsB $ BI.fst kv
+           v = BI.unsafeDataAsI $ BI.snd kv
+         in errorIfFalse "Must mint at least one $AUTH token" (0 < v && BI.null rest && k == authId)
 authMp' _ _ _ = traceError "incorrect purpose"
 {-# INLINE authMp' #-}
 
@@ -232,7 +225,7 @@ certMp'
   let
     tnBytes =
       let
-        AssetClass (aaCs, aaTn) = cmp'authAuthorityAc
+        (aaCs, aaTn) = unAssetClass cmp'authAuthorityAc
         go acc@(aaVal, tnBytes'') (TxInInfo (TxOutRef {txOutRefId = txId, txOutRefIdx = txIdx}) (TxOut {txOutValue = txInVal})) =
           if hasCurrency aaCs txInVal
           then (aaVal + valueOf txInVal aaCs aaTn, tnBytes'' <> consByteString txIdx (getTxId txId))
@@ -271,6 +264,8 @@ certMp'
    (Minting ownCs)
   ) =
   let
+    inputSum =
+      foldl (\acc (TxInInfo _ (TxOut {txOutValue})) -> acc + txOutValue) mempty txInfoInputs
     go shouldBurn' (TxInInfo _ (TxOut {txOutValue = txInVal, txOutDatum = txOutDatum})) =
       if hasCurrency ownCs txInVal
       then
@@ -281,9 +276,7 @@ certMp'
             contains
             (Interval (LowerBound certValidUntil False) (UpperBound PosInf True))
             txInfoValidRange
-          AssetClass (redeemerCs, redeemerName) = cert'redeemerAc
-          inputSum =
-            foldl (\acc (TxInInfo _ (TxOut {txOutValue})) -> acc + txOutValue) mempty txInfoInputs
+          (redeemerCs, redeemerName) = unAssetClass cert'redeemerAc
           !_spendAtLeast =
             errorIfFalse
               "Not have at least one token specified by redeemer spent"
