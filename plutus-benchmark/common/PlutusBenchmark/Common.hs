@@ -38,6 +38,7 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Pretty (Pretty)
 
 import PlutusTx.Test.Util.Compiled (Program, Term, cekResultMatchesHaskellValue, compiledCodeToTerm,
                                     toAnonDeBruijnProg, toAnonDeBruijnTerm, toNamedDeBruijnTerm)
@@ -45,7 +46,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-import Control.DeepSeq (force)
+import Control.DeepSeq (NFData, force)
 import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
@@ -91,7 +92,7 @@ getCostsCek (UPLC.Program _ _ prog) =
 mkEvalCtx
   :: LedgerApi.PlutusLedgerLanguage
   -> BuiltinSemanticsVariant DefaultFun
-  -> LedgerApi.EvaluationContext
+  -> LedgerApi.EvaluationContext DefaultFun
 mkEvalCtx ll semvar =
     case PLC.defaultCostModelParamsForVariant semvar of
         Just p ->
@@ -109,16 +110,17 @@ mkEvalCtx ll semvar =
 
 -- Many of our benchmarks should use an evaluation context for the most recent
 -- Plutus language version and the ost recent semantic variant.
-mkMostRecentEvalCtx :: LedgerApi.EvaluationContext
+mkMostRecentEvalCtx :: LedgerApi.EvaluationContext DefaultFun
 mkMostRecentEvalCtx = mkEvalCtx maxBound maxBound
 
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.
 evaluateCekLikeInProd
-    :: LedgerApi.EvaluationContext
-    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    :: (Pretty fun, PLC.Typeable fun, Eq (BuiltinSemanticsVariant fun))
+    => LedgerApi.EvaluationContext fun
+    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni fun ()
     -> Either
-            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni fun)
+            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni fun ())
 evaluateCekLikeInProd evalCtx term =
     let -- The validation benchmarks were all created from PlutusV1 scripts
         pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
@@ -128,17 +130,26 @@ evaluateCekLikeInProd evalCtx term =
 -- | Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
 -- Useful for benchmarking.
 evaluateCekForBench
-    :: LedgerApi.EvaluationContext
-    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    :: (Pretty fun, PLC.Typeable fun, Eq (BuiltinSemanticsVariant fun))
+    => LedgerApi.EvaluationContext fun
+    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni fun ()
     -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
-benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
+benchTermCek
+    :: (NFData fun, Pretty fun, PLC.Typeable fun, Eq (BuiltinSemanticsVariant fun))
+    => LedgerApi.EvaluationContext fun
+    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni fun ()
+    -> Benchmarkable
 benchTermCek evalCtx term =
     let !term' = force term
     in whnf (evaluateCekForBench evalCtx) term'
 
-benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek
+    :: (NFData fun, Pretty fun, PLC.Typeable fun, Eq (BuiltinSemanticsVariant fun))
+    => LedgerApi.EvaluationContext fun
+    -> UPLC.Program UPLC.NamedDeBruijn DefaultUni fun ()
+    -> Benchmarkable
 benchProgramCek evalCtx (UPLC.Program _ _ term) =
   benchTermCek evalCtx term
 

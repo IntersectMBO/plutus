@@ -74,6 +74,7 @@ module PlutusLedgerApi.Common (
 
   -- ** Evaluation context
   Eval.EvaluationContext (..),
+  Eval.DefaultFun,
   Eval.mkDynEvaluationContext,
   Eval.toMachineParameters,
   -- While not strictly used by the ledger, this is useful for people trying to

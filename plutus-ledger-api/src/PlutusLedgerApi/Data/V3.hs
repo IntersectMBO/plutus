@@ -300,7 +300,7 @@ evaluateScriptCounting
   -- ^ Which protocol version to run the operation in
   -> Common.VerboseMode
   -- ^ Whether to produce log output
-  -> EvaluationContext.EvaluationContext
+  -> EvaluationContext.EvaluationContext Common.DefaultFun
   -- ^ Includes the cost model to use for tallying up the execution costs
   -> Common.ScriptForEvaluation
   -- ^ The script to evaluate
@@ -322,7 +322,7 @@ evaluateScriptRestricting
   -- ^ Which protocol version to run the operation in
   -> Common.VerboseMode
   -- ^ Whether to produce log output
-  -> EvaluationContext.EvaluationContext
+  -> EvaluationContext.EvaluationContext Common.DefaultFun
   -- ^ Includes the cost model to use for tallying up the execution costs
   -> Common.ExBudget
   -- ^ The resource budget which must not be exceeded during evaluation

@@ -98,7 +98,7 @@ evaluateCompiledCode = evaluateCompiledCode' defaultCekParametersForTesting
 with the given machine parameters.
 -}
 evaluateCompiledCode'
-  :: DefaultMachineParameters -> CompiledCode a -> EvalResult
+  :: DefaultMachineParameters DefaultFun -> CompiledCode a -> EvalResult
 evaluateCompiledCode' params code = EvalResult{..}
  where
   Program _ann _version term = getPlcNoAnn code
