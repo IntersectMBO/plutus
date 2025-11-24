@@ -17,11 +17,12 @@ import Control.DeepSeq (NFData (..))
 import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Base (id)
 import PlutusTx.Bool (Bool (..))
-import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
-                                   BuiltinBLS12_381_MlResult, BuiltinByteString (..), BuiltinData,
-                                   BuiltinInteger, BuiltinList (..), BuiltinPair,
-                                   BuiltinString (..), BuiltinUnit, BuiltinValue, caseList',
-                                   casePair, chooseUnit, mkCons, mkPairData, unitval)
+import PlutusTx.Builtins.Internal (BuiltinArray, BuiltinBLS12_381_G1_Element,
+                                   BuiltinBLS12_381_G2_Element, BuiltinBLS12_381_MlResult,
+                                   BuiltinByteString (..), BuiltinData, BuiltinInteger,
+                                   BuiltinList (..), BuiltinPair, BuiltinString (..), BuiltinUnit,
+                                   BuiltinValue, caseList', casePair, chooseUnit, mkCons,
+                                   mkPairData, unitval)
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
@@ -263,6 +264,12 @@ mkNilOpaque :: BuiltinList a
 mkNilOpaque = BuiltinList []
 {-# OPAQUE mkNilOpaque #-}
 
+{-| 'MkNil' class restricts types that can have empty list value of. This is necessary because
+UPLC does not have polymorphic empty array value and type of empty array needs to be given explicitly.
+
+Adding a new builtin type to 'MkNil' requires making necessary changes on
+'PlutusTx.Compiler.Expr.compileMkNil' as well.
+-}
 class MkNil arep where
   mkNil :: BuiltinList arep
   mkNil = mkNilOpaque
@@ -274,7 +281,8 @@ instance MkNil BuiltinData
 instance MkNil BuiltinValue
 instance MkNil BuiltinBLS12_381_G1_Element
 instance MkNil BuiltinBLS12_381_G2_Element
-instance (MkNil a) => MkNil (BuiltinList a)
+instance MkNil a => MkNil (BuiltinList a)
+instance MkNil a => MkNil (BuiltinArray a)
 instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 
 instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
