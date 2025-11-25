@@ -335,20 +335,22 @@ data Spine a
 -- it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
 --
 -- Used in built-in functions returning function applications such as 'CaseList'.
-data HeadSpine a b
+data HeadSpine err a b
     = HeadOnly a
     | HeadSpine a (Spine b)
+    | HeadError ~err
     deriving stock (Show, Eq, Functor)
 
 -- | @HeadSpine@ but the type of head and spine is same
-type MonoHeadSpine a = HeadSpine a a
+type MonoHeadSpine err a = HeadSpine err a a
 
-instance Bifunctor HeadSpine where
+instance Bifunctor (HeadSpine err) where
+  bimap _ _ (HeadError x)            = HeadError x
   bimap headF _ (HeadOnly a)         = HeadOnly $ headF a
   bimap headF spineF (HeadSpine a b) = HeadSpine (headF a) (spineF <$> b)
 
 -- | Construct @HeadSpine@ from head and list.
-headSpine :: a -> [b] -> HeadSpine a b
+headSpine :: a -> [b] -> HeadSpine err a b
 headSpine h [] = HeadOnly h
 headSpine h (x:xs) =
   -- It's critical to use 'foldr' here, so that deforestation kicks in.
@@ -374,12 +376,17 @@ deriving via PrettyCommon (Spine a)
 -- z
 -- >>> pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
 -- f `applyN` [x, y]
-instance (Pretty a, Pretty b) => Pretty (HeadSpine a b) where
+instance (Pretty err, Pretty a, Pretty b) => Pretty (HeadSpine err a b) where
+    pretty (HeadError x)    = "HeadError" <+> pretty x
     pretty (HeadOnly x)     = pretty x
     pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
-instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (HeadSpine a b)
-deriving via PrettyCommon (HeadSpine a b)
-    instance PrettyDefaultBy config (HeadSpine a b) => PrettyBy config (HeadSpine a b)
+instance (PrettyBy config err, PrettyBy config a, PrettyBy config (Spine b)) =>
+  DefaultPrettyBy config (HeadSpine err a b) where
+    defaultPrettyBy config (HeadError x)    = "HeadError" <+> prettyBy config x
+    defaultPrettyBy config (HeadOnly x)     = prettyBy config x
+    defaultPrettyBy config (HeadSpine f xs) = prettyBy config f <+> "`applyN`" <+> prettyBy config xs
+deriving via PrettyCommon (HeadSpine err a b)
+    instance PrettyDefaultBy config (HeadSpine err a b) => PrettyBy config (HeadSpine err a b)
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where

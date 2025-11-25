@@ -902,9 +902,9 @@ enterComputeCek = computeCek
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-            Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-            Right (HeadOnly fX) -> computeCek ctx env fX
-            Right (HeadSpine f xs) -> computeCek (FrameAwaitFunConN xs ctx) env f
+            HeadError err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+            HeadOnly fX    -> computeCek ctx env fX
+            HeadSpine f xs -> computeCek (FrameAwaitFunConN xs ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | @force@ a term and proceed.
