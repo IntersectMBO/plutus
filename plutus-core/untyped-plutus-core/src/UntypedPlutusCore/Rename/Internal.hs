@@ -35,6 +35,12 @@ renameTermM (Constr ann i es)          = Constr ann i <$> traverse renameTermM e
 renameTermM (Case ann arg cs)          = Case ann <$> renameTermM arg <*> traverse renameTermM cs
 renameTermM con@Constant{}             = pure con
 renameTermM bi@Builtin{}               = pure bi
+renameTermM (Let ann names body)       =
+  let
+    goNames acc []     = Let ann (acc []) <$> renameTermM body
+    goNames acc (n:ns) = withFreshenedName n $ \n' -> goNames (acc . (n':)) ns
+  in goNames id names
+renameTermM (Bind ann t binds) = Bind ann <$> renameTermM t <*> traverse renameTermM binds
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM

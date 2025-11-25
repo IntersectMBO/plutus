@@ -240,6 +240,7 @@ library
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType
     PlutusCore.Builtin.KnownTypeAst
+    PlutusCore.Builtin.Let
     PlutusCore.Builtin.Meaning
     PlutusCore.Builtin.Polymorphism
     PlutusCore.Builtin.Result

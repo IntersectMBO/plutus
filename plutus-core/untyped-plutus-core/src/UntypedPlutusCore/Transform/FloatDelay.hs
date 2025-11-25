@@ -141,6 +141,7 @@ isEssentiallyWorkFree = \case
   Delay{}    -> True
   Constr{}   -> True
   Builtin{}  -> True
+  Let{}      -> True
   Var{}      -> False
   Force{}    -> False
   -- Unsaturated builtin applications should also be essentially work-free,
@@ -149,3 +150,4 @@ isEssentiallyWorkFree = \case
   Apply{}    -> False
   Case{}     -> False
   Error{}    -> False
+  Bind{}     -> False

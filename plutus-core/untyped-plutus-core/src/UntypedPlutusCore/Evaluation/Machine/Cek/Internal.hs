@@ -308,6 +308,7 @@ data CekValue uni fun ann =
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
   | VConstr {-# UNPACK #-} !Word64 !(EmptyOrMultiStack uni fun ann)
+  | VLet ![NamedDeBruijn] !(NTerm uni fun ann) !(CekValEnv uni fun ann)
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (CekValue uni fun ann)
@@ -458,6 +459,7 @@ they don't actually take the context as an argument even at the source level.
 -- | Implicit parameter for the builtin runtime.
 type GivenCekRuntime uni fun ann = (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun ann))
 type GivenCekCaserBuiltin uni = (?cekCaserBuiltin :: CaserBuiltin uni)
+type GivenCekLeterBuiltin uni = (?cekLeterBuiltin :: LeterBuiltin uni)
 -- | Implicit parameter for the log emitter reference.
 type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
@@ -470,6 +472,7 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun ann s =
     ( GivenCekRuntime uni fun ann
     , GivenCekCaserBuiltin uni
+    , GivenCekLeterBuiltin uni
     , GivenCekEmitter uni fun s
     , GivenCekSpender uni fun s
     , GivenCekSlippage
@@ -639,6 +642,11 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
         -- @term@ is fully discharged, so we can return it directly without any further discharging.
         VBuiltin _ term _ -> term
         VConstr ind args -> Constr () ind . map goValue $ argStackToList args
+        VLet names body env ->
+          Let
+            ()
+            ((\(NamedDeBruijn n _ix) -> NamedDeBruijn n deBruijnInitIndex) <$> names)
+            (goValEnv env 1 body)
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
@@ -669,6 +677,8 @@ dischargeCekValue value0     = DischargeNonConstant $ goValue value0 where
           Error _            -> Error ()
           Constr _ ind args  -> Constr () ind $ map (go shift) args
           Case _ scrut alts  -> Case () (go shift scrut) $ fmap (go shift) alts
+          Let _ names body   -> Let () names (go (shift + fromIntegral (length names)) body)
+          Bind _ t bs        -> Bind () (go shift t) (fmap (go shift) bs)
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
@@ -705,6 +715,8 @@ data Context uni fun ann
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
+    | FrameAwaitLetBinds !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 !(NTerm uni fun ann) ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+    | FrameAwaitLet {-# UNPACK #-} !Word64 !(ArgStack uni fun ann) !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -718,6 +730,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
         VLamAbs {}  -> singletonRose 1
         VBuiltin {} -> singletonRose 1
         VConstr {}  -> singletonRose 1
+        VLet {}  -> singletonRose 1
     {-# INLINE memoryUsage #-}
 
 {- Note [ArgStack vs Spine]
@@ -743,7 +756,7 @@ runCekM
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s (DischargeResult uni fun))
     -> CekReport cost NamedDeBruijn uni fun
 runCekM
-        (MachineParameters caser (MachineVariantParameters costs runtime))
+        (MachineParameters caser leter (MachineVariantParameters costs runtime))
         (ExBudgetMode getExBudgetInfo)
         (EmitterMode getEmitterMode)
         a = runST $ do
@@ -752,6 +765,7 @@ runCekM
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekCaserBuiltin = caser
+        ?cekLeterBuiltin = leter
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
@@ -832,6 +846,16 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
         throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
+    -- ???
+    computeCek !ctx !env (Let _ names body) = do
+        stepAndMaybeSpend BLamAbs
+        returnCek ctx (VLet names body env)
+    computeCek !ctx !env (Bind _ body bs) = do
+        --stepAndMaybeSpend BApply
+        -- computeCek (FrameAwaitLetBinds env t bs ctx) env t
+        case bs of
+          (t : rest) -> computeCek (FrameAwaitLetBinds env 0 body rest NilStack ctx) env t
+          []         -> computeCek ctx env body
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -872,6 +896,17 @@ enterComputeCek = computeCek
         SpineLast arg      -> applyEvaluate ctx fun (VCon arg)
         SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+    returnCek (FrameAwaitLet cnt args ctx) l =
+      let
+        -- this can probably be done in FrameAwaitLetBinds for better performance.
+        go acc NilStack         = acc
+        go acc (ConsStack x xs) = Env.cons x (go acc xs)
+      in case l of
+           VLet names body env
+             | length names == fromIntegral cnt -> computeCek ctx (go env args) body
+             | otherwise -> error $ show (length names) <> " " <> show cnt
+           _               -> error "no"
+
     returnCek (FrameAwaitFunValueN args ctx) fun =
         case args of
           LastStackNonEmpty arg ->
@@ -904,8 +939,20 @@ enterComputeCek = computeCek
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
             Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
             Right (HeadOnly fX) -> computeCek ctx env fX
-            Right (HeadSpine f xs) -> computeCek (FrameAwaitFunConN xs ctx) env f
+            Right (HeadSpine f xs) ->
+              let
+                -- we reverse and reverse again, this is bad, just POC
+                go acc (SpineLast x)      = (ConsStack (VCon x) acc, 1)
+                go acc (SpineCons x rest) = (+1) <$> go (ConsStack (VCon x) acc) rest
+
+                (xs', cnt) = go NilStack xs
+              in computeCek (FrameAwaitLet cnt xs' ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+    returnCek (FrameAwaitLetBinds env cnt l todo done ctx) e =
+      case todo of
+        (next : todo') ->
+          computeCek (FrameAwaitLetBinds env (cnt + 1) l todo' (ConsStack e done) ctx) env next
+        []             -> computeCek (FrameAwaitLet (cnt + 1) (ConsStack e done) ctx) env l
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -962,6 +1009,15 @@ enterComputeCek = computeCek
                 evalBuiltinApp ctx fun term' $ f arg
             _ ->
                 throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
+    applyEvaluate !ctx (VLet names body env) (VCon v) =
+      case unLeterBuiltin ?cekLeterBuiltin v of
+        Right binds
+          | length binds == length names ->
+            computeCek ctx (foldl (flip (Env.cons . VCon)) env binds) body
+          | otherwise -> error "aa"
+        Left e -> error $ show e
+
+      -- computeCek (FrameAwaitLet cnt xs' ctx) env body
     applyEvaluate !_ val _ =
         throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 

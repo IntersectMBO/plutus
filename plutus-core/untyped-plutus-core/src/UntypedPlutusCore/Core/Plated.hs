@@ -32,6 +32,8 @@ termConstants f term0 = case term0 of
     Builtin{}        -> pure term0
     Constr{}         -> pure term0
     Case{}           -> pure term0
+    Let{}            -> pure term0
+    Bind{}           -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
 termBinds :: Traversal' (Term name uni fun ann) name
@@ -55,16 +57,18 @@ termUniques f = \case
 -- | Get all the direct child 'Term's of the given 'Term'.
 termSubterms :: Traversal' (Term name uni fun ann) (Term name uni fun ann)
 termSubterms f = \case
-    LamAbs ann n t    -> LamAbs ann n <$> f t
-    Apply ann t1 t2   -> Apply ann <$> f t1 <*> f t2
-    Delay ann t       -> Delay ann <$> f t
-    Force ann t       -> Force ann <$> f t
-    Constr ann i args -> Constr ann i <$> traverse f args
-    Case ann arg cs   -> Case ann <$> f arg <*> traverse f cs
-    e@Error {}        -> pure e
-    v@Var {}          -> pure v
-    c@Constant {}     -> pure c
-    b@Builtin {}      -> pure b
+    LamAbs ann n t     -> LamAbs ann n <$> f t
+    Apply ann t1 t2    -> Apply ann <$> f t1 <*> f t2
+    Delay ann t        -> Delay ann <$> f t
+    Force ann t        -> Force ann <$> f t
+    Constr ann i args  -> Constr ann i <$> traverse f args
+    Case ann arg cs    -> Case ann <$> f arg <*> traverse f cs
+    Let ann names body -> Let ann names <$> f body
+    Bind ann t binds   -> Bind ann <$> f t <*> traverse f binds
+    e@Error {}         -> pure e
+    v@Var {}           -> pure v
+    c@Constant {}      -> pure c
+    b@Builtin {}       -> pure b
 {-# INLINE termSubterms #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.

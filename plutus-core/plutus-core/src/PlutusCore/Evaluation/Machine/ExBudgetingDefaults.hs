@@ -149,19 +149,19 @@ faster than the used in production. Also see Note [noinline for saving on
 ticks]. -}
 defaultCekParametersA :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersA =
-    MachineParameters def $
+    MachineParameters def def $
         noinline mkMachineVariantParameters DefaultFunSemanticsVariantA cekCostModelVariantA
 
 -- See Note [No inlining for MachineParameters]
 defaultCekParametersB :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersB =
-    MachineParameters def $
+    MachineParameters def def $
         noinline mkMachineVariantParameters DefaultFunSemanticsVariantB cekCostModelVariantB
 
 -- See Note [No inlining for MachineParameters]
 defaultCekParametersC :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersC =
-    MachineParameters def $
+    MachineParameters def def $
         noinline mkMachineVariantParameters DefaultFunSemanticsVariantC cekCostModelVariantC
 
 {- Note [noinline for saving on ticks]
@@ -365,6 +365,6 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 unitCekParameters =
     -- See Note [noinline for saving on ticks].
-    MachineParameters def $
+    MachineParameters def def $
         noinline mkMachineVariantParameters def $
             CostModel unitCekMachineCosts unitCostBuiltinCostModel
