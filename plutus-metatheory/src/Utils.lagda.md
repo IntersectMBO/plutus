@@ -9,7 +9,8 @@ module Utils where
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
-open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_;_<?_)
+open import Data.Fin using (Fin;suc;zero;toℕ;fromℕ<)
 open _≤_
 open _≤‴_
 open import Data.Nat.Properties
@@ -54,6 +55,14 @@ eitherBind (inj₂ a) f = f a
 decIf : ∀{A B : Set} → Dec A → B → B → B
 decIf (yes p) t f = t
 decIf (no ¬p) t f = f
+
+maybeToEither : {A B : Set} → A → Maybe B → Either A B
+maybeToEither x = maybe inj₂ (inj₁ x)
+
+natToFin : {n : ℕ} → ℕ → Maybe (Fin n)
+natToFin {n} m with m <? n
+... | yes n<m = just (fromℕ< n<m)
+... | no _ = nothing
 
 cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {a a' : A} → a ≡ a'

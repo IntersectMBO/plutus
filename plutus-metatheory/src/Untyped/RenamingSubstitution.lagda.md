@@ -11,6 +11,8 @@ module Untyped.RenamingSubstitution where
 
 ```
 open import Function using (id;_∘_)
+open import Data.Nat using (ℕ;suc;zero)
+open import Data.Fin using (Fin;suc;zero)
 open import Data.List using (List;_∷_;[])
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
 
@@ -19,18 +21,47 @@ open import Untyped using (_⊢)
 open _⊢
 ```
 
-## Renaming
+## Renaming free variables
+
+When manipulating terms with de Bruijn indices, special care has to be taken
+with free variables. As an example, consider the term `3 · λ 4`, which has one
+free variable that occurs twice. Now let us substitute for that variable the
+expression `(λ 0) · 1`, which itself has one free variable. The result is `((λ
+0) · 1) · λ ((λ 0) · 2)`. Note that substitution under the lambda required
+renaming the free variable (`1` became `2`), this is also called shifting. Also
+note that bound variables are not changed (`0` stayed `0`).
+
+A renaming is a function from de Bruijn indices to de Bruijn indices:
 
 ```
-Ren : Set → Set → Set
-Ren X Y = X → Y
+Ren : ℕ → ℕ → Set
+Ren X Y = Fin X → Fin Y
+```
 
-lift : {X Y : Set} → Ren X Y → Ren (Maybe X) (Maybe Y)
-lift ρ nothing = nothing
-lift ρ (just x) = just (ρ x)
+For example, `suc : Ren 3 4` is a renaming that renames a variable `i` to `suc
+i`. And `id` is the identity renaming.
 
-renList  : {X Y : Set} → Ren X Y → List (X ⊢) → List (Y ⊢)
-ren : {X Y : Set} → Ren X Y → X ⊢ → Y ⊢
+As we have seen in the substitution example, we are only interested in renaming
+free variables. So when renaming under a lambda abstraction:
+- we need to take care not to rename `0`, which was bound by that lambda.
+- the renaming function needs to be shifted: if it mapped `1` to `4`, under the
+  lambda it will have to map `2` to `5`.
+
+The `lift` function takes care of both:
+
+```
+lift : {X Y : ℕ} → Ren X Y → Ren (suc X) (suc Y)
+lift ρ zero = zero
+lift ρ (suc x) = suc (ρ x)
+```
+
+Renaming free variables is then done recursively, using `lift` when going under
+a lambda abstraction.
+
+```
+
+renList  : {X Y : ℕ} → Ren X Y → List (X ⊢) → List (Y ⊢)
+ren : {X Y : ℕ} → Ren X Y → X ⊢ → Y ⊢
 ren ρ (` x)         = ` (ρ x)
 ren ρ (ƛ t)         = ƛ (ren (lift ρ) t)
 ren ρ (t · u)       = ren ρ t · ren ρ u
@@ -45,8 +76,8 @@ ren ρ (case x ts)   = case (ren ρ x) (renList ρ ts)
 renList ρ [] = []
 renList ρ (x ∷ xs) = ren ρ x ∷ renList ρ xs
 
-weaken : {X : Set} → X ⊢ → Maybe X ⊢
-weaken t = ren just t
+weaken : {X : ℕ} → X ⊢ → suc X ⊢
+weaken t = ren suc t
 ```
 
 Proofs that renaming forms a functor
@@ -55,11 +86,11 @@ Proofs that renaming forms a functor
 lift-cong : ∀{X Y}
     {ρ ρ' : Ren X Y}
   → (∀ x → ρ x ≡ ρ' x)
-  → (x : Maybe X)
+  → (x : Fin (suc X))
     --------------------
   → lift ρ x ≡ lift ρ' x
-lift-cong p nothing  = refl
-lift-cong p (just x) = cong just (p x)
+lift-cong p zero  = refl
+lift-cong p (suc x) = cong suc (p x)
 
 renList-cong : ∀{X Y}
     {ρ ρ' : Ren X Y}
@@ -86,14 +117,14 @@ ren-cong p (case t ts)   = cong₂ case (ren-cong p t) (renList-cong p ts)
 renList-cong p [] = refl
 renList-cong p (x ∷ xs) = cong₂ _∷_ (ren-cong p x) (renList-cong p xs)
 
-lift-id : ∀{X}(x : Maybe X) → id x ≡ lift id x
-lift-id nothing  = refl
-lift-id (just x) = refl
+lift-id : ∀{X}(x : Fin (suc X)) → id x ≡ lift id x
+lift-id zero  = refl
+lift-id (suc x) = refl
 
-lift-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(x : Maybe X)
+lift-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(x : Fin (suc X))
   → lift (f ∘ g) x ≡ lift f (lift g x)
-lift-comp g f nothing  = refl
-lift-comp g f (just x) = refl
+lift-comp g f zero  = refl
+lift-comp g f (suc x) = refl
 
 renList-id : ∀{X}(ts : List (X ⊢)) → ts ≡ renList id ts
 ren-id : ∀{X}(t : X ⊢) → t ≡ ren id t
@@ -135,16 +166,20 @@ renList-comp ρ ρ' (x ∷ xs) = cong₂ _∷_ (ren-comp ρ ρ' x) (renList-comp
 
 ## Substitution
 
+A substitution maps variables to terms.
+
 ```
-Sub : Set → Set → Set
-Sub X Y = X → Y ⊢
+Sub : ℕ → ℕ → Set
+Sub X Y = Fin X → Y ⊢
+```
 
-lifts : {X Y : Set} → Sub X Y → Sub (Maybe X) (Maybe Y)
-lifts ρ nothing = ` nothing
-lifts ρ (just x) = ren just (ρ x)
+```
+lifts : {X Y : ℕ} → Sub X Y → Sub (suc X) (suc Y)
+lifts ρ zero = ` zero
+lifts ρ (suc x) = ren suc (ρ x)
 
-subList : {X Y : Set} → Sub X Y → List (X ⊢) → List (Y ⊢)
-sub : {X Y : Set} → Sub X Y → X ⊢ → Y ⊢
+subList : {X Y : ℕ} → Sub X Y → List (X ⊢) → List (Y ⊢)
+sub : {X Y : ℕ} → Sub X Y → X ⊢ → Y ⊢
 sub σ (` x)         = σ x
 sub σ (ƛ t)         = ƛ (sub (lifts σ) t)
 sub σ (t · u)       = sub σ t · sub σ u
@@ -159,11 +194,11 @@ sub σ (case x ts)  = case (sub σ x) (subList σ ts)
 subList σ [] = []
 subList σ (x ∷ xs) = sub σ x ∷ subList σ xs
 
-extend : ∀{X Y} → Sub X Y → Y ⊢ → Sub (Maybe X) Y
-extend σ t nothing  = t
-extend σ t (just x) = σ x
+extend : ∀{X Y} → Sub X Y → Y ⊢ → Sub (suc X) Y
+extend σ t zero  = t
+extend σ t (suc x) = σ x
 
-_[_] : ∀{X} → Maybe X ⊢ → X ⊢ → X ⊢
+_[_] : ∀{X} → suc X ⊢ → X ⊢ → X ⊢
 t [ u ] = sub (extend ` u) t
 ```
 
@@ -172,10 +207,10 @@ Proofs that substitution forms a monad
 ```
 lifts-cong : ∀{X Y}{σ σ' : Sub X Y}
   → (∀ x → σ x ≡ σ' x)
-  → (x : Maybe X)
+  → (x : Fin (suc X))
   → lifts σ x ≡ lifts σ' x
-lifts-cong p nothing  = refl
-lifts-cong p (just x) = cong (ren just) (p x)
+lifts-cong p zero  = refl
+lifts-cong p (suc x) = cong (ren suc) (p x)
 
 subList-cong : ∀{X Y}{σ σ' : Sub X Y}
   → (∀ x → σ x ≡ σ' x)
@@ -199,9 +234,9 @@ sub-cong p (case t ts)   = cong₂ case (sub-cong p t) (subList-cong p ts)
 subList-cong p [] = refl
 subList-cong p (x ∷ xs) = cong₂ _∷_ (sub-cong p x) (subList-cong p xs)
 
-lifts-id : ∀{X}(x : Maybe X) → ` x ≡ lifts ` x
-lifts-id nothing  = refl
-lifts-id (just x) = refl
+lifts-id : ∀{X}(x : Fin (suc X)) → ` x ≡ lifts ` x
+lifts-id zero  = refl
+lifts-id (suc x) = refl
 
 subList-id : ∀{X}(ts : List (X ⊢)) → ts ≡ subList ` ts
 sub-id : ∀{X}(t : X ⊢) → t ≡ sub ` t
@@ -219,10 +254,10 @@ sub-id (case t ts)   = cong₂ case (sub-id t) (subList-id ts)
 subList-id [] = refl
 subList-id (x ∷ xs) = cong₂ _∷_ (sub-id x) (subList-id xs)
 
-lifts-lift : ∀{X Y Z}(g : Ren X Y)(f : Sub Y Z)(x : Maybe X)
+lifts-lift : ∀{X Y Z}(g : Ren X Y)(f : Sub Y Z)(x : Fin (suc X))
   → lifts (f ∘ g) x ≡ lifts f (lift g x)
-lifts-lift g f nothing  = refl
-lifts-lift g f (just x) = refl
+lifts-lift g f zero  = refl
+lifts-lift g f (suc x) = refl
 
 subList-ren : ∀{X Y Z}(ρ : Ren X Y)(σ : Sub Y Z)(xs : List (X ⊢))
             → subList (σ ∘ ρ) xs ≡ subList σ (renList ρ xs)
@@ -244,12 +279,12 @@ sub-ren ρ σ (case t ts)   = cong₂ case (sub-ren ρ σ t) (subList-ren ρ σ 
 subList-ren ρ σ [] = refl
 subList-ren ρ σ (x ∷ xs) = cong₂ _∷_ (sub-ren ρ σ x) (subList-ren ρ σ xs)
 
-ren-lift-lifts : ∀{X Y Z}(g : Sub X Y)(f : Ren Y Z)(x : Maybe X)
+ren-lift-lifts : ∀{X Y Z}(g : Sub X Y)(f : Ren Y Z)(x : Fin (suc X))
   → lifts (ren f ∘ g) x ≡ ren (lift f) (lifts g x)
-ren-lift-lifts g f nothing  = refl
-ren-lift-lifts g f (just x) = trans
-  (sym (ren-comp f just (g x)))
-  (ren-comp just (lift f) (g x))
+ren-lift-lifts g f zero  = refl
+ren-lift-lifts g f (suc x) = trans
+  (sym (ren-comp f suc (g x)))
+  (ren-comp suc (lift f) (g x))
 
 renList-sub : ∀{X Y Z}(σ : Sub X Y)(ρ : Ren Y Z)(xs : List (X ⊢))
             → subList (ren ρ ∘ σ) xs ≡ renList ρ (subList σ xs)
@@ -271,12 +306,12 @@ ren-sub σ ρ (case t ts)   = cong₂ case (ren-sub σ ρ t) (renList-sub σ ρ 
 renList-sub σ ρ [] = refl
 renList-sub σ ρ (x ∷ xs) = cong₂ _∷_ (ren-sub σ ρ x) (renList-sub σ ρ xs)
 
-lifts-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(x : Maybe X)
+lifts-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(x : Fin (suc X))
   → lifts (sub f ∘ g) x ≡ sub (lifts f) (lifts g x)
-lifts-comp g f nothing  = refl
-lifts-comp g f (just x) = trans
-  (sym (ren-sub f just (g x)))
-  (sub-ren just (lifts f) (g x))
+lifts-comp g f zero  = refl
+lifts-comp g f (suc x) = trans
+  (sym (ren-sub f suc (g x)))
+  (sub-ren suc (lifts f) (g x))
 
 
 subList-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(xs : List (X ⊢))
