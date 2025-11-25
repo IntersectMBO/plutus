@@ -21,7 +21,7 @@ let
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
     "ghc912".hp2ps = project.projectVariants.ghc912.tool "hp2ps" "latest";
 
-    "ghc96-profiled" = tools."ghc96";
+    "ghc96-profiled" = ghc96;
 
   }.${project-variant};
 
