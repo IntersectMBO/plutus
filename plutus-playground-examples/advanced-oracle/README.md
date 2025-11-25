@@ -2,7 +2,7 @@
 
 Cet exemple montre comment construire un **Oracle stateful** basé sur UTXO, sécurisé par un **NFT d'identité**, avec logique de mise à jour on-chain.
 
-Ce pattern est essentiel pour :
+Ce pattern est essentiel pouR :
 
 * les DEX (prix ADA/USD),
 * les protocoles de lending,
