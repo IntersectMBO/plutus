@@ -25,29 +25,7 @@
                                                              (\nt ->
                                                                 (\nt ->
                                                                    (\h ->
-                                                                      (\ds ->
-                                                                         (\ds ->
-                                                                            case
-                                                                              ds
-                                                                              [ (\x
-                                                                                  y ->
-                                                                                   case
-                                                                                     ds
-                                                                                     [ (\x
-                                                                                         y ->
-                                                                                          case
-                                                                                            (equalsInteger
-                                                                                               x
-                                                                                               x)
-                                                                                            [ False
-                                                                                            , (equalsInteger
-                                                                                                 y
-                                                                                                 y) ]) ]) ])
-                                                                           (edwards
-                                                                              nt
-                                                                              (scalarMult
-                                                                                 nt
-                                                                                 h)))
+                                                                      case
                                                                         (scalarMult
                                                                            (constr 0
                                                                               [ (modInteger
@@ -56,7 +34,25 @@
                                                                               , (modInteger
                                                                                    by
                                                                                    57896044618658097711785492504343953926634992332820282019728792003956564819949) ])
-                                                                           s))
+                                                                           s)
+                                                                        [ (\x
+                                                                            y ->
+                                                                             case
+                                                                               (edwards
+                                                                                  nt
+                                                                                  (scalarMult
+                                                                                     nt
+                                                                                     h))
+                                                                               [ (\x
+                                                                                   y ->
+                                                                                    case
+                                                                                      (equalsInteger
+                                                                                         x
+                                                                                         x)
+                                                                                      [ False
+                                                                                      , (equalsInteger
+                                                                                           y
+                                                                                           y) ]) ]) ])
                                                                      ((\eta ->
                                                                          byteStringToInteger
                                                                            False
@@ -963,7 +959,7 @@
                                                                                                                                                                                                                                                                             (case
                                                                                                                                                                                                                                                                                ds
                                                                                                                                                                                                                                                                                [ (\w
-                                                                                                                                                                                                                                                                                   rest ->
+                                                                                                                                                                                                                                                                                   cont ->
                                                                                                                                                                                                                                                                                     w) ]))
                                                                                                                                                                                                                                                                          (case
                                                                                                                                                                                                                                                                             ds
@@ -978,7 +974,7 @@
                                                                                                                                                                                                                                                                    (case
                                                                                                                                                                                                                                                                       ds
                                                                                                                                                                                                                                                                       [ (\w
-                                                                                                                                                                                                                                                                          cont ->
+                                                                                                                                                                                                                                                                          rest ->
                                                                                                                                                                                                                                                                            w) ])) ])
                                                                                                                                                                                                                                                          (next
                                                                                                                                                                                                                                                             ipv)) ])

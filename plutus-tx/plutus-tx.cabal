@@ -208,6 +208,7 @@ test-suite plutus-tx-test
     Blueprint.Definition.Spec
     Blueprint.Spec
     List.Spec
+    Bool.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
