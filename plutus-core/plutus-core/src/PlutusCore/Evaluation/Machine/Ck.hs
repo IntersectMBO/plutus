@@ -245,10 +245,10 @@ FrameCase cs : stack <| e = case e of
     VCon val -> do
         caser <- asks ckCaserBuiltin
         case unCaserBuiltin caser val $ Vector.fromList cs of
-            Left err  ->
+            HeadError err  ->
                 throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
-            Right (HeadOnly fX) -> stack |> fX
-            Right (HeadSpine f xs) -> transferConstantSpine xs stack |> f
+            HeadOnly fX -> stack |> fX
+            HeadSpine f xs -> transferConstantSpine xs stack |> f
     _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
 
 transferConstantSpine :: Spine (Some (ValueOf uni)) -> Context uni fun -> Context uni fun

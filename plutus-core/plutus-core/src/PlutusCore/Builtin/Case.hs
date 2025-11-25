@@ -5,7 +5,7 @@
 
 module PlutusCore.Builtin.Case where
 
-import PlutusCore.Builtin.KnownType (HeadSpine)
+import PlutusCore.Builtin.KnownType (HeadSpine (..))
 import PlutusCore.Core.Type (Type, UniOf)
 import PlutusCore.Name.Unique (TyName)
 
@@ -36,7 +36,7 @@ class CaseBuiltin uni where
         :: UniOf term ~ uni
         => Some (ValueOf uni)
         -> Vector term
-        -> Either Text (HeadSpine term (Some (ValueOf uni)))
+        -> HeadSpine Text term (Some (ValueOf uni))
 
 -- See Note [DO NOT newtype-wrap functions].
 -- | A @data@ version of 'CaseBuiltin'. we parameterize the evaluator by a 'CaserBuiltin' so that
@@ -44,7 +44,7 @@ class CaseBuiltin uni where
 -- latter is required for earlier protocol versions when we didn't support casing on builtins).
 data CaserBuiltin uni = CaserBuiltin
     { unCaserBuiltin
-        :: !(forall term. UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text (HeadSpine term (Some (ValueOf uni))))
+        :: !(forall term. UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> HeadSpine Text term (Some (ValueOf uni)))
     }
 
 instance NFData (CaserBuiltin uni) where
@@ -58,5 +58,5 @@ instance CaseBuiltin uni => Default (CaserBuiltin uni) where
 
 unavailableCaserBuiltin :: Int -> CaserBuiltin uni
 unavailableCaserBuiltin ver =
-    CaserBuiltin $ \_ _ -> Left $
+    CaserBuiltin $ \_ _ -> HeadError $
         "'case' on values of built-in types is not supported in protocol version " <> display ver

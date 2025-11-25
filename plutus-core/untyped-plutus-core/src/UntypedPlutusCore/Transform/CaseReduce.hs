@@ -30,7 +30,6 @@ processTerm = \case
     -- not to fully optimize such scripts, since they aren't valid anyway.
     Case ann (Constr _ i args) cs | Just c <- (V.!?) cs (fromIntegral i) ->
                                     mkIterApp c ((ann,) <$> args)
-    Case ann (Constant _ con) cs | Right fXs <- caseBuiltin con cs ->
-                                    headSpineToTerm ann (second (Constant ann) fXs)
-
+    Case ann (Constant _ con) cs
+      | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con cs)) -> t
     t -> t

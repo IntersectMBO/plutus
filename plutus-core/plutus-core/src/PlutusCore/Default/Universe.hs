@@ -703,34 +703,34 @@ instance AnnotateCaseBuiltin DefaultUni where
 instance CaseBuiltin DefaultUni where
     caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of
         DefaultUniUnit
-          | 1 == len   -> Right $ HeadOnly $ branches Vector.! 0
-          | otherwise -> Left $ outOfBoundsErr someVal branches
+          | 1 == len   -> HeadOnly $ branches Vector.! 0
+          | otherwise -> HeadError $ outOfBoundsErr someVal branches
         DefaultUniBool -> case x of
             -- We allow there to be only one branch as long as the scrutinee is 'False'.
             -- This is strictly to save size by not having the 'True' branch if it was gonna be
             -- 'Error' anyway.
-            False | len == 1 || len == 2 -> Right $ HeadOnly $ branches Vector.! 0
-            True  |             len == 2 -> Right $ HeadOnly $ branches Vector.! 1
-            _                            -> Left  $ outOfBoundsErr someVal branches
+            False | len == 1 || len == 2 -> HeadOnly $ branches Vector.! 0
+            True  |             len == 2 -> HeadOnly $ branches Vector.! 1
+            _                            -> HeadError $ outOfBoundsErr someVal branches
         DefaultUniInteger
-            | 0 <= x && x < toInteger len -> Right $ HeadOnly $ branches Vector.! fromInteger x
-            | otherwise                   -> Left  $ outOfBoundsErr someVal branches
+            | 0 <= x && x < toInteger len -> HeadOnly $ branches Vector.! fromInteger x
+            | otherwise                   -> HeadError  $ outOfBoundsErr someVal branches
         DefaultUniList ty
             | len == 1 ->
               case x of
-                [] -> Left "Expected non-empty list, got empty list for casing list"
-                (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+                []       -> HeadError "Expected non-empty list, got empty list for casing list"
+                (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
             | len == 2 ->
               case x of
-                []       -> Right $ HeadOnly $ branches Vector.! 1
-                (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
-            | otherwise            -> Left $ outOfBoundsErr someVal branches
+                []       -> HeadOnly $ branches Vector.! 1
+                (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+            | otherwise            -> HeadError $ outOfBoundsErr someVal branches
         DefaultUniPair tyL tyR
             | len == 1 ->
               case x of
-                (l, r) -> Right $ headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
-            | otherwise -> Left $ outOfBoundsErr someVal branches
-        _ -> Left $ display uni <> " isn't supported in 'case'"
+                (l, r) -> headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
+            | otherwise -> HeadError $ outOfBoundsErr someVal branches
+        _ -> HeadError $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches
     {-# INLINE caseBuiltin #-}

@@ -39,6 +39,7 @@ processTerm = \case
     -- structural error into an operational one, which would be unfortunate, so instead we decided
     -- not to fully optimize such scripts, since they aren't valid anyway.
     Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
-    Case ann _ (Constant _ con) cs | Right fXs <- caseBuiltin con (fromList cs) ->
-                                    headSpineToTerm ann (second (Constant ann) fXs)
+    Case ann _ (Constant _ con) cs
+      | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con (fromList cs))) -> t
+
     t -> t

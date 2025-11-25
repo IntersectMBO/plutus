@@ -340,11 +340,13 @@ mkFreshTermLet aT a = do
     pure (var mempty genName, termLet mempty (Def (VarDecl mempty genName aT) a))
 
 -- | 'apply' the head of the application to the arguments iteratively.
-headSpineToTerm :: TermLike term tyname name uni fun => ann -> MonoHeadSpine (term ann) -> term ann
-headSpineToTerm _ (HeadOnly t)       = t
-headSpineToTerm ann (HeadSpine t ts) = foldl (apply ann) t ts
+headSpineToTerm :: TermLike term tyname name uni fun => ann -> MonoHeadSpine err (term ann) -> Either err (term ann)
+headSpineToTerm _ (HeadError e)      = Left e
+headSpineToTerm _ (HeadOnly t)       = Right t
+headSpineToTerm ann (HeadSpine t ts) = Right $ foldl (apply ann) t ts
 
 -- | @headSpineToTerm@ but without annotation.
-headSpineToTermNoAnn :: TermLike term tyname name uni fun => MonoHeadSpine (term ()) -> term ()
-headSpineToTermNoAnn (HeadOnly t)     = t
-headSpineToTermNoAnn (HeadSpine t ts) = foldl (apply ()) t ts
+headSpineToTermNoAnn :: TermLike term tyname name uni fun => MonoHeadSpine err (term ()) -> Either err (term ())
+headSpineToTermNoAnn (HeadError e)    = Left e
+headSpineToTermNoAnn (HeadOnly t)     = Right t
+headSpineToTermNoAnn (HeadSpine t ts) = Right $ foldl (apply ()) t ts

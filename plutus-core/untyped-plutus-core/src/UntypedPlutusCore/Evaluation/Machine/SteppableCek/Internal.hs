@@ -215,9 +215,9 @@ returnCek (FrameCases ann env cs ctx) e = case e of
             MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-        Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-        Right (HeadOnly fX) -> pure $ Computing ctx env fX
-        Right (HeadSpine f xs) -> pure $ Computing (FrameAwaitFunConN ann xs ctx) env f
+        HeadError err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+        HeadOnly fX    -> pure $ Computing ctx env fX
+        HeadSpine f xs -> pure $ Computing (FrameAwaitFunConN ann xs ctx) env f
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
