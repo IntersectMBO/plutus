@@ -338,7 +338,7 @@ data Spine a
 data HeadSpine err a b
     = HeadOnly a
     | HeadSpine a (Spine b)
-    | HeadError err
+    | HeadError ~err
     deriving stock (Show, Eq, Functor)
 
 -- | @HeadSpine@ but the type of head and spine is same
