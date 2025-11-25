@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.Enum (Enum (..)) where
@@ -13,6 +12,7 @@ import PlutusTx.Trace
 
 -- | Class 'Enum' defines operations on sequentially ordered types.
 class Enum a where
+  {-# MINIMAL toEnum, fromEnum #-}
   {-| The successor of a value.  For numeric types, 'succ' adds 1.
 
   For types that implement 'Ord', @succ x@ should be the least element
@@ -41,6 +41,17 @@ class Enum a where
   get an infinite list, which you probably don't want in Plutus Core.
   -}
   enumFromThenTo :: a -> a -> a -> [a]
+
+  {-# INLINEABLE succ #-}
+  succ x = toEnum ((`addInteger` 1) (fromEnum x))
+  {-# INLINEABLE pred #-}
+  pred x = toEnum ((`subtractInteger` 1) (fromEnum x))
+
+  {-# INLINEABLE enumFromTo #-}
+  enumFromTo x lim = map toEnum (enumFromTo (fromEnum x) (fromEnum lim))
+
+  {-# INLINEABLE enumFromThenTo #-}
+  enumFromThenTo x y lim = map toEnum (enumFromThenTo (fromEnum x) (fromEnum y) (fromEnum lim))
 
 instance Enum Integer where
   {-# INLINEABLE succ #-}
@@ -91,13 +102,6 @@ instance Enum () where
   {-# INLINEABLE fromEnum #-}
   fromEnum () = 0
 
-  {-# INLINEABLE enumFromTo #-}
-  enumFromTo _ _ = [()]
-
-  {-# INLINEABLE enumFromThenTo #-}
-  -- enumFromThenTo () () () is an infinite list of ()'s, so this isn't too useful.
-  enumFromThenTo x y lim = map toEnum (enumFromThenTo (fromEnum x) (fromEnum y) (fromEnum lim))
-
 instance Enum Bool where
   {-# INLINEABLE succ #-}
   succ False = True
@@ -116,12 +120,6 @@ instance Enum Bool where
   {-# INLINEABLE fromEnum #-}
   fromEnum False = 0
   fromEnum True  = 1
-
-  {-# INLINEABLE enumFromTo #-}
-  enumFromTo x lim = map toEnum (enumFromTo (fromEnum x) (fromEnum lim))
-
-  {-# INLINEABLE enumFromThenTo #-}
-  enumFromThenTo x y lim = map toEnum (enumFromThenTo (fromEnum x) (fromEnum y) (fromEnum lim))
 
 instance Enum Ordering where
   {-# INLINEABLE succ #-}
@@ -145,9 +143,3 @@ instance Enum Ordering where
   fromEnum LT = 0
   fromEnum EQ = 1
   fromEnum GT = 2
-
-  {-# INLINEABLE enumFromTo #-}
-  enumFromTo x y = map toEnum (enumFromTo (fromEnum x) (fromEnum y))
-
-  {-# INLINEABLE enumFromThenTo #-}
-  enumFromThenTo x y lim = map toEnum (enumFromThenTo (fromEnum x) (fromEnum y) (fromEnum lim))

@@ -4,7 +4,7 @@ letrec
     Cons : a -> List a -> List a
 in
 letrec
-  !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
+  !`$dmenumFromTo_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
         case
           (all dead. List integer)
@@ -13,7 +13,7 @@ letrec
                Cons
                  {integer}
                  x
-                 (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
+                 (`$dmenumFromTo_$cenumFromTo` (addInteger 1 x) lim))
           , (/\dead -> Nil {integer}) ]
           {all dead. dead}
 in
@@ -128,7 +128,7 @@ in
                in
                go ds)
           (mkCons {pair data data} (mkPairData (iData n) (I 0)) [])
-          (`$fEnumBool_$cenumFromTo` 1 10)
+          (`$dmenumFromTo_$cenumFromTo` 1 10)
     !nt : list (pair data data)
       = (let
             !k : data = iData (addInteger 5 n)
