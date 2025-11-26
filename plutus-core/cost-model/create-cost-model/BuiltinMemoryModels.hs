@@ -178,7 +178,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost 32
   -- Builtin values
   , paramLookupCoin                      = Id $ ModelThreeArgumentsConstantCost 10
-  , paramValueContains                   = Id $ ModelTwoArgumentsConstantCost 32
+  , paramValueContains                   = Id boolMemModel
   , paramValueData                       = Id $ ModelOneArgumentConstantCost 32
   , paramUnValueData                     = Id $ ModelOneArgumentConstantCost 32
   }
