@@ -71,6 +71,12 @@ parseValueValid = do
        \, [ ( #6161616161616161616161616161616161616161616161616161616161616161\
        \    , -100 ) ] ) ])"
 
+parseDataParens :: Assertion
+parseDataParens = do
+  expectParserSuccess code
+  where
+    code = "(con (list data) [(I 0), (B #1234)])"
+
 tests :: TestTree
 tests =
     testGroup
@@ -88,4 +94,7 @@ tests =
         , testCase
             "parser of Value should succeed"
             parseValueValid
+        , testCase
+            "parser of Data with extra parens should succeed"
+            parseDataParens
         ]
