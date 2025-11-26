@@ -1,16 +1,16 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE Rank2Types        #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
-module PlutusTx.Compiler.Types (
-  module PlutusTx.Compiler.Types,
-  module PlutusCore.Annotation,
-) where
+module PlutusTx.Compiler.Types
+  ( module PlutusTx.Compiler.Types
+  , module PlutusCore.Annotation
+  ) where
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
@@ -47,38 +47,36 @@ type NameInfo = Map.Map TH.Name GHC.TyThing
 
 -- | Compilation options.
 data CompileOptions = CompileOptions
-  { coProfile       :: ProfileOpts
-  , coCoverage      :: CoverageOpts
+  { coProfile :: ProfileOpts
+  , coCoverage :: CoverageOpts
   , coDatatypeStyle :: PIR.DatatypeStyle
-  , coRemoveTrace   :: Bool
-  , coInlineFix     :: Bool
+  , coRemoveTrace :: Bool
+  , coInlineFix :: Bool
   }
 
 data CompileContext uni fun = CompileContext
-  { ccOpts             :: CompileOptions
-  , ccFlags            :: GHC.DynFlags
-  , ccFamInstEnvs      :: GHC.FamInstEnvs
-  , ccNameInfo         :: NameInfo
-  , ccScope            :: Scope uni fun
-  , ccBlackholed       :: Set.Set GHC.Name
-  , ccCurDef           :: Maybe LexName
-  , ccModBreaks        :: Maybe GHC.ModBreaks
-  , ccBuiltinsInfo     :: PIR.BuiltinsInfo uni fun
+  { ccOpts :: CompileOptions
+  , ccFlags :: GHC.DynFlags
+  , ccFamInstEnvs :: GHC.FamInstEnvs
+  , ccNameInfo :: NameInfo
+  , ccScope :: Scope uni fun
+  , ccBlackholed :: Set.Set GHC.Name
+  , ccCurDef :: Maybe LexName
+  , ccModBreaks :: Maybe GHC.ModBreaks
+  , ccBuiltinsInfo :: PIR.BuiltinsInfo uni fun
   , ccBuiltinCostModel :: PLC.CostingPart uni fun
-  , ccDebugTraceOn     :: Bool
-  , ccRewriteRules     :: PIR.RewriteRules uni fun
-  , ccSafeToInline     :: Bool
+  , ccDebugTraceOn :: Bool
+  , ccRewriteRules :: PIR.RewriteRules uni fun
+  , ccSafeToInline :: Bool
   }
 
 data CompileState = CompileState
-  { csNextStep      :: Int
-  {- ^ The ID of the next step to be taken by the PlutusTx compiler.
-  This is used when generating debug traces.
-  -}
+  { csNextStep :: Int
+  {-^ The ID of the next step to be taken by the PlutusTx compiler.
+  This is used when generating debug traces. -}
   , csPreviousSteps :: [Int]
-  {- ^ The IDs of the previous steps taken by the PlutusTx compiler leading up to
-  the current point. This is used when generating debug traces.
-  -}
+  {-^ The IDs of the previous steps taken by the PlutusTx compiler leading up to
+  the current point. This is used when generating debug traces. -}
   }
 
 -- | Verbosity level of the Plutus Tx compiler.
@@ -101,8 +99,7 @@ instance Pretty ProfileOpts where
   pretty = viaShow
 
 {-| Coverage options
-See Note [Coverage annotations]
--}
+See Note [Coverage annotations] -}
 data CoverageOpts = CoverageOpts {unCoverageOpts :: Set CoverageType}
 
 -- | Get the coverage types we are using
@@ -111,19 +108,16 @@ activeCoverageTypes = unCoverageOpts . coCoverage
 
 {-| Option `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-all #-\}` enables all these
 See Note [Adding more coverage annotations].
-See Note [Coverage order]
--}
+See Note [Coverage order] -}
 data CoverageType
   = {-| Check that all source locations that we can identify in GHC Core have been covered.
     For this to work at all we need `{\-# OPTIONS_GHC -g #-\}`
-    turn on with `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-location #-\}`
-    -}
+    turn on with `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-location #-\}` -}
     LocationCoverage
   | {-| Check that every boolean valued expression that isn't `True` or `False` for which
     we know the source location have been covered. For this to work at all we need
     `{\-# OPTIONS_GHC -g #-\}` turn on with
-    `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-\}`
-    -}
+    `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-\}` -}
     BooleanCoverage
   deriving stock (Ord, Eq, Show, Enum, Bounded)
 
@@ -142,8 +136,7 @@ will affect the output of the compiler, i.e. when sorting or so on. It's  fine t
 'GHC.Name' if we're just putting them in a 'Set.Set', for example.
 
 The 'Eq' instance we derive - it's also not stable across builds, but I believe this is only
-a problem if you compare things from different builds, which we don't do.
--}
+a problem if you compare things from different builds, which we don't do. -}
 newtype LexName = LexName GHC.Name
   deriving stock (Eq)
 
@@ -158,7 +151,7 @@ instance Ord LexName where
       -- non-deterministic! But we care even more about not mixing up things
       -- that are different than we do about determinism.
       EQ -> compare n1 n2
-      o  -> o
+      o -> o
 
 {- Note [Stable name comparisons]
 GHC defines `stableNameCmp` which does a good job of being a stable name
@@ -190,12 +183,12 @@ stableNameCmp n1 n2 =
     <>
     -- See Note [Stable name comparisons]
     maybeCmp stableModuleCmp (GHC.nameModule_maybe n1) (GHC.nameModule_maybe n2)
- where
-  maybeCmp :: (a -> a -> Ordering) -> Maybe a -> Maybe a -> Ordering
-  maybeCmp cmp (Just l) (Just r) = l `cmp` r
-  maybeCmp _ Nothing (Just _)    = LT
-  maybeCmp _ (Just _) Nothing    = GT
-  maybeCmp _ Nothing Nothing     = EQ
+  where
+    maybeCmp :: (a -> a -> Ordering) -> Maybe a -> Maybe a -> Ordering
+    maybeCmp cmp (Just l) (Just r) = l `cmp` r
+    maybeCmp _ Nothing (Just _) = LT
+    maybeCmp _ (Just _) Nothing = GT
+    maybeCmp _ Nothing Nothing = EQ
 
 -- | Our own version of 'GHC.stableModuleCmp'.
 stableModuleCmp :: GHC.Module -> GHC.Module -> Ordering
@@ -225,12 +218,12 @@ type CompilingDefault uni fun m ann =
   , Compiling uni fun m ann
   )
 
-blackhole :: (MonadReader (CompileContext uni fun) m) => GHC.Name -> m a -> m a
-blackhole name = local (\cc -> cc{ccBlackholed = Set.insert name (ccBlackholed cc)})
+blackhole :: MonadReader (CompileContext uni fun) m => GHC.Name -> m a -> m a
+blackhole name = local (\cc -> cc {ccBlackholed = Set.insert name (ccBlackholed cc)})
 
-blackholed :: (MonadReader (CompileContext uni fun) m) => GHC.Name -> m Bool
+blackholed :: MonadReader (CompileContext uni fun) m => GHC.Name -> m Bool
 blackholed name = do
-  CompileContext{ccBlackholed = bh} <- ask
+  CompileContext {ccBlackholed = bh} <- ask
   pure $ Set.member name bh
 
 {- Note [Scopes]
@@ -250,12 +243,12 @@ data Scope uni fun
 initialScope :: Scope uni fun
 initialScope = Scope Map.empty Map.empty
 
-withCurDef :: (Compiling uni fun m ann) => LexName -> m a -> m a
-withCurDef name = local (\cc -> cc{ccCurDef = Just name})
+withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a
+withCurDef name = local (\cc -> cc {ccCurDef = Just name})
 
-modifyCurDeps :: (Compiling uni fun m ann) => (Set.Set LexName -> Set.Set LexName) -> m ()
+modifyCurDeps :: Compiling uni fun m ann => (Set.Set LexName -> Set.Set LexName) -> m ()
 modifyCurDeps f = do
   cur <- asks ccCurDef
   case cur of
     Nothing -> pure ()
-    Just n  -> modifyDeps n f
+    Just n -> modifyDeps n f

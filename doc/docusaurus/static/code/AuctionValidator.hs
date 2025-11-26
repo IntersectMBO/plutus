@@ -1,20 +1,20 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ImportQualifiedPost        #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE PatternSynonyms            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE Strict                     #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE Strict #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -34,15 +34,34 @@ import PlutusTx.Prelude
 
 import PlutusLedgerApi.V1 (lovelaceValueOf, toPubKeyHash, valueOf)
 import PlutusLedgerApi.V1.Interval (contains)
-import PlutusLedgerApi.V3 (CurrencySymbol, Datum (Datum, getDatum), Lovelace,
-                           OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash), POSIXTime,
-                           PubKeyHash, Redeemer (getRedeemer), ScriptContext (..),
-                           ScriptInfo (SpendingScript), TokenName,
-                           TxInfo (txInfoOutputs, txInfoValidRange),
-                           TxOut (txOutAddress, txOutDatum, txOutValue), from, to)
+import PlutusLedgerApi.V3
+  ( CurrencySymbol
+  , Datum (Datum, getDatum)
+  , Lovelace
+  , OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash)
+  , POSIXTime
+  , PubKeyHash
+  , Redeemer (getRedeemer)
+  , ScriptContext (..)
+  , ScriptInfo (SpendingScript)
+  , TokenName
+  , TxInfo (txInfoOutputs, txInfoValidRange)
+  , TxOut (txOutAddress, txOutDatum, txOutValue)
+  , from
+  , to
+  )
 import PlutusLedgerApi.V3.Contexts (getContinuingOutputs)
-import PlutusTx (CompiledCode, FromData (..), ToData, UnsafeFromData (..), compile, liftCodeDef,
-                 makeIsDataSchemaIndexed, makeLift, unsafeApplyCode)
+import PlutusTx
+  ( CompiledCode
+  , FromData (..)
+  , ToData
+  , UnsafeFromData (..)
+  , compile
+  , liftCodeDef
+  , makeIsDataSchemaIndexed
+  , makeLift
+  , unsafeApplyCode
+  )
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
 import PlutusTx.List qualified as List
@@ -52,17 +71,17 @@ import PlutusTx.Show qualified as PlutusTx
 -- BLOCK1
 -- AuctionValidator.hs
 data AuctionParams = AuctionParams
-  { apSeller         :: PubKeyHash
-  -- ^ Seller's public key hash. The highest bid (if exists) will be sent to the seller.
-  -- If there is no bid, the asset auctioned will be sent to the seller.
+  { apSeller :: PubKeyHash
+  {-^ Seller's public key hash. The highest bid (if exists) will be sent to the seller.
+  If there is no bid, the asset auctioned will be sent to the seller. -}
   , apCurrencySymbol :: CurrencySymbol
   -- ^ The currency symbol of the token being auctioned.
-  , apTokenName      :: TokenName
-  -- ^ The name of the token being auctioned.
-  -- These can all be encoded as a `Value`.
-  , apMinBid         :: Lovelace
+  , apTokenName :: TokenName
+  {-^ The name of the token being auctioned.
+  These can all be encoded as a `Value`. -}
+  , apMinBid :: Lovelace
   -- ^ The minimum bid in Lovelace.
-  , apEndTime        :: POSIXTime
+  , apEndTime :: POSIXTime
   -- ^ The deadline for placing a bid. This is the earliest time the auction can be closed.
   }
   deriving stock (Generic)
@@ -72,9 +91,9 @@ PlutusTx.makeLift ''AuctionParams
 PlutusTx.makeIsDataSchemaIndexed ''AuctionParams [('AuctionParams, 0)]
 
 data Bid = Bid
-  { bAddr   :: PlutusTx.BuiltinByteString
+  { bAddr :: PlutusTx.BuiltinByteString
   -- ^ Bidder's wallet address
-  , bPkh    :: PubKeyHash
+  , bPkh :: PubKeyHash
   -- ^ Bidder's public key hash.
   , bAmount :: Lovelace
   -- ^ Bid amount in Lovelace.
@@ -93,9 +112,8 @@ instance PlutusTx.Eq Bid where
       PlutusTx.&& bAmount bid
       PlutusTx.== bAmount bid'
 
-{- | Datum represents the state of a smart contract. In this case
-it contains the highest bid so far (if exists).
--}
+{-| Datum represents the state of a smart contract. In this case
+it contains the highest bid so far (if exists). -}
 newtype AuctionDatum = AuctionDatum {adHighestBid :: Maybe Bid}
   deriving stock (Generic)
   deriving newtype
@@ -105,10 +123,9 @@ newtype AuctionDatum = AuctionDatum {adHighestBid :: Maybe Bid}
     , PlutusTx.UnsafeFromData
     )
 
-{- | Redeemer is the input that changes the state of a smart contract.
+{-| Redeemer is the input that changes the state of a smart contract.
 In this case it is either a new bid, or a request to close the auction
-and pay out the seller and the highest bidder.
--}
+and pay out the seller and the highest bidder. -}
 data AuctionRedeemer = NewBid Bid | Payout
   deriving stock (Generic)
   deriving anyclass (HasBlueprintDefinition)
@@ -119,15 +136,14 @@ PlutusTx.makeIsDataSchemaIndexed ''AuctionRedeemer [('NewBid, 0), ('Payout, 1)]
 -- AuctionValidator.hs
 {-# INLINEABLE auctionTypedValidator #-}
 
-{- | Given the auction parameters, determines whether the transaction is allowed to
-spend the UTXO.
--}
-auctionTypedValidator ::
-  AuctionParams ->
-  AuctionDatum ->
-  AuctionRedeemer ->
-  ScriptContext ->
-  Bool
+{-| Given the auction parameters, determines whether the transaction is allowed to
+spend the UTXO. -}
+auctionTypedValidator
+  :: AuctionParams
+  -> AuctionDatum
+  -> AuctionRedeemer
+  -> ScriptContext
+  -> Bool
 auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and conditions
   where
     conditions :: [Bool]
@@ -151,18 +167,18 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and c
         , -- The highest bidder gets the asset.
           highestBidderGetsAsset
         ]
--- BLOCK3
--- AuctionValidator.hs
+    -- BLOCK3
+    -- AuctionValidator.hs
     sufficientBid :: Bid -> Bool
     sufficientBid (Bid _ _ amt) = case highestBid of
       Just (Bid _ _ amt') -> amt PlutusTx.> amt'
-      Nothing             -> amt PlutusTx.>= apMinBid params
--- BLOCK4
--- AuctionValidator.hs
+      Nothing -> amt PlutusTx.>= apMinBid params
+    -- BLOCK4
+    -- AuctionValidator.hs
     validBidTime :: Bool
     ~validBidTime = to (apEndTime params) `contains` txInfoValidRange (scriptContextTxInfo ctx)
--- BLOCK5
--- AuctionValidator.hs
+    -- BLOCK5
+    -- AuctionValidator.hs
     refundsPreviousHighestBid :: Bool
     ~refundsPreviousHighestBid = case highestBid of
       Nothing -> True
@@ -173,10 +189,10 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and c
                 PlutusTx.&& (lovelaceValueOf (txOutValue o) PlutusTx.== amt)
           )
           (txInfoOutputs (scriptContextTxInfo ctx)) of
-          Just _  -> True
+          Just _ -> True
           Nothing -> PlutusTx.traceError "Not found: refund output"
--- BLOCK6
--- AuctionValidator.hs
+    -- BLOCK6
+    -- AuctionValidator.hs
     currencySymbol :: CurrencySymbol
     currencySymbol = apCurrencySymbol params
 
@@ -212,8 +228,8 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and c
           ( "Expected exactly one continuing output, got "
               PlutusTx.<> PlutusTx.show (List.length os)
           )
--- BLOCK7
--- AuctionValidator.hs
+    -- BLOCK7
+    -- AuctionValidator.hs
     validPayoutTime :: Bool
     ~validPayoutTime = from (apEndTime params) `contains` txInfoValidRange (scriptContextTxInfo ctx)
 
@@ -227,14 +243,14 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and c
                 PlutusTx.&& (lovelaceValueOf (txOutValue o) PlutusTx.== bAmount bid)
           )
           (txInfoOutputs (scriptContextTxInfo ctx)) of
-          Just _  -> True
+          Just _ -> True
           Nothing -> PlutusTx.traceError "Not found: Output paid to seller"
 
     highestBidderGetsAsset :: Bool
     ~highestBidderGetsAsset =
       let highestBidder = case highestBid of
             -- If there are no bids, the asset should go back to the seller
-            Nothing  -> apSeller params
+            Nothing -> apSeller params
             Just bid -> bPkh bid
        in case List.find
             ( \o ->
@@ -242,7 +258,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and c
                   PlutusTx.&& (valueOf (txOutValue o) currencySymbol tokenName PlutusTx.== 1)
             )
             (txInfoOutputs (scriptContextTxInfo ctx)) of
-            Just _  -> True
+            Just _ -> True
             Nothing -> PlutusTx.traceError "Not found: Output paid to highest bidder"
 
 -- BLOCK8
@@ -263,7 +279,6 @@ auctionUntypedValidator params ctx =
     auctionRedeemer :: AuctionRedeemer
     auctionRedeemer =
       PlutusTx.unsafeFromBuiltinData (getRedeemer (scriptContextRedeemer scriptContext))
-
 {-# INLINEABLE auctionUntypedValidator #-}
 
 auctionValidatorScript :: AuctionParams -> CompiledCode (BuiltinData -> BuiltinUnit)

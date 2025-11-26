@@ -1,12 +1,12 @@
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE DefaultSignatures        #-}
-{-# LANGUAGE DerivingStrategies       #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE FunctionalDependencies   #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -17,12 +17,26 @@ import Control.DeepSeq (NFData (..))
 import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Base (id)
 import PlutusTx.Bool (Bool (..))
-import PlutusTx.Builtins.Internal (BuiltinArray, BuiltinBLS12_381_G1_Element,
-                                   BuiltinBLS12_381_G2_Element, BuiltinBLS12_381_MlResult,
-                                   BuiltinByteString (..), BuiltinData, BuiltinInteger,
-                                   BuiltinList (..), BuiltinPair, BuiltinString (..), BuiltinUnit,
-                                   BuiltinValue, caseList', casePair, chooseUnit, mkCons,
-                                   mkPairData, unitval)
+import PlutusTx.Builtins.Internal
+  ( BuiltinArray
+  , BuiltinBLS12_381_G1_Element
+  , BuiltinBLS12_381_G2_Element
+  , BuiltinBLS12_381_MlResult
+  , BuiltinByteString (..)
+  , BuiltinData
+  , BuiltinInteger
+  , BuiltinList (..)
+  , BuiltinPair
+  , BuiltinString (..)
+  , BuiltinUnit
+  , BuiltinValue
+  , caseList'
+  , casePair
+  , chooseUnit
+  , mkCons
+  , mkPairData
+  , unitval
+  )
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
@@ -201,12 +215,11 @@ type application on a type variable. So fundeps are much nicer here.
 
 {-| A class for converting values of transparent Haskell-defined built-in types (such as '()',
 'Bool', '[]' etc) to their opaque Plutus Tx counterparts. Instances for built-in types that are
-not transparent are provided as well, simply as identities, since those types are already opaque.
--}
+not transparent are provided as well, simply as identities, since those types are already opaque. -}
 type HasToOpaque :: GHC.Type -> GHC.Type -> GHC.Constraint
 class HasToOpaque a arep | a -> arep where
   toOpaque :: a -> arep
-  default toOpaque :: (a ~ arep) => a -> arep
+  default toOpaque :: a ~ arep => a -> arep
   toOpaque = id
   {-# INLINEABLE toOpaque #-}
 
@@ -216,12 +229,11 @@ class HasToOpaque a arep | a -> arep where
 
 {-| A class for converting values of opaque Plutus Tx types to their transparent Haskell-defined
 counterparts (a.k.a. pattern-matchable) built-in types (such as '()', 'Bool', '[]' etc). If no
-transparent counterpart exists, then the implementation is identity.
--}
+transparent counterpart exists, then the implementation is identity. -}
 type HasFromOpaque :: GHC.Type -> GHC.Type -> GHC.Constraint
 class HasFromOpaque arep a | arep -> a where
   fromOpaque :: arep -> a
-  default fromOpaque :: (a ~ arep) => arep -> a
+  default fromOpaque :: a ~ arep => arep -> a
   fromOpaque = id
   {-# INLINEABLE fromOpaque #-}
 
@@ -258,8 +270,7 @@ instance HasFromOpaque Bool Bool
 
 {-| The empty list of elements of the given type that gets spotted by the plugin (grep for
 'mkNilOpaque' in the plugin code) and replaced by the actual empty list constant for types that
-are supported (a subset of built-in types).
--}
+are supported (a subset of built-in types). -}
 mkNilOpaque :: BuiltinList a
 mkNilOpaque = BuiltinList []
 {-# OPAQUE mkNilOpaque #-}
@@ -268,12 +279,12 @@ mkNilOpaque = BuiltinList []
 UPLC does not have polymorphic empty array value and type of empty array needs to be given explicitly.
 
 Adding a new builtin type to 'MkNil' requires making necessary changes on
-'PlutusTx.Compiler.Expr.compileMkNil' as well.
--}
+'PlutusTx.Compiler.Expr.compileMkNil' as well. -}
 class MkNil arep where
   mkNil :: BuiltinList arep
   mkNil = mkNilOpaque
   {-# INLINEABLE mkNil #-}
+
 instance MkNil BuiltinInteger
 instance MkNil BuiltinByteString
 instance MkNil Bool
@@ -287,20 +298,20 @@ instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 
 instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
   toOpaque = goList
-   where
-    goList :: [a] -> BuiltinList arep
-    goList []       = mkNil
-    goList (d : ds) = mkCons (toOpaque d) (goList ds)
+    where
+      goList :: [a] -> BuiltinList arep
+      goList [] = mkNil
+      goList (d : ds) = mkCons (toOpaque d) (goList ds)
   {-# INLINEABLE toOpaque #-}
-instance (HasFromOpaque arep a) => HasFromOpaque (BuiltinList arep) [a] where
+instance HasFromOpaque arep a => HasFromOpaque (BuiltinList arep) [a] where
   fromOpaque = go
-   where
-    -- The combination of both INLINABLE and a type signature seems to stop this getting
-    -- lifted to the top level, which means it gets a proper unfolding, which means that
-    -- specialization can work, which can actually help quite a bit here.
-    go :: BuiltinList arep -> [a]
-    go = caseList' [] (\x xs -> fromOpaque x : go xs)
-    {-# INLINEABLE go #-}
+    where
+      -- The combination of both INLINABLE and a type signature seems to stop this getting
+      -- lifted to the top level, which means it gets a proper unfolding, which means that
+      -- specialization can work, which can actually help quite a bit here.
+      go :: BuiltinList arep -> [a]
+      go = caseList' [] (\x xs -> fromOpaque x : go xs)
+      {-# INLINEABLE go #-}
   {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque (BuiltinData, BuiltinData) (BuiltinPair BuiltinData BuiltinData) where

@@ -1,6 +1,6 @@
-{-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Transform.CaseOfCase.Spec where
 
@@ -9,10 +9,15 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
-                                                          defaultCekMachineCostsForTesting)
-import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters (..),
-                                                        mkMachineVariantParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+  ( defaultBuiltinCostModelForTesting
+  , defaultCekMachineCostsForTesting
+  )
+import PlutusCore.Evaluation.Machine.MachineParameters
+  ( CostModel (..)
+  , MachineParameters (..)
+  , mkMachineVariantParameters
+  )
 import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
 import PlutusCore.MkPlc (mkConstant, mkIterApp)
 import PlutusCore.Pretty
@@ -23,9 +28,13 @@ import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, EvaluationResult (..),
-                                                 evaluateCek, noEmitter,
-                                                 unsafeSplitStructuralOperational)
+import UntypedPlutusCore.Evaluation.Machine.Cek
+  ( CekMachineCosts
+  , EvaluationResult (..)
+  , evaluateCek
+  , noEmitter
+  , unsafeSplitStructuralOperational
+  )
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
 import UntypedPlutusCore.Transform.Simplifier (evalSimplifier)
 
@@ -49,10 +58,9 @@ caseOfCase1 = runQuote do
       alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
-{- | This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
+{-| This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
 Unless both branches are known constructors, the case-of-case transformation
-may increase the program size.
--}
+may increase the program size. -}
 caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase2 = runQuote do
   b <- freshName "b"
@@ -63,9 +71,8 @@ caseOfCase2 = runQuote do
       alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
-{- | Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
-@[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@).
--}
+{-| Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
+@[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@). -}
 caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase3 = runQuote do
   b <- freshName "b"
@@ -80,7 +87,7 @@ caseOfCase3 = runQuote do
       alts = V.fromList [altTrue, altFalse]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
-{- |
+{-|
 
 @
   case (force ifThenElse) True True False of
@@ -95,8 +102,7 @@ After the `CaseOfCase` transformation the program should evaluate to `()` as wel
 
 @
   force ((force ifThenElse) True (delay ()) (delay _|_))
-@
--}
+@ -}
 caseOfCaseWithError :: Term Name DefaultUni DefaultFun ()
 caseOfCaseWithError =
   Case
@@ -128,13 +134,13 @@ evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
   -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
 evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter machineParameters
- where
-  costModel :: CostModel CekMachineCosts BuiltinCostModel
-  costModel =
+  where
+    costModel :: CostModel CekMachineCosts BuiltinCostModel
+    costModel =
       CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
 
-  machineParameters :: DefaultMachineParameters
-  machineParameters =
+    machineParameters :: DefaultMachineParameters
+    machineParameters =
       -- TODO: proper semantic variant. What should def be?
       MachineParameters def $ mkMachineVariantParameters def costModel
 

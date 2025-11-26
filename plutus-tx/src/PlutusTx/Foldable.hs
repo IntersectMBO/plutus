@@ -2,28 +2,28 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
-module PlutusTx.Foldable (
-  Foldable (..),
+module PlutusTx.Foldable
+  ( Foldable (..)
 
-  -- * Applicative actions
-  traverse_,
-  for_,
-  sequenceA_,
-  asum,
+    -- * Applicative actions
+  , traverse_
+  , for_
+  , sequenceA_
+  , asum
 
-  -- * Specialized folds
-  concat,
-  concatMap,
+    -- * Specialized folds
+  , concat
+  , concatMap
 
-  -- * Other
-  foldMap,
-  fold,
-  foldl,
-  toList,
-  length,
-  sum,
-  product,
-) where
+    -- * Other
+  , foldMap
+  , fold
+  , foldl
+  , toList
+  , length
+  , sum
+  , product
+  ) where
 
 import Control.Applicative (Alternative (..), Const (..))
 import Data.Functor.Identity (Identity (..))
@@ -48,10 +48,10 @@ class Foldable t where
 instance Foldable [] where
   {-# INLINEABLE foldr #-}
   foldr f z = go
-   where
-    go = \case
-      [] -> z
-      x : xs -> f x (go xs)
+    where
+      go = \case
+        [] -> z
+        x : xs -> f x (go xs)
 
 instance Foldable Maybe where
   {-# INLINEABLE foldr #-}
@@ -87,17 +87,17 @@ foldMap :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
 foldMap f = foldr ((<>) . f) mempty
 
 -- | Plutus Tx version of 'Data.Foldable.foldl'.
-foldl :: (Foldable t) => (b -> a -> b) -> b -> t a -> b
+foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
 foldl f z t = foldr (\a g b -> g (f b a)) id t z
 {-# INLINEABLE foldl #-}
 
 -- | Plutus Tx version of 'Data.Foldable.toList'.
-toList :: (Foldable t) => t a -> [a]
+toList :: Foldable t => t a -> [a]
 toList t = build (\c n -> foldr c n t)
 {-# INLINE toList #-}
 
 -- | Plutus Tx version of 'Data.Foldable.length'.
-length :: (Foldable t) => t a -> Integer
+length :: Foldable t => t a -> Integer
 length = foldr (\_ acc -> acc + 1) 0
 {-# INLINEABLE length #-}
 
@@ -114,9 +114,9 @@ product = foldr (*) one
 -- | Plutus Tx version of 'Data.Foldable.traverse_'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
 traverse_ f = foldr c (pure ())
- where
-  c x k = f x *> k
-  {-# INLINE c #-}
+  where
+    c x k = f x *> k
+    {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.for_'.
 for_ :: (Foldable t, Applicative f) => t a -> (a -> f b) -> f ()
@@ -126,9 +126,9 @@ for_ = flip traverse_
 -- | Plutus Tx version of 'Data.Foldable.sequenceA_'.
 sequenceA_ :: (Foldable t, Applicative f) => t (f a) -> f ()
 sequenceA_ = foldr c (pure ())
- where
-  c m k = m *> k
-  {-# INLINE c #-}
+  where
+    c m k = m *> k
+    {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.asum'.
 asum :: (Foldable t, Alternative f) => t (f a) -> f a
@@ -136,11 +136,11 @@ asum = foldr (<|>) empty
 {-# INLINE asum #-}
 
 -- | Plutus Tx version of 'Data.Foldable.concat'.
-concat :: (Foldable t) => t [a] -> [a]
+concat :: Foldable t => t [a] -> [a]
 concat xs = build (\c n -> foldr (\x y -> foldr c y x) n xs)
 {-# INLINE concat #-}
 
 -- | Plutus Tx version of 'Data.Foldable.concatMap'.
-concatMap :: (Foldable t) => (a -> [b]) -> t a -> [b]
+concatMap :: Foldable t => (a -> [b]) -> t a -> [b]
 concatMap f xs = build (\c n -> foldr (\x b -> foldr c b (f x)) n xs)
 {-# INLINE concatMap #-}

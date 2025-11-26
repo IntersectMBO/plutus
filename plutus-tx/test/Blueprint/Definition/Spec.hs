@@ -1,14 +1,14 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Blueprint.Definition.Spec where
 
@@ -44,27 +44,27 @@ atLeastAsManyDefinitionsAsTypes :: Assertion
 atLeastAsManyDefinitionsAsTypes =
   (length (Map.keys definitions) >= 3)
     @? "Not enough schema definitions: < 3"
- where
-  definitions = definitionsToMap (deriveDefinitions @[Fixture.T1, Fixture.T2, Integer]) (const ())
+  where
+    definitions = definitionsToMap (deriveDefinitions @[Fixture.T1, Fixture.T2, Integer]) (const ())
 
 allReferencedDefinitionsAreDefined :: Assertion
 allReferencedDefinitionsAreDefined =
   (referencedIds `isSubsetOf` definedIds)
     @? "Not all referenced schema definitions are defined"
- where
-  referencedIds =
-    Set.fromList
-      [ ref
-      | schemas <- universe (Map.elems definitions)
-      , SomeSchema (SchemaDefinitionRef ref) <- schemas
-      ]
-  definedIds = Set.fromList (Map.keys definitions)
+  where
+    referencedIds =
+      Set.fromList
+        [ ref
+        | schemas <- universe (Map.elems definitions)
+        , SomeSchema (SchemaDefinitionRef ref) <- schemas
+        ]
+    definedIds = Set.fromList (Map.keys definitions)
 
-  definitions :: Map DefinitionId SomeSchema
-  definitions =
-    -- Here T2 depends on T1 (and not vice-versa) but we intentionally provide them out of order
-    -- to prove that any order is valid.
-    definitionsToMap (deriveDefinitions @[Fixture.T1, Fixture.T2, Integer]) SomeSchema
+    definitions :: Map DefinitionId SomeSchema
+    definitions =
+      -- Here T2 depends on T1 (and not vice-versa) but we intentionally provide them out of order
+      -- to prove that any order is valid.
+      definitionsToMap (deriveDefinitions @[Fixture.T1, Fixture.T2, Integer]) SomeSchema
 
 data SomeSchema where
   SomeSchema :: Schema xs -> SomeSchema

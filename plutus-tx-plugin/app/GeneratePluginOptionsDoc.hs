@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ApplicativeDo     #-}
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Main (main) where
 
@@ -28,7 +28,7 @@ parseParams = do
         [ OA.metavar "OUTPUT_FILE"
         , OA.help "Output file path"
         ]
-  pure Params{..}
+  pure Params {..}
 
 main :: IO ()
 main = do
@@ -71,5 +71,5 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 genRow :: O.OptionKey -> O.PluginOption -> Text
 genRow k (O.PluginOption tr _ field desc _) =
   [fmt||`{k}`|{show tr}|{show (pretty defaultValue)}|{desc}||]
- where
-  defaultValue = O.defaultPluginOptions ^. field
+  where
+    defaultValue = O.defaultPluginOptions ^. field

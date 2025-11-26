@@ -1,37 +1,37 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NamedFieldPuns       #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module PlutusLedgerApi.V2.Tx (
-  -- * Transactions
-  TxId (..),
-  ScriptTag (..),
-  RedeemerPtr (..),
-  Redeemers,
+module PlutusLedgerApi.V2.Tx
+  ( -- * Transactions
+    TxId (..)
+  , ScriptTag (..)
+  , RedeemerPtr (..)
+  , Redeemers
 
-  -- * Transaction outputs
-  TxOut (..),
-  TxOutRef (..),
-  OutputDatum (..),
-  isPubKeyOut,
-  isPayToScriptOut,
-  outAddress,
-  outValue,
-  txOutPubKey,
-  outDatum,
-  outReferenceScript,
-  pubKeyHashTxOut,
-) where
+    -- * Transaction outputs
+  , TxOut (..)
+  , TxOutRef (..)
+  , OutputDatum (..)
+  , isPubKeyOut
+  , isPayToScriptOut
+  , outAddress
+  , outValue
+  , txOutPubKey
+  , outDatum
+  , outReferenceScript
+  , pubKeyHashTxOut
+  ) where
 
 import Control.DeepSeq (NFData)
 import Control.Lens (Lens', lens)
@@ -47,46 +47,52 @@ import PlutusTx.Lift (makeLift)
 import PlutusLedgerApi.V1.Address (Address, pubKeyHashAddress, toPubKeyHash, toScriptHash)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (Datum, DatumHash, ScriptHash)
-import PlutusLedgerApi.V1.Tx hiding (TxOut (..), isPayToScriptOut, isPubKeyOut, outAddress,
-                              outValue, pubKeyHashTxOut, txOutDatum, txOutPubKey)
+import PlutusLedgerApi.V1.Tx hiding
+  ( TxOut (..)
+  , isPayToScriptOut
+  , isPubKeyOut
+  , outAddress
+  , outValue
+  , pubKeyHashTxOut
+  , txOutDatum
+  , txOutPubKey
+  )
 import PlutusLedgerApi.V1.Value (Value)
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
 
-{- | The datum attached to an output:
+{-| The datum attached to an output:
         either nothing;
         a datum hash;
-        or the datum itself (an "inline datum").
--}
+        or the datum itself (an "inline datum"). -}
 data OutputDatum = NoOutputDatum | OutputDatumHash DatumHash | OutputDatum Datum
   deriving stock (Show, Eq, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance PlutusTx.Eq OutputDatum where
   {-# INLINEABLE (==) #-}
-  NoOutputDatum == NoOutputDatum                = True
+  NoOutputDatum == NoOutputDatum = True
   (OutputDatumHash dh) == (OutputDatumHash dh') = dh PlutusTx.== dh'
-  (OutputDatum d) == (OutputDatum d')           = d PlutusTx.== d'
-  _ == _                                        = False
+  (OutputDatum d) == (OutputDatum d') = d PlutusTx.== d'
+  _ == _ = False
 
 instance Pretty OutputDatum where
-  pretty NoOutputDatum        = "no datum"
+  pretty NoOutputDatum = "no datum"
   pretty (OutputDatumHash dh) = "datum hash: " <+> pretty dh
-  pretty (OutputDatum d)      = "inline datum : " <+> pretty d
+  pretty (OutputDatum d) = "inline datum : " <+> pretty d
 
-{- | A transaction output, consisting of a target address, a value,
-optionally a datum/datum hash, and optionally a reference script.
--}
+{-| A transaction output, consisting of a target address, a value,
+optionally a datum/datum hash, and optionally a reference script. -}
 data TxOut = TxOut
-  { txOutAddress         :: Address
-  , txOutValue           :: Value
-  , txOutDatum           :: OutputDatum
+  { txOutAddress :: Address
+  , txOutValue :: Value
+  , txOutDatum :: OutputDatum
   , txOutReferenceScript :: Maybe ScriptHash
   }
   deriving stock (Show, Eq, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance Pretty TxOut where
-  pretty TxOut{txOutAddress, txOutValue, txOutDatum, txOutReferenceScript} =
+  pretty TxOut {txOutAddress, txOutValue, txOutDatum, txOutReferenceScript} =
     hang 2 $
       vsep
         [ "-"
@@ -114,37 +120,36 @@ instance PlutusTx.Eq TxOut where
 
 -- | The public key attached to a 'TxOut', if there is one.
 txOutPubKey :: TxOut -> Maybe PubKeyHash
-txOutPubKey TxOut{txOutAddress} = toPubKeyHash txOutAddress
+txOutPubKey TxOut {txOutAddress} = toPubKeyHash txOutAddress
 
 -- | The validator hash attached to a 'TxOut', if there is one.
 txOutScriptHash :: TxOut -> Maybe ScriptHash
-txOutScriptHash TxOut{txOutAddress} = toScriptHash txOutAddress
+txOutScriptHash TxOut {txOutAddress} = toScriptHash txOutAddress
 
 -- | The address of a transaction output.
 outAddress :: Lens' TxOut Address
 outAddress = lens txOutAddress s
- where
-  s tx a = tx{txOutAddress = a}
+  where
+    s tx a = tx {txOutAddress = a}
 
 -- | The datum attached to a 'TxOut'.
 outDatum :: Lens' TxOut OutputDatum
 outDatum = lens txOutDatum s
- where
-  s tx v = tx{txOutDatum = v}
+  where
+    s tx v = tx {txOutDatum = v}
 
-{- | The value of a transaction output.
-| TODO: Compute address again
--}
+{-| The value of a transaction output.
+| TODO: Compute address again -}
 outValue :: Lens' TxOut Value
 outValue = lens txOutValue s
- where
-  s tx v = tx{txOutValue = v}
+  where
+    s tx v = tx {txOutValue = v}
 
 -- | The reference script attached to a 'TxOut'.
 outReferenceScript :: Lens' TxOut (Maybe ScriptHash)
 outReferenceScript = lens txOutReferenceScript s
- where
-  s tx v = tx{txOutReferenceScript = v}
+  where
+    s tx v = tx {txOutReferenceScript = v}
 
 -- | Whether the output is a pay-to-pubkey output.
 isPubKeyOut :: TxOut -> Bool
@@ -165,10 +170,10 @@ $(makeLift ''OutputDatum)
 $(makeLift ''TxOut)
 
 $( makeIsDataSchemaIndexed
-    ''OutputDatum
-    [ ('NoOutputDatum, 0)
-    , ('OutputDatumHash, 1)
-    , ('OutputDatum, 2)
-    ]
+     ''OutputDatum
+     [ ('NoOutputDatum, 0)
+     , ('OutputDatumHash, 1)
+     , ('OutputDatum, 2)
+     ]
  )
 $(makeIsDataSchemaIndexed ''TxOut [('TxOut, 0)])

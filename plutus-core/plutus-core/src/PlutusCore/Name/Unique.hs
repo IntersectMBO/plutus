@@ -1,12 +1,12 @@
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 
-{- | A 'Name' is a datatype used to identify a variable inside the Plutus Core languages.
+{-| A 'Name' is a datatype used to identify a variable inside the Plutus Core languages.
  Name comparisons are a fundamental part of the domain logic, and comparing 'Text' directly
  is inefficient. As a solution to this problem, we provide the 'Unique' type which is an
  integer associated to the 'Name', unique to each instantiation of the type. We can,
@@ -15,33 +15,41 @@
  We distinguish between the names of term variables and type variables by defining the
  'TyName' wrapper over 'Name'. Since the code we usually write is polymorphic in the
  name type, we want to be able to define a class of names which have an associated 'Unique'.
- This class is 'HasUnique', see the definition below.
--}
+ This class is 'HasUnique', see the definition below. -}
+module PlutusCore.Name.Unique
+  ( -- * Types
+    Name (..)
+  , isIdentifierStartingChar
+  , isIdentifierChar
+  , isQuotedIdentifierChar
+  , isValidUnquotedName
+  , toPrintedName
+  , TyName (..)
+  , Named (..)
+  , Unique (..)
+  , TypeUnique (..)
+  , TermUnique (..)
+  , HasText (..)
+  , HasUnique (..)
+  , theUnique
 
-module PlutusCore.Name.Unique (
--- * Types
-  Name (..),
-  isIdentifierStartingChar,
-  isIdentifierChar,
-  isQuotedIdentifierChar,
-  isValidUnquotedName,
-  toPrintedName,
-  TyName (..),
-  Named (..),
-  Unique (..),
-  TypeUnique (..),
-  TermUnique (..),
-  HasText (..),
-  HasUnique (..),
-  theUnique,
+    -- * Functions
+  , mapNameString
+  , mapTyNameString
+  ) where
 
-  -- * Functions
-  mapNameString,
-  mapTyNameString,
-) where
-
-import PlutusPrelude (Coercible, Generic, Lens', NFData, Pretty (pretty), PrettyBy (prettyBy),
-                      Render (render), coerce, on, over)
+import PlutusPrelude
+  ( Coercible
+  , Generic
+  , Lens'
+  , NFData
+  , Pretty (pretty)
+  , PrettyBy (prettyBy)
+  , Render (render)
+  , coerce
+  , on
+  , over
+  )
 
 import PlutusCore.Pretty.ConfigName (HasPrettyConfigName (..), PrettyConfigName (PrettyConfigName))
 
@@ -55,7 +63,7 @@ import Language.Haskell.TH.Syntax (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name = Name
-  { _nameText   :: T.Text
+  { _nameText :: T.Text
   -- ^ The identifier name, for use in error messages.
   , _nameUnique :: Unique
   -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
@@ -81,17 +89,15 @@ isQuotedIdentifierChar c =
 isValidUnquotedName :: Text -> Bool
 isValidUnquotedName n = case T.uncons n of
   Just (hd, tl) -> isIdentifierStartingChar hd && T.all isIdentifierChar tl
-  Nothing       -> False
+  Nothing -> False
 
-{- | Quote the name with backticks if it is not a valid unquoted name.
-It does not check whether the given name is a valid quoted name.
--}
+{-| Quote the name with backticks if it is not a valid unquoted name.
+It does not check whether the given name is a valid quoted name. -}
 toPrintedName :: Text -> Text
 toPrintedName txt = if isValidUnquotedName txt then txt else "`" <> txt <> "`"
 
-{- | We use a @newtype@ to enforce separation between names used for types and
-those used for terms.
--}
+{-| We use a @newtype@ to enforce separation between names used for types and
+those used for terms. -}
 newtype TyName = TyName {unTyName :: Name}
   deriving stock (Show, Generic, Lift)
   deriving newtype (Eq, Ord, NFData, Hashable, PrettyBy config)
@@ -100,11 +106,11 @@ instance Wrapped TyName
 
 data Named a = Named
   { _namedString :: Text
-  , _namedValue  :: a
+  , _namedValue :: a
   }
   deriving stock (Functor, Foldable, Traversable)
 
-instance (HasPrettyConfigName config) => PrettyBy config Name where
+instance HasPrettyConfigName config => PrettyBy config Name where
   prettyBy config (Name txt (Unique uniq))
     | showsUnique = pretty $ toPrintedName txt <> "-" <> render (pretty uniq)
     | otherwise = pretty $ toPrintedName txt
@@ -123,8 +129,7 @@ instance Hashable Name where
 
 {-| A unique identifier
 This is normally a positive integral number, except
-in `LetFloatOut.topUnique` where we make use of a negative unique to signify top-level.
--}
+in `LetFloatOut.topUnique` where we make use of a negative unique to signify top-level. -}
 newtype Unique = Unique {unUnique :: Int}
   deriving stock (Eq, Show, Ord, Lift)
   deriving newtype (Enum, NFData, Pretty, Hashable)
@@ -164,13 +169,13 @@ instance HasText TyName where
   theText = coerced . theText @Name
 
 -- | Types which have a 'Unique' attached to them, mostly names.
-class (Coercible unique Unique) => HasUnique a unique | a -> unique where
+class Coercible unique Unique => HasUnique a unique | a -> unique where
   unique :: Lens' a unique
 
   -- | The default implementation of 'HasUnique' for newtypes.
-  default unique ::
-    (Wrapped a, HasUnique (Unwrapped a) unique', Coercible unique' unique) =>
-    Lens' a unique
+  default unique
+    :: (Wrapped a, HasUnique (Unwrapped a) unique', Coercible unique' unique)
+    => Lens' a unique
   unique = _Wrapped' . unique . coerced
 
 instance HasUnique Unique Unique where
@@ -182,5 +187,5 @@ instance HasUnique Name TermUnique where
 instance HasUnique TyName TypeUnique
 
 -- | A lens focused on the 'Unique' of a name.
-theUnique :: (HasUnique name unique) => Lens' name Unique
+theUnique :: HasUnique name unique => Lens' name Unique
 theUnique = unique . coerced

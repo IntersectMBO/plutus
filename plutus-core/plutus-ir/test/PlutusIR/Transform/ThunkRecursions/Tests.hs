@@ -17,19 +17,20 @@ import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_thunkRecursions :: TestTree
 test_thunkRecursions =
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "ThunkRecursions"] $
-        map
-            (goldenPir (runIdentity . runTestPass (\tc -> thunkRecursionsPass tc def)) pTerm)
-            [ "listFold"
-            , "listFoldTrace"
-            , "monoMap"
-            , "errorBinding"
-            , "mutuallyRecursiveValues"
-            , "preserveEffectOrder"
-            , "preserveStrictness"
-            ]
+  runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "ThunkRecursions"] $
+    map
+      (goldenPir (runIdentity . runTestPass (\tc -> thunkRecursionsPass tc def)) pTerm)
+      [ "listFold"
+      , "listFoldTrace"
+      , "monoMap"
+      , "errorBinding"
+      , "mutuallyRecursiveValues"
+      , "preserveEffectOrder"
+      , "preserveStrictness"
+      ]
 
 prop_thunkRecursions :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_thunkRecursions biVariant =
   withMaxSuccess numTestsForPassProp $
-    testPassProp runIdentity $ \tc -> thunkRecursionsPass tc (def {_biSemanticsVariant = biVariant})
+    testPassProp runIdentity $
+      \tc -> thunkRecursionsPass tc (def {_biSemanticsVariant = biVariant})

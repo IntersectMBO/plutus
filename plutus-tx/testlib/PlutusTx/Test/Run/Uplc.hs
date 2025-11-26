@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module PlutusTx.Test.Run.Uplc where
 
@@ -27,7 +27,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 type Term = UPLC.Term PLC.Name DefaultUni DefaultFun ()
 
 runPlcCek
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => a
   -> ExceptT
        SomeException
@@ -41,7 +41,7 @@ runPlcCek val = do
       (term ^. UPLC.progTerm)
 
 runPlcCekTrace
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => a
   -> ExceptT
        SomeException
@@ -62,7 +62,7 @@ runPlcCekTrace value = do
   pure (logOut, tally, res)
 
 runPlcCekBudget
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => a
   -> ExceptT
        SomeException

@@ -1,6 +1,6 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module PlutusCore.Pretty.ConfigName
   ( PrettyConfigName (..)
@@ -31,9 +31,8 @@ instance HasPrettyConfigName (Sole PrettyConfigName) where
 
 -- | The 'PrettyConfigName' used by default: print 'Unique' indexes after nams.
 prettyConfigName :: PrettyConfigName
-prettyConfigName = PrettyConfigName{_pcnShowsUnique = True}
+prettyConfigName = PrettyConfigName {_pcnShowsUnique = True}
 
 -- | The 'PrettyConfigName' to be used when 'Unique' indices don't matter. Easier to read.
 prettyConfigNameSimple :: PrettyConfigName
-prettyConfigNameSimple = PrettyConfigName{_pcnShowsUnique = False}
-
+prettyConfigNameSimple = PrettyConfigName {_pcnShowsUnique = False}

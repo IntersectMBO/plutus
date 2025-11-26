@@ -1,135 +1,136 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms   #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-} -- needed for asData pattern synonyms
+-- needed for asData pattern synonyms
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 
-module PlutusLedgerApi.V3.Data.Contexts (
-  ColdCommitteeCredential (..),
-  HotCommitteeCredential (..),
-  DRepCredential (..),
-  DRep,
-  pattern DRep,
-  pattern DRepAlwaysAbstain,
-  pattern DRepAlwaysNoConfidence,
-  Delegatee,
-  pattern DelegStake,
-  pattern DelegVote,
-  pattern DelegStakeVote,
-  TxCert,
-  pattern TxCertRegStaking,
-  pattern TxCertUnRegStaking,
-  pattern TxCertDelegStaking,
-  pattern TxCertRegDeleg,
-  pattern TxCertRegDRep,
-  pattern TxCertUpdateDRep,
-  pattern TxCertUnRegDRep,
-  pattern TxCertPoolRegister,
-  pattern TxCertPoolRetire,
-  pattern TxCertAuthHotCommittee,
-  pattern TxCertResignColdCommittee,
-  Voter,
-  pattern CommitteeVoter,
-  pattern DRepVoter,
-  pattern StakePoolVoter,
-  Vote,
-  pattern VoteNo,
-  pattern VoteYes,
-  pattern Abstain,
-  GovernanceActionId,
-  pattern GovernanceActionId,
-  gaidTxId,
-  gaidGovActionIx,
-  Committee,
-  pattern Committee,
-  committeeMembers,
-  committeeQuorum,
-  Constitution (..),
-  ProtocolVersion,
-  pattern ProtocolVersion,
-  pvMajor,
-  pvMinor,
-  ChangedParameters (..),
-  GovernanceAction,
-  pattern ParameterChange,
-  pattern HardForkInitiation,
-  pattern TreasuryWithdrawals,
-  pattern NoConfidence,
-  pattern UpdateCommittee,
-  pattern NewConstitution,
-  pattern InfoAction,
-  ProposalProcedure,
-  pattern ProposalProcedure,
-  ppDeposit,
-  ppReturnAddr,
-  ppGovernanceAction,
-  ScriptPurpose,
-  pattern Minting,
-  pattern Spending,
-  pattern Rewarding,
-  pattern Certifying,
-  pattern Voting,
-  pattern Proposing,
-  ScriptInfo,
-  pattern MintingScript,
-  pattern SpendingScript,
-  pattern RewardingScript,
-  pattern CertifyingScript,
-  pattern VotingScript,
-  pattern ProposingScript,
-  TxInInfo,
-  pattern TxInInfo,
-  txInInfoOutRef,
-  txInInfoResolved,
-  TxInfo,
-  pattern TxInfo,
-  txInfoInputs,
-  txInfoReferenceInputs,
-  txInfoOutputs,
-  txInfoFee,
-  txInfoMint,
-  txInfoTxCerts,
-  txInfoWdrl,
-  txInfoValidRange,
-  txInfoSignatories,
-  txInfoRedeemers,
-  txInfoData,
-  txInfoId,
-  txInfoVotes,
-  txInfoProposalProcedures,
-  txInfoCurrentTreasuryAmount,
-  txInfoTreasuryDonation,
-  ScriptContext,
-  pattern ScriptContext,
-  scriptContextTxInfo,
-  scriptContextRedeemer,
-  scriptContextScriptInfo,
-  findOwnInput,
-  findDatum,
-  findDatumHash,
-  findTxInByTxOutRef,
-  findContinuingOutputs,
-  getContinuingOutputs,
-  txSignedBy,
+module PlutusLedgerApi.V3.Data.Contexts
+  ( ColdCommitteeCredential (..)
+  , HotCommitteeCredential (..)
+  , DRepCredential (..)
+  , DRep
+  , pattern DRep
+  , pattern DRepAlwaysAbstain
+  , pattern DRepAlwaysNoConfidence
+  , Delegatee
+  , pattern DelegStake
+  , pattern DelegVote
+  , pattern DelegStakeVote
+  , TxCert
+  , pattern TxCertRegStaking
+  , pattern TxCertUnRegStaking
+  , pattern TxCertDelegStaking
+  , pattern TxCertRegDeleg
+  , pattern TxCertRegDRep
+  , pattern TxCertUpdateDRep
+  , pattern TxCertUnRegDRep
+  , pattern TxCertPoolRegister
+  , pattern TxCertPoolRetire
+  , pattern TxCertAuthHotCommittee
+  , pattern TxCertResignColdCommittee
+  , Voter
+  , pattern CommitteeVoter
+  , pattern DRepVoter
+  , pattern StakePoolVoter
+  , Vote
+  , pattern VoteNo
+  , pattern VoteYes
+  , pattern Abstain
+  , GovernanceActionId
+  , pattern GovernanceActionId
+  , gaidTxId
+  , gaidGovActionIx
+  , Committee
+  , pattern Committee
+  , committeeMembers
+  , committeeQuorum
+  , Constitution (..)
+  , ProtocolVersion
+  , pattern ProtocolVersion
+  , pvMajor
+  , pvMinor
+  , ChangedParameters (..)
+  , GovernanceAction
+  , pattern ParameterChange
+  , pattern HardForkInitiation
+  , pattern TreasuryWithdrawals
+  , pattern NoConfidence
+  , pattern UpdateCommittee
+  , pattern NewConstitution
+  , pattern InfoAction
+  , ProposalProcedure
+  , pattern ProposalProcedure
+  , ppDeposit
+  , ppReturnAddr
+  , ppGovernanceAction
+  , ScriptPurpose
+  , pattern Minting
+  , pattern Spending
+  , pattern Rewarding
+  , pattern Certifying
+  , pattern Voting
+  , pattern Proposing
+  , ScriptInfo
+  , pattern MintingScript
+  , pattern SpendingScript
+  , pattern RewardingScript
+  , pattern CertifyingScript
+  , pattern VotingScript
+  , pattern ProposingScript
+  , TxInInfo
+  , pattern TxInInfo
+  , txInInfoOutRef
+  , txInInfoResolved
+  , TxInfo
+  , pattern TxInfo
+  , txInfoInputs
+  , txInfoReferenceInputs
+  , txInfoOutputs
+  , txInfoFee
+  , txInfoMint
+  , txInfoTxCerts
+  , txInfoWdrl
+  , txInfoValidRange
+  , txInfoSignatories
+  , txInfoRedeemers
+  , txInfoData
+  , txInfoId
+  , txInfoVotes
+  , txInfoProposalProcedures
+  , txInfoCurrentTreasuryAmount
+  , txInfoTreasuryDonation
+  , ScriptContext
+  , pattern ScriptContext
+  , scriptContextTxInfo
+  , scriptContextRedeemer
+  , scriptContextScriptInfo
+  , findOwnInput
+  , findDatum
+  , findDatumHash
+  , findTxInByTxOutRef
+  , findContinuingOutputs
+  , getContinuingOutputs
+  , txSignedBy
 
-  -- * Validator functions
-  pubKeyOutputsAt,
-  valuePaidTo,
-  valueSpent,
-  valueProduced,
-  ownCurrencySymbol,
-  spendsOutput,
-) where
+    -- * Validator functions
+  , pubKeyOutputsAt
+  , valuePaidTo
+  , valueSpent
+  , valueProduced
+  , ownCurrencySymbol
+  , spendsOutput
+  ) where
 
 import GHC.Generics (Generic)
 import Prettyprinter (nest, vsep, (<+>))
@@ -206,10 +207,10 @@ PlutusTx.makeLift ''DRep
 
 instance PlutusTx.Eq DRep where
   {-# INLINEABLE (==) #-}
-  DRep a == DRep a'                                = a PlutusTx.== a'
-  DRepAlwaysAbstain == DRepAlwaysAbstain           = Haskell.True
+  DRep a == DRep a' = a PlutusTx.== a'
+  DRepAlwaysAbstain == DRepAlwaysAbstain = Haskell.True
   DRepAlwaysNoConfidence == DRepAlwaysNoConfidence = Haskell.True
-  _ == _                                           = Haskell.False
+  _ == _ = Haskell.False
 
 PlutusTx.asData
   [d|
@@ -329,10 +330,10 @@ PlutusTx.makeLift ''Vote
 
 instance PlutusTx.Eq Vote where
   {-# INLINEABLE (==) #-}
-  VoteNo == VoteNo   = Haskell.True
+  VoteNo == VoteNo = Haskell.True
   VoteYes == VoteYes = Haskell.True
   Abstain == Abstain = Haskell.True
-  _ == _             = Haskell.False
+  _ == _ = Haskell.False
 
 -- | Similar to TxOutRef, but for GovActions
 PlutusTx.asData
@@ -348,7 +349,7 @@ PlutusTx.asData
 PlutusTx.makeLift ''GovernanceActionId
 
 instance Pretty GovernanceActionId where
-  pretty GovernanceActionId{..} =
+  pretty GovernanceActionId {..} =
     vsep
       [ "gaidTxId:" <+> pretty gaidTxId
       , "gaidGovActionIx:" <+> pretty gaidGovActionIx
@@ -375,7 +376,7 @@ PlutusTx.asData
 PlutusTx.makeLift ''Committee
 
 instance Pretty Committee where
-  pretty Committee{..} =
+  pretty Committee {..} =
     vsep
       [ "committeeMembers:" <+> pretty committeeMembers
       , "committeeQuorum:" <+> pretty committeeQuorum
@@ -411,7 +412,7 @@ PlutusTx.asData
 PlutusTx.makeLift ''ProtocolVersion
 
 instance Pretty ProtocolVersion where
-  pretty ProtocolVersion{..} =
+  pretty ProtocolVersion {..} =
     vsep
       [ "pvMajor:" <+> pretty pvMajor
       , "pvMinor:" <+> pretty pvMinor
@@ -429,8 +430,7 @@ Unchanged parameters are not included.
 The mapping from parameter IDs to parameters can be found in
 [conway.cddl](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/cddl-files/conway.cddl). -- editorconfig-checker-disable-file
 
-/Invariant:/ This map is non-empty, and the keys are stored in ascending order.
--}
+/Invariant:/ This map is non-empty, and the keys are stored in ascending order. -}
 newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.BuiltinData}
   deriving stock (Generic, Haskell.Show)
   deriving newtype
@@ -492,7 +492,7 @@ PlutusTx.asData
 PlutusTx.makeLift ''ProposalProcedure
 
 instance Pretty ProposalProcedure where
-  pretty ProposalProcedure{..} =
+  pretty ProposalProcedure {..} =
     vsep
       [ "ppDeposit:" <+> pretty ppDeposit
       , "ppReturnAddr:" <+> pretty ppReturnAddr
@@ -563,7 +563,7 @@ instance PlutusTx.Eq TxInInfo where
     ref PlutusTx.== ref' PlutusTx.&& res PlutusTx.== res'
 
 instance Pretty TxInInfo where
-  pretty TxInInfo{txInInfoOutRef, txInInfoResolved} =
+  pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
     pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
 -- | TxInfo for PlutusV3
@@ -622,11 +622,11 @@ PlutusTx.makeLift ''ScriptContext
 findOwnInput :: ScriptContext -> Haskell.Maybe TxInInfo
 findOwnInput
   ScriptContext
-    { scriptContextTxInfo = TxInfo{txInfoInputs}
+    { scriptContextTxInfo = TxInfo {txInfoInputs}
     , scriptContextScriptInfo = SpendingScript txOutRef _
     } =
     Data.List.find
-      (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
+      (\TxInInfo {txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
       txInfoInputs
 findOwnInput _ = Haskell.Nothing
 
@@ -634,68 +634,64 @@ findOwnInput _ = Haskell.Nothing
 
 -- | Find the data corresponding to a data hash, if there is one
 findDatum :: V2.DatumHash -> TxInfo -> Haskell.Maybe V2.Datum
-findDatum dsh TxInfo{txInfoData} = lookup dsh txInfoData
+findDatum dsh TxInfo {txInfoData} = lookup dsh txInfoData
 
 {-# INLINEABLE findDatumHash #-}
 
 {-| Find the hash of a datum, if it is part of the pending transaction's
-hashes
--}
+hashes -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
-findDatumHash ds TxInfo{txInfoData} =
+findDatumHash ds TxInfo {txInfoData} =
   PlutusTx.fst PlutusTx.<$> List.find f (toSOPList txInfoData)
- where
-  f (_, ds') = ds' PlutusTx.== ds
+  where
+    f (_, ds') = ds' PlutusTx.== ds
 
 {-# INLINEABLE findTxInByTxOutRef #-}
 
 {-| Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of the
 transaction's inputs (`TxInInfo`).
 
-Note: this only searches the true transaction inputs and not the referenced transaction inputs.
--}
+Note: this only searches the true transaction inputs and not the referenced transaction inputs. -}
 findTxInByTxOutRef :: V3.TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
-findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
+findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
   Data.List.find
-    (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
+    (\TxInInfo {txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
     txInfoInputs
 
 {-# INLINEABLE findContinuingOutputs #-}
 
 {-| Find the indices of all the outputs that pay to the same script address we are
-currently spending from, if any.
--}
+currently spending from, if any. -}
 findContinuingOutputs :: ScriptContext -> List Haskell.Integer
 findContinuingOutputs ctx
-  | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
+  | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <-
       findOwnInput ctx =
       Data.List.findIndices
         (f txOutAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
- where
-  f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+  where
+    f addr V2.TxOut {txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 findContinuingOutputs _ = PlutusTx.traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINEABLE getContinuingOutputs #-}
 
 {-| Get all the outputs that pay to the same script address we are currently spending
-from, if any.
--}
+from, if any. -}
 getContinuingOutputs :: ScriptContext -> List V2.TxOut
 getContinuingOutputs ctx
-  | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
+  | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <-
       findOwnInput ctx =
       Data.List.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
- where
-  f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+  where
+    f addr V2.TxOut {txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing outputs"
 
 {-# INLINEABLE txSignedBy #-}
 
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((PlutusTx.==) k) txInfoSignatories of
-  Haskell.Just _  -> Haskell.True
+txSignedBy TxInfo {txInfoSignatories} k = case Data.List.find ((PlutusTx.==) k) txInfoSignatories of
+  Haskell.Just _ -> Haskell.True
   Haskell.Nothing -> Haskell.False
 
 {-# INLINEABLE pubKeyOutputsAt #-}
@@ -703,7 +699,7 @@ txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((PlutusTx.==) k) t
 -- | Get the values paid to a public key address by a pending transaction.
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> List V2.Value
 pubKeyOutputsAt pk p =
-  let flt V2.TxOut{txOutAddress = V2.Address (V2.PubKeyCredential pk') _, txOutValue}
+  let flt V2.TxOut {txOutAddress = V2.Address (V2.PubKeyCredential pk') _, txOutValue}
         | pk PlutusTx.== pk' = Haskell.Just txOutValue
       flt _ = Haskell.Nothing
    in Data.List.mapMaybe flt (txInfoOutputs p)
@@ -731,7 +727,7 @@ valueProduced = Data.List.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
 
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: ScriptContext -> V2.CurrencySymbol
-ownCurrencySymbol ScriptContext{scriptContextScriptInfo = MintingScript cs} = cs
+ownCurrencySymbol ScriptContext {scriptContextScriptInfo = MintingScript cs} = cs
 ownCurrencySymbol _ =
   -- "Can't get currency symbol of the current validator script"
   PlutusTx.traceError "Lh"
@@ -740,8 +736,7 @@ ownCurrencySymbol _ =
 
 {-| Check if the pending transaction spends a specific transaction output
 (identified by the hash of a transaction and an index into that
-transactions' outputs)
--}
+transactions' outputs) -}
 spendsOutput :: TxInfo -> V3.TxId -> Haskell.Integer -> Haskell.Bool
 spendsOutput txInfo txId i =
   let spendsOutRef inp =
@@ -753,7 +748,7 @@ spendsOutput txInfo txId i =
    in Data.List.any spendsOutRef (txInfoInputs txInfo)
 
 instance Pretty TxInfo where
-  pretty TxInfo{..} =
+  pretty TxInfo {..} =
     vsep
       [ "TxId:" <+> pretty txInfoId
       , "Inputs:" <+> pretty txInfoInputs
@@ -774,7 +769,7 @@ instance Pretty TxInfo where
       ]
 
 instance Pretty ScriptContext where
-  pretty ScriptContext{..} =
+  pretty ScriptContext {..} =
     vsep
       [ "ScriptInfo:" <+> pretty scriptContextScriptInfo
       , nest 2 (vsep ["TxInfo:", pretty scriptContextTxInfo])

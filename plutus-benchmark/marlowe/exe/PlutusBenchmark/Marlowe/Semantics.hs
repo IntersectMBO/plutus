@@ -1,27 +1,45 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusBenchmark.Marlowe.Semantics (
-  validatorBytes,
-  validatorHash,
-  exampleBenchmark,
-  writeUPLC,
-) where
+module PlutusBenchmark.Marlowe.Semantics
+  ( validatorBytes
+  , validatorHash
+  , exampleBenchmark
+  , writeUPLC
+  ) where
 
 import PlutusBenchmark.Marlowe.BenchUtil (writeFlatUPLC)
-import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator, marloweValidatorBytes,
-                                                  marloweValidatorHash)
+import PlutusBenchmark.Marlowe.Scripts.Semantics
+  ( marloweValidator
+  , marloweValidatorBytes
+  , marloweValidatorHash
+  )
 import PlutusBenchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
-import PlutusBenchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
-                                     makeRedeemerMap)
+import PlutusBenchmark.Marlowe.Util
+  ( lovelace
+  , makeBuiltinData
+  , makeDatumMap
+  , makeInput
+  , makeOutput
+  , makeRedeemerMap
+  )
 import PlutusLedgerApi.V1.Value (TokenName (TokenName))
-import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), CurrencySymbol (..),
-                           ExBudget (ExBudget), Extended (..), Interval (Interval),
-                           LowerBound (LowerBound),
-                           ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
-                           ScriptHash, ScriptPurpose (Spending), SerialisedScript,
-                           TxInfo (TxInfo, txInfoDCert, txInfoData, txInfoFee, txInfoId, txInfoInputs, txInfoMint, txInfoOutputs, txInfoRedeemers, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange, txInfoWdrl),
-                           TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
+import PlutusLedgerApi.V2
+  ( Credential (PubKeyCredential, ScriptCredential)
+  , CurrencySymbol (..)
+  , ExBudget (ExBudget)
+  , Extended (..)
+  , Interval (Interval)
+  , LowerBound (LowerBound)
+  , ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo)
+  , ScriptHash
+  , ScriptPurpose (Spending)
+  , SerialisedScript
+  , TxInfo (TxInfo, txInfoDCert, txInfoData, txInfoFee, txInfoId, txInfoInputs, txInfoMint, txInfoOutputs, txInfoRedeemers, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange, txInfoWdrl)
+  , TxOutRef (TxOutRef)
+  , UpperBound (UpperBound)
+  , singleton
+  )
 import PlutusTx.AssocMap qualified as AM (empty, unionWith)
 
 -- | The serialised Marlowe semantics validator.
@@ -121,7 +139,7 @@ exampleBenchmark =
             "d8799fd8799f581c8bb3b343d8e404472337966a722150048c768d0a92a9813596c5338dffd8799fa1d8799fd8799fd87980d8799fd8799f581c0a11b0c7e25dc5d9c63171bdf39d9741b901dc903e12b4e162348e07ffd87a80ffffd8799f4040ffff1a047868c0a1d8799f51466f756e6420476c6f626520546f6b656ed87a9f45476c6f6265ffff00a01b000001883109fc30ffd87c9f9fd8799fd87a9fd8799f50466f756e64205377616e20546f6b656ed87a9f445377616effff9fd8799f0000ffffffd87c9f9fd8799fd87a9fd8799f56466f756e64204265617247617264656e20546f6b656ed87a9f4a4265617247617264656effff9fd8799f0000ffffffd87a9fd8799fd87980d8799fd8799f581c0a11b0c7e25dc5d9c63171bdf39d9741b901dc903e12b4e162348e07ffd87a80ffffd87a9fd87a9f45476c6f6265ffffd8799f4040ffd87a9f1a017d7840ffd87a9fd8799fd87980d8799fd8799f581c0a11b0c7e25dc5d9c63171bdf39d9741b901dc903e12b4e162348e07ffd87a80ffffd87a9fd87a9f445377616effffd8799f4040ffd87a9f1a017d7840ffd87a9fd8799fd87980d8799fd8799f581c0a11b0c7e25dc5d9c63171bdf39d9741b901dc903e12b4e162348e07ffd87a80ffffd87a9fd87a9f4a4265617247617264656effffd8799f4040ffd87a9f1a017d7840ffd87980ffffffffff1b0000018831ac75f0d87980ffffff1b0000018831758770d87980ffff"
         )
     txInfoId = "b5b18fb63795bada186cc4b3876cb9a924467f0d64984c84886b58f7a907f8db"
-    scriptContextTxInfo = TxInfo{..}
+    scriptContextTxInfo = TxInfo {..}
     scriptContextPurpose =
       Spending $ TxOutRef "04688f43cf473ddcc27aeef0c9ccae1d7efb97d83a1dfc946d2ab36ba91a91b9" 1
    in
@@ -132,5 +150,5 @@ exampleBenchmark =
       ( makeBuiltinData
           "9fd8799fd87a9fd8799f51466f756e6420476c6f626520546f6b656ed87a9f45476c6f6265ffff00ffffff"
       )
-      ScriptContext{..}
+      ScriptContext {..}
       (Just $ ExBudget 4808532 1297175159)

@@ -13,14 +13,13 @@ import Test.Tasty.QuickCheck
 
 test_rename :: TestTree
 test_rename =
-
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Rename"] $
-      runGoldenPir <$>
-        [ "allShadowedDataNonRec"
-        , "allShadowedDataRec"
-        , "paramShadowedDataNonRec"
-        , "paramShadowedDataRec"
-        ]
+  runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Rename"] $
+    runGoldenPir
+      <$> [ "allShadowedDataNonRec"
+          , "allShadowedDataRec"
+          , "paramShadowedDataNonRec"
+          , "paramShadowedDataRec"
+          ]
   where
     runGoldenPir = goldenPir (runQuote . runTestPass (const renamePass)) pTerm
 

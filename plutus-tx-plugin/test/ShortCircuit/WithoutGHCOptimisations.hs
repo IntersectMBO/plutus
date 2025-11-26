@@ -4,10 +4,10 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module ShortCircuit.WithoutGHCOptimisations (
-  shortCircuitAnd,
-  shortCircuitOr,
-) where
+module ShortCircuit.WithoutGHCOptimisations
+  ( shortCircuitAnd
+  , shortCircuitOr
+  ) where
 
 import PlutusTx.Prelude (error, (&&), (||))
 import Prelude (Bool)

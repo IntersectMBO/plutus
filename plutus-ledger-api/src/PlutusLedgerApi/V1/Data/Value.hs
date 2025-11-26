@@ -1,18 +1,18 @@
 -- TODO: this module adds a copy of the 'Value' type
 -- in which the underlying maps are 'Data.AssocMap'.
-{-# LANGUAGE BlockArguments     #-}
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -23,48 +23,48 @@
 -- TODO. Look into this more closely: see https://github.com/IntersectMBO/plutus/issues/6172.
 
 -- | Functions for working with 'Value'.
-module PlutusLedgerApi.V1.Data.Value (
-  -- ** Currency symbols
-  CurrencySymbol (..),
-  currencySymbol,
-  adaSymbol,
+module PlutusLedgerApi.V1.Data.Value
+  ( -- ** Currency symbols
+    CurrencySymbol (..)
+  , currencySymbol
+  , adaSymbol
 
-  -- ** Token names
-  TokenName (..),
-  tokenName,
-  toString,
-  adaToken,
+    -- ** Token names
+  , TokenName (..)
+  , tokenName
+  , toString
+  , adaToken
 
-  -- * Asset classes
-  AssetClass (..),
-  assetClass,
-  assetClassValue,
-  assetClassValueOf,
+    -- * Asset classes
+  , AssetClass (..)
+  , assetClass
+  , assetClassValue
+  , assetClassValueOf
 
-  -- ** Value
-  Value (..),
-  singleton,
-  valueOf,
-  withCurrencySymbol,
-  currencySymbolValueOf,
-  lovelaceValue,
-  lovelaceValueOf,
-  scale,
-  symbols,
+    -- ** Value
+  , Value (..)
+  , singleton
+  , valueOf
+  , withCurrencySymbol
+  , currencySymbolValueOf
+  , lovelaceValue
+  , lovelaceValueOf
+  , scale
+  , symbols
 
-  -- * Partial order operations
-  geq,
-  gt,
-  leq,
-  lt,
+    -- * Partial order operations
+  , geq
+  , gt
+  , leq
+  , lt
 
-  -- * Etc.
-  isZero,
-  split,
-  unionWith,
-  flattenValue,
-  Lovelace (..),
-) where
+    -- * Etc.
+  , isZero
+  , split
+  , unionWith
+  , flattenValue
+  , Lovelace (..)
+  ) where
 
 import Prelude qualified as Haskell
 
@@ -79,8 +79,11 @@ import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
-import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), definitionIdFromType,
-                                      definitionRef)
+import PlutusTx.Blueprint.Definition
+  ( HasBlueprintDefinition (..)
+  , definitionIdFromType
+  , definitionRef
+  )
 import PlutusTx.Blueprint.Schema (MapSchema (..), PairSchema (..), Schema (..), withSchemaInfo)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
 import PlutusTx.Builtins qualified as B
@@ -103,8 +106,7 @@ A `Value` is a map from `CurrencySymbol`'s to a map from `TokenName` to an `Inte
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -- editorconfig-checker-disable-file
--}
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -- editorconfig-checker-disable-file -}
 newtype CurrencySymbol = CurrencySymbol
   { unCurrencySymbol :: PlutusTx.BuiltinByteString
   }
@@ -134,7 +136,7 @@ instance HasBlueprintSchema CurrencySymbol referencedTypes where
   schema =
     schema @PlutusTx.BuiltinByteString
       & withSchemaInfo \info ->
-        info{title = Just "CurrencySymbol"}
+        info {title = Just "CurrencySymbol"}
 
 -- | Creates `CurrencySymbol` from raw `ByteString`.
 currencySymbol :: BS.ByteString -> CurrencySymbol
@@ -148,8 +150,7 @@ Forms an `AssetClass` along with a `CurrencySymbol`.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -- editorconfig-checker-disable-file
--}
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -- editorconfig-checker-disable-file -}
 newtype TokenName = TokenName {unTokenName :: PlutusTx.BuiltinByteString}
   deriving stock (Generic, Data)
   deriving newtype
@@ -173,7 +174,7 @@ instance HasBlueprintSchema TokenName referencedTypes where
   schema =
     schema @PlutusTx.BuiltinByteString
       & withSchemaInfo \info ->
-        info{title = Just "TokenName"}
+        info {title = Just "TokenName"}
 
 -- | Creates `TokenName` from raw `BS.ByteString`.
 tokenName :: BS.ByteString -> TokenName
@@ -198,8 +199,7 @@ quoted s = Text.concat ["\"", s, "\""]
 
 {-| Turn a TokenName to a hex-encoded 'String'
 
-Compared to `show` , it will not surround the string with double-quotes.
--}
+Compared to `show` , it will not surround the string with double-quotes. -}
 toString :: TokenName -> Haskell.String
 toString = Text.unpack . fromTokenName asBase16 id
 
@@ -285,12 +285,11 @@ is no explicit quantity of that currency in the 'Value', then the quantity is
 taken to be zero.
 
 There is no 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
-do the right thing in some cases.
--}
+do the right thing in some cases. -}
 newtype Value = Value {getValue :: Map CurrencySymbol (Map TokenName Integer)}
   deriving stock (Generic, Haskell.Show)
   deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-  deriving Pretty via (PrettyShow Value)
+  deriving (Pretty) via (PrettyShow Value)
 
 instance HasBlueprintDefinition Value where
   type Unroll Value = '[Value, CurrencySymbol, TokenName, Integer]
@@ -360,24 +359,22 @@ instance MeetSemiLattice Value where
   (/\) = unionWith Ord.min
 
 {-| Get the quantity of the given currency in the 'Value'.
-Assumes that the underlying map doesn't contain duplicate keys.
--}
+Assumes that the underlying map doesn't contain duplicate keys. -}
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf value cur tn =
   withCurrencySymbol cur value 0 \tokens ->
     case Map.lookup tn tokens of
       Nothing -> 0
-      Just v  -> v
+      Just v -> v
 {-# INLINEABLE valueOf #-}
 
 {-| Apply a continuation function to the token quantities of the given currency
 symbol in the value or return a default value if the currency symbol is not present
-in the value.
--}
+in the value. -}
 withCurrencySymbol :: CurrencySymbol -> Value -> a -> (Map TokenName Integer -> a) -> a
 withCurrencySymbol currency value def k =
   case Map.lookup currency (getValue value) of
-    Nothing              -> def
+    Nothing -> def
     Just tokenQuantities -> k tokenQuantities
 {-# INLINEABLE withCurrencySymbol #-}
 
@@ -385,8 +382,7 @@ withCurrencySymbol currency value def k =
 Assumes that the underlying map doesn't contain duplicate keys.
 
 Note that each token of the currency symbol may have a value that is positive,
-zero or negative.
--}
+zero or negative. -}
 currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
 currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
   -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
@@ -430,23 +426,22 @@ unionVal (Value l) (Value r) =
   let
     combined = Map.union l r
     unThese k = case k of
-      This a    -> Map.map This a
-      That b    -> Map.map That b
+      This a -> Map.map This a
+      That b -> Map.map That b
       These a b -> Map.union a b
    in
     Map.map unThese combined
 {-# INLINEABLE unionVal #-}
 
 {-| Combine two 'Value' maps with the argument function.
-Assumes the well-definedness of the two maps.
--}
+Assumes the well-definedness of the two maps. -}
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
 unionWith f ls rs =
   let
     combined = unionVal ls rs
     unThese k' = case k' of
-      This a    -> f a 0
-      That b    -> f 0 b
+      This a -> f a 0
+      That b -> f 0 b
       These a b -> f a b
    in
     Value (Map.map (Map.map unThese) combined)
@@ -455,18 +450,17 @@ unionWith f ls rs =
 {-| Convert a 'Value' to a simple list, keeping only the non-zero amounts.
 Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 @flattenValue v1 == flattenValue v2@.
-Also assumes that there are no duplicate keys in the 'Value' 'Map'.
--}
+Also assumes that there are no duplicate keys in the 'Value' 'Map'. -}
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
 flattenValue v = goOuter [] (Map.toSOPList $ getValue v)
- where
-  goOuter acc []             = acc
-  goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toSOPList m)) tl
+  where
+    goOuter acc [] = acc
+    goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toSOPList m)) tl
 
-  goInner _ acc [] = acc
-  goInner cs acc ((tn, a) : tl)
-    | a /= 0 = goInner cs ((cs, tn, a) : acc) tl
-    | otherwise = goInner cs acc tl
+    goInner _ acc [] = acc
+    goInner cs acc ((tn, a) : tl)
+      | a /= 0 = goInner cs ((cs, tn, a) : acc) tl
+      | otherwise = goInner cs acc tl
 {-# INLINEABLE flattenValue #-}
 
 -- Num operations
@@ -477,8 +471,7 @@ isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 {-# INLINEABLE isZero #-}
 
 {-| Checks whether a predicate holds for all the values in a 'Value'
-union. Assumes the well-definedness of the two underlying 'Map's.
--}
+union. Assumes the well-definedness of the two underlying 'Map's. -}
 checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
 checkPred f l r =
   let
@@ -489,45 +482,40 @@ checkPred f l r =
 {-# INLINEABLE checkPred #-}
 
 {-| Check whether a binary relation holds for value pairs of two 'Value' maps,
-  supplying 0 where a key is only present in one of them.
--}
+  supplying 0 where a key is only present in one of them. -}
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
 checkBinRel f l r =
   let
     unThese k' = case k' of
-      This a    -> f a 0
-      That b    -> f 0 b
+      This a -> f a 0
+      That b -> f 0 b
       These a b -> f a b
    in
     checkPred unThese l r
 {-# INLINEABLE checkBinRel #-}
 
 {-| Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
-of how operations on 'Value's work.
--}
+of how operations on 'Value's work. -}
 geq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 geq = checkBinRel (>=)
 {-# INLINEABLE geq #-}
 
 {-| Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of
-how operations on 'Value's work.
--}
+how operations on 'Value's work. -}
 leq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 leq = checkBinRel (<=)
 {-# INLINEABLE leq #-}
 
 {-| Check whether one 'Value' is strictly greater than another.
-This is *not* a pointwise operation. @gt l r@ means @geq l r && not (eq l r)@.
--}
+This is *not* a pointwise operation. @gt l r@ means @geq l r && not (eq l r)@. -}
 gt :: Value -> Value -> Bool
 gt l r = geq l r && not (eq l r)
 {-# INLINEABLE gt #-}
 
 {-| Check whether one 'Value' is strictly less than another.
-This is *not* a pointwise operation. @lt l r@ means @leq l r && not (eq l r)@.
--}
+This is *not* a pointwise operation. @lt l r@ means @leq l r && not (eq l r)@. -}
 lt :: Value -> Value -> Bool
 lt l r = leq l r && not (eq l r)
 {-# INLINEABLE lt #-}
@@ -536,17 +524,16 @@ lt l r = leq l r && not (eq l r)
   the tuple contains the negative parts of the 'Value', the second element
   contains the positive parts.
 
-  @negate (fst (split a)) `plus` (snd (split a)) == a@
--}
+  @negate (fst (split a)) `plus` (snd (split a)) == a@ -}
 split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos)
- where
-  (neg, pos) = Map.mapThese splitIntl mp
+  where
+    (neg, pos) = Map.mapThese splitIntl mp
 
-  splitIntl :: Map TokenName Integer -> These (Map TokenName Integer) (Map TokenName Integer)
-  splitIntl mp' = These l r
-   where
-    (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+    splitIntl :: Map TokenName Integer -> These (Map TokenName Integer) (Map TokenName Integer)
+    splitIntl mp' = These l r
+      where
+        (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
 {-# INLINEABLE split #-}
 
 {-| Check equality of two lists of distinct key-value pairs, each value being uniquely
@@ -579,8 +566,7 @@ in the other, since in that case computing equality of values was expensive and 
    pressing
 
 The algorithm we use here is very similar, if not identical, to @valueEqualsValue4@ from
-https://github.com/IntersectMBO/plutus/issues/5135
--}
+https://github.com/IntersectMBO/plutus/issues/5135 -}
 unordEqWith
   :: (BuiltinData -> Bool)
   -> (BuiltinData -> BuiltinData -> Bool)
@@ -588,91 +574,91 @@ unordEqWith
   -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
   -> Bool
 unordEqWith is0 eqV = goBoth
- where
-  goBoth
-    :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
-    -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-    -> Bool
-  goBoth l1 l2 =
-    B.matchList
-      l1
-      -- null l1 case
-      ( \() ->
-          B.matchList
-            l2
-            -- null l2 case
-            (\() -> True)
-            -- non-null l2 case
-            (\_ _ -> Map.all is0 (Map.unsafeFromBuiltinList l2 :: Map BuiltinData BuiltinData))
-      )
-      -- non-null l1 case
-      ( \hd1 tl1 ->
-          B.matchList
-            l2
-            -- null l2 case
-            (\() -> Map.all is0 (Map.unsafeFromBuiltinList l1 :: Map BuiltinData BuiltinData))
-            -- non-null l2 case
-            ( \hd2 tl2 ->
-                let
-                  k1 = BI.fst hd1
-                  v1 = BI.snd hd1
-                  k2 = BI.fst hd2
-                  v2 = BI.snd hd2
-                 in
-                  if k1 == k2
-                    then
-                      if eqV v1 v2
-                        then goBoth tl1 tl2
-                        else False
-                    else
-                      if is0 v1
-                        then goBoth tl1 l2
-                        else
-                          let
-                            goRight
-                              :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
-                              -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-                              -> Bool
-                            goRight acc l =
-                              B.matchList
-                                l
-                                -- null l case
-                                (\() -> False)
-                                -- non-null l case
-                                ( \hd tl ->
-                                    let
-                                      k = BI.fst hd
-                                      v = BI.snd hd
-                                     in
-                                      if is0 v
-                                        then goRight acc tl
-                                        else
-                                          if k == k1
-                                            then
-                                              if eqV v1 v
-                                                then goBoth tl1 (revAppend' acc tl)
-                                                else False
-                                            else goRight (hd `BI.mkCons` acc) tl
-                                )
-                           in
-                            goRight
-                              ( if is0 v2
-                                  then BI.mkNilPairData BI.unitval
-                                  else hd2 `BI.mkCons` BI.mkNilPairData BI.unitval
-                              )
-                              tl2
-            )
-      )
-
-  revAppend' = rev
-   where
-    rev l acc =
+  where
+    goBoth
+      :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
+      -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+      -> Bool
+    goBoth l1 l2 =
       B.matchList
-        l
-        (\() -> acc)
-        ( \hd tl ->
-            rev tl (hd `BI.mkCons` acc)
+        l1
+        -- null l1 case
+        ( \() ->
+            B.matchList
+              l2
+              -- null l2 case
+              (\() -> True)
+              -- non-null l2 case
+              (\_ _ -> Map.all is0 (Map.unsafeFromBuiltinList l2 :: Map BuiltinData BuiltinData))
         )
+        -- non-null l1 case
+        ( \hd1 tl1 ->
+            B.matchList
+              l2
+              -- null l2 case
+              (\() -> Map.all is0 (Map.unsafeFromBuiltinList l1 :: Map BuiltinData BuiltinData))
+              -- non-null l2 case
+              ( \hd2 tl2 ->
+                  let
+                    k1 = BI.fst hd1
+                    v1 = BI.snd hd1
+                    k2 = BI.fst hd2
+                    v2 = BI.snd hd2
+                   in
+                    if k1 == k2
+                      then
+                        if eqV v1 v2
+                          then goBoth tl1 tl2
+                          else False
+                      else
+                        if is0 v1
+                          then goBoth tl1 l2
+                          else
+                            let
+                              goRight
+                                :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
+                                -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+                                -> Bool
+                              goRight acc l =
+                                B.matchList
+                                  l
+                                  -- null l case
+                                  (\() -> False)
+                                  -- non-null l case
+                                  ( \hd tl ->
+                                      let
+                                        k = BI.fst hd
+                                        v = BI.snd hd
+                                       in
+                                        if is0 v
+                                          then goRight acc tl
+                                          else
+                                            if k == k1
+                                              then
+                                                if eqV v1 v
+                                                  then goBoth tl1 (revAppend' acc tl)
+                                                  else False
+                                              else goRight (hd `BI.mkCons` acc) tl
+                                  )
+                             in
+                              goRight
+                                ( if is0 v2
+                                    then BI.mkNilPairData BI.unitval
+                                    else hd2 `BI.mkCons` BI.mkNilPairData BI.unitval
+                                )
+                                tl2
+              )
+        )
+
+    revAppend' = rev
+      where
+        rev l acc =
+          B.matchList
+            l
+            (\() -> acc)
+            ( \hd tl ->
+                rev tl (hd `BI.mkCons` acc)
+            )
 {-# INLINEABLE unordEqWith #-}
 
 -- | Check equality of two maps of maps indexed by 'CurrencySymbol's,
@@ -694,8 +680,7 @@ eqMapOfMapsWith is0 eqV map1 map2 =
 {-# INLINEABLE eqMapOfMapsWith #-}
 
 {-| Check equality of two 'Map Token Integer's given a function checking whether a value is zero and a function
-checking equality of values.
--}
+checking equality of values. -}
 eqMapWith
   :: (Integer -> Bool)
   -> (Integer -> Integer -> Bool)
@@ -713,8 +698,7 @@ eqMapWith is0 eqV map1 map2 =
 {-| Check equality of two 'Value's. Does not assume orderness of lists within a 'Value' or a lack
 of empty values (such as a token whose quantity is zero or a currency that has a bunch of such
 tokens or no tokens at all), but does assume that no currencies or tokens within a single
-currency have multiple entries.
--}
+currency have multiple entries. -}
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) =
   eqMapOfMapsWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2

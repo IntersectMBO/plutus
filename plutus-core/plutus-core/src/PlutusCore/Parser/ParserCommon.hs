@@ -1,8 +1,8 @@
-{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE RecursiveDo       #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Common functions for parsers of UPLC, PLC, and PIR.
@@ -23,8 +23,13 @@ import Control.Monad.State.Class (MonadState, get, put)
 import PlutusCore.Annotation
 import PlutusCore.Core.Type
 import PlutusCore.Error
-import PlutusCore.Name.Unique (Name (..), Unique (..), isIdentifierChar, isIdentifierStartingChar,
-                               isQuotedIdentifierChar)
+import PlutusCore.Name.Unique
+  ( Name (..)
+  , Unique (..)
+  , isIdentifierChar
+  , isIdentifierStartingChar
+  , isQuotedIdentifierChar
+  )
 import PlutusCore.Quote
 
 {- Note [Whitespace invariant]
@@ -52,16 +57,15 @@ getVersion = ask
 withVersion :: Version -> Parser a -> Parser a
 withVersion v = local (const $ Just v)
 
-{- | Run an action conditionally based on a predicate on the version.
+{-| Run an action conditionally based on a predicate on the version.
 If we don't know the version then the predicate is assumed to be
-false, i.e. we act if we _know_ the predicate is satisfied.
--}
+false, i.e. we act if we _know_ the predicate is satisfied. -}
 whenVersion :: (Version -> Bool) -> Parser () -> Parser ()
 whenVersion p act = do
   mv <- getVersion
   case mv of
     Nothing -> pure ()
-    Just v  -> when (p v) act
+    Just v -> when (p v) act
 
 parse
   :: (MonadError ParserErrorBundle m, MonadQuote m)
@@ -75,7 +79,7 @@ parse p file str = do
 
 toErrorB :: Either (ParseErrorBundle Text ParserError) a -> Either ParserErrorBundle a
 toErrorB (Left err) = Left $ ParseErrorB err
-toErrorB (Right a)  = Right a
+toErrorB (Right a) = Right a
 
 -- | Generic parser function in which the file path is just "test".
 parseGen :: (MonadError ParserErrorBundle m, MonadQuote m) => Parser a -> Text -> m a
@@ -92,23 +96,23 @@ trailingWhitespace :: Parser a -> Parser a
 trailingWhitespace = (<* whitespace)
 
 -- This is samething from @Text.Megaparsec.Stream@.
-reachOffsetNoLine' ::
-  forall s.
-  (Stream s) =>
-  -- | How to split input stream at given offset
-  (Int -> s -> (Tokens s, s)) ->
-  -- | How to fold over input stream
-  (forall b. (b -> Token s -> b) -> b -> Tokens s -> b) ->
-  -- | Newline token and tab token
-  (Token s, Token s) ->
-  -- | Offset to reach
-  -- | Increment in column position for a token
-  (Token s -> Pos) ->
-  Int ->
-  -- | Initial 'PosState' to use
-  PosState s ->
-  -- | Updated 'PosState'
-  PosState s
+reachOffsetNoLine'
+  :: forall s
+   . Stream s
+  => (Int -> s -> (Tokens s, s))
+  -- ^ How to split input stream at given offset
+  -> (forall b. (b -> Token s -> b) -> b -> Tokens s -> b)
+  -- ^ How to fold over input stream
+  -> (Token s, Token s)
+  -- ^ Newline token and tab token
+  -> (Token s -> Pos)
+  {-^ Offset to reach
+  | Increment in column position for a token -}
+  -> Int
+  -> PosState s
+  -- ^ Initial 'PosState' to use
+  -> PosState s
+  -- ^ Updated 'PosState'
 reachOffsetNoLine'
   splitAt'
   foldl''
@@ -117,11 +121,11 @@ reachOffsetNoLine'
   o
   PosState {..} =
     ( PosState
-        { pstateInput = post,
-          pstateOffset = max pstateOffset o,
-          pstateSourcePos = spos,
-          pstateTabWidth = pstateTabWidth,
-          pstateLinePrefix = pstateLinePrefix
+        { pstateInput = post
+        , pstateOffset = max pstateOffset o
+        , pstateSourcePos = spos
+        , pstateTabWidth = pstateTabWidth
+        , pstateLinePrefix = pstateLinePrefix
         }
     )
     where
@@ -154,13 +158,12 @@ getSourcePos' = do
   setParserState st {statePosState = pst}
   return (pstateSourcePos pst)
 
-{- | Returns a parser for @a@ by calling the supplied function on the starting
+{-| Returns a parser for @a@ by calling the supplied function on the starting
 and ending positions of @a@.
 
 The supplied function should usually return a parser that does /not/ consume trailing
 whitespaces. Otherwise, the end position will be the first character after the
-trailing whitespaces.
--}
+trailing whitespaces. -}
 withSpan' :: (SrcSpan -> Parser a) -> Parser a
 withSpan' f = mdo
   start <- getSourcePos'
@@ -169,10 +172,9 @@ withSpan' f = mdo
   let sp = toSrcSpan start end
   pure res
 
-{- | Like `withSpan'`, but the result parser consumes whitespaces.
+{-| Like `withSpan'`, but the result parser consumes whitespaces.
 
-@withSpan = (<* whitespace) . withSpan'@
--}
+@withSpan = (<* whitespace) . withSpan'@ -}
 withSpan :: (SrcSpan -> Parser a) -> Parser a
 withSpan = (<* whitespace) . withSpan'
 

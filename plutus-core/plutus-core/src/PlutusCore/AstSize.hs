@@ -1,15 +1,15 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
-module PlutusCore.AstSize (
-  AstSize (..),
-  kindAstSize,
-  typeAstSize,
-  tyVarDeclAstSize,
-  termAstSize,
-  varDeclAstSize,
-  programAstSize,
-  serialisedAstSize,
-) where
+module PlutusCore.AstSize
+  ( AstSize (..)
+  , kindAstSize
+  , typeAstSize
+  , tyVarDeclAstSize
+  , termAstSize
+  , varDeclAstSize
+  , programAstSize
+  , serialisedAstSize
+  ) where
 
 import PlutusPrelude
 
@@ -33,8 +33,7 @@ newtype AstSize = AstSize
 >>> kindAstSize $ Type ()
 AstSize {unAstSize = 1}
 >>> kindAstSize $ KindArrow () (KindArrow () (Type ()) (Type ())) (Type ())
-AstSize {unAstSize = 5}
--}
+AstSize {unAstSize = 5} -}
 kindAstSize :: Kind a -> AstSize
 kindAstSize kind =
   fold
@@ -80,5 +79,5 @@ programAstSize :: Program tyname name uni fun ann -> AstSize
 programAstSize (Program _ _ t) = termAstSize t
 
 -- | Compute the size of the serializabled form of a value.
-serialisedAstSize :: (Flat a) => a -> Integer
+serialisedAstSize :: Flat a => a -> Integer
 serialisedAstSize = fromIntegral . BS.length . flat

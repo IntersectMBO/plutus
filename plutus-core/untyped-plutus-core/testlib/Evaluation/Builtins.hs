@@ -8,8 +8,9 @@ import Test.Tasty
 
 test_builtins :: TestTree
 test_builtins =
-    testGroup "builtins"
-        [ test_definition
-        , test_makeRead
-        , test_costing
-        ]
+  testGroup
+    "builtins"
+    [ test_definition
+    , test_makeRead
+    , test_costing
+    ]

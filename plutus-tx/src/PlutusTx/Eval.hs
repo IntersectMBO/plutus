@@ -1,9 +1,9 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module PlutusTx.Eval where
 
@@ -22,9 +22,14 @@ import PlutusCore.Pretty
 import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import Prettyprinter (dot, indent, plural, vsep, (<+>))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CekReport (..),
-                                                 CountingSt (..), cekResultToEither, counting,
-                                                 logEmitter)
+import UntypedPlutusCore.Evaluation.Machine.Cek
+  ( CekEvaluationException
+  , CekReport (..)
+  , CountingSt (..)
+  , cekResultToEither
+  , counting
+  , logEmitter
+  )
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
 data EvalResult = EvalResult
@@ -38,7 +43,7 @@ data EvalResult = EvalResult
   deriving stock (Show)
 
 instance Pretty EvalResult where
-  pretty EvalResult{..} =
+  pretty EvalResult {..} =
     vsep
       [ case evalResult of
           Left err ->
@@ -82,28 +87,26 @@ displayExBudget = render . prettyExBudget
 
 prettyExBudget :: ExBudget -> Doc ann
 prettyExBudget
-  ExBudget{exBudgetCPU = ExCPU cpu, exBudgetMemory = ExMemory mem} =
+  ExBudget {exBudgetCPU = ExCPU cpu, exBudgetMemory = ExMemory mem} =
     vsep
       [ "CPU" <+> pretty (format commas (unSatInt cpu))
       , "MEM" <+> pretty (format commas (unSatInt mem))
       ]
 
 {-| Evaluates the given 'CompiledCode' using the CEK machine
-with the default machine parameters.
--}
+with the default machine parameters. -}
 evaluateCompiledCode :: CompiledCode a -> EvalResult
 evaluateCompiledCode = evaluateCompiledCode' defaultCekParametersForTesting
 
 {-| Evaluates the given 'CompiledCode' using the CEK machine
-with the given machine parameters.
--}
+with the given machine parameters. -}
 evaluateCompiledCode'
   :: DefaultMachineParameters -> CompiledCode a -> EvalResult
-evaluateCompiledCode' params code = EvalResult{..}
- where
-  Program _ann _version term = getPlcNoAnn code
-  CekReport (cekResultToEither -> evalResult) (CountingSt evalResultBudget) evalResultTraces =
-    runCekDeBruijn params counting logEmitter term
+evaluateCompiledCode' params code = EvalResult {..}
+  where
+    Program _ann _version term = getPlcNoAnn code
+    CekReport (cekResultToEither -> evalResult) (CountingSt evalResultBudget) evalResultTraces =
+      runCekDeBruijn params counting logEmitter term
 
 evaluatesToError :: CompiledCode a -> Bool
 evaluatesToError = not . evaluatesWithoutError

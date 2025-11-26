@@ -13,11 +13,11 @@ import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_unwrap :: TestTree
 test_unwrap =
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Unwrap"] $
-        map
-            (goldenPir (runIdentity . runTestPass unwrapCancelPass) pTerm)
-            [ "unwrapWrap"
-            ]
+  runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Unwrap"] $
+    map
+      (goldenPir (runIdentity . runTestPass unwrapCancelPass) pTerm)
+      [ "unwrapWrap"
+      ]
 
 prop_unwrap :: Property
 prop_unwrap =

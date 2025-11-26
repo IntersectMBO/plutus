@@ -1,18 +1,17 @@
--- | This module defines a common type various evaluation machine use to return their results.
-
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE UndecidableInstances #-}
 
+-- | This module defines a common type various evaluation machine use to return their results.
 module PlutusCore.Evaluation.Result
-    ( EvaluationResult (..)
-    , isEvaluationSuccess
-    , isEvaluationFailure
-    ) where
+  ( EvaluationResult (..)
+  , isEvaluationSuccess
+  , isEvaluationFailure
+  ) where
 
 import PlutusPrelude
 
@@ -22,57 +21,57 @@ import Control.Monad.Except (MonadError, catchError, throwError)
 
 -- | The parameterized type of results various evaluation engines return.
 data EvaluationResult a
-    = EvaluationSuccess !a
-    | EvaluationFailure
-    deriving stock (Show, Eq, Generic, Functor, Foldable, Traversable)
-    deriving anyclass (NFData)
+  = EvaluationSuccess !a
+  | EvaluationFailure
+  deriving stock (Show, Eq, Generic, Functor, Foldable, Traversable)
+  deriving anyclass (NFData)
 
 instance MonadError () EvaluationResult where
-    throwError () = EvaluationFailure
-    {-# INLINE throwError #-}
+  throwError () = EvaluationFailure
+  {-# INLINE throwError #-}
 
-    catchError EvaluationFailure f = f ()
-    catchError x                 _ = x
-    {-# INLINE catchError #-}
+  catchError EvaluationFailure f = f ()
+  catchError x _ = x
+  {-# INLINE catchError #-}
 
 instance Applicative EvaluationResult where
-    pure = EvaluationSuccess
-    {-# INLINE pure #-}
+  pure = EvaluationSuccess
+  {-# INLINE pure #-}
 
-    EvaluationSuccess f <*> a = fmap f a
-    EvaluationFailure   <*> _ = EvaluationFailure
-    {-# INLINE (<*>) #-}
+  EvaluationSuccess f <*> a = fmap f a
+  EvaluationFailure <*> _ = EvaluationFailure
+  {-# INLINE (<*>) #-}
 
-    EvaluationSuccess _ *> b = b
-    EvaluationFailure   *> _ = EvaluationFailure
-    {-# INLINE (*>) #-}
+  EvaluationSuccess _ *> b = b
+  EvaluationFailure *> _ = EvaluationFailure
+  {-# INLINE (*>) #-}
 
 instance Monad EvaluationResult where
-    EvaluationSuccess x >>= f = f x
-    EvaluationFailure   >>= _ = EvaluationFailure
-    {-# INLINE (>>=) #-}
+  EvaluationSuccess x >>= f = f x
+  EvaluationFailure >>= _ = EvaluationFailure
+  {-# INLINE (>>=) #-}
 
-    (>>) = (*>)
-    {-# INLINE (>>) #-}
+  (>>) = (*>)
+  {-# INLINE (>>) #-}
 
 instance Alternative EvaluationResult where
-    empty = EvaluationFailure
-    {-# INLINE empty #-}
+  empty = EvaluationFailure
+  {-# INLINE empty #-}
 
-    a@EvaluationSuccess{} <|> _ = a
-    EvaluationFailure     <|> b = b
-    {-# INLINE (<|>) #-}
+  a@EvaluationSuccess {} <|> _ = a
+  EvaluationFailure <|> b = b
+  {-# INLINE (<|>) #-}
 
 instance MonadFail EvaluationResult where
-    fail _ = EvaluationFailure
-    {-# INLINE fail #-}
+  fail _ = EvaluationFailure
+  {-# INLINE fail #-}
 
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
-    prettyBy config (EvaluationSuccess x) = prettyBy config x
-    prettyBy _      EvaluationFailure     = "Failure"
+  prettyBy config (EvaluationSuccess x) = prettyBy config x
+  prettyBy _ EvaluationFailure = "Failure"
 
 instance PrettyClassic a => Pretty (EvaluationResult a) where
-    pretty = prettyClassic
+  pretty = prettyClassic
 
 -- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
 isEvaluationSuccess :: EvaluationResult a -> Bool

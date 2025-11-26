@@ -19,8 +19,7 @@ import Prelude (Bool (..), otherwise)
   False
 
   >>> False && error ()
-  False
--}
+  False -}
 infixr 3 &&
 
 (&&) :: Bool -> Bool -> Bool
@@ -33,8 +32,7 @@ infixr 3 &&
   True
 
   >>> True || error ()
-  True
--}
+  True -}
 infixr 2 ||
 
 (||) :: Bool -> Bool -> Bool
@@ -44,8 +42,7 @@ infixr 2 ||
 {-| Logical negation
 
   >>> not True
-  False
--}
+  False -}
 not :: Bool -> Bool
 not a = if a then False else True
 {-# INLINEABLE not #-}

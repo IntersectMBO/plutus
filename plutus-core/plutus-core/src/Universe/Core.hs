@@ -1,56 +1,56 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE AllowAmbiguousTypes      #-}
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE GADTs                    #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE PolyKinds                #-}
-{-# LANGUAGE QuantifiedConstraints    #-}
-{-# LANGUAGE RankNTypes               #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- Required only by 'Permits0' for some reason.
-{-# LANGUAGE UndecidableSuperClasses  #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module Universe.Core
-    ( Esc
-    , Some (..)
-    , SomeTypeIn (..)
-    , Kinded (..)
-    , ValueOf (..)
-    , Contains (..)
-    , Includes
-    , knownUniOf
-    , someType
-    , someValueOf
-    , someValue
-    , someValueType
-    , DecodeUniM (..)
-    , Closed (..)
-    , decodeKindedUni
-    , peelUniTag
-    , Permits
-    , EverywhereAll
-    , type (<:)
-    , HasUniApply (..)
-    , checkStar
-    , withApplicable
-    , tryUniApply
-    , GShow (..)
-    , gshow
-    , GEq (..)
-    , defaultEq
-    , (:~:)(..)
-    -- strictly we don't use this, but this is here
-    -- partially so we have a dependency on dependent-sum
-    -- directly and so can bound it
-    , DSum (..)
-    ) where
+  ( Esc
+  , Some (..)
+  , SomeTypeIn (..)
+  , Kinded (..)
+  , ValueOf (..)
+  , Contains (..)
+  , Includes
+  , knownUniOf
+  , someType
+  , someValueOf
+  , someValue
+  , someValueType
+  , DecodeUniM (..)
+  , Closed (..)
+  , decodeKindedUni
+  , peelUniTag
+  , Permits
+  , EverywhereAll
+  , type (<:)
+  , HasUniApply (..)
+  , checkStar
+  , withApplicable
+  , tryUniApply
+  , GShow (..)
+  , gshow
+  , GEq (..)
+  , defaultEq
+  , (:~:) (..)
+  -- strictly we don't use this, but this is here
+  -- partially so we have a dependency on dependent-sum
+  -- directly and so can bound it
+  , DSum (..)
+  ) where
 
 import Control.Applicative
 import Control.DeepSeq
@@ -339,13 +339,13 @@ type SomeTypeIn :: (Type -> Type) -> Type
 data SomeTypeIn uni = forall k (a :: k). SomeTypeIn !(uni (Esc a))
 
 data Kinded uni ta where
-    Kinded :: Typeable k => !(uni (Esc a)) -> Kinded uni (Esc (a :: k))
+  Kinded :: Typeable k => !(uni (Esc a)) -> Kinded uni (Esc (a :: k))
 
 -- | A value of a particular type from a universe.
 type ValueOf :: (Type -> Type) -> Type -> Type
 data ValueOf uni a = ValueOf !(uni (Esc a)) !a
 
-{- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
+{-| A class for enumerating types and fully instantiated type formers that @uni@ contains.
 For example, a particular @ExampleUni@ may have monomorphic types in it:
 
     instance ExampleUni `Contains` Integer where <...>
@@ -381,11 +381,10 @@ booleans and lists).
 Hence most of the time opt for using the more flexible 'Includes'.
 
 'Includes' is defined in terms of 'Contains', so you only need to provide a 'Contains' instance
-per type from the universe and you'll get 'Includes' for free.
--}
+per type from the universe and you'll get 'Includes' for free. -}
 type Contains :: forall k. (Type -> Type) -> k -> Constraint
 class uni `Contains` a where
-    knownUni :: uni (Esc a)
+  knownUni :: uni (Esc a)
 
 {- Note [The definition of Includes]
 We need to be able to partially apply 'Includes' (required in the definition of '<:' for example),
@@ -409,11 +408,11 @@ has to be immediately applied only to a @uni@ at the use site).
 
 -- | A @Kinded uni@ contains an @a :: k@ whenever @uni@ contains it and @k@ is 'Typeable'.
 instance (Typeable k, uni `Contains` a) => Kinded uni `Contains` (a :: k) where
-    knownUni = Kinded knownUni
+  knownUni = Kinded knownUni
 
 -- See Note [The definition of Includes].
--- | @uni `Includes` a@ reads as \"@a@ is in the @uni@\". @a@ can be of a higher-kind,
--- see the docs of 'Contains' on why you might want that.
+{-| @uni `Includes` a@ reads as \"@a@ is in the @uni@\". @a@ can be of a higher-kind,
+see the docs of 'Contains' on why you might want that. -}
 type Includes :: forall k. (Type -> Type) -> k -> Constraint
 type Includes uni = Permits (Contains uni)
 
@@ -436,50 +435,51 @@ someValue = someValueOf knownUni
 someValueType :: Some (ValueOf uni) -> SomeTypeIn uni
 someValueType (Some (ValueOf tag _)) = SomeTypeIn tag
 
--- | A monad to decode types from a universe in.
--- We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off
--- an arbitrary amount of type tags from the input list of tags and so we have state, which is
--- convenient to handle with, well, 'StateT'.
+{-| A monad to decode types from a universe in.
+We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off
+an arbitrary amount of type tags from the input list of tags and so we have state, which is
+convenient to handle with, well, 'StateT'. -}
 newtype DecodeUniM a = DecodeUniM
-    { unDecodeUniM :: StateT [Int] Maybe a
-    } deriving newtype (Functor, Applicative, Alternative, Monad, MonadPlus, MonadFail)
+  { unDecodeUniM :: StateT [Int] Maybe a
+  }
+  deriving newtype (Functor, Applicative, Alternative, Monad, MonadPlus, MonadFail)
 
 runDecodeUniM :: [Int] -> DecodeUniM a -> Maybe (a, [Int])
 runDecodeUniM is (DecodeUniM a) = runStateT a is
 
--- | A universe is 'Closed', if it's known how to constrain every type from the universe and
--- every type can be encoded to / decoded from a sequence of integer tags.
--- The universe doesn't have to be finite and providing support for infinite universes is the
--- reason why we encode a type as a sequence of integer tags as opposed to a single integer tag.
--- For example, given
---
--- >   data U a where
--- >       UList :: !(U a) -> U [a]
--- >       UInt  :: U Int
---
--- @UList (UList UInt)@ can be encoded to @[0,0,1]@ where @0@ and @1@ are the integer tags of the
--- @UList@ and @UInt@ constructors, respectively.
+{-| A universe is 'Closed', if it's known how to constrain every type from the universe and
+every type can be encoded to / decoded from a sequence of integer tags.
+The universe doesn't have to be finite and providing support for infinite universes is the
+reason why we encode a type as a sequence of integer tags as opposed to a single integer tag.
+For example, given
+
+>   data U a where
+>       UList :: !(U a) -> U [a]
+>       UInt  :: U Int
+
+@UList (UList UInt)@ can be encoded to @[0,0,1]@ where @0@ and @1@ are the integer tags of the
+@UList@ and @UInt@ constructors, respectively. -}
 class Closed uni where
-    -- | A constrant for \"@constr a@ holds for any @a@ from @uni@\".
-    type Everywhere uni (constr :: Type -> Constraint) :: Constraint
+  -- | A constrant for \"@constr a@ holds for any @a@ from @uni@\".
+  type Everywhere uni (constr :: Type -> Constraint) :: Constraint
 
-    -- | Encode a type as a sequence of 'Int' tags.
-    -- The opposite of 'decodeUni'.
-    encodeUni :: uni a -> [Int]
+  {-| Encode a type as a sequence of 'Int' tags.
+  The opposite of 'decodeUni'. -}
+  encodeUni :: uni a -> [Int]
 
-    -- | Decode a type and feed it to the continuation.
-    withDecodedUni :: (forall k (a :: k). Typeable k => uni (Esc a) -> DecodeUniM r) -> DecodeUniM r
+  -- | Decode a type and feed it to the continuation.
+  withDecodedUni :: (forall k (a :: k). Typeable k => uni (Esc a) -> DecodeUniM r) -> DecodeUniM r
 
-    -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
-    -- @constr@ holds for any type from the universe.
-    bring :: uni `Everywhere` constr => proxy constr -> uni (Esc a) -> (constr a => r) -> r
+  {-| Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
+  @constr@ holds for any type from the universe. -}
+  bring :: uni `Everywhere` constr => proxy constr -> uni (Esc a) -> (constr a => r) -> r
 
--- | Decode a type from a sequence of 'Int' tags.
--- The opposite of 'encodeUni' (modulo invalid input).
+{-| Decode a type from a sequence of 'Int' tags.
+The opposite of 'encodeUni' (modulo invalid input). -}
 decodeKindedUni :: Closed uni => [Int] -> Maybe (SomeTypeIn (Kinded uni))
 decodeKindedUni is = do
-    (x, []) <- runDecodeUniM is $ withDecodedUni $ pure . SomeTypeIn . Kinded
-    pure x
+  (x, []) <- runDecodeUniM is $ withDecodedUni $ pure . SomeTypeIn . Kinded
+  pure x
 
 -- >>> runDecodeUniM [1,2,3] peelUniTag
 -- Just (1,[2,3])
@@ -488,33 +488,33 @@ decodeKindedUni is = do
 -- | Peel off a tag from the input list of type tags.
 peelUniTag :: DecodeUniM Int
 peelUniTag = DecodeUniM $ do
-    i:is <- get
-    i <$ put is
+  i : is <- get
+  i <$ put is
 
 -- It's not possible to return a @forall@ from a type family, let alone compute a proper
 -- quantified context, hence the boilerplate and a finite number of supported cases.
 
 type Permits0 :: (Type -> Constraint) -> Type -> Constraint
-class    constr x => constr `Permits0` x
+class constr x => constr `Permits0` x
 instance constr x => constr `Permits0` x
 
 type Permits1 :: (Type -> Constraint) -> (Type -> Type) -> Constraint
-class    (forall a. constr a => constr (f a)) => constr `Permits1` f
+class (forall a. constr a => constr (f a)) => constr `Permits1` f
 instance (forall a. constr a => constr (f a)) => constr `Permits1` f
 
 type Permits2 :: (Type -> Constraint) -> (Type -> Type -> Type) -> Constraint
-class    (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
+class (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
 instance (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
 
 type Permits3 :: (Type -> Constraint) -> (Type -> Type -> Type -> Type) -> Constraint
-class    (forall a b c. (constr a, constr b, constr c) => constr (f a b c)) => constr `Permits3` f
+class (forall a b c. (constr a, constr b, constr c) => constr (f a b c)) => constr `Permits3` f
 instance (forall a b c. (constr a, constr b, constr c) => constr (f a b c)) => constr `Permits3` f
 
 -- I tried defining 'Permits' as a class but that didn't have the right inference properties
 -- (i.e. I was getting errors in existing code). That probably requires bidirectional instances
 -- to work, but who cares given that the type family version works alright and can even be
 -- partially applied (the kind has to be provided immediately though, but that's fine).
-{- | @constr `Permits` f@ elaborates to one of
+{-| @constr `Permits` f@ elaborates to one of
 -
     constr f
     forall a. constr a => constr (f a)
@@ -544,39 +544,40 @@ does not require the type of elements to be 'Generic'), however it's not a probl
 we use 'Permit' to constrain the whole universe and so we know that arguments of polymorphic
 built-in types are builtins themselves are hence do satisfy the constraint and the fact that
 these constraints on arguments do not get used in the polymorphic case only means that they
-get ignored.
--}
+get ignored. -}
 type Permits :: forall k. (Type -> Constraint) -> k -> Constraint
 type family Permits constr
 
-type instance Permits @Type                           constr = Permits0 constr
-type instance Permits @(Type -> Type)                 constr = Permits1 constr
-type instance Permits @(Type -> Type -> Type)         constr = Permits2 constr
+type instance Permits @Type constr = Permits0 constr
+type instance Permits @(Type -> Type) constr = Permits1 constr
+type instance Permits @(Type -> Type -> Type) constr = Permits2 constr
 type instance Permits @(Type -> Type -> Type -> Type) constr = Permits3 constr
 
 -- We can't use @All (Everywhere uni) constrs@, because 'Everywhere' is an associated type family
 -- and can't be partially applied, so we have to inline the definition here.
 type EverywhereAll :: (Type -> Type) -> [Type -> Constraint] -> Constraint
 type family uni `EverywhereAll` constrs where
-    uni `EverywhereAll` '[]                 = ()
-    uni `EverywhereAll` (constr ': constrs) = (uni `Everywhere` constr, uni `EverywhereAll` constrs)
+  uni `EverywhereAll` '[] = ()
+  uni `EverywhereAll` (constr ': constrs) = (uni `Everywhere` constr, uni `EverywhereAll` constrs)
 
 -- | A constraint for \"@uni1@ is a subuniverse of @uni2@\".
 type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
 
 -- | A class for \"@uni@ has general type application\".
 class HasUniApply (uni :: Type -> Type) where
-    -- | Apply a type constructor to an argument.
-    uniApply :: forall k l (f :: k -> l) a. uni (Esc f) -> uni (Esc a) -> uni (Esc (f a))
+  -- | Apply a type constructor to an argument.
+  uniApply :: forall k l (f :: k -> l) a. uni (Esc f) -> uni (Esc a) -> uni (Esc (f a))
 
-    -- | Deconstruct a type application into the function and the argument and feed them to the
-    -- continuation. If the type is not an application, then return the default value.
-    matchUniApply
-        :: uni tb  -- ^ The type.
-        -> r       -- ^ What to return if the type is not an application.
-        -> (forall k l (f :: k -> l) a. tb ~ Esc (f a) => uni (Esc f) -> uni (Esc a) -> r)
-                   -- ^ The continuation taking a function and an argument.
-        -> r
+  {-| Deconstruct a type application into the function and the argument and feed them to the
+  continuation. If the type is not an application, then return the default value. -}
+  matchUniApply
+    :: uni tb
+    -- ^ The type.
+    -> r
+    -- ^ What to return if the type is not an application.
+    -> (forall k l (f :: k -> l) a. tb ~ Esc (f a) => uni (Esc f) -> uni (Esc a) -> r)
+    -- ^ The continuation taking a function and an argument.
+    -> r
 
 -- See Note [Decoding universes].
 -- You might think @uni@ is inferrable from the explicitly given argument. Nope, in most cases it's
@@ -589,37 +590,39 @@ fromJustM :: MonadPlus f => Maybe a -> f a
 fromJustM = maybe mzero pure
 
 -- See Note [Decoding universes].
--- | Check if one type from the universe can be applied to another (i.e. check that the expected
--- kind of the argument matches the actual one) and call the continuation in the refined context.
--- Fail with 'mzero' otherwise.
+{-| Check if one type from the universe can be applied to another (i.e. check that the expected
+kind of the argument matches the actual one) and call the continuation in the refined context.
+Fail with 'mzero' otherwise. -}
 withApplicable
-    :: forall (a :: Type) (ab :: Type) f x uni m r. (Typeable ab, Typeable a, MonadPlus m)
-    => uni (Esc (f :: ab))
-    -> uni (Esc (x :: a))
-    -> (forall (b :: Type). (Typeable b, ab ~ (a -> b)) => m r)
-    -> m r
+  :: forall (a :: Type) (ab :: Type) f x uni m r
+   . (Typeable ab, Typeable a, MonadPlus m)
+  => uni (Esc (f :: ab))
+  -> uni (Esc (x :: a))
+  -> (forall (b :: Type). (Typeable b, ab ~ (a -> b)) => m r)
+  -> m r
 withApplicable _ _ k =
-    case typeRep @ab of
-        Fun repA repB -> do
-            -- The type of @(->)@ is
-            --
-            --     forall {r1} {r2} (a :: TYPE r1) (b :: TYPE r2). a -> b -> Type
-            --
-            -- so we need to demonstrate that both @a@ and @b@ are of kind @Type@. We get the former
-            -- from checking that the type representation of 'withApplicable'-bound @a@ equals @a@
-            -- from @a -> b@, but for the latter we need an explicit check.
-            HRefl <- fromJustM $ typeRep @a `eqTypeRep` repA
-            Refl <- fromJustM $ typeRepKind repB `testEquality` typeRep @Type
-            withTypeable repB k
-        _ -> mzero
+  case typeRep @ab of
+    Fun repA repB -> do
+      -- The type of @(->)@ is
+      --
+      --     forall {r1} {r2} (a :: TYPE r1) (b :: TYPE r2). a -> b -> Type
+      --
+      -- so we need to demonstrate that both @a@ and @b@ are of kind @Type@. We get the former
+      -- from checking that the type representation of 'withApplicable'-bound @a@ equals @a@
+      -- from @a -> b@, but for the latter we need an explicit check.
+      HRefl <- fromJustM $ typeRep @a `eqTypeRep` repA
+      Refl <- fromJustM $ typeRepKind repB `testEquality` typeRep @Type
+      withTypeable repB k
+    _ -> mzero
 
 -- | Apply a type constructor to an argument, provided kinds match.
 tryUniApply
-    :: (MonadPlus m, HasUniApply uni)
-    => SomeTypeIn (Kinded uni) -> SomeTypeIn (Kinded uni) -> m (SomeTypeIn (Kinded uni))
+  :: (MonadPlus m, HasUniApply uni)
+  => SomeTypeIn (Kinded uni) -> SomeTypeIn (Kinded uni) -> m (SomeTypeIn (Kinded uni))
 tryUniApply (SomeTypeIn (Kinded uniF)) (SomeTypeIn (Kinded uniA)) =
-    withApplicable uniF uniA $
-        pure . SomeTypeIn . Kinded $ uniF `uniApply` uniA
+  withApplicable uniF uniA $
+    pure . SomeTypeIn . Kinded $
+      uniF `uniApply` uniA
 
 {- Note [The G, the Tag and the Auto]
 Providing instances for
@@ -722,86 +725,94 @@ We should be able to use the same strategy for every type class @X@ when a @make
 -}
 
 -- WARNING: DO NOT EXPORT THIS, IT HAS AN UNSOUND 'Lift' INSTANCE USED FOR INTERNAL PURPOSES.
--- | A wrapper that allows to provide an instance for a non-general class (e.g. 'Lift' or 'Show')
--- for any @f@ implementing a general class (e.g. 'GLift' or 'GShow').
+{-| A wrapper that allows to provide an instance for a non-general class (e.g. 'Lift' or 'Show')
+for any @f@ implementing a general class (e.g. 'GLift' or 'GShow'). -}
 newtype AG f a = AG (f a)
 
-$(return [])  -- Stage restriction, see https://gitlab.haskell.org/ghc/ghc/issues/9813
+$(return []) -- Stage restriction, see https://gitlab.haskell.org/ghc/ghc/issues/9813
 
 -------------------- 'Show' / 'GShow'
 
 instance GShow f => Show (AG f a) where
-    showsPrec pr (AG a) = gshowsPrec pr a
+  showsPrec pr (AG a) = gshowsPrec pr a
 
 instance GShow uni => Show (SomeTypeIn uni) where
-    showsPrec pr (SomeTypeIn uni) = ($(makeShowsPrec ''SomeTypeIn)) pr (SomeTypeIn (AG uni))
+  showsPrec pr (SomeTypeIn uni) = ($(makeShowsPrec ''SomeTypeIn)) pr (SomeTypeIn (AG uni))
 
 instance GShow uni => Show (Kinded uni ta) where
-    showsPrec pr (Kinded uni) = ($(makeShowsPrec ''Kinded)) pr (Kinded (AG uni))
+  showsPrec pr (Kinded uni) = ($(makeShowsPrec ''Kinded)) pr (Kinded (AG uni))
 
 instance GShow uni => GShow (Kinded uni) where gshowsPrec = showsPrec
 
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => GShow (ValueOf uni) where
-    gshowsPrec = showsPrec
+  gshowsPrec = showsPrec
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) where
-    showsPrec pr (ValueOf uni x) =
-        bring (Proxy @Show) uni $ ($(makeShowsPrec ''ValueOf)) pr (ValueOf (AG uni) x)
+  showsPrec pr (ValueOf uni x) =
+    bring (Proxy @Show) uni $ ($(makeShowsPrec ''ValueOf)) pr (ValueOf (AG uni) x)
 
 -------------------- 'Eq' / 'GEq'
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => GEq (ValueOf uni) where
-    ValueOf uni1 x1 `geq` ValueOf uni2 x2 = do
-        Refl <- uni1 `geq` uni2
-        guard $ bring (Proxy @Eq) uni1 (x1 == x2)
-        Just Refl
+  ValueOf uni1 x1 `geq` ValueOf uni2 x2 = do
+    Refl <- uni1 `geq` uni2
+    guard $ bring (Proxy @Eq) uni1 (x1 == x2)
+    Just Refl
 
 instance GEq uni => Eq (SomeTypeIn uni) where
-    SomeTypeIn a1 == SomeTypeIn a2 = a1 `defaultEq` a2
+  SomeTypeIn a1 == SomeTypeIn a2 = a1 `defaultEq` a2
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
-    (==) = defaultEq
+  (==) = defaultEq
 
 -------------------- 'Compare' / 'GCompare'
 
-instance (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq) =>
-            GCompare (ValueOf uni) where
-    ValueOf uni1 x1 `gcompare` ValueOf uni2 x2 =
-        case uni1 `gcompare` uni2 of
-            GLT -> GLT
-            GGT -> GGT
-            GEQ ->
-                bring (Proxy @Ord) uni1 $ case x1 `compare` x2 of
-                    EQ -> GEQ
-                    LT -> GLT
-                    GT -> GGT
+instance
+  (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq)
+  => GCompare (ValueOf uni)
+  where
+  ValueOf uni1 x1 `gcompare` ValueOf uni2 x2 =
+    case uni1 `gcompare` uni2 of
+      GLT -> GLT
+      GGT -> GGT
+      GEQ ->
+        bring (Proxy @Ord) uni1 $ case x1 `compare` x2 of
+          EQ -> GEQ
+          LT -> GLT
+          GT -> GGT
 
 instance GCompare uni => Ord (SomeTypeIn uni) where
-    SomeTypeIn a1 `compare` SomeTypeIn a2 = a1 `defaultCompare` a2
+  SomeTypeIn a1 `compare` SomeTypeIn a2 = a1 `defaultCompare` a2
 
 -- We need the 'Eq' constraint in order for @Ord (ValueOf uni a)@ to imply @Eq (ValueOf uni a)@.
-instance (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq) =>
-            Ord (ValueOf uni a) where
-    compare = defaultCompare
+instance
+  (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq)
+  => Ord (ValueOf uni a)
+  where
+  compare = defaultCompare
 
 -------------------- 'NFData'
 
 instance (Closed uni, uni `Everywhere` NFData) => GNFData (ValueOf uni) where
-    grnf (ValueOf uni x) = bring (Proxy @NFData) uni $ rnf x
+  grnf (ValueOf uni x) = bring (Proxy @NFData) uni $ rnf x
 
 instance Closed uni => NFData (SomeTypeIn uni) where
-    rnf (SomeTypeIn uni) = rnf $ encodeUni uni
+  rnf (SomeTypeIn uni) = rnf $ encodeUni uni
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
-    rnf = grnf
+  rnf = grnf
 
 instance (Closed uni, GEq uni) => Hashable (SomeTypeIn uni) where
-    hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
+  hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
 
-instance (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable) =>
-        Hashable (ValueOf uni a) where
-    hashWithSalt salt (ValueOf uni x) =
-        bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
+instance
+  (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable)
+  => Hashable (ValueOf uni a)
+  where
+  hashWithSalt salt (ValueOf uni x) =
+    bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
 
-instance (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable) =>
-        Hashable (Some (ValueOf uni)) where
-    hashWithSalt salt (Some s) = hashWithSalt salt s
+instance
+  (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable)
+  => Hashable (Some (ValueOf uni))
+  where
+  hashWithSalt salt (Some s) = hashWithSalt salt s

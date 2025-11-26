@@ -1,6 +1,6 @@
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module PlutusTx.Show.TH where
 
@@ -19,8 +19,7 @@ import Prelude (pure, (+), (<$>), (<>))
 import Prelude qualified as Haskell
 
 {-| Conversion of values to `BuiltinString`s. Unlike @GHC.Show.Show@, there is no
- @showList@ method, because there is no `Show` instance for `Data.String.String`.
--}
+ @showList@ method, because there is no `Show` instance for `Data.String.String`. -}
 class Show a where
   {-# MINIMAL showsPrec | show #-}
 
@@ -40,8 +39,7 @@ class Show a where
  the cost can be further reduced to @O(n)@.
 
  Like `GHC.Show.ShowS`, the purpose of the function type here is to turn list concatenation
- into function composition.
--}
+ into function composition. -}
 type ShowS = [BuiltinString] -> [BuiltinString]
 
 showString :: BuiltinString -> ShowS
@@ -77,10 +75,9 @@ concatBuiltinStrings = \case
      in concatBuiltinStrings ys `appendString` concatBuiltinStrings zs
 {-# INLINEABLE concatBuiltinStrings #-}
 
-{- | Derive `Show` instance. Adapted from @Text.Show.Deriving.deriveShow@.
+{-| Derive `Show` instance. Adapted from @Text.Show.Deriving.deriveShow@.
 
-Note: It requires the OverloadedStrings language extension.
--}
+Note: It requires the OverloadedStrings language extension. -}
 deriveShow :: TH.Name -> TH.Q [TH.Dec]
 deriveShow name = do
   TH.DatatypeInfo
@@ -108,9 +105,9 @@ deriveShowsPrec cons =
   , -- `showsPrec` must be inlinable for the plugin to inline it
     TH.pragInlD 'showsPrec TH.Inlinable TH.FunLike TH.AllPhases
   ]
- where
-  clause = TH.clause [] body []
-  body = TH.normalB $ deriveShowsPrecBody cons
+  where
+    clause = TH.clause [] body []
+    body = TH.normalB $ deriveShowsPrecBody cons
 
 deriveShowsPrecBody :: [TH.ConstructorInfo] -> TH.Q TH.Exp
 deriveShowsPrecBody cons = do
@@ -182,9 +179,9 @@ deriveMatchForCon p = \case
 
               mappendArgs, namedArgs :: TH.Q TH.Exp
               mappendArgs = Haskell.foldr1 alg showArgExps
-               where
-                alg :: TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp
-                alg argExp acc = [|$argExp . showSpace . $acc|]
+                where
+                  alg :: TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp
+                  alg argExp acc = [|$argExp . showSpace . $acc|]
               namedArgs =
                 [|
                   showString
@@ -226,19 +223,19 @@ deriveMatchForCon p = \case
       let showArgExps :: [TH.Q TH.Exp]
           -- The `dropEnd` drops the last comma
           showArgExps = dropEnd 1 $ Haskell.foldMap (uncurry f) (Haskell.zip argNames args)
-           where
-            f :: TH.Name -> TH.Name -> [TH.Q TH.Exp]
-            f argName arg =
-              let argNameBase = TH.nameBase argName
-                  infixRec =
-                    Haskell.showParen
-                      (isSym argNameBase)
-                      (Haskell.showString argNameBase)
-                      ""
-               in [ TH.varE 'showString `TH.appE` TH.stringE (infixRec <> " = ")
-                  , deriveShowExpForArg 0 arg
-                  , TH.varE 'showCommaSpace
-                  ]
+            where
+              f :: TH.Name -> TH.Name -> [TH.Q TH.Exp]
+              f argName arg =
+                let argNameBase = TH.nameBase argName
+                    infixRec =
+                      Haskell.showParen
+                        (isSym argNameBase)
+                        (Haskell.showString argNameBase)
+                        ""
+                 in [ TH.varE 'showString `TH.appE` TH.stringE (infixRec <> " = ")
+                    , deriveShowExpForArg 0 arg
+                    , TH.varE 'showCommaSpace
+                    ]
           braceCommaArgExps = (TH.varE 'showString `TH.appE` TH.stringE "{") : showArgExps
           mappendArgs =
             Haskell.foldr

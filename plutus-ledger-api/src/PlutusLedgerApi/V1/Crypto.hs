@@ -1,14 +1,13 @@
+{-# LANGUAGE DataKinds #-}
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeFamilies         #-}
 
 module PlutusLedgerApi.V1.Crypto
   ( PubKeyHash (..)
@@ -28,13 +27,12 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import Prettyprinter
 
-{- | The hash of a public key. This is frequently used to identify the public key,
+{-| The hash of a public key. This is frequently used to identify the public key,
 rather than the key itself. Hashed with /BLAKE2b-224/. 28 bytes.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
--}
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -}
 newtype PubKeyHash = PubKeyHash {getPubKeyHash :: PlutusTx.BuiltinByteString}
   deriving stock (Eq, Ord, Generic)
   deriving anyclass (NFData)
@@ -57,8 +55,8 @@ newtype PubKeyHash = PubKeyHash {getPubKeyHash :: PlutusTx.BuiltinByteString}
     via LedgerBytes
 
 instance HasBlueprintSchema PubKeyHash referenedTypes where
-  {-# INLINABLE schema #-}
-  schema = SchemaBytes emptySchemaInfo { title = Just "PubKeyHash" } emptyBytesSchema
+  {-# INLINEABLE schema #-}
+  schema = SchemaBytes emptySchemaInfo {title = Just "PubKeyHash"} emptyBytesSchema
 
 instance HasBlueprintDefinition PubKeyHash where
   type Unroll PubKeyHash = '[PubKeyHash]

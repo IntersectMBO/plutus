@@ -1,10 +1,10 @@
-{-# LANGUAGE BangPatterns       #-}
-{-# LANGUAGE CPP                #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE PatternSynonyms    #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module PlutusTx.AsData (asData, asDataFor) where
 
@@ -65,8 +65,7 @@ becomes
     where Ex2 a1 a2 = Example (mkConstr 1 [toBuiltinData a1, toBuiltinData a2])
 
   {\-# COMPLETE Ex1, Ex2 #-\}
-@
--}
+@ -}
 asData :: TH.Q [TH.Dec] -> TH.Q [TH.Dec]
 asData decQ = do
   decs <- decQ

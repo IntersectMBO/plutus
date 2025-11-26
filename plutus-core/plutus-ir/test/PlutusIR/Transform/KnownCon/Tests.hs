@@ -12,17 +12,17 @@ import Test.QuickCheck
 
 test_knownCon :: TestTree
 test_knownCon =
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "KnownCon"] $
-        map
-            (goldenPir (runQuote . runTestPass KnownCon.knownConPassSC) pTerm)
-            [ "applicative"
-            , "bool"
-            , "list"
-            , "maybe-just"
-            , "maybe-just-unsaturated"
-            , "maybe-nothing"
-            , "pair"
-            ]
+  runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "KnownCon"] $
+    map
+      (goldenPir (runQuote . runTestPass KnownCon.knownConPassSC) pTerm)
+      [ "applicative"
+      , "bool"
+      , "list"
+      , "maybe-just"
+      , "maybe-just-unsaturated"
+      , "maybe-nothing"
+      , "pair"
+      ]
 
 prop_knownCon :: Property
 prop_knownCon = withMaxSuccess numTestsForPassProp $ testPassProp runQuote KnownCon.knownConPassSC

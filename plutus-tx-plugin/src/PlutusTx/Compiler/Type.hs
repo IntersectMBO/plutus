@@ -1,21 +1,20 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
 {-| Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
-matchers, and pattern match alternatives.
--}
-module PlutusTx.Compiler.Type (
-  compileTypeNorm,
-  compileType,
-  compileKind,
-  getDataCons,
-  getConstructors,
-  getMatch,
-  getMatchInstantiated,
-) where
+matchers, and pattern match alternatives. -}
+module PlutusTx.Compiler.Type
+  ( compileTypeNorm
+  , compileType
+  , compileKind
+  , getDataCons
+  , getConstructors
+  , getMatch
+  , getMatchInstantiated
+  ) where
 
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Error
@@ -67,20 +66,19 @@ is dealing with recursive newtypes.
 
 Generally, we need to call this whenever we are compiling a "new" type from the program.
 If we are compiling a part of a type we are already processing then it has likely been
-normalized and we can just use 'compileType'
--}
-compileTypeNorm :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRType uni)
+normalized and we can just use 'compileType' -}
+compileTypeNorm :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRType uni)
 compileTypeNorm ty = do
-  CompileContext{ccFamInstEnvs = envs} <- ask
+  CompileContext {ccFamInstEnvs = envs} <- ask
   -- See Note [Type families and normalizing types]
   let (GHC.Reduction _ ty') = GHC.normaliseType envs GHC.Representational ty
   compileType ty'
 
 -- | Compile a type.
-compileType :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRType uni)
+compileType :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRType uni)
 compileType t = traceCompilation 2 ("Compiling type:" GHC.<+> GHC.ppr t) $ do
   -- See Note [Scopes]
-  CompileContext{ccScope = scope} <- ask
+  CompileContext {ccScope = scope} <- ask
   case t of
     -- in scope type name
     (GHC.getTyVar_maybe -> Just v) -> case lookupTyName scope (GHC.getName v) of
@@ -124,7 +122,7 @@ definition, and dying if we see it again.
 
 compileTyCon
   :: forall uni fun m ann
-   . (CompilingDefault uni fun m ann)
+   . CompilingDefault uni fun m ann
   => GHC.TyCon
   -> m (PIRType uni)
 compileTyCon tc
@@ -250,22 +248,22 @@ sortConstructors tc cs =
   let sorted = sortBy (\dc1 dc2 -> compare (GHC.getOccName dc1) (GHC.getOccName dc2)) cs
    in if tc == GHC.listTyCon then reverse sorted else sorted
 
-getDataCons :: (Compiling uni fun m ann) => GHC.TyCon -> m [GHC.DataCon]
+getDataCons :: Compiling uni fun m ann => GHC.TyCon -> m [GHC.DataCon]
 getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
- where
-  extractDcs tc
-    | GHC.isAlgTyCon tc || GHC.isTupleTyCon tc = case GHC.algTyConRhs tc of
-        GHC.AbstractTyCon ->
+  where
+    extractDcs tc
+      | GHC.isAlgTyCon tc || GHC.isTupleTyCon tc = case GHC.algTyConRhs tc of
+          GHC.AbstractTyCon ->
+            throwSd UnsupportedError $
+              "Abstract type:" GHC.<+> GHC.ppr tc
+          GHC.DataTyCon {GHC.data_cons = dcs} -> pure dcs
+          GHC.TupleTyCon {GHC.data_con = dc} -> pure [dc]
+          GHC.SumTyCon {GHC.data_cons = dcs} -> pure dcs
+          GHC.NewTyCon {GHC.data_con = dc} -> pure [dc]
+      | GHC.isFamilyTyCon tc =
           throwSd UnsupportedError $
-            "Abstract type:" GHC.<+> GHC.ppr tc
-        GHC.DataTyCon{GHC.data_cons = dcs} -> pure dcs
-        GHC.TupleTyCon{GHC.data_con = dc} -> pure [dc]
-        GHC.SumTyCon{GHC.data_cons = dcs} -> pure dcs
-        GHC.NewTyCon{GHC.data_con = dc} -> pure [dc]
-    | GHC.isFamilyTyCon tc =
-        throwSd UnsupportedError $
-          "Irreducible type family application:" GHC.<+> GHC.ppr tc
-    | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
+            "Irreducible type family application:" GHC.<+> GHC.ppr tc
+      | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
 {- Note [On data constructor workers and wrappers]
 By default GHC has 'unbox-small-strict-fields' flag enabled.
@@ -280,9 +278,8 @@ the type of the original code without that information.
 -}
 
 {-| Makes the type of the constructor corresponding to the given 'DataCon', with the
-type variables free.
--}
-mkConstructorType :: (CompilingDefault uni fun m ann) => GHC.DataCon -> m (PIRType uni)
+type variables free. -}
+mkConstructorType :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRType uni)
 mkConstructorType dc =
   -- see Note [On data constructor workers and wrappers]
   let argTys = GHC.scaledThing <$> GHC.dataConRepArgTys dc
@@ -300,7 +297,7 @@ ghcStrictnessNote =
     GHC.<+> "'-fno-unbox-strict-fields', or '-fno-unbox-small-strict-fields'."
 
 -- | Get the constructors of the given 'TyCon' as PLC terms.
-getConstructors :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m [PIRTerm uni fun]
+getConstructors :: CompilingDefault uni fun m ann => GHC.TyCon -> m [PIRTerm uni fun]
 getConstructors tc = do
   -- make sure the constructors have been created
   _ <- compileTyCon tc
@@ -312,7 +309,7 @@ getConstructors tc = do
         "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
-getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIR.ManualMatcher uni fun Ann)
+getMatch :: CompilingDefault uni fun m ann => GHC.TyCon -> m (PIR.ManualMatcher uni fun Ann)
 getMatch tc = do
   -- ensure the tycon has been compiled, which will create the matcher
   _ <- compileTyCon tc
@@ -324,15 +321,16 @@ getMatch tc = do
         "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 {-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
-as a PLC term instantiated for the type constructor argument types.
--}
+as a PLC term instantiated for the type constructor argument types. -}
 getMatchInstantiated
-  :: (CompilingDefault uni fun m ann)
+  :: CompilingDefault uni fun m ann
   => GHC.Type
-  -> m (PIR.Term PIR.TyName PIR.Name uni fun Ann ->
-        PIR.Type PIR.TyName uni Ann ->
-        [PIR.Term PIR.TyName PIR.Name uni fun Ann] ->
-        PIR.Term PIR.TyName PIR.Name uni fun Ann)
+  -> m
+       ( PIR.Term PIR.TyName PIR.Name uni fun Ann
+         -> PIR.Type PIR.TyName uni Ann
+         -> [PIR.Term PIR.TyName PIR.Name uni fun Ann]
+         -> PIR.Term PIR.TyName PIR.Name uni fun Ann
+       )
 getMatchInstantiated t =
   traceCompilation 3 ("Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
@@ -348,7 +346,6 @@ getMatchInstantiated t =
 {-| Drops prefix of 'RuntimeRep' type variables (similar to 'dropRuntimeRepArgs').
 Useful for e.g. dropping 'LiftedRep type variables arguments of unboxed tuple type applications:
 
-  dropRuntimeRepVars [ k0, k1, a, b ] == [a, b]
--}
+  dropRuntimeRepVars [ k0, k1, a, b ] == [a, b] -}
 dropRuntimeRepVars :: [GHC.TyVar] -> [GHC.TyVar]
 dropRuntimeRepVars = dropWhile (GHC.isRuntimeRepTy . GHC.varType)

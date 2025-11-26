@@ -1,10 +1,10 @@
 module PlutusCore.Pretty.Default
-    ( prettyPlc
-    , displayPlc
-    , prettyPlcSimple
-    , displayPlcSimple
-    , displayPlcCondensedErrorClassic
-    ) where
+  ( prettyPlc
+  , displayPlc
+  , prettyPlcSimple
+  , displayPlcSimple
+  , displayPlcCondensedErrorClassic
+  ) where
 
 import PlutusPrelude
 
@@ -29,4 +29,4 @@ displayPlcSimple = render . prettyPlcClassicSimple
 -- | Render an error to 'String' in the condensed manner using the classic view.
 displayPlcCondensedErrorClassic :: (PrettyPlc a, Render str) => a -> str
 displayPlcCondensedErrorClassic =
-    render . prettyPlcCondensedErrorBy prettyConfigPlcClassic
+  render . prettyPlcCondensedErrorBy prettyConfigPlcClassic

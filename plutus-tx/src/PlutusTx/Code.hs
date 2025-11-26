@@ -1,15 +1,15 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RoleAnnotations       #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RoleAnnotations #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusTx.Code where
 
@@ -45,8 +45,7 @@ the type of the Haskell expression that was compiled, and
 hence the type of the compiled code.
 
 Note: the compiled PLC program does *not* have normalized types,
-if you want to put it on the chain you must normalize the types first.
--}
+if you want to put it on the chain you must normalize the types first. -}
 data CompiledCodeIn uni fun a
   = SerializedCode
       BS.ByteString
@@ -87,7 +86,7 @@ applyCode fun arg = do
     (Just funPir, Just argPir) -> case PIR.applyProgram funPir argPir of
       Right appliedPir -> pure (Just appliedPir)
       -- Had PIR for both, but failed to apply them, this should fail
-      Left err         -> Left $ show err
+      Left err -> Left $ show err
     -- Missing PIR for one or both, this succeeds but has no PIR
     (Just funPir, Nothing) ->
       Left $
@@ -104,8 +103,7 @@ applyCode fun arg = do
   pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg)
 
 {-| Apply a compiled function to a compiled argument. Will throw if the versions don't match,
-should only be used in non-production code.
--}
+should only be used in non-production code. -}
 unsafeApplyCode
   :: ( PLC.Closed uni
      , uni `PLC.Everywhere` Flat
@@ -116,7 +114,7 @@ unsafeApplyCode
      )
   => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
 unsafeApplyCode fun arg = case applyCode fun arg of
-  Right c  -> c
+  Right c -> c
   Left err -> error err
 
 -- | The size of a 'CompiledCodeIn' as measured in AST nodes.
@@ -142,7 +140,7 @@ getPlc
   => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans
 getPlc wrapper = case wrapper of
   SerializedCode plc _ _ -> case unflat (BSL.fromStrict plc) of
-    Left e                             -> throw $ ImpossibleDeserialisationFailure e
+    Left e -> throw $ ImpossibleDeserialisationFailure e
     Right (UPLC.UnrestrictedProgram p) -> p
   DeserializedCode plc _ _ -> plc
 
@@ -158,7 +156,7 @@ getPir
 getPir wrapper = case wrapper of
   SerializedCode _ pir _ -> case pir of
     Just bs -> case unflat (BSL.fromStrict bs) of
-      Left e  -> throw $ ImpossibleDeserialisationFailure e
+      Left e -> throw $ ImpossibleDeserialisationFailure e
       Right p -> Just p
     Nothing -> Nothing
   DeserializedCode _ pir _ -> pir
@@ -170,5 +168,5 @@ getPirNoAnn = fmap void . getPir
 
 getCovIdx :: CompiledCodeIn uni fun a -> CoverageIndex
 getCovIdx wrapper = case wrapper of
-  SerializedCode _ _ idx   -> idx
+  SerializedCode _ _ idx -> idx
   DeserializedCode _ _ idx -> idx

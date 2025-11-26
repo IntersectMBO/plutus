@@ -1,8 +1,8 @@
-module UntypedPlutusCore.AstSize (
-  AstSize (..),
-  termAstSize,
-  programAstSize,
-) where
+module UntypedPlutusCore.AstSize
+  ( AstSize (..)
+  , termAstSize
+  , programAstSize
+  ) where
 
 import PlutusCore.AstSize (AstSize (..))
 import UntypedPlutusCore.Core

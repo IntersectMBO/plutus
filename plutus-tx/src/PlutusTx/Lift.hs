@@ -1,33 +1,33 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
-module PlutusTx.Lift (
-  safeLiftWith,
-  safeLift,
-  safeLiftUnopt,
-  safeLiftProgram,
-  safeLiftProgramUnopt,
-  safeLiftCode,
-  safeLiftCodeUnopt,
-  lift,
-  liftUnopt,
-  liftProgram,
-  liftProgramUnopt,
-  liftProgramDef,
-  liftProgramDefUnopt,
-  liftCode,
-  liftCodeUnopt,
-  liftCodeDef,
-  liftCodeDefUnopt,
-  typeCheckAgainst,
-  typeCode,
-  makeTypeable,
-  makeLift,
-  LiftError (..),
-) where
+module PlutusTx.Lift
+  ( safeLiftWith
+  , safeLift
+  , safeLiftUnopt
+  , safeLiftProgram
+  , safeLiftProgramUnopt
+  , safeLiftCode
+  , safeLiftCodeUnopt
+  , lift
+  , liftUnopt
+  , liftProgram
+  , liftProgramUnopt
+  , liftProgramDef
+  , liftProgramDefUnopt
+  , liftCode
+  , liftCodeUnopt
+  , liftCodeDef
+  , liftCodeDefUnopt
+  , typeCheckAgainst
+  , typeCode
+  , makeTypeable
+  , makeLift
+  , LiftError (..)
+  ) where
 
 import PlutusTx.Code
 import PlutusTx.Lift.Class qualified as Lift
@@ -67,8 +67,7 @@ import Data.Proxy
 import Prelude as Haskell
 
 {-| Get a Plutus Core term corresponding to the given value. Allows configuring
-PIR and UPLC optimization options.
--}
+PIR and UPLC optimization options. -}
 safeLiftWith
   :: forall a uni fun m
    . ( Lift.Lift uni a
@@ -112,8 +111,7 @@ safeLiftWith f g v x = do
   pure (void pir, void db)
 
 {-| Get a Plutus Core term corresponding to the given value, applying default PIR/UPLC
-optimizations.
--}
+optimizations. -}
 safeLift
   :: forall a uni fun m
    . ( Lift.Lift uni a
@@ -136,8 +134,7 @@ safeLift
 safeLift = safeLiftWith id id
 
 {-| Like `safeLift` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 safeLiftUnopt
   :: forall a uni fun m
    . ( Lift.Lift uni a
@@ -165,8 +162,7 @@ safeLiftUnopt =
     )
 
 {-| Get a Plutus Core program corresponding to the given value, applying default PIR/UPLC
-optimizations.
--}
+optimizations. -}
 safeLiftProgram
   :: ( Lift.Lift uni a
      , PLC.GEq uni
@@ -188,8 +184,7 @@ safeLiftProgram
 safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
 
 {-| Like `safeLiftProgram` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 safeLiftProgramUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
@@ -234,8 +229,7 @@ safeLiftCode v =
     . safeLiftProgram v
 
 {-| Like `safeLiftCode` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 safeLiftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
@@ -260,18 +254,17 @@ safeLiftCodeUnopt v =
     . safeLiftProgramUnopt v
 
 unsafely
-  :: (ThrowableBuiltins uni fun)
+  :: ThrowableBuiltins uni fun
   => ExceptT (Error uni fun (Provenance ())) Quote a -> a
 unsafely ma = runQuote $ do
   run <- runExceptT ma
   case run of
-    Left e  -> throw e
+    Left e -> throw e
     Right t -> pure t
 
 {-| Get a Plutus Core term corresponding to the given value, throwing any errors that
 occur as exceptions and ignoring fresh names. The default PIR/UPLC optimizations
-are applied.
--}
+are applied. -}
 lift
   :: ( Lift.Lift uni a
      , ThrowableBuiltins uni fun
@@ -290,8 +283,7 @@ lift
 lift v a = unsafely $ safeLift v a
 
 {-| Like `lift` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 liftUnopt
   :: ( Lift.Lift uni a
      , ThrowableBuiltins uni fun
@@ -328,8 +320,7 @@ liftProgram
 liftProgram v x = unsafely $ safeLiftProgram v x
 
 {-| Like `liftProgram` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 liftProgramUnopt
   :: ( Lift.Lift uni a
      , ThrowableBuiltins uni fun
@@ -349,7 +340,7 @@ liftProgramUnopt v x = unsafely $ safeLiftProgram v x
 
 -- | Get a Plutus Core program in the default universe with the default version, corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgramDef
-  :: (Lift.Lift PLC.DefaultUni a)
+  :: Lift.Lift PLC.DefaultUni a
   => a
   -> ( PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
      , UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
@@ -357,10 +348,9 @@ liftProgramDef
 liftProgramDef = liftProgram PLC.latestVersion
 
 {-| Like `liftProgramDef` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 liftProgramDefUnopt
-  :: (Lift.Lift PLC.DefaultUni a)
+  :: Lift.Lift PLC.DefaultUni a
   => a
   -> ( PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
      , UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
@@ -384,8 +374,7 @@ liftCode
 liftCode v x = unsafely $ safeLiftCode v x
 
 {-| Like `liftCode` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 liftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
@@ -418,8 +407,7 @@ liftCodeDef
 liftCodeDef = liftCode PLC.latestVersion
 
 {-| Like `liftCodeDef` but does not apply PIR/UPLC optimizations. Use this option
-where lifting speed is more important than optimal code.
--}
+where lifting speed is more important than optimal code. -}
 liftCodeDefUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni

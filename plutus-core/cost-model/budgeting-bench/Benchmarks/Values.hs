@@ -1,9 +1,9 @@
-{-# LANGUAGE BlockArguments      #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NumericUnderscores  #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Benchmarks.Values (makeBenchmarks) where
 
@@ -20,8 +20,10 @@ import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterSizeAddLogMaxInnerSize (..),
-                                                    ValueTotalSize (..))
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
+  ( ValueLogOuterSizeAddLogMaxInnerSize (..)
+  , ValueTotalSize (..)
+  )
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
 import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformRM)
@@ -86,7 +88,7 @@ lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
     ]
 
 -- | Add worst-case search keys targeting the max-size inner map
-withWorstCaseSearchKeys :: (Monad m) => m (Value, K, K) -> m (ByteString, ByteString, Value)
+withWorstCaseSearchKeys :: Monad m => m (Value, K, K) -> m (ByteString, ByteString, Value)
 withWorstCaseSearchKeys genValueWithKeys = do
   (value, maxPolicyId, deepestToken) <- genValueWithKeys
   pure (Value.unK maxPolicyId, Value.unK deepestToken, value)
@@ -223,23 +225,23 @@ generateTestValues gen = runStateGen_ gen \g ->
     replicateM 100 (generateValue g)
 
 -- | Generate Value with random number of entries between 1 and maxValueEntries
-generateValue :: (StatefulGen g m) => g -> m Value
+generateValue :: StatefulGen g m => g -> m Value
 generateValue g = do
   numEntries <- uniformRM (1, maxValueEntries) g
   generateValueMaxEntries numEntries g
 
--- | Maximum number of (policyId, tokenName, quantity) entries for Value generation.
--- This represents the practical limit based on execution budget constraints.
--- Scripts can programmatically generate large Values, so we benchmark based on
--- what's achievable within CPU execution budget, not ledger storage limits.
---
--- Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
--- consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity)
+{-| Maximum number of (policyId, tokenName, quantity) entries for Value generation.
+This represents the practical limit based on execution budget constraints.
+Scripts can programmatically generate large Values, so we benchmark based on
+what's achievable within CPU execution budget, not ledger storage limits.
+
+Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
+consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
 maxValueEntries :: Int
 maxValueEntries = 100_000
 
 -- | Generate Value within total size budget
-generateValueMaxEntries :: (StatefulGen g m) => Int -> g -> m Value
+generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
 generateValueMaxEntries maxEntries g = do
   -- Uniform random distribution: cover full range from many policies (few tokens each)
   -- to few policies (many tokens each)
@@ -250,7 +252,7 @@ generateValueMaxEntries maxEntries g = do
 
 -- | Generate constrained Value with information about max-size policy
 generateConstrainedValueWithMaxPolicy
-  :: (StatefulGen g m)
+  :: StatefulGen g m
   => Int -- Number of policies
   -> Int -- Number of tokens per policy
   -> g
@@ -294,7 +296,7 @@ generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g = do
 
 -- | Generate constrained Value (legacy interface for other builtins)
 generateConstrainedValue
-  :: (StatefulGen g m)
+  :: StatefulGen g m
   => Int -- Number of policies
   -> Int -- Number of tokens per policy
   -> g
@@ -313,9 +315,8 @@ Random keys typically differ in the first 1-2 bytes, making comparisons artifici
 
 For accurate worst-case costing, we generate keys with a common prefix (0xFF bytes) that
 differ only in the last 4 bytes. This forces full-length comparisons during Map lookups,
-providing conservative cost estimates for adversarial on-chain scenarios.
--}
-generateKey :: (StatefulGen g m) => g -> m K
+providing conservative cost estimates for adversarial on-chain scenarios. -}
+generateKey :: StatefulGen g m => g -> m K
 generateKey g = do
   let prefixLen = Value.maxKeyLen - 4
       prefix = BS.replicate prefixLen (0xFF :: Word8)
@@ -323,7 +324,7 @@ generateKey g = do
   suffix <- BS.pack <$> replicateM 4 (uniformRM (0, 255) g)
   case Value.k (prefix <> suffix) of
     Just key -> pure key
-    Nothing  -> error "Internal error: maxKeyLen key should always be valid"
+    Nothing -> error "Internal error: maxKeyLen key should always be valid"
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
@@ -334,9 +335,8 @@ This function is intended for use in test and benchmark code where BuiltinResult
 failures indicate bugs in the generator code, not runtime errors.
 
 Errors if BuiltinResult indicates failure (should never happen with valid inputs).
-The call stack will provide context about where the error occurred.
--}
-unsafeFromBuiltinResult :: (HasCallStack) => BuiltinResult a -> a
+The call stack will provide context about where the error occurred. -}
+unsafeFromBuiltinResult :: HasCallStack => BuiltinResult a -> a
 unsafeFromBuiltinResult = \case
   BuiltinSuccess x -> x
   BuiltinSuccessWithLogs _ x -> x

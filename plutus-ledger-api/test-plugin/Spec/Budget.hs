@@ -1,15 +1,15 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module Spec.Budget where
 
@@ -23,15 +23,16 @@ import PlutusTx.AssocMap as Map
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 import PlutusTx.Code
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 tests :: TestTree
 tests =
   runTestNested ["test-plugin", "Spec", "Budget"] . pure . testNestedGhc $
-      [ goldenPirReadable "gt" compiledGt
-      , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
-      ] ++ testCases
+    [ goldenPirReadable "gt" compiledGt
+    , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+    ]
+      ++ testCases
 
 compiledGt :: CompiledCode (Value -> Value -> Bool)
 compiledGt = $$(compile [||gt||])
@@ -44,7 +45,7 @@ compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
 
 mkValue :: [(Integer, [(Integer, Integer)])] -> Value
 mkValue =
-    Value . Map.unsafeFromList . fmap (bimap toSymbol (Map.unsafeFromList . fmap (first toToken)))
+  Value . Map.unsafeFromList . fmap (bimap toSymbol (Map.unsafeFromList . fmap (first toToken)))
 
 toSymbol :: Integer -> CurrencySymbol
 toSymbol = currencySymbol . fromString . show

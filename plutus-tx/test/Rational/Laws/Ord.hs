@@ -5,11 +5,16 @@ module Rational.Laws.Ord (ordLaws) where
 
 import Hedgehog (Property, PropertyT, property, success, (/==), (===))
 import PlutusTx.Prelude qualified as Plutus
-import Prelude
-import Rational.Laws.Helpers (forAllWithPP, genRational, normalAndEquivalentTo, testEntangled,
-                              testEntangled3)
+import Rational.Laws.Helpers
+  ( forAllWithPP
+  , genRational
+  , normalAndEquivalentTo
+  , testEntangled
+  , testEntangled3
+  )
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Prelude
 
 ordLaws :: [TestTree]
 ordLaws =

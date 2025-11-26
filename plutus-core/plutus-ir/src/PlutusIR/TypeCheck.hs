@@ -1,21 +1,21 @@
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 -- | Kind/type inference/checking, mirroring PlutusCore.TypeCheck
-module PlutusIR.TypeCheck (
-  -- * Configuration.
-  BuiltinTypes (..),
-  PirTCConfig (..),
-  tccBuiltinTypes,
-  getDefTypeCheckConfig,
+module PlutusIR.TypeCheck
+  ( -- * Configuration.
+    BuiltinTypes (..)
+  , PirTCConfig (..)
+  , tccBuiltinTypes
+  , getDefTypeCheckConfig
 
-  -- * Type checking, extending the plc typechecker
-  inferType,
-  checkType,
-  inferTypeOfProgram,
-  checkTypeOfProgram,
-  MonadTypeCheckPir,
-) where
+    -- * Type checking, extending the plc typechecker
+  , inferType
+  , checkType
+  , inferTypeOfProgram
+  , checkTypeOfProgram
+  , MonadTypeCheckPir
+  ) where
 
 import PlutusPrelude
 
@@ -59,64 +59,60 @@ compiler pipeline:
 -}
 
 -- | The default 'TypeCheckConfig'.
-getDefTypeCheckConfig ::
-  (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, PLC.Typecheckable uni fun) =>
-  ann ->
-  m (PirTCConfig uni fun)
+getDefTypeCheckConfig
+  :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, PLC.Typecheckable uni fun)
+  => ann
+  -> m (PirTCConfig uni fun)
 getDefTypeCheckConfig ann = do
   configPlc <- PLC.getDefTypeCheckConfig ann
   pure $ PirTCConfig configPlc YesEscape
 
-{- | Infer the type of a term.
+{-| Infer the type of a term.
 Note: The "inferred type" can escape its scope if YesEscape config is passed, see
-[PIR vs Paper Escaping Types Difference]
--}
-inferType ::
-  (MonadTypeCheckPir uni fun ann m) =>
-  PirTCConfig uni fun ->
-  Term TyName Name uni fun ann ->
-  m (Normalized (Type TyName uni ()))
+[PIR vs Paper Escaping Types Difference] -}
+inferType
+  :: MonadTypeCheckPir uni fun ann m
+  => PirTCConfig uni fun
+  -> Term TyName Name uni fun ann
+  -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
 
-{- | Check a term against a type.
+{-| Check a term against a type.
 Infers the type of the term and checks that it's equal to the given type
 throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 Note: this may allow witnessing a type that escapes its scope, see
-[PIR vs Paper Escaping Types Difference]
--}
-checkType ::
-  (MonadTypeCheckPir uni fun ann m) =>
-  PirTCConfig uni fun ->
-  ann ->
-  Term TyName Name uni fun ann ->
-  Normalized (Type TyName uni ()) ->
-  m ()
+[PIR vs Paper Escaping Types Difference] -}
+checkType
+  :: MonadTypeCheckPir uni fun ann m
+  => PirTCConfig uni fun
+  -> ann
+  -> Term TyName Name uni fun ann
+  -> Normalized (Type TyName uni ())
+  -> m ()
 checkType config ann term ty = do
   termRen <- rename term
   runTypeCheckM config $ checkTypeM ann termRen ty
 
-{- | Infer the type of a program.
+{-| Infer the type of a program.
 Note: The "inferred type" can escape its scope if YesEscape config is passed, see
-[PIR vs Paper Escaping Types Difference]
--}
-inferTypeOfProgram ::
-  (MonadTypeCheckPir uni fun ann m) =>
-  PirTCConfig uni fun ->
-  Program TyName Name uni fun ann ->
-  m (Normalized (Type TyName uni ()))
+[PIR vs Paper Escaping Types Difference] -}
+inferTypeOfProgram
+  :: MonadTypeCheckPir uni fun ann m
+  => PirTCConfig uni fun
+  -> Program TyName Name uni fun ann
+  -> m (Normalized (Type TyName uni ()))
 inferTypeOfProgram config (Program _ _ term) = inferType config term
 
-{- | Check a program against a type.
+{-| Check a program against a type.
 Infers the type of the program and checks that it's equal to the given type
 throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 Note: this may allow witnessing a type that escapes its scope, see
-[PIR vs Paper Escaping Types Difference]
--}
-checkTypeOfProgram ::
-  (MonadTypeCheckPir uni fun ann m) =>
-  PirTCConfig uni fun ->
-  ann ->
-  Program TyName Name uni fun ann ->
-  Normalized (Type TyName uni ()) ->
-  m ()
+[PIR vs Paper Escaping Types Difference] -}
+checkTypeOfProgram
+  :: MonadTypeCheckPir uni fun ann m
+  => PirTCConfig uni fun
+  -> ann
+  -> Program TyName Name uni fun ann
+  -> Normalized (Type TyName uni ())
+  -> m ()
 checkTypeOfProgram config ann (Program _ _ term) = checkType config ann term

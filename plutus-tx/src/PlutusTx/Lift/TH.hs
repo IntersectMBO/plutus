@@ -1,29 +1,29 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 -- It is complex to mix TH with polymorphisms. Core lint can sometimes catch problems
 -- caused by using polymorphisms the wrong way, e.g., accidentally using impredicative types.
 {-# OPTIONS_GHC -dcore-lint #-}
 
-module PlutusTx.Lift.TH (
-  makeTypeable,
-  makeLift,
-  LiftError (..),
-) where
+module PlutusTx.Lift.TH
+  ( makeTypeable
+  , makeLift
+  , LiftError (..)
+  ) where
 
 import PlutusTx.Lift.Class
 import PlutusTx.Lift.THUtils
@@ -75,9 +75,9 @@ data LiftError
 instance PP.Pretty LiftError where
   pretty (UnsupportedLiftType t) = "Unsupported lift type: " PP.<+> PP.viaShow t
   pretty (UnsupportedLiftKind t) = "Unsupported lift kind: " PP.<+> PP.viaShow t
-  pretty (UserLiftError t)       = PP.pretty t
+  pretty (UserLiftError t) = PP.pretty t
   pretty (LiftMissingDataCons n) = "Constructors not created for type: " PP.<+> PP.viaShow n
-  pretty (LiftMissingVar n)      = "Unknown local variable: " PP.<+> PP.viaShow n
+  pretty (LiftMissingVar n) = "Unknown local variable: " PP.<+> PP.viaShow n
 
 instance Show LiftError where
   show = show . PP.pretty -- for Control.Exception
@@ -182,21 +182,20 @@ These are then cashed out into constraints on the instance.
 data Dep = TypeableDep TH.Type | LiftDep TH.Type deriving stock (Show, Eq, Ord)
 type Deps = Set.Set Dep
 
-withTyVars :: (MonadReader (LocalVars uni) m) => [(TH.Name, TyVarDecl TyName ())] -> m a -> m a
+withTyVars :: MonadReader (LocalVars uni) m => [(TH.Name, TyVarDecl TyName ())] -> m a -> m a
 withTyVars mappings = local (\scope -> foldl' (\acc (n, tvd) -> Map.insert n (mkTyVar () tvd) acc) scope mappings)
 
-thWithTyVars :: (MonadReader THLocalVars m) => [TH.Name] -> m a -> m a
+thWithTyVars :: MonadReader THLocalVars m => [TH.Name] -> m a -> m a
 thWithTyVars names = local (\scope -> foldr Set.insert scope names)
 
 {-| Get all the named types which we depend on to define the current type.
 Note that this relies on dependencies having been added with type synonyms
-resolved!
--}
+resolved! -}
 getTyConDeps :: Deps -> Set.Set TH.Name
 getTyConDeps deps = Set.fromList $ mapMaybe typeableDep $ Set.toList deps
- where
-  typeableDep (TypeableDep (TH.ConT n)) = Just n
-  typeableDep _                         = Nothing
+  where
+    typeableDep (TypeableDep (TH.ConT n)) = Just n
+    typeableDep _ = Nothing
 
 addTypeableDep :: TH.Type -> THCompile ()
 addTypeableDep ty = do
@@ -239,7 +238,7 @@ normalizeAndResolve ty = normalizeType <$> (Trans.lift $ Trans.lift $ Trans.lift
 
 -- See Note [Ordering of constructors]
 sortedCons :: TH.DatatypeInfo -> [TH.ConstructorInfo]
-sortedCons TH.DatatypeInfo{TH.datatypeName = tyName, TH.datatypeCons = cons} =
+sortedCons TH.DatatypeInfo {TH.datatypeName = tyName, TH.datatypeCons = cons} =
   -- We need to compare 'TH.Name's on their string name *not* on the unique
   let sorted =
         sortBy
@@ -320,7 +319,7 @@ compileTypeableType ty name = do
      in CompileTypeScope $ do
           maybeType <- lookupType () name
           case maybeType of
-            Just t  -> pure t
+            Just t -> pure t
             -- this will need some additional constraints in scope
             Nothing -> trep'
     ||]
@@ -340,7 +339,7 @@ defineDatatype' = defineDatatype
 -- TODO: there is an unpleasant amount of duplication between this and the main compiler, but
 -- I'm not sure how to unify them better
 compileTypeRep :: TH.DatatypeInfo -> THCompile (TH.TExpQ CompileType)
-compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName = tyName, TH.datatypeVars = tvs} = do
+compileTypeRep dt@TH.DatatypeInfo {TH.datatypeName = tyName, TH.datatypeVars = tvs} = do
   tvNamesAndKinds <- traverse tvNameAndKind tvs
   -- annoyingly th-abstraction doesn't give us a kind we can compile here
   let typeKind = foldr (\(_, k) acc -> KindArrow () k acc) (Type ()) tvNamesAndKinds
@@ -351,7 +350,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName = tyName, TH.datatypeVars = tv
       then do
         -- Extract the unique field of the unique constructor
         argTy <- case cons of
-          [TH.ConstructorInfo{TH.constructorFields = [argTy]}] -> (compileType <=< normalizeAndResolve) argTy
+          [TH.ConstructorInfo {TH.constructorFields = [argTy]}] -> (compileType <=< normalizeAndResolve) argTy
           _ -> throwError $ UserLiftError "Newtypes must have a single constructor with a single argument"
         deps <- gets getTyConDeps
         pure . TH.examineCode $
@@ -418,7 +417,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName = tyName, TH.datatypeVars = tv
 compileConstructorDecl
   :: TH.ConstructorInfo
   -> THCompile (TH.TExpQ CompileDeclFun)
-compileConstructorDecl TH.ConstructorInfo{TH.constructorName = name, TH.constructorFields = argTys} = do
+compileConstructorDecl TH.ConstructorInfo {TH.constructorName = name, TH.constructorFields = argTys} = do
   tyExprs <- traverse (compileType <=< normalizeAndResolve) argTys
   pure . TH.examineCode $
     [||
@@ -436,8 +435,7 @@ compileConstructorDecl TH.ConstructorInfo{TH.constructorName = name, TH.construc
 
 {-| Given a universe, derive a Typeable instance for a given Plinth datatype
 
-NOTE: it requires `MultiParamTypeClasses` language extension
--}
+NOTE: it requires `MultiParamTypeClasses` language extension -}
 makeTypeable :: TH.Type -> TH.Name -> TH.Q [TH.Dec]
 makeTypeable uni name = do
   requireExtension TH.ScopedTypeVariables
@@ -458,7 +456,7 @@ compileLift dt = traverse (uncurry (compileConstructorClause dt)) (zip [0 ..] (s
 
 compileConstructorClause
   :: TH.DatatypeInfo -> Int -> TH.ConstructorInfo -> THCompile (TH.Q TH.Clause)
-compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName = tyName, TH.datatypeVars = tvs} index TH.ConstructorInfo{TH.constructorName = name, TH.constructorFields = argTys} = do
+compileConstructorClause dt@TH.DatatypeInfo {TH.datatypeName = tyName, TH.datatypeVars = tvs} index TH.ConstructorInfo {TH.constructorName = name, TH.constructorFields = argTys} = do
   -- need to be able to lift the argument types
   traverse_ addLiftDep argTys
 
@@ -531,8 +529,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName = tyName, TH.datatyp
 
 {-| Derive `Lift` and `Typeable` instances for Plinth types
 
-NOTE: it requires `MultiParamTypeClasses`,`FlexibleContexts` language extensions
--}
+NOTE: it requires `MultiParamTypeClasses`,`FlexibleContexts` language extensions -}
 makeLift :: TH.Name -> TH.Q [TH.Dec]
 makeLift name = do
   requireExtension TH.ScopedTypeVariables
@@ -574,5 +571,5 @@ runTHCompile m = do
       . flip runReaderT mempty
       $ flip runStateT mempty m
   case res of
-    Left a  -> fail $ "Generating Lift instances: " ++ show (PP.pretty a)
+    Left a -> fail $ "Generating Lift instances: " ++ show (PP.pretty a)
     Right b -> pure b

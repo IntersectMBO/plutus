@@ -1,6 +1,6 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 {-
 This module itself won't run any benchmark on it's own. It will only generate `.flat` file, if
@@ -42,7 +42,7 @@ createIfNotExists name term = do
       () <$ UPLC.Program ann ver (UPLC.termMapNames UPLC.unNameDeBruijn t)
   termAsBS <-
     case term of
-      SerializedCode bs _ _     ->
+      SerializedCode bs _ _ ->
         let
           parsed =
             UPLC.unUnrestrictedProgram
@@ -54,10 +54,11 @@ createIfNotExists name term = do
                      SrcSpans
                  )
                 bs
-        in case parsed of
-          Left err -> error $ "failed to parse UPLC flat from compiled code" <> show err
-          Right parsed' ->
-            pure $ BSL.fromStrict $ flat $ UPLC.UnrestrictedProgram $ eraseName parsed'
+         in
+          case parsed of
+            Left err -> error $ "failed to parse UPLC flat from compiled code" <> show err
+            Right parsed' ->
+              pure $ BSL.fromStrict $ flat $ UPLC.UnrestrictedProgram $ eraseName parsed'
       DeserializedCode uplc _ _ ->
         pure $ BSL.fromStrict $ flat $ UPLC.UnrestrictedProgram $ eraseName uplc
 
@@ -81,7 +82,6 @@ main = do
           (liftCodeDef $ Datum $ toBuiltinData ())
           (liftCodeDefAsData ())
           (liftCodeDefAsData correctMustBurnOwnSingletonValueContext)
-
       , unsafeApplyCodeN
           Scripts.certMp
           (liftCodeDef certMpParams)
@@ -92,7 +92,6 @@ main = do
           (liftCodeDef certMpParams)
           (liftCodeDefAsData $ Redeemer $ toBuiltinData CertMpBurn)
           (liftCodeDefAsData correctCertMpBurningContext)
-
       , unsafeApplyCodeN
           Scripts.fsMp
           (liftCodeDef fsMpParams)
@@ -103,7 +102,6 @@ main = do
           (liftCodeDef fsMpParams)
           (liftCodeDefAsData $ Redeemer $ toBuiltinData FsMpBurn)
           (liftCodeDefAsData correctFsMpBurningContext)
-
       , unsafeApplyCodeN
           Scripts.authMp
           (liftCodeDef authMpParams)
@@ -116,5 +114,5 @@ main = do
           (liftCodeDefAsData correctAuthMpBurningContext)
       ]
 
-  traverse_ (uncurry createIfNotExists) (zip ((\i -> "coop-" <> show @Integer i) <$> [1..]) scripts)
+  traverse_ (uncurry createIfNotExists) (zip ((\i -> "coop-" <> show @Integer i) <$> [1 ..]) scripts)
   pure ()

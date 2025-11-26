@@ -1,12 +1,13 @@
 {-# LANGUAGE TypeApplications #-}
+
 module PlutusLedgerApi.V3.EvaluationContext
-    ( EvaluationContext
-    , mkEvaluationContext
-    , CostModelParams
-    , assertWellFormedCostModelParams
-    , toMachineParameters
-    , CostModelApplyError (..)
-    ) where
+  ( EvaluationContext
+  , mkEvaluationContext
+  , CostModelParams
+  , assertWellFormedCostModelParams
+  , toMachineParameters
+  , CostModelApplyError (..)
+  ) where
 
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
@@ -28,21 +29,22 @@ matching the names in `PlutusLedgerApi.V3.ParamName`.  If the parameters are
 supplied in the wrong order then script cost calculations will be incorrect.
 
 IMPORTANT: The evaluation context of every Plutus version must be recreated upon
-a protocol update with the updated cost model parameters.
--}
+a protocol update with the updated cost model parameters. -}
 mkEvaluationContext
   :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
-  => [Int64] -- ^ the (updated) cost model parameters of the protocol
+  => [Int64]
+  -- ^ the (updated) cost model parameters of the protocol
   -> m EvaluationContext
 mkEvaluationContext =
   tagWithParamNames @V3.ParamName
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
-        PlutusV3
-        (\pv ->
+      PlutusV3
+      ( \pv ->
           if pv < pv11PV
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
-            else CaserBuiltin caseBuiltin)
-        [DefaultFunSemanticsVariantC]
-        -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-        (const DefaultFunSemanticsVariantC)
+            else CaserBuiltin caseBuiltin
+      )
+      [DefaultFunSemanticsVariantC]
+      -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
+      (const DefaultFunSemanticsVariantC)

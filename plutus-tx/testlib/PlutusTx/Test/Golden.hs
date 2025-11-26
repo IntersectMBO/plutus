@@ -1,40 +1,40 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 
-module PlutusTx.Test.Golden (
-  -- * TH CodGen
-  goldenCodeGen,
+module PlutusTx.Test.Golden
+  ( -- * TH CodGen
+    goldenCodeGen
 
-  -- * Compilation testing
-  goldenPir,
-  goldenPirReadable,
-  goldenPirReadableU,
-  goldenPirBy,
-  goldenTPlc,
-  goldenUPlc,
-  goldenUPlcReadable,
-  goldenBudget,
-  goldenAstSize,
+    -- * Compilation testing
+  , goldenPir
+  , goldenPirReadable
+  , goldenPirReadableU
+  , goldenPirBy
+  , goldenTPlc
+  , goldenUPlc
+  , goldenUPlcReadable
+  , goldenBudget
+  , goldenAstSize
 
-  -- * Golden evaluation testing
-  goldenEvalCek,
-  goldenEvalCekCatch,
-  goldenEvalCekCatchBudget,
-  goldenEvalCekLog,
+    -- * Golden evaluation testing
+  , goldenEvalCek
+  , goldenEvalCekCatch
+  , goldenEvalCekCatchBudget
+  , goldenEvalCekLog
 
-  -- * Combined testing
-  goldenBundle,
-  goldenBundle',
+    -- * Combined testing
+  , goldenBundle
+  , goldenBundle'
 
-  -- * Pretty-printing
-  prettyBudget,
-  prettyCodeSize,
-) where
+    -- * Pretty-printing
+  , prettyBudget
+  , prettyCodeSize
+  ) where
 
 import Prelude
 
@@ -48,12 +48,32 @@ import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Flat (Flat)
-import PlutusCore.Pretty (Doc, Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
-                          PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
-                          prettyPlcClassicSimple, prettyReadable, prettyReadableSimple)
-import PlutusCore.Test (TestNested, ToUPlc (..), goldenAstSize, goldenTPlc, goldenUPlc,
-                        goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM, ppCatch, rethrow,
-                        runUPlcBudget)
+import PlutusCore.Pretty
+  ( Doc
+  , Pretty (pretty)
+  , PrettyBy (prettyBy)
+  , PrettyConfigClassic
+  , PrettyConfigName
+  , PrettyUni
+  , Render (render)
+  , prettyClassicSimple
+  , prettyPlcClassicSimple
+  , prettyReadable
+  , prettyReadableSimple
+  )
+import PlutusCore.Test
+  ( TestNested
+  , ToUPlc (..)
+  , goldenAstSize
+  , goldenTPlc
+  , goldenUPlc
+  , goldenUPlcReadable
+  , nestedGoldenVsDoc
+  , nestedGoldenVsDocM
+  , ppCatch
+  , rethrow
+  , runUPlcBudget
+  )
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusTx.Code (CompiledCode, CompiledCodeIn (..), countAstNodes, getPir, getPirNoAnn)
@@ -67,7 +87,7 @@ import Text.Printf (printf)
 import UntypedPlutusCore qualified as UPLC
 
 -- Value assertion tests
-goldenCodeGen :: (TH.Ppr a) => TestName -> TH.Q a -> TH.ExpQ
+goldenCodeGen :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
 goldenCodeGen name code = do
   c <- code
   [|nestedGoldenVsDoc name ".th" $(TH.stringE $ TH.pprint c)|]
@@ -127,8 +147,7 @@ goldenPirReadable name value =
 
 {-| Prints uniques. This should be used sparingly: a simple change to a script or a
 compiler pass may change all uniques, making it difficult to see the actual
-change if all uniques are printed. It is nonetheless useful sometimes.
--}
+change if all uniques are printed. It is nonetheless useful sometimes. -}
 goldenPirReadableU
   :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
   => TestName
@@ -149,7 +168,7 @@ goldenPirBy config name value =
   nestedGoldenVsDoc name ".pir" $ prettyBy config $ getPir value
 
 goldenEvalCek
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => TestName
   -> a
   -> TestNested
@@ -158,7 +177,7 @@ goldenEvalCek name value =
     prettyPlcClassicSimple <$> rethrow (runPlcCek value)
 
 goldenEvalCekCatch
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => TestName -> a -> TestNested
 goldenEvalCekCatch name value =
   nestedGoldenVsDocM name ".eval" $
@@ -179,7 +198,7 @@ goldenEvalCekCatchBudget name compiledCode =
     pure (render @Text contents)
 
 goldenEvalCekLog
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => TestName -> a -> TestNested
 goldenEvalCekLog name value =
   nestedGoldenVsDocM name ".eval" $
@@ -201,19 +220,18 @@ of bytes when the given program serialized into bytestring using binary flat enc
 
 Cost of storing smart contract onchain is partially determined by the Flat size. So it
 is useful to have Flat size measurement in case we adopt new or introduce optimizations
-to the flat encoding format.
--}
+to the flat encoding format. -}
 prettyCodeSize :: CompiledCodeIn PLC.DefaultUni PLC.DefaultFun a -> Doc ann
 prettyCodeSize compiledCode =
   vsep
     [ fill 10 "AST Size:" <+> prettyIntRightAligned astSize
     , fill 10 "Flat Size:" <+> prettyIntRightAligned flatSize
     ]
- where
-  astSize = countAstNodes compiledCode
-  flatSize = countFlatBytes compiledCode
+  where
+    astSize = countAstNodes compiledCode
+    flatSize = countFlatBytes compiledCode
 
-prettyIntRightAligned :: (Integral i) => i -> Doc ann
+prettyIntRightAligned :: Integral i => i -> Doc ann
 prettyIntRightAligned =
   pretty @String
     . printf "%19s"
@@ -223,6 +241,6 @@ prettyIntRightAligned =
     . reverse
     . show @Integer
     . fromIntegral
- where
-  chunksOf _ [] = []
-  chunksOf n xs = take n xs : chunksOf n (drop n xs)
+  where
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)

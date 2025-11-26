@@ -1,11 +1,11 @@
 module Bool.Spec (boolTests) where
 
-import PlutusTx.Builtins as Tx
 import PlutusTx.Bool qualified as Tx
+import PlutusTx.Builtins as Tx
 
-import Prelude (($))
 import Test.Tasty
 import Test.Tasty.HUnit
+import Prelude (($))
 
 boolTests :: TestTree
 boolTests =

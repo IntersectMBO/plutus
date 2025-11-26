@@ -12,11 +12,11 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module PlutusTx.These (
-  These (..),
-  these,
-  theseWithDefault,
-) where
+module PlutusTx.These
+  ( These (..)
+  , these
+  , theseWithDefault
+  ) where
 
 import GHC.Generics (Generic)
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
@@ -29,8 +29,7 @@ import PlutusTx.Show
 import Prelude qualified as Haskell
 
 {-| A 'These' @a@ @b@ is either an @a@, or a @b@ or an @a@ and a @b@.
-Plutus version of 'Data.These'.
--}
+Plutus version of 'Data.These'. -}
 data These a b = This a | That b | These a b
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
   deriving anyclass (HasBlueprintDefinition)

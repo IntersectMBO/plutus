@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.Pretty.Utils
-    ( prettyBytes
-    ) where
+  ( prettyBytes
+  ) where
 
 import PlutusPrelude
 
@@ -13,10 +13,11 @@ import Prettyprinter.Internal
 
 asBytes :: Word8 -> Doc ann
 asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
-    where addLeadingZero :: String -> String
-          addLeadingZero
-              | x < 16    = ('0' :)
-              | otherwise = id
+  where
+    addLeadingZero :: String -> String
+    addLeadingZero
+      | x < 16 = ('0' :)
+      | otherwise = id
 
 prettyBytes :: BS.ByteString -> Doc ann
 prettyBytes b = "#" <> foldMap asBytes (BS.unpack b)

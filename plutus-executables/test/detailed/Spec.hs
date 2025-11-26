@@ -1,11 +1,10 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 
-{- | The tests in this file run the various Adga PLC evaluators on the examples
+{-| The tests in this file run the various Adga PLC evaluators on the examples
     provided by `plc example` and `uplc example` and checks that the output is
     the same as that produced by the Haskell `plc` and `uplc` evaluators and the
     other Agda evaluators.. -}
-
 module Main (main) where
 
 import PlutusCore.Name.Unique (isIdentifierChar)
@@ -43,23 +42,25 @@ catchOutput act = do
   removeFile tmpFP
   return str
 
-{- | Run plc-agda with some arguments.  This is for use inside HUnit Assertions -}
+-- | Run plc-agda with some arguments.  This is for use inside HUnit Assertions
 runPlcAgda :: [String] -> IO String
 runPlcAgda args =
-  catchOutput $ catch
-    (withArgs args M.main)
-    (\case
-        ExitFailure _ -> assertFailure "plc-agda failed"
-        ExitSuccess   -> return ())
+  catchOutput $
+    catch
+      (withArgs args M.main)
+      ( \case
+          ExitFailure _ -> assertFailure "plc-agda failed"
+          ExitSuccess -> return ()
+      )
 
-{- | Run an external executable with some arguments.  This is for use inside HUnit
+{-| Run an external executable with some arguments.  This is for use inside HUnit
    Assertions -}
 runProg :: String -> [String] -> String -> IO String
 runProg prog args stdin' = do
   (exitCode, output, err) <- readProcessWithExitCode prog args stdin'
   case exitCode of
     ExitFailure _ -> assertFailure $ prog ++ " failed: " ++ err
-    ExitSuccess   -> pure ()
+    ExitSuccess -> pure ()
   pure output
 
 {- These tests were previously broken because they produced textual output from
@@ -78,17 +79,18 @@ directly.  This depends crucially on names with de Bruijn indices being of the
 form `[A-Za-z0-9_]*![0-9]+`.
 -}
 
-{- | This takes a string and reverses it while squashing all sequences of
+{-| This takes a string and reverses it while squashing all sequences of
    whitespace (including '\n' and '\t') down to single spaces -}
 squashRev :: String -> String
 squashRev s = go s []
-  where go [] acc = acc
-        go (c:cs) acc =
-          if isSpace c
-          then go (dropWhile isSpace cs) (' ':acc)
-          else go cs (c:acc)
+  where
+    go [] acc = acc
+    go (c : cs) acc =
+      if isSpace c
+        then go (dropWhile isSpace cs) (' ' : acc)
+        else go cs (c : acc)
 
-{- | This takes a string with de Bruijn indices of the form abc!456 and converts
+{-| This takes a string with de Bruijn indices of the form abc!456 and converts
    them to things like !456.  We actually take a reversed string and when we
    find a digit we seek along the string for a '!'; if we find one then we skip
    all characters after it which are allowed in textual IDs until we get to one
@@ -98,19 +100,19 @@ anonDeBruijn :: String -> String
 anonDeBruijn s = go s []
   where
     go [] acc = acc
-    go (c:cs) acc =
+    go (c : cs) acc =
       if isDigit c
-      then go2 cs (c:acc)
-      else go cs (c:acc)
+        then go2 cs (c : acc)
+        else go cs (c : acc)
     {- go2: copy all digits to the output until we find a '!'; after that drop all
      characters that might appear in a textual name.  Strictly we should also
      check that the final character is an identifierStartingChar and maybe also
      account for quoted ideintfiers. -}
-    go2 [] acc       = acc
-    go2 ('!':cs) acc =  go (dropWhile isIdentifierChar cs) ('!':acc)
-    go2 s' acc       = go s' acc
+    go2 [] acc = acc
+    go2 ('!' : cs) acc = go (dropWhile isIdentifierChar cs) ('!' : acc)
+    go2 s' acc = go s' acc
 
-{- | Convert a textual PLC term containing de Bruijn-named variables of the form id!index
+{-| Convert a textual PLC term containing de Bruijn-named variables of the form id!index
 to a canonical form.
 
 eg, "(lam var!0   [(  builtin    addInteger)   var!1 x!4  ])"
@@ -122,8 +124,7 @@ misleading if a program happens tocontain a literal string that has a substring
 that looks like one of our de Bruijn-named variables.  However that seems very
 improbable, and for it to cause problems in our tests we'd need to have two
 terms that contain literal strings in the same place which have different
-de-Bruijn-like substrings, which seems even more unlikely.
--}
+de-Bruijn-like substrings, which seems even more unlikely. -}
 canonicalise :: String -> String
 canonicalise = anonDeBruijn . squashRev
 
@@ -138,11 +139,17 @@ compareResultPlc eq mode testname = withTempFile $ \tmp -> do
   plcAgdaOutput <- runPlcAgda [mode, "--input", tmp]
   let plcOutput' = canonicalise plcOutput
       plcAgdaOutput' = canonicalise plcAgdaOutput
-  assertBool ("plc: " ++ plcOutput ++ "plc-agda: " ++ plcAgdaOutput
-              ++ "** If these look the same they may be failing to parse.") $
-    T.pack plcOutput' `eq`  T.pack plcAgdaOutput'
-    -- If `eq` was M.alphaTm here it would return False if either of the inputs
-    -- didn't parse, which is confusing.
+  assertBool
+    ( "plc: "
+        ++ plcOutput
+        ++ "plc-agda: "
+        ++ plcAgdaOutput
+        ++ "** If these look the same they may be failing to parse."
+    )
+    $ T.pack plcOutput' `eq` T.pack plcAgdaOutput'
+
+-- If `eq` was M.alphaTm here it would return False if either of the inputs
+-- didn't parse, which is confusing.
 
 -- Compare the output of uplc vs plc-agda in untyped mode
 compareResultUplc :: (T.Text -> T.Text -> Bool) -> String -> String -> Assertion
@@ -153,9 +160,14 @@ compareResultUplc eq mode testname = withTempFile $ \tmp -> do
   plcAgdaOutput <- runPlcAgda [mode, "-mU", "--input", tmp]
   let plcOutput' = canonicalise plcOutput
       plcAgdaOutput' = canonicalise plcAgdaOutput
-  assertBool ("uplc: " ++ plcAgdaOutput ++ "plc-agda: " ++ plcOutput
-               ++ "** If these look the same they may be failing to parse.") $
-    T.pack plcOutput' `eq` T.pack plcAgdaOutput'
+  assertBool
+    ( "uplc: "
+        ++ plcAgdaOutput
+        ++ "plc-agda: "
+        ++ plcOutput
+        ++ "** If these look the same they may be failing to parse."
+    )
+    $ T.pack plcOutput' `eq` T.pack plcAgdaOutput'
 
 -- Compare the results of two different (typed) plc-agda modes
 compareResultAgda :: (T.Text -> T.Text -> Bool) -> String -> String -> String -> Assertion
@@ -165,9 +177,16 @@ compareResultAgda eq mode1 mode2 testname = withTempFile $ \tmp -> do
   plcAgdaOutput1 <- runPlcAgda ["evaluate", "--input", tmp, "--mode", mode1]
   plcAgdaOutput2 <- runPlcAgda ["evaluate", "--input", tmp, "--mode", mode2]
   -- The outputs are both produced by plc-agda so we don't have to canonicalise them.
-  assertBool (mode1 ++ ": " ++ plcAgdaOutput1 ++ mode2 ++ ": " ++ plcAgdaOutput2
-              ++ "** If these look the same they may be failing to parse.") $
-    T.pack plcAgdaOutput1 `eq` T.pack plcAgdaOutput2
+  assertBool
+    ( mode1
+        ++ ": "
+        ++ plcAgdaOutput1
+        ++ mode2
+        ++ ": "
+        ++ plcAgdaOutput2
+        ++ "** If these look the same they may be failing to parse."
+    )
+    $ T.pack plcAgdaOutput1 `eq` T.pack plcAgdaOutput2
 
 -- These come from `plc example -a` but there are a couple of failing tests which are omitted.
 -- `uplc` provides the same examples, but erased.
@@ -205,16 +224,18 @@ main :: IO ()
 main = do
   setLocaleEncoding utf8
   defaultMain $
-    testGroup "Detailed"
-    -- These should really use M.alphaTm or M.alphaTy instead of (==).
-    [ testGroup "plc-agda vs. uplc: evaluation"  . mkTests $ mkTestUplc (==) "evaluate"
-    , testGroup "plc-agda vs. plc: evaluation"   . mkTests $ mkTestPlc  (==) "evaluate"
-    , testGroup "plc-agda vs. plc: typechecking" . mkTests $ mkTestPlc  (==) "typecheck"
-    , testGroup "TL vs. TCK"                     . mkTests $ mkTestAgda (==) "TL" "TCK"
-    , testGroup "TCK vs. TCEK"                   . mkTests $ mkTestAgda (==) "TCK" "TCEK"
+    testGroup
+      "Detailed"
+      -- These should really use M.alphaTm or M.alphaTy instead of (==).
+      [ testGroup "plc-agda vs. uplc: evaluation" . mkTests $ mkTestUplc (==) "evaluate"
+      , testGroup "plc-agda vs. plc: evaluation" . mkTests $ mkTestPlc (==) "evaluate"
+      , testGroup "plc-agda vs. plc: typechecking" . mkTests $ mkTestPlc (==) "typecheck"
+      , testGroup "TL vs. TCK" . mkTests $ mkTestAgda (==) "TL" "TCK"
+      , testGroup "TCK vs. TCEK" . mkTests $ mkTestAgda (==) "TCK" "TCEK"
       -- tests against extrinisically typed interpreter disabled
       -- , mkTestMode "L" "TL" M.alphaTm
       -- , mkTestMode "L" "CK" M.alphaTm
       -- , mkTestMode "CK" "TCK" M.alphaTm
-    ]
-  where mkTests mktest = map mktest testNames
+      ]
+  where
+    mkTests mktest = map mktest testNames

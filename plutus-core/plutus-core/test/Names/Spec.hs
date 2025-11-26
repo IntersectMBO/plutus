@@ -1,27 +1,56 @@
-{-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Names.Spec where
 
-import PlutusCore (DefaultFun, DefaultUni, FreeVariableError, Kind (Type), Name (..), NamedDeBruijn,
-                   NamedTyDeBruijn, Program, Quote, Rename (rename), Term (..), TyName (..),
-                   Type (..), Unique (..), deBruijnTerm, runQuote, runQuoteT, unDeBruijnTerm)
+import PlutusCore
+  ( DefaultFun
+  , DefaultUni
+  , FreeVariableError
+  , Kind (Type)
+  , Name (..)
+  , NamedDeBruijn
+  , NamedTyDeBruijn
+  , Program
+  , Quote
+  , Rename (rename)
+  , Term (..)
+  , TyName (..)
+  , Type (..)
+  , Unique (..)
+  , deBruijnTerm
+  , runQuote
+  , runQuoteT
+  , unDeBruijnTerm
+  )
 import PlutusCore qualified
 import PlutusCore.Error qualified as PLC
 import PlutusCore.Generators.Hedgehog (TermOf (..), forAllNoShowT, forAllPretty, generalizeT)
-import PlutusCore.Generators.Hedgehog.AST as AST (genName, genProgram, genTerm, mangleNames,
-                                                  runAstGen)
+import PlutusCore.Generators.Hedgehog.AST as AST
+  ( genName
+  , genProgram
+  , genTerm
+  , mangleNames
+  , runAstGen
+  )
 import PlutusCore.Generators.Hedgehog.Interesting (fromInterestingTermGens)
 import PlutusCore.Mark (markNonFreshProgram)
 import PlutusCore.Parser qualified as Parser
 import PlutusCore.Pretty (display, displayPlcSimple)
 import PlutusCore.Rename.Internal (renameProgramM)
-import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (PrerenameNo), brokenRename,
-                        checkFails, mapTestLimitAtLeast, noMarkRename, test_scopingGood,
-                        test_scopingSpoilRenamer)
+import PlutusCore.Test
+  ( BindingRemoval (BindingRemovalNotOk)
+  , Prerename (PrerenameNo)
+  , brokenRename
+  , checkFails
+  , mapTestLimitAtLeast
+  , noMarkRename
+  , test_scopingGood
+  , test_scopingSpoilRenamer
+  )
 
 import Control.Monad.Except (modifyError)
 import Data.String (IsString (fromString))
@@ -29,8 +58,8 @@ import Data.Text qualified as Text
 import Hedgehog (Gen, Property, forAll, property, tripping, (/==), (===))
 import Hedgehog.Gen qualified as Gen
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 prop_DeBruijn gen = property $ generalizeT do

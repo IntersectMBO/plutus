@@ -25,7 +25,7 @@ regenConstantsUntil
   -> Program name DefaultUni fun ann
   -> m (Program name DefaultUni fun ann)
 regenConstantsUntil p =
-    progTerm . termSubstConstantsM $ \ann -> fmap (fmap $ Constant ann) . PLC.regenConstantUntil p
+  progTerm . termSubstConstantsM $ \ann -> fmap (fmap $ Constant ann) . PLC.regenConstantUntil p
 
 genTerm
   :: forall fun
@@ -40,8 +40,8 @@ genProgram = fmap eraseProgram PLC.genProgram
 
 -- See Note [Name mangling]
 mangleNames
-    :: Term Name DefaultUni DefaultFun ()
-    -> PLC.AstGen (Maybe (Term Name DefaultUni DefaultFun ()))
+  :: Term Name DefaultUni DefaultFun ()
+  -> PLC.AstGen (Maybe (Term Name DefaultUni DefaultFun ()))
 mangleNames term = do
-    mayMang <- PLC.genNameMangler $ setOf vTerm term
-    for mayMang $ \mang -> termSubstNamesM (fmap (fmap $ UPLC.Var ()) . mang) term
+  mayMang <- PLC.genNameMangler $ setOf vTerm term
+  for mayMang $ \mang -> termSubstNamesM (fmap (fmap $ UPLC.Var ()) . mang) term

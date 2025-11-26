@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 
 module Main (main) where
@@ -42,22 +42,22 @@ testOneFile eventFile = testCase (takeBaseName eventFile) $ do
     (Left err, _, _) -> assertFailure $ display err
     (_, Left err, _) -> assertFailure $ display err
     (_, _, Left err) -> assertFailure $ display err
- where
-  mkContext f = \case
-    Nothing -> Right Nothing
-    Just costParams -> Just . (,costParams) . fst <$> runWriterT (f costParams)
+  where
+    mkContext f = \case
+      Nothing -> Right Nothing
+      Just costParams -> Just . (,costParams) . fst <$> runWriterT (f costParams)
 
-  runSingleEvent ctxV1 ctxV2 ctxV3 event =
-    case event of
-      PlutusEvent PlutusV1 _ _ -> case ctxV1 of
-        Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
-        Nothing            -> Just $ MissingCostParametersFor PlutusV1
-      PlutusEvent PlutusV2 _ _ -> case ctxV2 of
-        Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
-        Nothing            -> Just $ MissingCostParametersFor PlutusV2
-      PlutusEvent PlutusV3 _ _ -> case ctxV3 of
-        Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
-        Nothing            -> Just $ MissingCostParametersFor PlutusV3
+    runSingleEvent ctxV1 ctxV2 ctxV3 event =
+      case event of
+        PlutusEvent PlutusV1 _ _ -> case ctxV1 of
+          Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
+          Nothing -> Just $ MissingCostParametersFor PlutusV1
+        PlutusEvent PlutusV2 _ _ -> case ctxV2 of
+          Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
+          Nothing -> Just $ MissingCostParametersFor PlutusV2
+        PlutusEvent PlutusV3 _ _ -> case ctxV3 of
+          Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
+          Nothing -> Just $ MissingCostParametersFor PlutusV3
 
 main :: IO ()
 main = do

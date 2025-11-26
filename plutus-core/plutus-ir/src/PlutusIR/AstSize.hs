@@ -1,11 +1,11 @@
-module PlutusIR.AstSize (
-  AstSize (..),
-  kindAstSize,
-  typeAstSize,
-  tyVarDeclAstSize,
-  termAstSize,
-  varDeclAstSize,
-) where
+module PlutusIR.AstSize
+  ( AstSize (..)
+  , kindAstSize
+  , typeAstSize
+  , tyVarDeclAstSize
+  , termAstSize
+  , varDeclAstSize
+  ) where
 
 import PlutusPrelude
 

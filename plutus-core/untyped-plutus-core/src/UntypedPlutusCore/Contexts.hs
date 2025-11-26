@@ -7,7 +7,7 @@ import UntypedPlutusCore.Core.Instance.Eq ()
 
 -- | A context for an iterated term/type application.
 data AppCtx name uni fun a
-  =  AppCtxTerm a (Term name uni fun a) (AppCtx name uni fun a)
+  = AppCtxTerm a (Term name uni fun a) (AppCtx name uni fun a)
   | AppCtxType a (AppCtx name uni fun a)
   | AppCtxEnd
 
@@ -18,15 +18,14 @@ data AppCtx name uni fun a
   (f, [{ _ t } u v])
   ==
   f (AppCtxType t (AppCtxTerm u (AppCtxTerm v AppCtxEnd)))
-@
--}
+@ -}
 splitAppCtx :: Term nam uni fun a -> (Term nam uni fun a, AppCtx nam uni fun a)
 splitAppCtx = go AppCtxEnd
- where
-  go appCtx = \case
-    Apply ann function argument -> go (AppCtxTerm ann argument appCtx) function
-    Force ann forcedTerm -> go (AppCtxType ann appCtx) forcedTerm
-    term -> (term, appCtx)
+  where
+    go appCtx = \case
+      Apply ann function argument -> go (AppCtxTerm ann argument appCtx) function
+      Force ann forcedTerm -> go (AppCtxType ann appCtx) forcedTerm
+      term -> (term, appCtx)
 
 -- | Fills in the hole in an 'AppCtx', the inverse of 'splitAppCtx'.
 fillAppCtx
@@ -37,5 +36,3 @@ fillAppCtx term = \case
   AppCtxEnd -> term
   AppCtxTerm ann arg ctx -> fillAppCtx (Apply ann term arg) ctx
   AppCtxType ann ctx -> fillAppCtx (Force ann term) ctx
-
-

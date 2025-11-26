@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusBenchmark.Coop.TestContext (
-  certMpParams,
-  fsMpParams,
-  authMpParams,
-  correctMustBurnOwnSingletonValueContext,
-  correctCertMpMintingContext,
-  correctCertMpBurningContext,
-  correctFsMpMintingContext,
-  correctFsMpBurningContext,
-  correctAuthMpMintingContext,
-  correctAuthMpBurningContext,
+module PlutusBenchmark.Coop.TestContext
+  ( certMpParams
+  , fsMpParams
+  , authMpParams
+  , correctMustBurnOwnSingletonValueContext
+  , correctCertMpMintingContext
+  , correctCertMpBurningContext
+  , correctFsMpMintingContext
+  , correctFsMpBurningContext
+  , correctAuthMpMintingContext
+  , correctAuthMpBurningContext
   ) where
 
 import PlutusLedgerApi.V1.Address (scriptHashAddress)

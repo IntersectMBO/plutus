@@ -1,5 +1,5 @@
-{-# LANGUAGE BlockArguments  #-}
-{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 module PlutusIR.Transform.RewriteRules.RemoveTrace

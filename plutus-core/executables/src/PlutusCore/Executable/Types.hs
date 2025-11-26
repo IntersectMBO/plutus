@@ -14,41 +14,40 @@ import Data.Text qualified as T
 
 -- | PIR program type.
 type PirProg =
-    PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
+  PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 -- | PIR term type.
 type PirTerm =
-    PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
+  PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 -- | PLC program type.
 type PlcProg =
-    PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
+  PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 -- | PLC term type.
 type PlcTerm =
-    PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
+  PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 -- | UPLC program type.
 type UplcProg =
-    UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
+  UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 -- | UPLC term type.
 type UplcTerm =
-    UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun
-
+  UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun
 
 ---------------- Types for commands and arguments ----------------
 
 data AstNameType
-    = Named
-    | DeBruijn
-    | NamedDeBruijn
-    deriving stock Show
+  = Named
+  | DeBruijn
+  | NamedDeBruijn
+  deriving stock (Show)
 
 data Input = FileInput FilePath | StdInput
 instance Show Input where
-    show (FileInput path) = show path
-    show StdInput         = "<stdin>"
+  show (FileInput path) = show path
+  show StdInput = "<stdin>"
 
 data Output = FileOutput FilePath | StdOutput | NoOutput
 data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
@@ -69,14 +68,14 @@ type Files = [FilePath]
 
 -- | Input/output format for programs
 data Format
-    = Textual
-    | Flat AstNameType
+  = Textual
+  | Flat AstNameType
 
 instance Show Format where
-    show Textual              = "textual"
-    show (Flat Named)         = "flat-named"
-    show (Flat DeBruijn)      = "flat-deBruijn"
-    show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
+  show Textual = "textual"
+  show (Flat Named) = "flat-named"
+  show (Flat DeBruijn) = "flat-deBruijn"
+  show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
 
 type Certifier = Maybe String
 
@@ -86,18 +85,17 @@ data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
 data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
 
-
--- | Specialised types for PIR, which doesn't support deBruijn names in ASTs
--- | A specialised format type for PIR. We don't support deBruijn or named deBruijn for PIR.
-
+{-| Specialised types for PIR, which doesn't support deBruijn names in ASTs
+| A specialised format type for PIR. We don't support deBruijn or named deBruijn for PIR. -}
 data PirFormat = TextualPir | FlatNamed
-instance Show PirFormat
-    where show = \case { TextualPir  -> "textual"; FlatNamed -> "flat-named" }
+
+instance Show PirFormat where
+  show = \case TextualPir -> "textual"; FlatNamed -> "flat-named"
 
 -- | Convert the PIR format type to the general format type.
 pirFormatToFormat :: PirFormat -> Format
 pirFormatToFormat TextualPir = Textual
-pirFormatToFormat FlatNamed  = Flat Named
+pirFormatToFormat FlatNamed = Flat Named
 
 -- | Output types for some pir commands
 data Language = PLC | UPLC

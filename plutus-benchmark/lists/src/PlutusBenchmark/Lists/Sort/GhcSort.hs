@@ -1,9 +1,9 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
-{- | Merge sort implementation based on GHC's 'sort' function -}
+-- | Merge sort implementation based on GHC's 'sort' function
 module PlutusBenchmark.Lists.Sort.GhcSort where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
@@ -13,48 +13,50 @@ import PlutusTx qualified as Tx
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 
-{- | GHC's 'sort' algorithm specialised to Integer.
-   See https://hackage.haskell.org/package/base-4.15.0.0/docs/src/Data-OldList.html#sortBy
--}
+{-| GHC's 'sort' algorithm specialised to Integer.
+   See https://hackage.haskell.org/package/base-4.15.0.0/docs/src/Data-OldList.html#sortBy -}
 ghcSort :: [Integer] -> [Integer]
 ghcSort = mergeAll . sequences
   where
-    sequences (a:b:xs)
-      | a > b = descending b [a]  xs
-      | otherwise       = ascending  b (a:) xs
+    sequences (a : b : xs)
+      | a > b = descending b [a] xs
+      | otherwise = ascending b (a :) xs
     sequences xs = [xs]
     {- This detects ascending and descending subsequences of a list, reverses
        the descending ones, and accumulates the results in a list.
        For example, [1,2,9,5,4,7,2,8] -> [[1,2,9],[4,5],[2,7],[8]]. -}
 
-    descending a as (b:bs)
-      | a > b = descending b (a:as) bs
-    descending a as bs  = (a:as): sequences bs
+    descending a as (b : bs)
+      | a > b = descending b (a : as) bs
+    descending a as bs = (a : as) : sequences bs
 
-    ascending a as (b:bs)
-      | a <= b = ascending b (\ys -> as (a:ys)) bs
-    ascending a as bs   = let !x = as [a]
-                          in x : sequences bs
+    ascending a as (b : bs)
+      | a <= b = ascending b (\ys -> as (a : ys)) bs
+    ascending a as bs =
+      let !x = as [a]
+       in x : sequences bs
 
     mergeAll [x] = x
-    mergeAll xs  = mergeAll (mergePairs xs)
+    mergeAll xs = mergeAll (mergePairs xs)
 
-    mergePairs (a:b:xs) = let !x = merge a b
-                          in x : mergePairs xs
-    mergePairs xs       = xs
+    mergePairs (a : b : xs) =
+      let !x = merge a b
+       in x : mergePairs xs
+    mergePairs xs = xs
     {- Merge adjoining pairs of ordered lists to get a new list of ordered lists then
        recurse on that; we're doing a kind of binary tree of merges, and I think
        that this (maybe along with some benefits from laziness when we're
        running this in Haskell) is what makes this algorithm faster than
        standard mergesort. -}
 
-    merge as@(a:as') bs@(b:bs') =  -- Same as in mergeSort
-        if a <= b
-        then a:(merge as'  bs)
-        else b:(merge as bs')
+    merge as@(a : as') bs@(b : bs') =
+      -- Same as in mergeSort
+      if a <= b
+        then a : (merge as' bs)
+        else b : (merge as bs')
     merge [] bs = bs
     merge as [] = as
-{-# INLINABLE ghcSort #-}
+{-# INLINEABLE ghcSort #-}
 
 {- I think the worst case input should be about the same as for mergesort.  The
    worst case for 'sequences' is when we start with a list of alternately
@@ -73,8 +75,7 @@ ghcSortWorstCase = mergeSortWorstCase
 
 mkGhcSortTerm :: [Integer] -> Term
 mkGhcSortTerm l =
-    compiledCodeToTerm $ $$(Tx.compile [|| ghcSort ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
+  compiledCodeToTerm $ $$(Tx.compile [||ghcSort||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
 
 mkWorstCaseGhcSortTerm :: Integer -> Term
 mkWorstCaseGhcSortTerm = mkGhcSortTerm . ghcSortWorstCase
-

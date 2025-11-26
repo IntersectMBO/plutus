@@ -1,22 +1,21 @@
--- | An internal module that defines functions for deciding equality of values of data types
--- that encode things with binders.
-
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableInstances #-}
 
+{-| An internal module that defines functions for deciding equality of values of data types
+that encode things with binders. -}
 module PlutusCore.Eq
-    ( LR (..)
-    , RL (..)
-    , EqRename
-    , ScopedEqRename
-    , runEqRename
-    , withTwinBindings
-    , eqNameM
-    , eqM
-    ) where
+  ( LR (..)
+  , RL (..)
+  , EqRename
+  , ScopedEqRename
+  , runEqRename
+  , withTwinBindings
+  , eqNameM
+  , eqM
+  ) where
 
 import PlutusPrelude
 
@@ -106,21 +105,23 @@ type-level renaming).
 -- See Note [Side tracking].
 -- | From left to right.
 newtype LR a = LR
-    { unLR :: a
-    } deriving stock (Generic)
+  { unLR :: a
+  }
+  deriving stock (Generic)
 
 -- See Note [Side tracking].
 -- | From right to left.
 newtype RL a = RL
-    { unRL :: a
-    } deriving stock (Generic)
+  { unRL :: a
+  }
+  deriving stock (Generic)
 
 -- See Note [Side tracking].
 -- | A left @a@ and a right @a@.
 data Bilateral a = Bilateral
-    { _bilateralL :: a
-    , _bilateralR :: a
-    }
+  { _bilateralL :: a
+  , _bilateralR :: a
+  }
 
 makeLenses ''Bilateral
 
@@ -130,23 +131,24 @@ instance HasUnique name unique => HasUnique (LR name) (LR unique)
 instance HasUnique name unique => HasUnique (RL name) (RL unique)
 
 instance Semigroup a => Semigroup (Bilateral a) where
-    Bilateral l1 r1 <> Bilateral l2 r2 = Bilateral (l1 <> l2) (r1 <> r2)
+  Bilateral l1 r1 <> Bilateral l2 r2 = Bilateral (l1 <> l2) (r1 <> r2)
 
 instance Monoid a => Monoid (Bilateral a) where
-    mempty = Bilateral mempty mempty
+  mempty = Bilateral mempty mempty
 
 -- To rename from left to right is to update the left renaming.
 instance HasRenaming ren unique => HasRenaming (Bilateral ren) (LR unique) where
-    renaming = bilateralL . renaming . coerced @(Renaming unique)
+  renaming = bilateralL . renaming . coerced @(Renaming unique)
 
 -- To rename from right to left is to update the right renaming.
 instance HasRenaming ren unique => HasRenaming (Bilateral ren) (RL unique) where
-    renaming = bilateralR . renaming . coerced @(Renaming unique)
+  renaming = bilateralR . renaming . coerced @(Renaming unique)
 
--- | The type of a runnable equality check. @Maybe ()@ is isomorphic to 'Bool' and we use it
--- instead of 'Bool', because this unlocks the convenient and readable do-notation and allows for
--- automatic short-circuiting, which would be tedious with @Rename (Bilateral ren) Bool@.
+{-| The type of a runnable equality check. @Maybe ()@ is isomorphic to 'Bool' and we use it
+instead of 'Bool', because this unlocks the convenient and readable do-notation and allows for
+automatic short-circuiting, which would be tedious with @Rename (Bilateral ren) Bool@. -}
 type EqRename ren = RenameT (Bilateral ren) Maybe ()
+
 type ScopedEqRename = EqRename ScopedRenaming
 
 -- | Run an 'EqRename' computation.
@@ -156,26 +158,26 @@ runEqRename = isJust . runRenameT
 -- See Note [Modulo alpha].
 -- | Record that two names map to each other.
 withTwinBindings
-    :: (HasRenaming ren unique, HasUnique name unique, Monad m)
-    => name -> name -> RenameT (Bilateral ren) m c -> RenameT (Bilateral ren) m c
+  :: (HasRenaming ren unique, HasUnique name unique, Monad m)
+  => name -> name -> RenameT (Bilateral ren) m c -> RenameT (Bilateral ren) m c
 withTwinBindings name1 name2 k =
-    withRenamedName (LR name1) (LR name2) $
+  withRenamedName (LR name1) (LR name2) $
     withRenamedName (RL name2) (RL name1) k
 
 -- See Note [Modulo alpha].
 -- | Check equality of two names.
 eqNameM
-    :: (HasRenaming ren unique, HasUnique name unique, Eq unique)
-    => name -> name -> EqRename ren
+  :: (HasRenaming ren unique, HasUnique name unique, Eq unique)
+  => name -> name -> EqRename ren
 eqNameM name1 name2 = do
-    mayUniq2' <- lookupNameM $ LR name1
-    mayUniq1' <- lookupNameM $ RL name2
-    let uniq1 = name1 ^. unique
-        uniq2 = name2 ^. unique
-    guard $ case (mayUniq1', mayUniq2') of
-        (Nothing         , Nothing         ) -> uniq1 == uniq2
-        (Just (RL uniq1'), Just (LR uniq2')) -> uniq1 == uniq1' && uniq2 == uniq2'
-        (_               , _               ) -> False
+  mayUniq2' <- lookupNameM $ LR name1
+  mayUniq1' <- lookupNameM $ RL name2
+  let uniq1 = name1 ^. unique
+      uniq2 = name2 ^. unique
+  guard $ case (mayUniq1', mayUniq2') of
+    (Nothing, Nothing) -> uniq1 == uniq2
+    (Just (RL uniq1'), Just (LR uniq2')) -> uniq1 == uniq1' && uniq2 == uniq2'
+    (_, _) -> False
 
 -- | Check equality of things having an 'Eq' instance.
 eqM :: Eq a => a -> a -> EqRename ren

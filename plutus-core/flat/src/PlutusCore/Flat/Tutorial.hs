@@ -1,13 +1,10 @@
 module PlutusCore.Flat.Tutorial
-  (
-    -- $setup
-
+  ( -- $setup
     -- $main
   )
 where
 
-
-{- $setup
+{-$setup
 To (de)serialise a data type, make it an instance of the 'Flat.Class.Flat' class.
 
 There is <https://hackage.haskell.org/package/base/docs/GHC-Generics.html Generics> based support to automatically derive a correct instance.
@@ -32,10 +29,9 @@ Define a few custom data types, deriving @Generic@ and @Flat@:
 
 >>> data Direction = North | South | Center | East | West deriving (Show,Generic,Flat)
 
->>> data List a = Nil | Cons a (List a) deriving (Show,Generic,Flat)
--}
+>>> data List a = Nil | Cons a (List a) deriving (Show,Generic,Flat) -}
 
-{- $main
+{-$main
 Now we can encode a List of Directions using 'Flat.Run.flat':
 
 >>> flat $ Cons North (Cons South Nil)
@@ -109,8 +105,4 @@ There are a few wrapper types that modify the way encoding and/or decoding occur
 
 * 'Flat.Instances.Mono.AsArray' and 'Flat.Instances.Mono.AsList' encode/decode a sequence as a List or Array respectively, see "Flat.Instances.Mono" for details.
 
-* 'Flat.Instances.Text.UTF8Text' and 'Flat.Instances.Text.UTF16Text' encode/decode a Text as UTF8 or UTF16 respectively.
-
--}
-
-
+* 'Flat.Instances.Text.UTF8Text' and 'Flat.Instances.Text.UTF16Text' encode/decode a Text as UTF8 or UTF16 respectively. -}

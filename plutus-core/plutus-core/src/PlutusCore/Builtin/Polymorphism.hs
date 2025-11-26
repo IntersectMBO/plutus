@@ -1,28 +1,28 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE UndecidableSuperClasses  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module PlutusCore.Builtin.Polymorphism
-    ( Opaque (..)
-    , SomeConstant (..)
-    , TyNameRep (..)
-    , TyVarRep
-    , TyAppRep
-    , TyForallRep
-    , BuiltinHead
-    , LastArg
-    , ElaborateBuiltin
-    , AllElaboratedArgs
-    , AllBuiltinArgs
-    ) where
+  ( Opaque (..)
+  , SomeConstant (..)
+  , TyNameRep (..)
+  , TyVarRep
+  , TyAppRep
+  , TyForallRep
+  , BuiltinHead
+  , LastArg
+  , ElaborateBuiltin
+  , AllElaboratedArgs
+  , AllBuiltinArgs
+  ) where
 
 import PlutusPrelude
 
@@ -141,36 +141,39 @@ See Note [Elaboration of polymorphism] for how this machinery is used in practic
 
 -- See Note [Motivation for polymorphic built-in functions].
 -- See Note [Implementation of polymorphic built-in functions].
--- | The AST of a value with a Plutus type attached to it. The type is for the Plutus type checker
--- to look at. 'Opaque' can appear in the type of the denotation of a builtin.
+{-| The AST of a value with a Plutus type attached to it. The type is for the Plutus type checker
+to look at. 'Opaque' can appear in the type of the denotation of a builtin. -}
 newtype Opaque val (rep :: GHC.Type) = Opaque
-    { unOpaque :: val
-    } deriving newtype (HasConstant, ExMemoryUsage)
+  { unOpaque :: val
+  }
+  deriving newtype (HasConstant, ExMemoryUsage)
+
 -- Try not to add instances for this data type, so that we can throw more 'NoConstraintsErrMsg'
 -- kind of type errors.
 
 type instance UniOf (Opaque val rep) = UniOf val
 
--- | For unlifting from the 'Constant' constructor when the stored value is of a monomorphic
--- built-in type
---
--- The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
--- @Opaque val rep@).
-newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
-    { unSomeConstant :: Some (ValueOf uni)
-    }
+{-| For unlifting from the 'Constant' constructor when the stored value is of a monomorphic
+built-in type
 
-deriving newtype instance (Everywhere uni ExMemoryUsage, Closed uni)
-    => ExMemoryUsage (SomeConstant uni rep)
+The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
+@Opaque val rep@). -}
+newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
+  { unSomeConstant :: Some (ValueOf uni)
+  }
+
+deriving newtype instance
+  (Everywhere uni ExMemoryUsage, Closed uni)
+  => ExMemoryUsage (SomeConstant uni rep)
 
 type instance UniOf (SomeConstant uni rep) = uni
 
 instance HasConstant (SomeConstant uni rep) where
-    asConstant = coerceArg pure
-    {-# INLINE asConstant #-}
+  asConstant = coerceArg pure
+  {-# INLINE asConstant #-}
 
-    fromConstant = coerce
-    {-# INLINE fromConstant #-}
+  fromConstant = coerce
+  {-# INLINE fromConstant #-}
 
 -- | Representation of a type variable: its name and unique and an implicit kind.
 data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat
@@ -184,109 +187,110 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 -- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
 data family TyForallRep (name :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
--- | For annotating an uninstantiated built-in type, so that it gets handled by the right instance
--- or type family.
+{-| For annotating an uninstantiated built-in type, so that it gets handled by the right instance
+or type family. -}
 type BuiltinHead :: forall a. a -> a
 data family BuiltinHead x
 
--- | @LastArg x y@ is the same thing as @y@ in the signature of the denotation of a built-in
--- functions and this type is only used for referencing @x@ before @y@, so that the elaboration
--- machinery generates @x@ before @y@ in the @all@ part of the Plutus signature of the builtin.
--- This is a very hacky and indirect way of specifying the ordering of type variables in a Plutus
--- signature, in future we'll do it explicitly by introducing a 'Forall' binder for use in type
--- signatures of denotations of builtins.
+{-| @LastArg x y@ is the same thing as @y@ in the signature of the denotation of a built-in
+functions and this type is only used for referencing @x@ before @y@, so that the elaboration
+machinery generates @x@ before @y@ in the @all@ part of the Plutus signature of the builtin.
+This is a very hacky and indirect way of specifying the ordering of type variables in a Plutus
+signature, in future we'll do it explicitly by introducing a 'Forall' binder for use in type
+signatures of denotations of builtins. -}
 type LastArg :: GHC.Type -> GHC.Type -> GHC.Type
 data family LastArg x y
 
--- | Take an iterated application of a built-in type and elaborate every function application
--- inside of it to 'TyAppRep' and annotate the head with 'BuiltinHead'.
---
--- The idea is that we don't need to process built-in types manually if we simply add some
--- annotations for instance resolution to look for. Think what we'd have to do manually for, say,
--- 'ToHoles': traverse the spine of the application and collect all the holes into a list, which is
--- troubling, because type applications are left-nested and lists are right-nested, so we'd have to
--- use accumulators or an explicit 'Reverse' type family. And then we also have 'KnownTypeAst' and
--- 'ToBinds', so handling built-in types in a special way for each of those would be a hassle,
--- especially given the fact that type-level Haskell is not exactly good at computing things.
--- With the 'ElaborateBuiltin' approach we get 'KnownTypeAst', 'ToHoles' and 'ToBinds' for free.
---
--- We make this an open type family, so that elaboration is customizable for each universe.
+{-| Take an iterated application of a built-in type and elaborate every function application
+inside of it to 'TyAppRep' and annotate the head with 'BuiltinHead'.
+
+The idea is that we don't need to process built-in types manually if we simply add some
+annotations for instance resolution to look for. Think what we'd have to do manually for, say,
+'ToHoles': traverse the spine of the application and collect all the holes into a list, which is
+troubling, because type applications are left-nested and lists are right-nested, so we'd have to
+use accumulators or an explicit 'Reverse' type family. And then we also have 'KnownTypeAst' and
+'ToBinds', so handling built-in types in a special way for each of those would be a hassle,
+especially given the fact that type-level Haskell is not exactly good at computing things.
+With the 'ElaborateBuiltin' approach we get 'KnownTypeAst', 'ToHoles' and 'ToBinds' for free.
+
+We make this an open type family, so that elaboration is customizable for each universe. -}
 type ElaborateBuiltin :: forall a. (GHC.Type -> GHC.Type) -> a -> a
 type family ElaborateBuiltin uni x
 
--- | Take a constraint and use it to constrain every argument of a possibly 0-ary elaborated
--- application of a built-in type.
+{-| Take a constraint and use it to constrain every argument of a possibly 0-ary elaborated
+application of a built-in type. -}
 type AllElaboratedArgs :: forall a. (GHC.Type -> GHC.Constraint) -> a -> GHC.Constraint
 type family AllElaboratedArgs constr x where
-    AllElaboratedArgs constr (f `TyAppRep` x) = (constr x, AllElaboratedArgs constr f)
-    AllElaboratedArgs _      (BuiltinHead _)  = ()
+  AllElaboratedArgs constr (f `TyAppRep` x) = (constr x, AllElaboratedArgs constr f)
+  AllElaboratedArgs _ (BuiltinHead _) = ()
 
--- | Take a constraint and use it to constrain every argument of a possibly 0-ary application of a
--- built-in type.
+{-| Take a constraint and use it to constrain every argument of a possibly 0-ary application of a
+built-in type. -}
 type AllBuiltinArgs
-        :: forall a. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Constraint) -> a -> GHC.Constraint
-class    AllElaboratedArgs constr (ElaborateBuiltin uni x) => AllBuiltinArgs uni constr x
+  :: forall a. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Constraint) -> a -> GHC.Constraint
+class AllElaboratedArgs constr (ElaborateBuiltin uni x) => AllBuiltinArgs uni constr x
+
 instance AllElaboratedArgs constr (ElaborateBuiltin uni x) => AllBuiltinArgs uni constr x
 
 -- Custom type errors to guide the programmer adding a new built-in function.
 
 -- We don't have @Unsatisfiable@ yet (https://github.com/ghc-proposals/ghc-proposals/pull/433).
--- | To be used when there's a 'TypeError' in the context. The condition is not checked as there's
--- no way we could do that.
+{-| To be used when there's a 'TypeError' in the context. The condition is not checked as there's
+no way we could do that. -}
 underTypeError :: void
 underTypeError = error "Panic: a 'TypeError' was bypassed"
 
 type NoStandalonePolymorphicDataErrMsg =
-    'Text "An unwrapped built-in type constructor can't be applied to a type variable" ':$$:
-    'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?" ':$$:
-    'Text "In that case you need to wrap all polymorphic built-in types applied to type" ':$$:
-    'Text " variables with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the" ':$$:
-    'Text " type of an argument or the type of the result, respectively"
+  'Text "An unwrapped built-in type constructor can't be applied to a type variable"
+    ':$$: 'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?"
+    ':$$: 'Text "In that case you need to wrap all polymorphic built-in types applied to type"
+    ':$$: 'Text " variables with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the"
+    ':$$: 'Text " type of an argument or the type of the result, respectively"
 
 instance TypeError NoStandalonePolymorphicDataErrMsg => uni `Contains` TyVarRep where
-    knownUni = underTypeError
+  knownUni = underTypeError
 
 type NoConstraintsErrMsg =
-    'Text "Built-in functions are not allowed to have constraints" ':$$:
-    'Text "To fix this error instantiate all constrained type variables"
+  'Text "Built-in functions are not allowed to have constraints"
+    ':$$: 'Text "To fix this error instantiate all constrained type variables"
 
 instance TypeError NoConstraintsErrMsg => Eq (Opaque val rep) where
-    (==) = underTypeError
+  (==) = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Ord (Opaque val rep) where
-    compare = underTypeError
+  compare = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Num (Opaque val rep) where
-    (+)         = underTypeError
-    (*)         = underTypeError
-    abs         = underTypeError
-    signum      = underTypeError
-    fromInteger = underTypeError
-    negate      = underTypeError
+  (+) = underTypeError
+  (*) = underTypeError
+  abs = underTypeError
+  signum = underTypeError
+  fromInteger = underTypeError
+  negate = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Enum (Opaque val rep) where
-    toEnum   = underTypeError
-    fromEnum = underTypeError
+  toEnum = underTypeError
+  fromEnum = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Real (Opaque val rep) where
-    toRational = underTypeError
+  toRational = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Integral (Opaque val rep) where
-    quotRem   = underTypeError
-    divMod    = underTypeError
-    toInteger = underTypeError
+  quotRem = underTypeError
+  divMod = underTypeError
+  toInteger = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Bounded (Opaque val rep) where
-    minBound = underTypeError
-    maxBound = underTypeError
+  minBound = underTypeError
+  maxBound = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Ix (Opaque val rep) where
-    range   = underTypeError
-    index   = underTypeError
-    inRange = underTypeError
+  range = underTypeError
+  index = underTypeError
+  inRange = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Semigroup (Opaque val rep) where
-    (<>) = underTypeError
+  (<>) = underTypeError
 
 instance TypeError NoConstraintsErrMsg => Monoid (Opaque val rep) where
-    mempty = underTypeError
+  mempty = underTypeError
