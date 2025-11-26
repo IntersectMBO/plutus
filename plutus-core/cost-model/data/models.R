@@ -825,8 +825,8 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem * y_mem), filtered)
-        mk.result(m, "multiplied_sizes")
+        m <- lm(t ~ I(x_mem + y_mem), filtered)
+        mk.result(m, "added_sizes")
     }         
 
     # Sizes of parameters are used as is (unwrapped):
