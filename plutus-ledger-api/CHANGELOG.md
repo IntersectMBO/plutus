@@ -1,4 +1,17 @@
 
+<a id='changelog-1.56.0.0'></a>
+# 1.56.0.0 — 2025-11-27
+
+## Added
+
+- To v3: numerator,denominator,unsafeRatio
+
+## Changed
+
+- In v3: renamed fromGHC/toGHC to fromRatioHaskell/toRatioHaskell
+
+- Add support for nothunks == 0.3.*
+
 <a id='changelog-1.55.0.0'></a>
 # 1.55.0.0 — 2025-11-11
 

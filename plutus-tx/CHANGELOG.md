@@ -1,4 +1,22 @@
 
+<a id='changelog-1.56.0.0'></a>
+# 1.56.0.0 — 2025-11-27
+
+## Removed
+
+- PlutusTx.Ratio: half
+
+## Added
+
+- Enum Ratio instance that mimicks Haskell's instance
+
+## Changed
+
+- Renamed Ratio's fromGHC/toGHC to fromRatioHaskell/toRatioHaskell
+
+- Made the (&&) and (||) operators short-circuit also in the Haskell side.
+uplc code is unaffected and is already short-circuiting.
+
 <a id='changelog-1.55.0.0'></a>
 # 1.55.0.0 — 2025-11-11
 
